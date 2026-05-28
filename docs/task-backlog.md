@@ -94,20 +94,22 @@
 - 必要に応じて、公開前の暫定確認としてブラウザDevToolsのレスポンシブ表示確認を行う。
 - ナビ導線確認。
 
-### 正式公開URL / OGP / publicUrl 差し替え準備
+### 正式公開URL / OGP / publicUrl 反映状況
 
-- 正式公開URL決定後に実施。
-- 正式公開URL決定後は `docs/release-runbook.md` に従って公開前確認、URL差し替え、公開後確認を行う。
-- `publicUrl` / `og:url` / `og:image` / favicon / OGP画像の確認。
+- 正式公開URLは `https://suisui334.github.io/velgard-site/`。
+- `data/site.json` の `publicUrl` は正式公開URLへ設定済み。
+- 全HTMLの `og:url` は正式公開URLへ差し替え済み。
+- 全HTMLの `og:image` は `https://suisui334.github.io/velgard-site/assets/images/common/ogp-main-1200x630.png` へ絶対URL化済み。
+- 公開後確認は `docs/release-runbook.md` に従って行う。
 - OGP / favicon軽量版参照切替は完了済み。
 - 現在HTMLのOGP参照は `assets/images/common/ogp-main-1200x630.png`。
 - `data/site.json` のmeta画像パスもHTML参照方針に合わせ、軽量版OGP / favicon / apple-touch-iconへ整合済み。
 - faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon-192.png`、apple-touch-iconは `assets/images/common/apple-touch-icon.png` を参照。
 - 元画像 `assets/images/common/ogp-main.png` / `assets/images/common/favicon.png` は原本として維持。
-- 正式公開URL決定後は `og:url` と `og:image` の絶対URL化が主な残作業。
-- `example.com` 残存確認。
+- Discord等でのOGP表示確認は残タスク。
+- スマホ実機確認は公開後または外部確認可能URL発行後に実施する。
+- 必要に応じて公開後キャッシュ確認を行う。
 - X / Twitterカード系metaは不要方針。
-- スマホ実機確認は正式公開後または外部確認可能URL発行後に実施する。
 
 ## 3. シナリオファイル受け入れ後にやること
 
@@ -231,4 +233,4 @@
 - `gallery-hook-*` IDを将来 `gallery-scenario-*` へ改名するか。
 - `assets/images/hooks/` を将来 `assets/images/scenarios/` へ移すか。
 - OGP軽量版PNGとfavicon軽量版で公開上問題ないか。
-- 正式公開URL決定後の差し替えタイミング。
+- 正式公開URL反映後のDiscord OGP確認とスマホ実機確認。

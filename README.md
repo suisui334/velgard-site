@@ -51,7 +51,7 @@ py -m http.server 4173 -d velgard-site
 - `docs/`
   - `docs/task-backlog.md`: 残タスク・保留事項・触らない方がよい互換要素の作業台
   - `docs/scenario-file-policy.md`: シナリオファイル受け入れ方針
-  - `docs/release-runbook.md`: 正式公開URL決定後の公開手順書
+  - `docs/release-runbook.md`: 正式公開URL反映後の公開確認手順書
 
 ## data/*.json の役割
 - `site.json`: サイト共通設定、theme、meta関連
@@ -93,10 +93,15 @@ py -m http.server 4173 -d velgard-site
 - `site.json` へ以下を反映済み
   - `keyvisual`: `assets/images/common/key-visual-main.png`
   - `logoImage`: `assets/images/common/velgard-logo.png`
-  - `meta.ogImage`: `assets/images/common/ogp-main.png`
-  - `meta.favicon`: `assets/images/common/favicon.png`
+  - `publicUrl`: `https://suisui334.github.io/velgard-site/`
+  - `meta.ogImage`: `assets/images/common/ogp-main-1200x630.png`
+  - `meta.favicon`: `assets/images/common/favicon-32.png`
+  - `meta.faviconLarge`: `assets/images/common/favicon-192.png`
+  - `meta.appleTouchIcon`: `assets/images/common/apple-touch-icon.png`
   - `theme.backgroundImage`: `assets/images/common/background-mistwall.png`
-- HTML head の `og:image` は軽量版 `assets/images/common/ogp-main-1200x630.png` を参照
+- 正式公開URLは `https://suisui334.github.io/velgard-site/`
+- HTML head の `og:url` は正式公開URLへ差し替え済み
+- HTML head の `og:image` は軽量版 `https://suisui334.github.io/velgard-site/assets/images/common/ogp-main-1200x630.png` を絶対URLで参照
 - HTML head のfaviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon-192.png` を参照
 - HTML head に `assets/images/common/apple-touch-icon.png` を追加済み
 - 元画像 `assets/images/common/ogp-main.png` / `assets/images/common/favicon.png` は原本として維持
@@ -1232,9 +1237,9 @@ py -m http.server 4173 -d velgard-site
 
 本サイトは身内向け共有を想定しています。X等のSNS拡散は現時点では想定していないため、X / Twitterカード互換metaは整備対象外です。
 
-DiscordでURLを貼った際の表示を整えるため、OGP metaを各HTMLに設定しています。現在のHTML参照用OGP画像は軽量版 `assets/images/common/ogp-main-1200x630.png` です。Discord側がページとOGP画像へアクセスできる必要があるため、ローカル環境ではプレビュー確認できません。正式公開URL決定後、`publicUrl` / `og:url` / `og:image` は絶対URLへ差し替えてください。
+正式公開URLは `https://suisui334.github.io/velgard-site/` です。DiscordでURLを貼った際の表示を整えるため、`data/site.json` の `publicUrl`、全HTMLの `og:url`、全HTMLの `og:image` を正式URLへ反映済みです。OGP画像は軽量版 `assets/images/common/ogp-main-1200x630.png` を使用し、HTML上では `https://suisui334.github.io/velgard-site/assets/images/common/ogp-main-1200x630.png` の絶対URLで参照しています。
 
-正式公開URL決定後の差し替え手順、公開前最終チェック、公開後確認は `docs/release-runbook.md` に分離しています。
+Discord共有時にOGP画像が表示されるかは次工程で確認します。公開後確認の手順は `docs/release-runbook.md` に分離しています。
 
 旧仮画像 `assets/images/common/ogp-placeholder.svg` と原本 `assets/images/common/ogp-main.png` は残していますが、現在のHTML参照は軽量版PNGです。
 
@@ -1274,7 +1279,7 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - READMEは現状概要と主要運用方針を中心にする。
 - `docs/task-backlog.md` は今後の作業判断・優先順位管理に使う。
 - シナリオファイル受け入れ方針は `docs/scenario-file-policy.md` に分離済み。
-- 正式公開URL決定後の公開手順は `docs/release-runbook.md` に分離済み。
+- 正式公開URL反映後の公開確認手順は `docs/release-runbook.md` に分離済み。
 - シナリオ本文・PDF受け入れ基盤は実装済み。配布シナリオ本文作成と実ファイル配置はユーザー提供ファイル待ち。初期方針はTXT正本 / PDF任意で、本文・PDF・配布ファイルを受け取ってから反映する。
 - 互換維持中の `hooks.html` / `data/hooks.json` / `gallery-hook-*` ID / `assets/images/hooks/` / `characters.json` の `relatedHooks` は、未対応ではなく意図的な保留として扱う。
 
@@ -1285,6 +1290,6 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - 既存IDを不用意に変更しない
 - 確定表記を維持する
 - 禁止旧表記を復活させない
-- OGP正式URLと正式画像は後で差し替える
+- OGP画像は正式公開URLの絶対URLへ差し替え済み
 - X / Twitterカード互換metaは今回不要
-- 現在のHTML上のOGP参照は `assets/images/common/ogp-main-1200x630.png`。正式公開URL決定後に絶対URL化する
+- 現在のHTML上のOGP参照は `https://suisui334.github.io/velgard-site/assets/images/common/ogp-main-1200x630.png`

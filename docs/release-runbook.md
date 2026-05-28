@@ -1,32 +1,34 @@
 # ヴェルガルド公開サイト release-runbook
 
-この文書は、正式公開URLが決定した後に行う公開前確認、URL差し替え、公開後確認を整理する制作管理用手順書です。現時点では正式公開URLが未定のため、`publicUrl` / `og:url` / `og:image` の本差し替えは行いません。
+この文書は、正式公開URL反映後に行う公開確認と公開後確認を整理する制作管理用手順書です。正式公開URLは `https://suisui334.github.io/velgard-site/` です。
 
 ## 1. 公開前提
 
-- 正式公開URLが決定してから実施する。
-- 現時点ではURL未定のため、実差し替えは行わない。
+- 正式公開URLは `https://suisui334.github.io/velgard-site/`。
+- `data/site.json` の `publicUrl` は正式公開URLへ反映済み。
+- 各HTMLの `og:url` は正式公開URLへ差し替え済み。
+- 各HTMLの `og:image` は正式公開URLから始まる絶対URLへ差し替え済み。
 - 身内向け公開を想定する。
 - Discord共有を想定する。
 - Twitter / Xカード系metaは不要方針とする。
 - シナリオ本文はユーザー提供ファイル待ちであり、Codex / ChatGPT が勝手に本文を作成しない。
 
-## 2. 正式公開URL決定後に差し替えるもの
+## 2. 正式公開URL反映済みのもの
 
 - `data/site.json` の `publicUrl`。
 - 各HTMLの `og:url`。
 - 各HTMLの `og:image`。
 - canonical系URLがある場合はそのURL。
 - README / QA / backlog 内の公開URL記述。
-- `example.com` の残存。
-- 相対パスのままにするものと絶対URLへ置き換えるものの切り分け。
+- `example.com` のHTML内残存確認。
+- OGP画像の絶対URL化。
 
 ## 3. OGP / favicon画像方針
 
 - 現在HTML参照用のOGP画像は軽量版 `assets/images/common/ogp-main-1200x630.png`。
 - `data/site.json` の `meta.ogImage` / `meta.favicon` も軽量版参照へ整合済み。
 - 元画像 `assets/images/common/ogp-main.png` は原本として維持する。
-- 正式公開後は `og:image` を正式公開URLから始まる絶対URLにする。
+- 現在のHTML上の `og:image` は `https://suisui334.github.io/velgard-site/assets/images/common/ogp-main-1200x630.png`。
 - Discord等でOGP画像、タイトル、descriptionが正しく表示されるか確認する。
 - favicon軽量版 `assets/images/common/favicon-32.png` / `assets/images/common/favicon-192.png` はHTMLへ反映済み。
 - 元画像 `assets/images/common/favicon.png` は原本として維持する。
@@ -55,8 +57,9 @@
 
 ## 5. 公開後確認
 
-- 公開URLへアクセスできる。
+- GitHub Pagesの公開URL `https://suisui334.github.io/velgard-site/` へアクセスできる。
 - トップページが表示される。
+- 主要ページがGitHub Pages上で表示される。
 - OGPがDiscord等で表示される。
 - スマホ実機で主要ページを確認する。
 - スマホ実機でモーダルを確認する。
@@ -75,7 +78,7 @@
 
 ## 7. やらないこと
 
-- 正式公開URL未定のまま `publicUrl` / `og:url` を本差し替えしない。
+- 正式公開URLと異なるURLへ `publicUrl` / `og:url` を差し替えない。
 - シナリオ本文を勝手に作らない。
 - `hooks.html` / `data/hooks.json` を今すぐ削除しない。
 - `gallery-hook-*` IDや `assets/images/hooks/` を今すぐ改名・移動しない。

@@ -932,26 +932,29 @@
 - [ ] 全HTMLにdescriptionが設定されている
 - [ ] 全HTMLにDiscord共有向けOGPタグが設定されている
 - [ ] X / Twitterカード互換metaを追加していない
-- [ ] 全HTMLの `og:image` が `assets/images/common/ogp-main-1200x630.png` を参照している
+- [ ] `data/site.json` の `publicUrl` が `https://suisui334.github.io/velgard-site/` になっている
+- [ ] 全HTMLの `og:url` が `https://example.com/...` ではない
+- [ ] 全HTMLの `og:url` が `https://suisui334.github.io/velgard-site/...` になっている
+- [ ] 全HTMLの `og:image` が相対パスではなく絶対URLになっている
+- [ ] 全HTMLの `og:image` が `https://suisui334.github.io/velgard-site/assets/images/common/ogp-main-1200x630.png` を参照している
 - [ ] 全HTMLの favicon が `assets/images/common/favicon-32.png` / `assets/images/common/favicon-192.png` を参照している
 - [ ] 全HTMLに `apple-touch-icon` が設定されている
 - [ ] `data/site.json` の `meta.ogImage` が `assets/images/common/ogp-main-1200x630.png` を指している
 - [ ] `data/site.json` の `meta.favicon` が `assets/images/common/favicon-32.png` を指している
 - [ ] `data/site.json` の `meta.faviconLarge` が `assets/images/common/favicon-192.png` を指している
 - [ ] `data/site.json` の `meta.appleTouchIcon` が `assets/images/common/apple-touch-icon.png` を指している
-- [ ] `data/site.json` の `publicUrl` は正式公開URL決定まで空である
 - [ ] 元画像 `assets/images/common/ogp-main.png` / `assets/images/common/favicon.png` が原本として残っている
 - [ ] `assets/images/common/ogp-main-1200x630.png` が存在する
 - [ ] `assets/images/common/favicon-32.png` が存在する
 - [ ] `assets/images/common/favicon-192.png` が存在する
 - [ ] `assets/images/common/apple-touch-icon.png` が存在する
-- [ ] 正式公開URL未定のため、og:url / og:image は後で差し替える必要があることをREADMEに記載している
-- [ ] Discordプレビュー確認は正式公開後に行う旨をREADMEに記載している
-- [ ] 現在のOGP参照が軽量版PNGであり、正式公開URL決定後に絶対URL化することをREADMEに記載している
+- [ ] Discordで共有した際にOGP画像が表示されるか確認する
+- [ ] 正式公開URLとOGP絶対URL化がREADMEに記載されている
 
 ## release-runbook確認
 - [ ] `docs/release-runbook.md` が存在する
-- [ ] 正式公開URL決定後の `publicUrl` / `og:url` / `og:image` 差し替え手順が整理されている
+- [ ] 正式公開URL `https://suisui334.github.io/velgard-site/` が記載されている
+- [ ] `publicUrl` / `og:url` / `og:image` が反映済みとして整理されている
 - [ ] 現在HTML参照用のOGP画像 `assets/images/common/ogp-main-1200x630.png` が記載されている
 - [ ] 公開前最終チェック項目が整理されている
 - [ ] 公開後スマホ実機確認が残タスクとして整理されている
@@ -1131,7 +1134,7 @@
 - [ ] シナリオファイル受け入れ方針が `docs/scenario-file-policy.md` に分離されている
 - [ ] `hooks.html` / `data/hooks.json` / `gallery-hook-*` / `assets/images/hooks/` / `characters.json` の `relatedHooks` が互換維持として整理されている
 - [ ] 公開前総点検 v2 の候補が整理されている
-- [ ] 正式公開URL決定後の公開手順が `docs/release-runbook.md` に分離されている
+- [ ] 正式公開URL反映後の公開確認手順が `docs/release-runbook.md` に分離されている
 - [ ] 日付整理方針が今後の確認項目として残っている
 - [ ] `docs/task-backlog.md` で、シナリオ本文を自動作成する前提になっていない
 - [ ] `docs/task-backlog.md` で、互換維持中の hooks 系要素が誤って削除済み扱いになっていない
