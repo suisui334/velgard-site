@@ -127,6 +127,11 @@ export async function renderGallery(root, site) {
   const nextButton = root.querySelector(".gallery-modal-next");
   const modalCounter = root.querySelector("#gallery-modal-counter");
   let lastFocused = null;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchLatestX = 0;
+  let touchLatestY = 0;
+  let isTrackingSwipe = false;
 
   const draw = () => {
     const selected = filter.value;
@@ -173,6 +178,66 @@ export async function renderGallery(root, site) {
     updateModal();
   };
 
+  const resetSwipeTracking = () => {
+    touchStartX = 0;
+    touchStartY = 0;
+    touchLatestX = 0;
+    touchLatestY = 0;
+    isTrackingSwipe = false;
+  };
+
+  const beginSwipeTracking = (event) => {
+    if (modal.hidden || event.touches.length !== 1) {
+      resetSwipeTracking();
+      return;
+    }
+
+    const touch = event.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    touchLatestX = touch.clientX;
+    touchLatestY = touch.clientY;
+    isTrackingSwipe = true;
+  };
+
+  const updateSwipeTracking = (event) => {
+    if (!isTrackingSwipe || modal.hidden) return;
+
+    if (event.touches.length !== 1) {
+      resetSwipeTracking();
+      return;
+    }
+
+    const touch = event.touches[0];
+    touchLatestX = touch.clientX;
+    touchLatestY = touch.clientY;
+  };
+
+  const finishSwipeTracking = (event) => {
+    if (!isTrackingSwipe || modal.hidden) {
+      resetSwipeTracking();
+      return;
+    }
+
+    if (event.changedTouches.length === 1) {
+      touchLatestX = event.changedTouches[0].clientX;
+      touchLatestY = event.changedTouches[0].clientY;
+    }
+
+    const deltaX = touchLatestX - touchStartX;
+    const deltaY = touchLatestY - touchStartY;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    const isHorizontalSwipe = absX >= 50 && absX > absY * 1.4;
+
+    if (isHorizontalSwipe) {
+      event.preventDefault();
+      moveModal(deltaX < 0 ? 1 : -1);
+    }
+
+    resetSwipeTracking();
+  };
+
   const openModal = (id, trigger) => {
     modalItems = [...visibleItems];
     modalIndex = modalItems.findIndex((item) => item.id === id);
@@ -213,6 +278,10 @@ export async function renderGallery(root, site) {
       moveModal(1);
     }
   });
+  modal.addEventListener("touchstart", beginSwipeTracking, { passive: true });
+  modal.addEventListener("touchmove", updateSwipeTracking, { passive: true });
+  modal.addEventListener("touchend", finishSwipeTracking);
+  modal.addEventListener("touchcancel", resetSwipeTracking, { passive: true });
   document.addEventListener("keydown", (event) => {
     if (modal.hidden) return;
 

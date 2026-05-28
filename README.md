@@ -162,9 +162,9 @@ py -m http.server 4173 -d velgard-site
 ### 最新更新表示
 - トップページでは `updates.json` から最新3件を控えめに表示
 - 現在の最新3件は以下
+  - ギャラリーのスワイプ操作を追加
   - 表示余白とトップ表示を調整
   - カレンダー表示を調整
-  - 細部UIを調整
 
 ## regulation正式規約ページ反映状況
 - `regulation.html` は準備中ではなく、正式規約ページとして公開中
@@ -771,7 +771,7 @@ py -m http.server 4173 -d velgard-site
 - `assets/js/*.js` 構文OK
 - version付き `main.js` / `renderScenarios.js` / `renderScenarioDetail.js` / `renderSpotDetail.js` HTTP 200
 - `gallery.html` / `spot-detail.html` / `characters.html` の既存モーダル維持
-- 現在の `updates.json` は37件
+- 現在の `updates.json` は38件
 - 禁止旧表記・旧IDの復活なし
 
 ### 後工程候補
@@ -856,6 +856,12 @@ py -m http.server 4173 -d velgard-site
   - 検索結果件数を表示し、0件時は「検索条件に合う画像がありません。」を表示
   - 検索結果内でgalleryモーダルの前へ / 次へ移動が可能
   - 390px幅で検索欄とカテゴリ欄の余白を調整済み
+- gallery画像モーダルはスマホ・タブレット向けに左右スワイプで前後移動できる
+  - 左スワイプで次の画像へ、右スワイプで前の画像へ移動
+  - 既存の `moveModal()` を再利用し、前へ / 次へボタン、左右キー操作と同じ `modalItems` を使う
+  - 検索・カテゴリ絞り込み後の現在表示リスト内でスワイプ移動する
+  - 1本指、横移動50px以上、横移動優勢のときだけ反応し、縦スワイプや短いタップ風操作では移動しない
+  - 390px幅で横スクロールなし、ユーザー実ブラウザ確認済み
 
 ## ギャラリーモーダル移動導線追加状況
 - `gallery.html` の画像モーダルに前へ / 次へ操作を追加済み
@@ -900,6 +906,7 @@ py -m http.server 4173 -d velgard-site
   - `renderGallery.js` の `data/gallery.json` fetch
 - gallery検索機能では `v=20260528-gallery-search` を適用済み
 - gallery検索UIのスマホ幅余白修正では `v=20260528-gallery-search-layout` を適用済み
+- galleryスワイプ対応では `v=20260529-gallery-swipe` を適用済み
 
 ### 確認状況
 - `data/*.json` parse OK
@@ -920,6 +927,7 @@ py -m http.server 4173 -d velgard-site
 - `characters.html` HTTP 200
 - `gallery-modal` 系クラスのみ追加・利用し、`spot-image-modal` 系 / `character-image-modal` 系と衝突なし
 - ユーザー実ブラウザで前へ / 次へ、左右キー、ループ移動、カテゴリフィルター中の前後移動を確認済み
+- ユーザー実ブラウザで左右スワイプ、検索・カテゴリ絞り込み後リスト内でのスワイプ移動、390px幅横スクロールなしを確認済み
 
 ## 用語集整備状況
 - `data/terms.json` の既存27件について、PL向け公開情報として読みやすい簡潔版説明文を反映済み
@@ -1006,7 +1014,14 @@ py -m http.server 4173 -d velgard-site
 - キャッシュ対策は `v=20260528-back-to-top`
 
 ## 更新履歴追記
-`data/updates.json` は現在37件です。以下の更新履歴を追加済みです。
+`data/updates.json` は現在38件です。以下の更新履歴を追加済みです。
+
+### 2026-05-29 ギャラリーのスワイプ操作を追加
+- 日付: 2026-05-29
+- タイトル: ギャラリーのスワイプ操作を追加
+- 本文: スマホ・タブレット向けに、ギャラリー画像モーダルで左右スワイプによる前後移動に対応しました。
+- 対象: GALLERY
+- タグ: UI
 
 ### 2026-05-29 表示余白とトップ表示を調整
 - 日付: 2026-05-29

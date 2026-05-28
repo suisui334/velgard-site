@@ -11,7 +11,7 @@ import { renderCharacters } from "./renderCharacters.js?v=20260529-ui-polish";
 import { renderScenarios } from "./renderScenarios.js?v=20260529-scenario-release-base";
 import { renderScenarioDetail } from "./renderScenarioDetail.js?v=20260529-scenario-release-base";
 import { renderTerms } from "./renderTerms.js?v=20260526-term-anchor";
-import { renderGallery } from "./renderGallery.js?v=20260528-gallery-search";
+import { renderGallery } from "./renderGallery.js?v=20260529-gallery-swipe";
 import { renderUpdates } from "./renderUpdates.js";
 import { renderTools } from "./renderTools.js?v=20260529-tools-history-full";
 import { renderCalendar } from "./renderCalendar.js?v=20260529-calendar-cap-start";
