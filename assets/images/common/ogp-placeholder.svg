@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">??????????????? OGP placeholder</title>
+  <desc id="desc">Temporary OGP image for Velgard</desc>
+  <rect width="1200" height="630" fill="#2f3438"/>
+  <path d="M0 420 C190 360 300 500 480 430 C650 365 760 445 940 390 C1060 354 1130 372 1200 345 L1200 630 L0 630 Z" fill="#56606a" opacity="0.64"/>
+  <path d="M90 455 H1110" stroke="#b99a52" stroke-width="10" opacity="0.68"/>
+  <path d="M210 610 L520 420 M990 610 L680 420" stroke="#d4d0c4" stroke-width="18" stroke-linecap="round" opacity="0.62"/>
+  <path d="M250 575 H950 M320 525 H880 M390 478 H810" stroke="#222426" stroke-width="8" opacity="0.7"/>
+  <g fill="#b8a2cf" opacity="0.9">
+    <circle cx="155" cy="145" r="7"/><circle cx="215" cy="180" r="4"/><circle cx="960" cy="145" r="6"/><circle cx="1015" cy="210" r="4"/><circle cx="830" cy="105" r="5"/>
+  </g>
+  <g stroke="#b8a2cf" stroke-width="3" opacity="0.38" fill="none">
+    <path d="M95 205 C210 150 275 230 390 175"/>
+    <path d="M760 220 C900 150 980 240 1110 170"/>
+  </g>
+  <rect x="74" y="78" width="1052" height="474" rx="18" fill="none" stroke="#c9cdc8" stroke-width="2" opacity="0.35"/>
+  <text x="92" y="185" fill="#f4f2ec" font-family="serif" font-size="54" font-weight="700">???????????????</text>
+  <text x="92" y="282" fill="#ffffff" font-family="Arial, sans-serif" font-size="96" font-weight="800" letter-spacing="8">VELGARD</text>
+  <text x="96" y="350" fill="#d4d0c4" font-family="Arial, sans-serif" font-size="30" letter-spacing="5">OGP IMAGE COMING SOON</text>
+</svg>

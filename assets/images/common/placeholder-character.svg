@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 506" role="img" aria-label="Character placeholder">
+  <rect width="900" height="506" fill="#f1efec"/>
+  <circle cx="450" cy="196" r="82" fill="#b8a2cf" opacity=".42"/>
+  <path d="M300 430c18-88 72-138 150-138s132 50 150 138" fill="#56606a" opacity=".54"/>
+  <path d="M210 84h480v338H210z" fill="none" stroke="#b99a52" stroke-opacity=".48" stroke-width="12"/>
+  <text x="450" y="466" text-anchor="middle" fill="#2f3438" font-family="serif" font-size="34" font-weight="700">CHARACTER</text>
+</svg>

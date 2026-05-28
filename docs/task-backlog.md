@@ -1,0 +1,234 @@
+# ヴェルガルド公開サイト task-backlog
+
+この文書は、公開前後の残タスク、保留事項、触らない方がよい互換要素を整理する作業台です。利用者向け更新履歴ではなく、制作管理用のメモとして扱います。
+
+## 1. 現在の基準状態
+
+- `updates.json` は36件。
+- 最新更新は 2026-05-29「カレンダー表示を調整」。
+- `scenarios.html` は正式な SCENARIOS / シナリオ入口。
+- `hooks.html` は既存リンク互換入口として維持。
+- `data/scenarios.json` は7件、`data/hooks.json` は7件維持。
+- `scenarios.json` と `hooks.json` のIDは一致。
+- `assets/js/renderHooks.js` は削除済み。
+- `scenario-detail.html` は `data/scenarios.json` を参照。
+- `data/scenarios.json` は既存7件すべて `releaseStatus: preparing`。
+- シナリオ本文・PDF受け入れ基盤は実装済み。
+- `scenario-detail.html` は配布情報セクションを表示し、将来の `textUrl` / `pdfUrl` に対応できる。
+- 実シナリオ本文 `.txt` / PDF の配置と `textUrl` / `pdfUrl` の実URL追加は未実施。
+- `spotDetails.json` は8件で、`relatedScenarioIds` は8スポット分、`relatedHookIds` は0件。
+- `renderSpotDetail.js` は `relatedScenarioIds` / `scenarios.json` 正本。
+- `gallery.json` は41件で、`category: scenarios` は7件、`category: hooks` は0件。
+- `gallery-hook-*` ID は7件維持。
+- `assets/images/hooks/` は7画像維持。
+- `characters.json` の `relatedHooks` は20件維持。`spotDetails.json` の `relatedHookIds` とは別スキーマとして扱う。
+- mapsカテゴリは9件。
+- `tools.html` は補助ツールページとして追加済み。
+- ランダム表ツールは実装済みで、実本文データ反映済み。
+- TDA自動分岐、TDB〜TDFの1d36、TDG〜TDLの1d12、アビス浸蝕表の2D6に対応済み。
+- TOP左側縦ナビに `TOOLS` 導線を追加済み。
+- ランダム表ツールの結果コピー機能と履歴別コピー機能は追加済み。
+- ランダム表ツールの履歴まとめコピー機能は追加済み。
+- ランダム表ツールの履歴表示上限は撤廃済みで、同一ページ表示中に振った結果は全件表示する。
+- ランダム表ツールの表選択UI見切れは標準selectのまま緩和済み。
+- `regulation.html` の右側目次見切れは調整済み。
+- `spot-detail.html` の関連キャラクターリンクは、`characters.html#character-<characterId>` で該当カード位置へ遷移できる。
+- 全ページ共通の「ページ上部へ戻る」ボタンは追加済み。
+- 「ページ上部へ戻る」ボタンは、スクロール後に表示し、同一ページの最上部へ戻る仕様。
+- 「ページ上部へ戻る」ボタンはモーダル干渉対策済みで、390px幅確認済み。
+- ラクシア運用カレンダー Phase 1 は実装済み。
+- `calendar.html` は独立ページとして追加済み。
+- `data/calendarConfig.json` は開始日、ラクシア暦、季節、月齢、レベルキャップの設定元。
+- 月表示カレンダー、日付換算、季節、月齢、レベルキャップ表示に対応済み。
+- 月表示カレンダー上で、`levelCaps[].startDate` に一致する日付に `3Lv開始` などの開始バッジを表示済み。
+- 選択日詳細カードにも、レベルキャップ開始日のみ節目表示を出す。
+- 開催期間外ではラクシア日付、季節、月齢、Lv数値を表示しない仕様。
+- ラクシア年切り替わりは3月1日起点。
+- ラクシア暦の月順は 3月〜2月。
+- ラクシア運用カレンダーは390px幅確認済み。
+- ラクシア運用カレンダー Phase 1 は読み取り専用で、セッション予定登録、外部DB/API、アカウント、Discord連携は将来フェーズ。
+- README / QA は現状反映済み。
+- 配布シナリオ本文作成は後回し。ユーザーが本文・PDF・配布ファイルを渡してから反映する。
+- 直近バックアップは `velgard-site_backup_2026-05-29_calendar-cap-start-complete`。
+
+## 2. すぐやる候補
+
+### 日付整理方針の確認
+
+- 途中まで 2026-05-24 の更新日・バックアップ名が使われていた。
+- 2026-05-28 以降は日付を修正済み。
+- 過去の 2026-05-24 記録を修正するか、履歴として残すかを別工程で判断する。
+
+### 日付運用方針
+
+- 過去の `updates.json` 日付やバックアップ名に含まれる 2026-05-24 は、原則として履歴として残す。
+- 既存バックアップフォルダ名も、追跡性を優先して原則そのまま残す。
+- 今後の新規 `updates.json` 追記日付は、その作業時点の実日付を使う。
+- 今後の新規バックアップ名も、その作業時点の実日付を使う。
+- 日付整理そのものを目的とした大規模修正は、現時点では行わない。
+- 必要になった場合のみ、別工程で日付監査を行う。
+
+### 公開前総点検 v2
+
+- 全HTML HTTP 200。
+- `data/*.json` parse。
+- `assets/js/*.js` syntax。
+- 画像参照欠損。
+- `undefined` / `null` / `[]` の画面露出。
+- 禁止旧表記・旧ID。
+- PC実ブラウザ確認 v1 は概ね問題なし。主要ページ、主要モーダル、主要ナビ導線、SCENARIOS導線、galleryカテゴリ、spot-detail関連導線、raw ID / undefined / null / [] の目立つ露出なしを確認済み。
+- PC実ブラウザでの主要モーダル実操作はv1確認済み。
+- responsive UI修正として、galleryモーダルの横長画像上寄り・黒余白問題は修正済み。
+- responsive UI修正として、world目次クリック後に該当章から目次側へ戻される問題は修正済み。
+- 上記2件は DevTools 390px幅でユーザー確認済み。キャッシュ対策は `v=20260528-responsive-ui-fix`。
+- gallery検索機能は実装済み。title / description / カテゴリ表示名 / id を対象に検索でき、カテゴリフィルターと併用可能。
+- gallery検索UIの390px幅余白は修正済み。キャッシュ対策は `v=20260528-gallery-search` / `v=20260528-gallery-search-layout`。
+- トップキービジュアルの390px幅横はみ出しと、PC幅・スマホ幅の上下余白は修正済み。キャッシュ対策は `v=20260528-home-keyvisual-overflow-fix` / `v=20260528-home-keyvisual-fit-fix`。
+- gallery検索UIとトップキービジュアル表示調整は DevTools 390px幅でユーザー確認済み。
+- ランダム表ツールは実装済み。実本文データ反映後、390px幅を含めてユーザー実ブラウザ確認済み。
+- 全ページ共通の「ページ上部へ戻る」ボタンは実装済み。スクロール後表示、同一ページ最上部へ戻る仕様、モーダル干渉対策、390px幅確認済み。
+- シナリオ本文・PDF受け入れ基盤は実装済み。`scenario-detail.html` の配布情報セクション、`textUrl` がある場合のTXTリンクとページ内本文表示欄、`pdfUrl` がある場合のPDFリンク、一覧カードの準備中 / 配布中 / 旧版バッジに対応済み。キャッシュ対策は `v=20260529-scenario-release-base`。
+- ラクシア運用カレンダー Phase 1 は実装済み。`calendar.html`、`calendarConfig.json`、月表示カレンダー、期間外表示、3月1日起点のラクシア年切り替わり、レベルキャップ開始日バッジに対応済み。キャッシュ対策は `v=20260529-calendar-cap-start`。
+- 公開前軽微UI改善バッチは完了済み。TOOLS選択UI見切れ緩和、履歴まとめコピー、履歴全件表示、regulation右側目次見切れ調整、spot-detail関連キャラクター遷移修正に対応済み。キャッシュ対策は `v=20260529-ui-polish` / `v=20260529-tools-history-full`。
+- スマホ実機確認は未実施。正式公開後または外部確認可能URL発行後に実施する。
+- 必要に応じて、公開前の暫定確認としてブラウザDevToolsのレスポンシブ表示確認を行う。
+- ナビ導線確認。
+
+### 正式公開URL / OGP / publicUrl 差し替え準備
+
+- 正式公開URL決定後に実施。
+- 正式公開URL決定後は `docs/release-runbook.md` に従って公開前確認、URL差し替え、公開後確認を行う。
+- `publicUrl` / `og:url` / `og:image` / favicon / OGP画像の確認。
+- OGP / favicon軽量版参照切替は完了済み。
+- 現在HTMLのOGP参照は `assets/images/common/ogp-main-1200x630.png`。
+- `data/site.json` のmeta画像パスもHTML参照方針に合わせ、軽量版OGP / favicon / apple-touch-iconへ整合済み。
+- faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon-192.png`、apple-touch-iconは `assets/images/common/apple-touch-icon.png` を参照。
+- 元画像 `assets/images/common/ogp-main.png` / `assets/images/common/favicon.png` は原本として維持。
+- 正式公開URL決定後は `og:url` と `og:image` の絶対URL化が主な残作業。
+- `example.com` 残存確認。
+- X / Twitterカード系metaは不要方針。
+- スマホ実機確認は正式公開後または外部確認可能URL発行後に実施する。
+
+## 3. シナリオファイル受け入れ後にやること
+
+現時点では配布シナリオ本文をこちらで作らない。ユーザーがシナリオ本文、PDF、配布ファイルを渡した後に、`docs/scenario-file-policy.md` の方針に沿って検討・実装する。
+
+- 初期方針は TXT正本 / PDF任意 / HTML将来対応。
+- `.txt` はユーザー提供のシナリオ本文原本として扱う。
+- PDFは任意の整形版として追加できる。
+- HTML本文表示は将来対応とする。
+- 配布ファイル配置先は `assets/scenarios/<scenario-id>/` を推奨する。
+- 本文受領後に `assets/scenarios/<scenario-id>/` へ配置し、`scenarios.json` の `textUrl` / `pdfUrl` を更新する。
+- シナリオ本文公開前には、秘匿情報、敵データ、GM向け情報、結末などの公開可否を確認する。
+- 今後の手順は、本文受領 → `assets/scenarios/<scenario-id>/` 配置 → `scenarios.json` 更新 → 表示確認 → README / QA / task-backlog / updates 反映 → バックアップ。
+- Codex / ChatGPT は、ユーザーの依頼なしに配布シナリオ本文を自動作成しない。
+- 詳細な受け入れ手順、追加フィールド、命名規則、禁止事項は `docs/scenario-file-policy.md` を参照する。
+
+## 4. 後回しでよい便利機能
+
+### galleryスワイプ操作
+
+- スマホ向け。
+- 既存の前後ボタン・左右キーがあるため後回しでよい。
+
+### maps専用ページ
+
+- 地図画像が増えた場合に有効。
+
+### facilities専用ページ
+
+- 施設系画像や施設説明が増えた場合に検討。
+
+### characters詳細ページ
+
+- 現状は作らない方針。
+- 画像拡大モーダルで対応中。
+- `characters.json` の `relatedHooks` を将来活かす場合に再検討。
+
+### campaign / episode 周りの整理
+
+- 既存ページの破綻確認は必要。
+- 大改修は後回し。
+
+### editor.html 等の編集者ページ
+
+- 今は後回し。
+- データ構造が固まりきる前に作ると保守負担が増える。
+
+### ランダム表ツール
+
+- 実装済み。
+- `tools.html` 追加済み。
+- TOP左側導線追加済み。
+- `data/randomTables.json` に実本文データ反映済み。
+- TDA自動分岐対応済み。
+- アビス浸蝕表2D6対応済み。
+- 結果コピー機能追加済み。
+- 履歴別コピー機能追加済み。
+- 履歴まとめコピー機能追加済み。
+- 履歴表示上限は撤廃済み。同一ページ表示中に振った結果を全件表示する。
+- 履歴は新しい順表示を維持。
+- ページリロードで履歴が消える仕様は維持し、永続保存は未実装。
+- 表選択UIの見切れは標準selectのまま緩和済み。
+- 390px幅確認済み。
+- 今後の拡張候補として、表追加、履歴保存、カスタムselect化、スマホ向け追加操作などは必要に応じて後回し。
+
+### ページ上部へ戻るボタン
+
+- 実装済み。
+- 全ページ共通で表示。
+- スクロール後に表示し、同一ページの最上部へ戻る。
+- モーダル干渉対策済み。
+- 390px幅確認済み。
+- 完了済み扱い。
+
+### ラクシア運用カレンダー
+
+- Phase 1 は実装済み。
+- `calendar.html` 追加済み。
+- `data/calendarConfig.json` 追加済み。
+- 月表示カレンダー追加済み。
+- 現実日付からラクシア日付範囲、季節、月齢、レベルキャップを表示できる。
+- レベルキャップ開始日は、月表示カレンダー上で `3Lv開始` などの開始バッジ表示に対応済み。
+- 選択日詳細カードにも開始日のみ節目表示を出す。
+- 開催期間外ではラクシア日付、季節、月齢、Lv数値を表示しない。
+- ラクシア年切り替わりは3月1日起点。
+- 390px幅確認済み。
+- Phase 1 は読み取り専用。
+- セッション予定登録、参加申請、コメント、アカウント、外部DB/API、Discord連携は将来フェーズ。
+
+## 5. 互換維持として残すもの
+
+- `hooks.html`
+  - 既存リンク互換入口として維持。
+  - 正式導線は `scenarios.html`。
+- `data/hooks.json`
+  - 互換・比較用として維持。
+- `gallery-hook-*` ID
+  - 現時点では改名しない。
+- `assets/images/hooks/`
+  - 現時点では移動しない。
+- `characters.json` の `relatedHooks`
+  - `spotDetails.json` の `relatedHookIds` とは別スキーマ。
+  - 今は削除しない。
+
+## 6. 今は触らない方がよいもの
+
+- `gallery-hook-*` ID改名。
+- `assets/images/hooks/` の `assets/images/scenarios/` への移動。
+- `characters.json` の `relatedHooks` 削除。
+- `hooks.html` 削除。
+- `data/hooks.json` 削除。
+- 配布シナリオ本文未作成のまま hooks系全面撤去。
+- シナリオ本文の自動作成（行わない）。
+
+## 7. 将来判断が必要なもの
+
+- 過去の 2026-05-24 更新日・バックアップ名を整理するか。
+- 日付監査が必要になった場合、監査対象と修正範囲を事前に決める。
+- `hooks.html` を互換入口のまま残すか、将来案内ページ化するか。
+- `data/hooks.json` をいつまで残すか。
+- `gallery-hook-*` IDを将来 `gallery-scenario-*` へ改名するか。
+- `assets/images/hooks/` を将来 `assets/images/scenarios/` へ移すか。
+- OGP軽量版PNGとfavicon軽量版で公開上問題ないか。
+- 正式公開URL決定後の差し替えタイミング。

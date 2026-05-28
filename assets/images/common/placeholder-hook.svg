@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 506" role="img" aria-label="Hook placeholder">
+  <rect width="900" height="506" fill="#ecefed"/>
+  <path d="M450 86c70 70 132 118 132 210 0 73-59 132-132 132s-132-59-132-132c0-92 62-140 132-210z" fill="#873f35" opacity=".26"/>
+  <path d="M330 270h240M360 330h180M395 210h110" stroke="#2f3438" stroke-opacity=".46" stroke-width="20" stroke-linecap="round"/>
+  <text x="450" y="466" text-anchor="middle" fill="#2f3438" font-family="serif" font-size="34" font-weight="700">HOOK</text>
+</svg>

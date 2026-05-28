@@ -1,0 +1,77 @@
+[
+  {
+    "id": "episode-01",
+    "campaignId": "velgard-open-campaign",
+    "episodeNumber": "第1話",
+    "episodeIndex": 1,
+    "title": "サブタイトル未定",
+    "catchcopy": "灰壁線の鐘が鳴る時、冒険者たちの最初の依頼が始まる。",
+    "summary": [
+      "中央駅都の冒険者ギルド「灰壁の灯火亭」に、灰壁線に関わる小さな異変の報せが届きます。",
+      "それは単なる列車遅延なのか、外縁から迫る脅威の前触れなのか。PCたちは、ヴェルガルドという国の仕組みと、その裏側にある緊張を知ることになります。"
+    ],
+    "image": "",
+    "relatedSpots": [
+      "central-station-city",
+      "defense-railway"
+    ],
+    "relatedCharacters": [
+      "leonhardt-grave",
+      "mirika-bernhardt",
+      "iris-cantor",
+      "oscar-lowen"
+    ],
+    "status": "preparing",
+    "visibility": "public",
+    "notes": "仮あらすじ。確定シナリオではない。"
+  },
+  {
+    "id": "episode-02",
+    "campaignId": "velgard-open-campaign",
+    "episodeNumber": "第2話",
+    "episodeIndex": 2,
+    "title": "サブタイトル未定",
+    "catchcopy": "霧深い谷に咲く花は、薬にも毒にもなり得る。",
+    "summary": [
+      "花霧谷リュスベルから、薬草採取または偽薬に関わる依頼が持ち込まれます。",
+      "美しい花霧の奥には、採取民の知恵、薬師組合の規律、そして外部から流れ込む欲望が入り混じっています。PCたちは、ヴェルガルドにおける薬と毒の価値観に触れることになります。"
+    ],
+    "image": "",
+    "relatedSpots": [
+      "ryusbel-flower-mist-valley"
+    ],
+    "relatedCharacters": [
+      "seraphina-ryusbel",
+      "linaria-mirea",
+      "tove-lindt"
+    ],
+    "status": "preparing",
+    "visibility": "public",
+    "notes": "仮あらすじ。確定シナリオではない。"
+  },
+  {
+    "id": "episode-03",
+    "campaignId": "velgard-open-campaign",
+    "episodeNumber": "第3話",
+    "episodeIndex": 3,
+    "title": "サブタイトル未定",
+    "catchcopy": "契約の杯が揺れる時、共存の綻びが顔を出す。",
+    "summary": [
+      "双角市場オルムで、人族商会と蛮族氏族の間に緊張が走ります。",
+      "契約、面子、儀礼、そして外部勢力の思惑。剣を抜けば解決するとは限らない事件の中で、PCたちはヴェルガルドの人蛮共存がどれほど繊細な均衡の上にあるかを知ることになります。"
+    ],
+    "image": "",
+    "relatedSpots": [
+      "orm-twinhorn-city"
+    ],
+    "relatedCharacters": [
+      "gald-valks",
+      "melchior-orm",
+      "maura-calva",
+      "adelheid-lowenwein"
+    ],
+    "status": "preparing",
+    "visibility": "public",
+    "notes": "仮あらすじ。確定シナリオではない。"
+  }
+]

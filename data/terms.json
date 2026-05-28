@@ -1,0 +1,317 @@
+[
+  {
+    "id": "velgard",
+    "term": "ヴェルガルド",
+    "category": "地域",
+    "summary": "アルフレイム大陸北西部、ドーデン地方周辺の鉄道網から分岐した小国家です。灰壁による防衛、花霧谷の薬草文化、灰壁線の輸送網、人族と蛮族の共存制度を特徴とします。小国ながら、交通・防衛・交易の要所として独自の存在感を持っています。",
+    "relatedSpots": [],
+    "relatedCharacters": [],
+    "status": "public"
+  },
+  {
+    "id": "gray-wall",
+    "term": "灰壁",
+    "category": "防衛",
+    "summary": "ヴェルガルドの外縁を守る巨大な防壁です。単なる石壁ではなく、国の境界、防衛の象徴、そして戦没者の名を刻む記憶の場でもあります。壁の内側に暮らす人々にとって、灰壁は安全と犠牲の両方を思い出させる存在です。",
+    "relatedSpots": ["defense-railway", "grayname-temple"],
+    "relatedCharacters": ["oscar-lowen", "ernest-weiss"],
+    "status": "public"
+  },
+  {
+    "id": "gray-wall-line",
+    "term": "灰壁線",
+    "category": "交通",
+    "summary": "灰壁沿いに敷かれた防衛鉄道です。兵員や物資、負傷者、避難民を運ぶための実用路線であり、駅や線路は防衛施設としての役割も持ちます。ヴェルガルドでは、鉄道は旅の手段であると同時に、国を支える血管のようなものです。",
+    "relatedSpots": ["defense-railway"],
+    "relatedCharacters": ["iris-cantor", "oscar-lowen", "eugen-hoffmann", "pip-berlinger"],
+    "status": "public"
+  },
+  {
+    "id": "defense-railway-corporation",
+    "term": "防衛鉄道公社",
+    "category": "組織",
+    "summary": "灰壁線の運行、保守、駅設備、信号、車両管理を担う技術組織です。列車を走らせるだけでなく、外縁の駅や防衛拠点を孤立させないため、日々の点検と記録を重視しています。",
+    "relatedSpots": ["defense-railway"],
+    "relatedCharacters": ["iris-cantor", "oscar-lowen", "eugen-hoffmann"],
+    "status": "public"
+  },
+  {
+    "id": "first-graywall-fortress-station",
+    "term": "灰壁第一要塞駅",
+    "category": "施設",
+    "summary": "灰壁線外縁区にある要塞駅の一つです。乗降駅であると同時に、守備隊の交代、物資補給、線路防衛を支える拠点でもあります。駅舎そのものが防衛施設の一部として扱われています。",
+    "relatedSpots": ["defense-railway"],
+    "relatedCharacters": ["oscar-lowen"],
+    "status": "public"
+  },
+  {
+    "id": "graywall-lantern-inn",
+    "term": "灰壁の灯火亭",
+    "category": "組織",
+    "summary": "ヴェルガルド中央駅都にある冒険者ギルドです。依頼受付、報酬処理、情報共有、各地への紹介などを行い、旅人や冒険者の窓口となっています。名前の通り、灰壁の国で人々を導く灯火のような場所として親しまれています。",
+    "relatedSpots": ["central-station-city"],
+    "relatedCharacters": ["leonhardt-grave", "mirika-bernhardt"],
+    "status": "public"
+  },
+  {
+    "id": "gray-flower-council",
+    "term": "灰花評議会",
+    "category": "組織",
+    "summary": "ヴェルガルドの政治と法を担う統治機関です。王による一元支配ではなく、盟約、実務、地域代表の調整によって国を運営しています。人族と蛮族、都市と外縁、交易と防衛の利害を扱うため、慎重で現実的な判断を重んじます。",
+    "relatedSpots": ["central-station-city"],
+    "relatedCharacters": ["adelheid-lowenwein"],
+    "status": "public"
+  },
+  {
+    "id": "gray-flower-pact",
+    "term": "灰花盟約",
+    "category": "制度",
+    "summary": "ヴェルガルドにおける人族と蛮族の共存を支える基本理念と取り決めです。壁内では、種族そのものよりも行為と責任を重く見る考え方が掲げられています。ただし理想だけで成り立つ制度ではなく、現場では慎重な調整と相互の我慢も必要とされます。",
+    "relatedSpots": ["central-station-city", "orm-twinhorn-city"],
+    "relatedCharacters": ["adelheid-lowenwein", "gald-valks"],
+    "status": "public"
+  },
+  {
+    "id": "inner-wall-law",
+    "term": "壁内法",
+    "category": "制度",
+    "summary": "灰壁の内側で適用される法制度です。種族や出自だけで裁くのではなく、行為、契約、責任を基準に扱うことを重視しています。灰花盟約を支える実務的な土台であり、共存を掲げるヴェルガルドらしさが最も表れる制度のひとつです。",
+    "relatedSpots": ["central-station-city", "blackbridge-checkpoint"],
+    "relatedCharacters": ["adelheid-lowenwein", "yard-kreuz"],
+    "status": "public"
+  },
+  {
+    "id": "flower-mist-valley",
+    "term": "花霧谷",
+    "category": "地域",
+    "summary": "薬草と毒花が群生する、霧深い谷です。美しい花景色で知られますが、花粉や毒性を持つ植物も多く、外部の者には扱いの難しい土地です。薬と毒、癒やしと危険が近くにあることが、花霧谷らしさとされています。",
+    "relatedSpots": ["ryusbel-flower-mist-valley"],
+    "relatedCharacters": ["seraphina-ryusbel", "linaria-mirea", "tove-lindt"],
+    "status": "public"
+  },
+  {
+    "id": "ryusbel",
+    "term": "花霧谷リュスベル",
+    "category": "地域",
+    "summary": "花霧谷の中心的な地域です。薬草、香料、毒花、温泉に関わる文化が根づき、谷の暮らしと産業を支えています。外から見ると穏やかな山里ですが、植物と霧に寄り添って生きる独自の感覚を持つ土地です。",
+    "relatedSpots": ["ryusbel-flower-mist-valley"],
+    "relatedCharacters": ["seraphina-ryusbel", "linaria-mirea"],
+    "status": "public"
+  },
+  {
+    "id": "flower-mist-apothecaries",
+    "term": "花霧薬師組合",
+    "category": "組織",
+    "summary": "花霧谷の薬品や薬草を管理する組合です。採取、調合、薬効の確認、毒花の扱いなどに関わり、谷の知識を守る役目を持ちます。薬師たちは慎重で、花霧谷の植物を軽んじる者にはあまり寛容ではありません。",
+    "relatedSpots": ["ryusbel-flower-mist-valley"],
+    "relatedCharacters": ["seraphina-ryusbel"],
+    "status": "public"
+  },
+  {
+    "id": "hakutou-hot-springs",
+    "term": "白灯温泉郷",
+    "category": "地域",
+    "summary": "花霧谷にある温泉地です。湯治や静養の場として知られ、霧と湯けむりに包まれた穏やかな景観を持ちます。華やかな観光地というより、身体を休め、声を潜めて語るような、静かな療養地です。",
+    "relatedSpots": ["ryusbel-flower-mist-valley"],
+    "relatedCharacters": ["tove-lindt"],
+    "status": "public"
+  },
+  {
+    "id": "hakutou-an",
+    "term": "白灯庵",
+    "category": "施設",
+    "summary": "白灯温泉郷にある湯宿です。短命種メリアのトーヴェ・リントが代表を務めています。小さな宿ながら、湯治客や旅人を受け入れる場所として知られ、白灯温泉郷の落ち着いた空気を象徴する施設です。",
+    "relatedSpots": ["ryusbel-flower-mist-valley"],
+    "relatedCharacters": ["tove-lindt"],
+    "status": "public"
+  },
+  {
+    "id": "mirea-flower-pickers-village",
+    "term": "花摘み村ミレア",
+    "category": "地域",
+    "summary": "花霧谷リュスベルにある採取村です。霧の濃さや花の咲き具合を読みながら、薬草や香草を採る者たちが暮らしています。美しい村ですが、扱う植物には毒を含むものもあり、採取には経験と慎重さが求められます。",
+    "relatedSpots": ["ryusbel-flower-mist-valley"],
+    "relatedCharacters": ["linaria-mirea"],
+    "status": "public"
+  },
+  {
+    "id": "grasch-rift",
+    "term": "裂原グラシュ峡",
+    "category": "怪異",
+    "summary": "ヴェルガルド北東側を両断する巨大な裂溝地帯です。険しい地形と不安定なマナの気配で知られ、近隣の者からは軽々しく近づく場所ではないと見なされています。国にとっては、防衛上も調査上も無視できない危険地帯です。",
+    "relatedSpots": ["grasch-rift"],
+    "relatedCharacters": ["nox-wald", "wolfram-stahl"],
+    "status": "public"
+  },
+  {
+    "id": "rift-sealing-institute",
+    "term": "裂原封印院",
+    "category": "組織",
+    "summary": "裂原グラシュ峡の異常を監視し、封印の維持を担う組織です。旧時代の城砦を転用した拠点を構え、裂原周辺の記録や観測を管理しています。外部への情報公開には慎重で、必要な範囲だけを伝える傾向があります。",
+    "relatedSpots": ["grasch-rift"],
+    "relatedCharacters": ["nox-wald"],
+    "status": "public"
+  },
+  {
+    "id": "grasch-ironbridge-fort-city",
+    "term": "グラシュ鉄橋砦市",
+    "category": "地域",
+    "summary": "裂原グラシュ峡周辺に築かれた砦市です。峡谷を渡る鉄橋と線路を抱え、防衛・交通・調査の要所となっています。荒々しい地形に寄り添う実務的な町であり、旅人にも緊張感を感じさせる場所です。",
+    "relatedSpots": ["grasch-rift"],
+    "relatedCharacters": ["nox-wald", "wolfram-stahl"],
+    "status": "public"
+  },
+  {
+    "id": "twinhorn-market-orm",
+    "term": "双角市場オルム",
+    "category": "地域",
+    "summary": "人族商会と蛮族氏族が取引を行う交易市場です。契約、面子、儀礼が重んじられ、単なる売買の場ではなく、共存制度の実際が見える場所でもあります。活気と緊張が同居する、ヴェルガルドらしい市場です。",
+    "relatedSpots": ["orm-twinhorn-city"],
+    "relatedCharacters": ["gald-valks", "melchior-orm", "maura-calva"],
+    "status": "public"
+  },
+  {
+    "id": "horned-clan-union",
+    "term": "角持ち氏族連合",
+    "category": "組織",
+    "summary": "双角市場オルム周辺で影響力を持つ蛮族側の氏族連合です。氏族ごとの誇りや慣習を保ちながら、灰花盟約との折り合いを探っています。ひとつの組織というより、複数の氏族の利害を束ねる場に近い存在です。",
+    "relatedSpots": ["orm-twinhorn-city"],
+    "relatedCharacters": ["gald-valks", "maura-calva"],
+    "status": "public"
+  },
+  {
+    "id": "twinhorn-merchant-league",
+    "term": "双角商会連盟",
+    "category": "組織",
+    "summary": "双角市場オルムの商取引を支える商会連盟です。人族商人を中心に、流通、契約、取引秩序の維持に関わっています。利益を重んじる現実的な組織ですが、共存市場を動かすための調整役でもあります。",
+    "relatedSpots": ["orm-twinhorn-city"],
+    "relatedCharacters": ["melchior-orm"],
+    "status": "public"
+  },
+  {
+    "id": "horn-cup-oath",
+    "term": "角杯の誓い",
+    "category": "文化",
+    "summary": "双角市場オルム周辺で重んじられる誓約儀礼です。角杯を交わすことは、契約と面子を守る意思を示します。法的な契約とは別に、相手への敬意と覚悟を表す行為として扱われ、軽く見ると信頼を損ねます。",
+    "relatedSpots": ["orm-twinhorn-city"],
+    "relatedCharacters": ["gald-valks", "melchior-orm", "maura-calva"],
+    "status": "public"
+  },
+  {
+    "id": "felsen-mining-town",
+    "term": "フェルゼ坑町",
+    "category": "地域",
+    "summary": "煤煙鉱山フェルゼ坑を中心に形成された鉱山町です。灰壁線外縁区最西端の駅としての顔も持ち、鉱夫、職人、輸送業者が行き交います。煤けた空気と実直な労働の気配が濃い、産業の町です。",
+    "relatedSpots": ["felsen-mining-town"],
+    "relatedCharacters": ["brigitte-felsen"],
+    "status": "public"
+  },
+  {
+    "id": "felsen-mine",
+    "term": "煤煙鉱山フェルゼ坑",
+    "category": "施設",
+    "summary": "フェルゼ坑町の中心となる鉱山です。鉄、石炭、建材、魔晶石片などを産出し、灰壁や灰壁線を支えています。豊かな資源をもたらす一方、坑道の奥には常に危険が潜むと見なされています。",
+    "relatedSpots": ["felsen-mining-town"],
+    "relatedCharacters": ["brigitte-felsen"],
+    "status": "public"
+  },
+  {
+    "id": "blackbridge-checkpoint",
+    "term": "黒橋関所",
+    "category": "施設",
+    "summary": "ヴェルガルドへ出入りする人と物資を管理する関所です。通行証、関税、禁制品、身元確認を扱い、国境の秩序を保っています。旅人にとっては面倒な門であり、国にとっては欠かせない防衛線です。",
+    "relatedSpots": ["blackbridge-checkpoint"],
+    "relatedCharacters": ["yard-kreuz"],
+    "status": "public"
+  },
+  {
+    "id": "blackbridge-customs",
+    "term": "黒橋関税局",
+    "category": "組織",
+    "summary": "黒橋関所で通行許可、関税、禁制品管理を担う組織です。規則を守るだけでなく、商人、旅人、役人、兵の事情を見極める現場判断も求められます。堅苦しいが、国の出入口を支える実務組織です。",
+    "relatedSpots": ["blackbridge-checkpoint"],
+    "relatedCharacters": ["yard-kreuz"],
+    "status": "public"
+  },
+  {
+    "id": "wall-crawlers",
+    "term": "壁潜り",
+    "category": "裏社会",
+    "summary": "灰壁や関所の監視を逃れ、裏道や抜け道を使う者たちの通称です。密輸や逃亡と結びつけて語られますが、その実態は一枚岩ではありません。裏社会の影を映す言葉であり、表の秩序からこぼれた者たちの呼び名でもあります。",
+    "relatedSpots": ["central-station-city", "blackbridge-checkpoint"],
+    "relatedCharacters": ["schiin-nebel", "yard-kreuz"],
+    "status": "public"
+  },
+  {
+    "id": "grayname-temple",
+    "term": "灰名神殿会",
+    "category": "組織",
+    "summary": "死者名簿の管理、葬送、戦没者の記録を担う、賢神キルヒアを祀る神殿組織です。知識と記録を重んじる信仰のもと、灰壁に刻まれた名を守り、死者を忘れないことを国の務めとしています。",
+    "relatedSpots": ["grayname-temple"],
+    "relatedCharacters": ["ernest-weiss"],
+    "status": "public"
+  },
+  {
+    "id": "death-register",
+    "term": "死者名簿",
+    "category": "文化",
+    "summary": "灰名神殿会が管理する、確認済み死者の記録です。誰が、どこで、どのように亡くなったのか、遺体や遺灰が埋葬されたのか、灰壁に名を刻む対象かどうかなどを照合するために用いられます。",
+    "relatedSpots": ["grayname-temple"],
+    "relatedCharacters": ["ernest-weiss"],
+    "status": "public"
+  },
+  {
+    "id": "missing-returnees-register",
+    "term": "未帰還簿",
+    "category": "文化",
+    "summary": "名は分かっているものの、遺体や遺灰が見つからず、死亡確認もできていない者を記録する帳簿です。死者として急いで閉じるのではなく、最後の目撃地、所属、同行者、捜索状況などを残します。",
+    "relatedSpots": ["grayname-temple"],
+    "relatedCharacters": ["ernest-weiss"],
+    "status": "public"
+  },
+  {
+    "id": "unidentified-deceased",
+    "term": "未詳者",
+    "category": "文化",
+    "summary": "遺体や遺留品などは確認されているものの、名前が分からない者を指します。灰名神殿会では勝手に名を与えず、発見場所、特徴、所持品、証言などを仮記録として残し、いつか名が戻る余地を保ちます。",
+    "relatedSpots": ["grayname-temple"],
+    "relatedCharacters": ["ernest-weiss"],
+    "status": "public"
+  },
+  {
+    "id": "unidentified-disappearance-record",
+    "term": "未詳失踪記録",
+    "category": "文化",
+    "summary": "名前も遺体も確認できない失踪事案を、出来事単位で残す記録です。灰名神殿会では、消えた場所、時刻、同行者の証言、現地の異常などを記録し、名がないからこそ忘れられないように扱います。",
+    "relatedSpots": ["grayname-temple"],
+    "relatedCharacters": ["ernest-weiss"],
+    "status": "public"
+  },
+  {
+    "id": "name-waiting-tag",
+    "term": "名待ち札",
+    "category": "文化",
+    "summary": "名がまだ確認できない死者や失踪者のため、灰名神殿会に置かれる仮の祈り札です。墓でも灰壁の刻名でもなく、名が戻る可能性を残すための小さな目印として扱われます。",
+    "relatedSpots": ["grayname-temple"],
+    "relatedCharacters": ["ernest-weiss"],
+    "status": "public"
+  },
+  {
+    "id": "names-carved-on-gray-wall",
+    "term": "灰壁に刻まれた名",
+    "category": "文化",
+    "summary": "国を守るために命を落とした者たちの名です。灰壁に刻まれたそれらの名は、単なる記録ではなく、ヴェルガルドが何を犠牲に守られてきたかを示しています。人々はそこに敬意と悼みを向けます。",
+    "relatedSpots": ["defense-railway", "grayname-temple"],
+    "relatedCharacters": ["ernest-weiss"],
+    "status": "public"
+  },
+  {
+    "id": "abandoned-station-norden",
+    "term": "廃駅ノルデン",
+    "category": "施設",
+    "summary": "灰壁線外縁区に属する廃駅です。かつて使われていた駅ですが、現在は通常の路線運用から外れています。鉄道施設としての名残を残す一方、事故や怪異の噂がまとわりつき、人々には近寄りがたい場所とされています。",
+    "relatedSpots": ["defense-railway"],
+    "relatedCharacters": ["eugen-hoffmann"],
+    "status": "public"
+  }
+]

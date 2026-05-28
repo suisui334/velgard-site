@@ -1,0 +1,35 @@
+[
+  {
+    "id": "velgard-open-campaign",
+    "title": "キャンペーン名未定",
+    "subtitle": "“灰壁と花霧の国”ヴェルガルドを舞台にした連続キャンペーン",
+    "catchcopy": "灰壁の向こうから、花の霧が流れ込む。",
+    "trailer": "灰色の防壁に守られた辺境国家ヴェルガルド。防衛鉄道が走り、花霧谷の薬草が香り、人族と蛮族が同じ壁の内側で暮らすこの国で、冒険者たちは各地に燻る事件へ関わっていくことになります。",
+    "introduction": [
+      "ヴェルガルドは、灰壁、防衛鉄道、花霧谷、人蛮共存、裂原グラシュ峡を抱える辺境国家です。",
+      "このキャンペーンでは、PCたちがヴェルガルド各地を巡り、列車護衛、薬草事件、氏族交渉、鉱山事故、裂原の怪異、密輸、死者名簿の異常といった事件に触れていきます。",
+      "詳細な真相や各話の展開は、セッション内で明かされます。ここに掲載するのは、PLが事前に知ってよい導入情報のみです。"
+    ],
+    "keyVisual": "",
+    "thumbnail": "",
+    "image": "",
+    "status": "preparing",
+    "visibility": "public",
+    "relatedSpots": [
+      "central-station-city",
+      "defense-railway",
+      "ryusbel-flower-mist-valley",
+      "grasch-rift",
+      "orm-twinhorn-city",
+      "felsen-mining-town",
+      "blackbridge-checkpoint",
+      "grayname-temple"
+    ],
+    "relatedCharacters": [
+      "leonhardt-grave",
+      "mirika-bernhardt",
+      "adelheid-lowenwein"
+    ],
+    "notes": "仮データ。キャンペーン内容確定後にタイトル、トレーラー、イントロダクション、関連NPC、各話あらすじを差し替える。"
+  }
+]

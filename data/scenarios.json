@@ -1,0 +1,178 @@
+[
+  {
+    "id": "railway-incidents",
+    "title": "列車と鉄道の事件",
+    "category": "鉄道",
+    "genre": "鉄道 / 護衛 / 密室劇",
+    "image": "assets/images/hooks/railway-incidents.png",
+    "summary": "移動しながらの戦闘や密室劇を扱いやすい題材です。",
+    "description": "走る列車、限られた車内、停車できない状況、途切れる連絡などを使い、移動中ならではの緊張感を楽しめる題材です。護衛、事故調査、車内の密室劇、線路上の異変など、鉄道国家ヴェルガルドらしい冒険の入口になります。",
+    "examples": [
+      "列車の護衛",
+      "鉄橋破壊の阻止",
+      "孤立した要塞駅への強行突破",
+      "廃駅ノルデンの幽霊列車調査"
+    ],
+    "relatedSpots": [
+      "defense-railway"
+    ],
+    "relatedCharacters": [
+      "iris-cantor",
+      "oscar-lowen",
+      "eugen-hoffmann",
+      "pip-berlinger"
+    ],
+    "status": "public",
+    "releaseStatus": "preparing"
+  },
+  {
+    "id": "flower-mist-valley-cases",
+    "title": "花霧谷の探索と薬草事件",
+    "category": "花霧谷",
+    "genre": "探索 / 薬草 / 毒 / 温泉怪異",
+    "image": "assets/images/hooks/flower-mist-valley-cases.png",
+    "summary": "自然の脅威と人の欲望が交差する題材です。",
+    "description": "美しい花霧、薬草採取、毒花の扱い、霧に隠れた道を組み合わせ、自然の豊かさと危うさを同時に味わえる題材です。治療や調合のための探索、谷の慣習との向き合い方など、穏やかな風景の奥にある緊張を描きやすくなります。",
+    "examples": [
+      "希少な薬草の採取",
+      "出回る偽薬の出所調査",
+      "毒花による被害の確認",
+      "白灯温泉郷での療養客失踪事件の解明"
+    ],
+    "relatedSpots": [
+      "ryusbel-flower-mist-valley"
+    ],
+    "relatedCharacters": [
+      "seraphina-ryusbel",
+      "linaria-mirea",
+      "tove-lindt"
+    ],
+    "status": "public",
+    "releaseStatus": "preparing"
+  },
+  {
+    "id": "coexistence-negotiation",
+    "title": "人蛮共存と交渉",
+    "category": "交渉",
+    "genre": "人蛮共存 / 契約 / 儀礼 / 調停",
+    "image": "assets/images/hooks/coexistence-negotiation.png",
+    "summary": "剣だけでは解決できない政治的トラブルを扱いやすい題材です。",
+    "description": "人族と蛮族が同じ国で暮らすヴェルガルドならではの題材です。剣を抜けば簡単に壊れる関係、言葉だけでは届かない不信、契約や面子の重さを扱えます。誰かを倒すより、何を守り、どこで折り合うかを考える遊びに向いています。",
+    "examples": [
+      "商会と氏族の契約争いの調停",
+      "禁足地への無断立ち入り事件の収拾",
+      "角杯の誓いを巡る疑惑の調査",
+      "共存を阻む外部勢力の扇動阻止"
+    ],
+    "relatedSpots": [
+      "orm-twinhorn-city",
+      "central-station-city"
+    ],
+    "relatedCharacters": [
+      "gald-valks",
+      "melchior-orm",
+      "maura-calva",
+      "adelheid-lowenwein"
+    ],
+    "status": "public",
+    "releaseStatus": "preparing"
+  },
+  {
+    "id": "mining-industrial-cases",
+    "title": "鉱山と産業事件",
+    "category": "鉱山",
+    "genre": "鉱山 / 救助 / 産業 / 地下探索",
+    "image": "assets/images/hooks/mining-industrial-cases.png",
+    "summary": "閉鎖空間での救助や探索を扱いやすい題材です。",
+    "description": "坑道、煤煙、鉱夫の暮らし、輸送路をめぐる産業の重さを扱える題材です。閉鎖空間の探索や救助、労働現場の緊張、資源を支える町の現実を描きやすくなります。暗い坑道の奥だけでなく、地上の人々の生活にも目を向けられる遊びです。",
+    "examples": [
+      "フェルゼ坑道での落盤事故による救出劇",
+      "鉱山魔物の討伐",
+      "地下深くで偶然発見された古代遺構の探索",
+      "魔晶石片の横流し調査"
+    ],
+    "relatedSpots": [
+      "felsen-mining-town"
+    ],
+    "relatedCharacters": [
+      "brigitte-felsen"
+    ],
+    "status": "public",
+    "releaseStatus": "preparing"
+  },
+  {
+    "id": "rift-anomalies",
+    "title": "裂原と怪異",
+    "category": "怪異",
+    "genre": "怪異 / 調査 / 封印 / ホラー",
+    "image": "assets/images/hooks/rift-anomalies.png",
+    "summary": "未知に踏み込むホラーや探索行を扱いやすい題材です。",
+    "description": "裂原グラシュ峡の異常な地形、封印、記憶の揺らぎ、正体の分からない気配を扱える題材です。探索や調査にホラーの手触りを混ぜやすく、力で押し切れない不安を演出できます。踏み込むほど情報が増え、同時に戻り道も細くなるような遊びに向いています。",
+    "examples": [
+      "魔域化の前兆調査",
+      "生還者の不自然な記憶の検証",
+      "損傷した封印具の回収",
+      "裂原下層で見つかった地下遺構の探索"
+    ],
+    "relatedSpots": [
+      "grasch-rift"
+    ],
+    "relatedCharacters": [
+      "nox-wald",
+      "wolfram-stahl"
+    ],
+    "status": "public",
+    "releaseStatus": "preparing"
+  },
+  {
+    "id": "smuggling-underworld",
+    "title": "密輸と裏社会",
+    "category": "裏社会",
+    "genre": "密輸 / 関所 / 裏道 / 都市調査",
+    "image": "assets/images/hooks/smuggling-underworld.png",
+    "summary": "都市や関所を舞台にした調査やクライムサスペンスを扱いやすい題材です。",
+    "description": "都市の裏通り、関所の抜け道、見えない荷の流れを扱える題材です。密輸や情報売買、立場の弱い者たちの事情を通じて、表の秩序だけでは見えないヴェルガルドの影を描けます。追う側、逃がす側、見逃す側の判断が揺れやすい遊びです。",
+    "examples": [
+      "黒橋関所をすり抜けた禁制薬の追跡",
+      "偽造通行証の流通ルート解明",
+      "裏社会「壁潜り」との接触",
+      "押収品の一部が記録と合わない事件の調査"
+    ],
+    "relatedSpots": [
+      "blackbridge-checkpoint",
+      "central-station-city",
+      "orm-twinhorn-city"
+    ],
+    "relatedCharacters": [
+      "yard-kreuz",
+      "schiin-nebel",
+      "melchior-orm"
+    ],
+    "status": "public",
+    "releaseStatus": "preparing"
+  },
+  {
+    "id": "grayname-records",
+    "title": "死者名簿と灰壁の記録",
+    "category": "記録",
+    "genre": "死者 / 神殿 / アンデッド / 記録怪異",
+    "image": "assets/images/hooks/grayname-records.png",
+    "summary": "過去と死にまつわる事件を扱いやすい題材です。",
+    "description": "灰壁に刻まれた名、死者名簿、古い記録を通じて、過去と現在をつなぐ題材です。戦没者の記憶、残された家族、消えた名前や食い違う証言などを扱いやすく、静かな調査や感情の重い選択に向いています。",
+    "examples": [
+      "灰壁に刻まれた名の中に生存者が混ざる怪異",
+      "戦場跡でのアンデッド発生",
+      "消えた死者名簿の行方調査",
+      "葬送記録と実際の遺体数が合わない事件"
+    ],
+    "relatedSpots": [
+      "grayname-temple",
+      "defense-railway"
+    ],
+    "relatedCharacters": [
+      "ernest-weiss"
+    ],
+    "status": "public",
+    "releaseStatus": "preparing"
+  }
+]

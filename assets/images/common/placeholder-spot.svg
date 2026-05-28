@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 506" role="img" aria-label="Spot placeholder">
+  <rect width="900" height="506" fill="#eef0ed"/>
+  <path d="M0 354c145-52 240 20 365-26s178-124 320-80 215 10 215 10v248H0z" fill="#6f8f68" opacity=".22"/>
+  <path d="M128 334h644v58H128z" fill="#56606a" opacity=".5"/>
+  <path d="M210 334V210h70v124m140 0V170h80v164m150 0V230h64v104" fill="none" stroke="#2f3438" stroke-opacity=".42" stroke-width="20"/>
+  <text x="450" y="455" text-anchor="middle" fill="#2f3438" font-family="serif" font-size="34" font-weight="700">SPOT</text>
+</svg>

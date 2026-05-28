@@ -1,0 +1,68 @@
+{
+  "status": "public",
+  "title": "“灰壁と花霧の国”ヴェルガルド",
+  "shortTitle": "ヴェルガルド",
+  "tagline": "灰壁の内側で、花霧は今日も静かに咲く。",
+  "description": "ソード・ワールド2.5用オープンワールド舞台「“灰壁と花霧の国”ヴェルガルド」のPL向け公開サイトです。",
+  "keyvisual": "assets/images/common/key-visual-main.png",
+  "logoImage": "assets/images/common/velgard-logo.png",
+  "theme": {
+    "backgroundImage": "assets/images/common/background-mistwall.png",
+    "backgroundBlur": "0px",
+    "backgroundOpacity": 0.58,
+    "backgroundSaturation": 0.94,
+    "overlayColor": "rgba(239, 241, 239, 0.42)",
+    "panelOpacity": 0.9,
+    "contentPanelOpacity": 0.9,
+    "cardOpacity": 0.88
+  },
+  "placeholders": {
+    "keyvisual": "assets/images/common/placeholder-keyvisual.svg",
+    "spot": "assets/images/common/placeholder-spot.svg",
+    "character": "assets/images/common/placeholder-character.svg",
+    "hook": "assets/images/common/placeholder-hook.svg",
+    "gallery": "assets/images/common/placeholder-gallery.svg"
+  },
+  "basicInfo": [
+    {
+      "label": "システム",
+      "value": "ソード・ワールド2.5"
+    },
+    {
+      "label": "舞台",
+      "value": "人族と蛮族が境界で暮らす灰壁国家"
+    },
+    {
+      "label": "遊び方",
+      "value": "依頼、探索、防衛、交渉を選べるオープンワールド"
+    },
+    {
+      "label": "公開範囲",
+      "value": "PL向け。秘匿情報は掲載しません"
+    }
+  ],
+  "concepts": [
+    {
+      "title": "灰壁の都市国家",
+      "text": "古い防壁と防衛鉄道が国土を縫い、生活圏と危険地帯をゆるやかに分けています。"
+    },
+    {
+      "title": "花霧と薬草",
+      "text": "霧に混じる花粉と薬効植物は、祝福であり、病であり、交易品でもあります。"
+    },
+    {
+      "title": "人蛮共存の緊張",
+      "text": "共に暮らす者、境界を越える者、過去を許せない者。それぞれの事情が依頼になります。"
+    }
+  ],
+  "publicUrl": "",
+  "meta": {
+    "siteName": "“灰壁と花霧の国”ヴェルガルド",
+    "defaultTitle": "“灰壁と花霧の国”ヴェルガルド｜ソード・ワールド2.5 オープンワールド舞台",
+    "defaultDescription": "“灰壁と花霧の国”ヴェルガルドは、ソード・ワールド2.5向けのオープンワールド舞台です。灰壁線、防衛鉄道、人蛮共存、花霧谷、裂原グラシュ峡を中心に、PL向け公開情報をまとめています。",
+    "ogImage": "assets/images/common/ogp-main-1200x630.png",
+    "favicon": "assets/images/common/favicon-32.png",
+    "faviconLarge": "assets/images/common/favicon-192.png",
+    "appleTouchIcon": "assets/images/common/apple-touch-icon.png"
+  }
+}

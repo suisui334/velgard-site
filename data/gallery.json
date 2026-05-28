@@ -1,0 +1,289 @@
+[
+  {
+    "id": "gallery-key-visual-main",
+    "category": "key-visual",
+    "title": "キービジュアル",
+    "image": "assets/images/common/key-visual-main.png",
+    "description": "“灰壁と花霧の国”ヴェルガルドのメインビジュアルです。"
+  },
+  {
+    "id": "gallery-ogp-main",
+    "category": "key-visual",
+    "title": "OGP画像",
+    "image": "assets/images/common/ogp-main.png",
+    "description": "Discord共有などで使用するための公式OGP画像です。"
+  },
+  {
+    "id": "gallery-location-central-station-city",
+    "category": "locations",
+    "title": "ヴェルガルド中央駅都",
+    "image": "assets/images/locations/central-station-city.png",
+    "description": "ヴェルガルドの中心となる駅都のイメージです。"
+  },
+  {
+    "id": "gallery-location-graywall-line-outer-district",
+    "category": "locations",
+    "title": "灰壁線外縁区",
+    "image": "assets/images/locations/graywall-line-outer-district.png",
+    "description": "灰壁線の外縁区を示すイメージです。"
+  },
+  {
+    "id": "gallery-location-ryusbel-flower-mist-valley",
+    "category": "locations",
+    "title": "花霧谷リュスベル",
+    "image": "assets/images/locations/ryusbel-flower-mist-valley.png",
+    "description": "花霧に包まれたリュスベル周辺のイメージです。"
+  },
+  {
+    "id": "gallery-location-ryusbel-herb-garden",
+    "category": "locations",
+    "title": "リュスベル薬草園",
+    "image": "assets/images/locations/ryusbel-herb-garden.png",
+    "description": "リュスベルにある薬草園のイメージです。"
+  },
+  {
+    "id": "gallery-location-grasch-rift",
+    "category": "locations",
+    "title": "裂原グラシュ峡",
+    "image": "assets/images/locations/grasch-rift.png",
+    "description": "裂原グラシュ峡の険しい景観を示すイメージです。"
+  },
+  {
+    "id": "gallery-location-orm-twinhorn-market",
+    "category": "locations",
+    "title": "双角市場オルム",
+    "image": "assets/images/locations/orm-twinhorn-market.png",
+    "description": "交易と人蛮共存の気配を持つ市場都市のイメージです。"
+  },
+  {
+    "id": "gallery-location-felsen-smoke-mine",
+    "category": "locations",
+    "title": "煤煙鉱山フェルゼ坑",
+    "image": "assets/images/locations/felsen-smoke-mine.png",
+    "description": "フェルゼ坑を中心とした鉱山地帯のイメージです。"
+  },
+  {
+    "id": "gallery-location-hakutou-hot-spring-village",
+    "category": "locations",
+    "title": "白灯温泉郷",
+    "image": "assets/images/locations/hakutou-hot-spring-village.png",
+    "description": "白灯温泉郷の静かな湯けむりのイメージです。"
+  },
+  {
+    "id": "gallery-location-first-graywall-fortress-station",
+    "category": "locations",
+    "title": "灰壁第一要塞駅",
+    "image": "assets/images/locations/first-graywall-fortress-station.png",
+    "description": "灰壁線の防衛拠点となる要塞駅のイメージです。"
+  },
+  {
+    "id": "gallery-location-mirea-flower-pickers-village",
+    "category": "locations",
+    "title": "花摘み村ミレア",
+    "image": "assets/images/locations/mirea-flower-pickers-village.png",
+    "description": "花と採取文化に寄り添う村のイメージです。"
+  },
+  {
+    "id": "gallery-location-grasch-ironbridge-fort-city",
+    "category": "locations",
+    "title": "グラシュ鉄橋砦市",
+    "image": "assets/images/locations/grasch-ironbridge-fort-city.png",
+    "description": "裂原に架かる鉄橋と砦市のイメージです。"
+  },
+  {
+    "id": "gallery-location-norden-abandoned-station",
+    "category": "locations",
+    "title": "廃駅ノルデン",
+    "image": "assets/images/locations/norden-abandoned-station.png",
+    "description": "灰壁線に残る廃駅周辺のイメージです。"
+  },
+  {
+    "id": "gallery-location-blackbridge-checkpoint",
+    "category": "locations",
+    "title": "黒橋関所",
+    "image": "assets/images/locations/blackbridge-checkpoint.png",
+    "description": "黒橋関所の重々しい境界風景です。"
+  },
+  {
+    "id": "gallery-location-horned-sanctuary-outskirts",
+    "category": "locations",
+    "title": "角持ち聖地周辺",
+    "image": "assets/images/locations/horned-sanctuary-outskirts.png",
+    "description": "角持ちに関わる聖地周辺のイメージです。"
+  },
+  {
+    "id": "gallery-facility-grayname-temple-exterior",
+    "category": "facilities",
+    "title": "灰名神殿会 外観",
+    "image": "assets/images/facilities/grayname-temple-exterior.png",
+    "description": "灰名神殿会の外観イメージです。"
+  },
+  {
+    "id": "gallery-facility-grayname-temple-interior",
+    "category": "facilities",
+    "title": "灰名神殿会 内観",
+    "image": "assets/images/facilities/grayname-temple-interior.png",
+    "description": "灰名神殿会の内観イメージです。"
+  },
+  {
+    "id": "gallery-facility-graywall-lamplight-inn-exterior",
+    "category": "facilities",
+    "title": "灰壁の灯火亭 外観",
+    "image": "assets/images/facilities/graywall-lamplight-inn-exterior.png",
+    "description": "冒険者ギルド「灰壁の灯火亭」の外観イメージです。"
+  },
+  {
+    "id": "gallery-facility-graywall-lamplight-inn-interior",
+    "category": "facilities",
+    "title": "灰壁の灯火亭 内観",
+    "image": "assets/images/facilities/graywall-lamplight-inn-interior.png",
+    "description": "冒険者ギルド「灰壁の灯火亭」の内観イメージです。"
+  },
+  {
+    "id": "gallery-facility-gray-pot-inn-exterior",
+    "category": "facilities",
+    "title": "灰鍋亭 外観",
+    "image": "assets/images/facilities/gray-pot-inn-exterior.png",
+    "description": "灰鍋亭の外観イメージです。"
+  },
+  {
+    "id": "gallery-facility-gray-pot-inn-interior",
+    "category": "facilities",
+    "title": "灰鍋亭 内観",
+    "image": "assets/images/facilities/gray-pot-inn-interior.png",
+    "description": "灰鍋亭の内観イメージです。"
+  },
+  {
+    "id": "gallery-facility-railway-post-office-exterior",
+    "category": "facilities",
+    "title": "駅逓局 外観",
+    "image": "assets/images/facilities/railway-post-office-exterior.png",
+    "description": "駅逓局の外観イメージです。"
+  },
+  {
+    "id": "gallery-facility-railway-post-office-interior",
+    "category": "facilities",
+    "title": "駅逓局 内観",
+    "image": "assets/images/facilities/railway-post-office-interior.png",
+    "description": "駅逓局の内観イメージです。"
+  },
+  {
+    "id": "gallery-facility-wallcrawler-backstreet",
+    "category": "facilities",
+    "title": "壁潜り裏通り",
+    "image": "assets/images/facilities/wallcrawler-backstreet.png",
+    "description": "壁潜りたちが出入りする裏通りのイメージです。"
+  },
+  {
+    "id": "gallery-hook-railway-incidents",
+    "category": "scenarios",
+    "title": "列車と鉄道の事件",
+    "image": "assets/images/hooks/railway-incidents.png",
+    "description": "列車と鉄道をめぐる事件のイメージです。"
+  },
+  {
+    "id": "gallery-hook-flower-mist-valley-cases",
+    "category": "scenarios",
+    "title": "花霧谷の探索と薬草事件",
+    "image": "assets/images/hooks/flower-mist-valley-cases.png",
+    "description": "花霧谷で起こる探索や薬草事件のイメージです。"
+  },
+  {
+    "id": "gallery-hook-coexistence-negotiation",
+    "category": "scenarios",
+    "title": "人蛮共存と交渉",
+    "image": "assets/images/hooks/coexistence-negotiation.png",
+    "description": "人族と蛮族の共存や交渉をめぐる事件のイメージです。"
+  },
+  {
+    "id": "gallery-hook-mining-industrial-cases",
+    "category": "scenarios",
+    "title": "鉱山と産業事件",
+    "image": "assets/images/hooks/mining-industrial-cases.png",
+    "description": "鉱山と産業をめぐる事件のイメージです。"
+  },
+  {
+    "id": "gallery-hook-rift-anomalies",
+    "category": "scenarios",
+    "title": "裂原と怪異",
+    "image": "assets/images/hooks/rift-anomalies.png",
+    "description": "裂原グラシュ峡と怪異をめぐる事件のイメージです。"
+  },
+  {
+    "id": "gallery-hook-smuggling-underworld",
+    "category": "scenarios",
+    "title": "密輸と裏社会",
+    "image": "assets/images/hooks/smuggling-underworld.png",
+    "description": "密輸と裏社会に関わる事件のイメージです。"
+  },
+  {
+    "id": "gallery-hook-grayname-records",
+    "category": "scenarios",
+    "title": "死者名簿と灰壁の記録",
+    "image": "assets/images/hooks/grayname-records.png",
+    "description": "死者名簿と灰壁の記録に関わる事件のイメージです。"
+  },
+  {
+    "id": "gallery-map-e0-doden-velgard-location-map",
+    "category": "maps",
+    "title": "ドーデン地方図・ヴェルガルド位置関係",
+    "image": "assets/images/maps/e0-doden-velgard-location-map.png",
+    "description": "ドーデン地方におけるヴェルガルドの位置関係を示す地図です。"
+  },
+  {
+    "id": "gallery-map-e1-velgard-country-map",
+    "category": "maps",
+    "title": "ヴェルガルド国全体地図",
+    "image": "assets/images/maps/e1-velgard-country-map.png",
+    "description": "ヴェルガルド全体の地形と主要地点を示す地図です。"
+  },
+  {
+    "id": "gallery-map-graywall-line-route-map",
+    "category": "maps",
+    "title": "灰壁線路線図",
+    "image": "assets/images/maps/graywall-line-route-map.png",
+    "description": "ヴェルガルド中央駅都を起点に、灰壁線外縁区、要塞駅、廃駅、貨物拠点、封鎖区間などを整理した路線図。"
+  },
+  {
+    "id": "gallery-map-e2-central-station-city-map",
+    "category": "maps",
+    "title": "ヴェルガルド中央駅都 都市地図",
+    "image": "assets/images/maps/e2-central-station-city-map.png",
+    "description": "ヴェルガルド中央駅都の都市構造を示す地図です。"
+  },
+  {
+    "id": "gallery-map-e3-ryusbel-region-map",
+    "category": "maps",
+    "title": "花霧谷リュスベル周辺地図",
+    "image": "assets/images/maps/e3-ryusbel-region-map.png",
+    "description": "花霧谷リュスベル周辺の位置関係を示す地図です。"
+  },
+  {
+    "id": "gallery-map-e4-grasch-rift-region-map",
+    "category": "maps",
+    "title": "裂原グラシュ峡周辺地図",
+    "image": "assets/images/maps/e4-grasch-rift-region-map.png",
+    "description": "裂原グラシュ峡周辺の位置関係を示す地図です。"
+  },
+  {
+    "id": "gallery-map-e5-orm-region-map",
+    "category": "maps",
+    "title": "双角市場オルム周辺地図",
+    "image": "assets/images/maps/e5-orm-region-map.png",
+    "description": "双角市場オルム周辺の位置関係を示す地図です。"
+  },
+  {
+    "id": "gallery-map-e6-felsen-mine-region-map",
+    "category": "maps",
+    "title": "煤煙鉱山フェルゼ坑周辺地図",
+    "image": "assets/images/maps/e6-felsen-mine-region-map.png",
+    "description": "煤煙鉱山フェルゼ坑周辺の位置関係を示す地図です。"
+  },
+  {
+    "id": "gallery-map-e7-hakutou-hot-spring-region-map",
+    "category": "maps",
+    "title": "白灯温泉郷周辺地図",
+    "image": "assets/images/maps/e7-hakutou-hot-spring-region-map.png",
+    "description": "白灯温泉郷周辺の位置関係を示す地図です。"
+  }
+]

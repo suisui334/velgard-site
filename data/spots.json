@@ -1,0 +1,209 @@
+[
+  {
+    "id": "central-station-city",
+    "name": "ヴェルガルド中央駅都",
+    "category": "都市",
+    "image": "assets/images/locations/central-station-city.png",
+    "thumbnail": "",
+    "role": "政治と交通の中心地",
+    "summary": "ヴェルガルドの中心都市であり、中央駅、灰花評議会、冒険者ギルド「灰壁の灯火亭」などが集まる国の玄関口です。鉄道、行政、交易、人々の暮らしが交差する場所で、灰壁の国らしい秩序と活気を感じさせます。",
+    "hooks": [
+      "都市事件",
+      "政治事件",
+      "密輸事件",
+      "種族間トラブル",
+      "調査依頼"
+    ],
+    "organizations": [
+      "灰壁の灯火亭",
+      "灰花評議会",
+      "灰鍋亭",
+      "駅逓局",
+      "壁潜り"
+    ],
+    "relatedCharacters": [
+      "leonhardt-grave",
+      "mirika-bernhardt",
+      "adelheid-lowenwein",
+      "greta-schneeball",
+      "schiin-nebel",
+      "pip-berlinger"
+    ],
+    "status": "public"
+  },
+  {
+    "id": "defense-railway",
+    "name": "灰壁線・防衛鉄道公社",
+    "category": "鉄道",
+    "image": "assets/images/locations/graywall-line-outer-district.png",
+    "thumbnail": "",
+    "role": "国の生命線である防衛鉄道",
+    "summary": "灰壁沿いを走る防衛鉄道と、その運用を担う公社です。兵員や物資、負傷者、避難民を運ぶ実用路線であり、駅や線路そのものも防衛施設の一部として扱われます。便利さと緊張感が同居する、ヴェルガルドの生命線です。",
+    "hooks": [
+      "列車護衛",
+      "要塞駅防衛",
+      "廃駅調査",
+      "鉄道事故",
+      "孤立駅救援"
+    ],
+    "organizations": [
+      "防衛鉄道公社",
+      "外縁守備隊"
+    ],
+    "relatedCharacters": [
+      "iris-cantor",
+      "oscar-lowen",
+      "eugen-hoffmann"
+    ],
+    "status": "public"
+  },
+  {
+    "id": "ryusbel-flower-mist-valley",
+    "name": "花霧谷リュスベル・花霧薬師組合",
+    "category": "谷",
+    "image": "assets/images/locations/ryusbel-flower-mist-valley.png",
+    "thumbnail": "",
+    "role": "薬草、毒花、香料、温泉の産地",
+    "summary": "霧深い谷に広がる薬草文化の中心地です。花霧谷リュスベルでは、薬草、毒花、香料、温泉が暮らしと産業に結びついています。美しい自然に包まれた土地ですが、植物の知識を軽んじる者には少し厳しい場所です。",
+    "hooks": [
+      "薬草採取",
+      "偽薬事件",
+      "毒花調査",
+      "療養客失踪",
+      "温泉怪異"
+    ],
+    "organizations": [
+      "花霧薬師組合",
+      "採取民組",
+      "白灯温泉郷",
+      "湯宿「白灯庵」"
+    ],
+    "relatedCharacters": [
+      "seraphina-ryusbel",
+      "linaria-mirea",
+      "tove-lindt"
+    ],
+    "status": "public"
+  },
+  {
+    "id": "grasch-rift",
+    "name": "裂原グラシュ峡・裂原封印院",
+    "category": "怪異",
+    "image": "assets/images/locations/grasch-rift.png",
+    "thumbnail": "",
+    "role": "巨大裂溝と、それを監視する組織",
+    "summary": "ヴェルガルド北東側を両断する巨大な裂溝地帯と、それを監視する封印院を中心とした危険区域です。険しい峡谷、古い城砦、封印の気配が重なり、国の防衛と怪異対策において特別な意味を持つ場所です。",
+    "hooks": [
+      "魔域化の前兆調査",
+      "記憶異常",
+      "封印具回収",
+      "生還者証言",
+      "地下遺構探索"
+    ],
+    "organizations": [
+      "裂原封印院",
+      "元守備隊補助兵"
+    ],
+    "relatedCharacters": [
+      "nox-wald",
+      "wolfram-stahl"
+    ],
+    "status": "public"
+  },
+  {
+    "id": "orm-twinhorn-city",
+    "name": "双角市場オルム",
+    "category": "交易",
+    "image": "assets/images/locations/orm-twinhorn-market.png",
+    "thumbnail": "",
+    "role": "人族と蛮族が契約と交渉を行う交易市場",
+    "summary": "人族商会と蛮族氏族が取引を行う、ヴェルガルドでも特に異国情緒の濃い交易市場です。契約、面子、儀礼が重んじられ、活気ある市の空気の奥に、共存制度ならではの緊張感も漂っています。",
+    "hooks": [
+      "商会抗争",
+      "氏族交渉",
+      "禁足地問題",
+      "外部勢力の扇動",
+      "契約争い"
+    ],
+    "organizations": [
+      "角持ち氏族連合",
+      "双角商会連盟"
+    ],
+    "relatedCharacters": [
+      "gald-valks",
+      "melchior-orm",
+      "maura-calva"
+    ],
+    "status": "public"
+  },
+  {
+    "id": "felsen-mining-town",
+    "name": "フェルゼ坑町",
+    "category": "鉱山",
+    "image": "assets/images/locations/felsen-smoke-mine.png",
+    "thumbnail": "",
+    "role": "灰壁と鉄道を支える鉱山町",
+    "summary": "煤煙鉱山フェルゼ坑を中心に形成された鉱山町です。灰壁線外縁区最西端の駅としての顔も持ち、鉱夫、職人、輸送業者が行き交います。煤けた空気と鉄の匂いが漂う、ヴェルガルドの産業を支える町です。",
+    "hooks": [
+      "坑道事故",
+      "鉱山魔物",
+      "労働争議",
+      "地下遺構探索",
+      "魔晶石片の横流し"
+    ],
+    "organizations": [
+      "フェルゼ坑鉱山組合"
+    ],
+    "relatedCharacters": [
+      "brigitte-felsen"
+    ],
+    "status": "public"
+  },
+  {
+    "id": "blackbridge-checkpoint",
+    "name": "黒橋関所",
+    "category": "関所",
+    "image": "assets/images/locations/blackbridge-checkpoint.png",
+    "thumbnail": "",
+    "role": "国境管理、関税、禁制品管理の要所",
+    "summary": "ヴェルガルドへ出入りする人と物資を管理する関所です。通行証、関税、禁制品、身元確認を扱い、国境の秩序を保っています。黒い橋と検問の空気が重なり、旅人に緊張を与える境界の場所です。",
+    "hooks": [
+      "密輸",
+      "偽造通行証",
+      "禁制薬",
+      "外部商会の工作",
+      "押収品の消失"
+    ],
+    "organizations": [
+      "黒橋関税局",
+      "壁潜り"
+    ],
+    "relatedCharacters": [
+      "yard-kreuz"
+    ],
+    "status": "public"
+  },
+  {
+    "id": "grayname-temple",
+    "name": "灰名神殿会",
+    "category": "神殿",
+    "image": "assets/images/facilities/grayname-temple-exterior.png",
+    "thumbnail": "",
+    "role": "死者名簿、葬送、戦没者記録を担う神殿組織",
+    "summary": "賢神キルヒアを祀り、死者名簿の管理、葬送、戦没者の記録を担う神殿組織です。灰壁に刻まれた名と深く関わり、知識と記録を通じて死者を忘れないことを国の務めとしています。",
+    "hooks": [
+      "死者名簿の異常",
+      "アンデッド事件",
+      "灰壁の名の怪異",
+      "戦没者記録",
+      "葬送儀礼"
+    ],
+    "organizations": [
+      "灰名神殿会"
+    ],
+    "relatedCharacters": [
+      "ernest-weiss"
+    ],
+    "status": "public"
+  }
+]

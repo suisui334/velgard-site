@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 506" role="img" aria-label="Gallery placeholder">
+  <rect width="900" height="506" fill="#f3f3ee"/>
+  <rect x="118" y="88" width="664" height="330" rx="10" fill="#fffdfa" stroke="#56606a" stroke-opacity=".35" stroke-width="10"/>
+  <circle cx="272" cy="190" r="48" fill="#b8a2cf" opacity=".62"/>
+  <path d="M156 384l168-128 100 80 80-62 238 110z" fill="#6f8f68" opacity=".42"/>
+  <text x="450" y="466" text-anchor="middle" fill="#2f3438" font-family="serif" font-size="34" font-weight="700">GALLERY</text>
+</svg>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" role="img" aria-label="Keyvisual placeholder">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#ecefed"/>
+      <stop offset="0.55" stop-color="#cfd5d2"/>
+      <stop offset="1" stop-color="#efe8f3"/>
+    </linearGradient>
+    <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+      <path d="M72 0H0v72" fill="none" stroke="#87909a" stroke-opacity=".16" stroke-width="2"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="800" fill="url(#g)"/>
+  <rect width="1280" height="800" fill="url(#grid)"/>
+  <path d="M0 560C210 500 332 620 510 560s284-198 488-132 282 36 282 36v336H0z" fill="#56606a" opacity=".2"/>
+  <path d="M120 530h1040v82H120z" fill="#56606a" opacity=".48"/>
+  <path d="M180 530V390h80v140m150 0V350h94v180m156 0V410h75v120m168 0V330h105v200" fill="none" stroke="#2f3438" stroke-opacity=".44" stroke-width="22"/>
+  <circle cx="970" cy="234" r="88" fill="#b8a2cf" opacity=".32"/>
+  <text x="640" y="690" text-anchor="middle" fill="#2f3438" font-family="serif" font-size="44" font-weight="700">VELGARD KEYVISUAL</text>
+</svg>
