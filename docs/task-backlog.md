@@ -4,8 +4,8 @@
 
 ## 1. 現在の基準状態
 
-- `updates.json` は36件。
-- 最新更新は 2026-05-29「カレンダー表示を調整」。
+- `updates.json` は37件。
+- 最新更新は 2026-05-29「表示余白とトップ表示を調整」。
 - `scenarios.html` は正式な SCENARIOS / シナリオ入口。
 - `hooks.html` は既存リンク互換入口として維持。
 - `data/scenarios.json` は7件、`data/hooks.json` は7件維持。
@@ -49,7 +49,7 @@
 - ラクシア運用カレンダー Phase 1 は読み取り専用で、セッション予定登録、外部DB/API、アカウント、Discord連携は将来フェーズ。
 - README / QA は現状反映済み。
 - 配布シナリオ本文作成は後回し。ユーザーが本文・PDF・配布ファイルを渡してから反映する。
-- 直近バックアップは `velgard-site_backup_2026-05-29_calendar-cap-start-complete`。
+- 直近バックアップは `velgard-site_backup_2026-05-29_world-spacing-home-wide-layout-complete`。
 
 ## 2. すぐやる候補
 
@@ -90,6 +90,8 @@
 - シナリオ本文・PDF受け入れ基盤は実装済み。`scenario-detail.html` の配布情報セクション、`textUrl` がある場合のTXTリンクとページ内本文表示欄、`pdfUrl` がある場合のPDFリンク、一覧カードの準備中 / 配布中 / 旧版バッジに対応済み。キャッシュ対策は `v=20260529-scenario-release-base`。
 - ラクシア運用カレンダー Phase 1 は実装済み。`calendar.html`、`calendarConfig.json`、月表示カレンダー、期間外表示、3月1日起点のラクシア年切り替わり、レベルキャップ開始日バッジに対応済み。キャッシュ対策は `v=20260529-calendar-cap-start`。
 - 公開前軽微UI改善バッチは完了済み。TOOLS選択UI見切れ緩和、履歴まとめコピー、履歴全件表示、regulation右側目次見切れ調整、spot-detail関連キャラクター遷移修正に対応済み。キャッシュ対策は `v=20260529-ui-polish` / `v=20260529-tools-history-full`。
+- 公開後軽微UI改善バッチ2は完了済み。WORLD本文小見出し余白、TOPキービジュアル拡大、大画面時の共通最大幅、長文記事系ページの可読幅保護を調整済み。CSSキャッシュ対策は `v=20260529-home-wide-layout`。
+- 幅設定は `--home-max: 1600px`、`--max: 1360px`、`--article-max: 1240px`。
 - スマホ実機確認は未実施。正式公開後または外部確認可能URL発行後に実施する。
 - 必要に応じて、公開前の暫定確認としてブラウザDevToolsのレスポンシブ表示確認を行う。
 - ナビ導線確認。

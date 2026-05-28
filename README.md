@@ -121,6 +121,9 @@ py -m http.server 4173 -d velgard-site
 - キービジュアルは `object-fit: contain` で極端な切り抜きを避ける方向
 - キービジュアルは390px幅での右見切れ・横スクロールを修正済み
 - キービジュアル枠は画像実比率 `1926 / 817` に合わせ、PC幅・スマホ幅の上下余白を調整済み
+- 大画面ではTOP専用幅 `--home-max: 1600px` で右側キービジュアルを大きめに表示し、左側ナビとのバランスを調整済み
+- 共通最大幅は `--max: 1360px`、記事系保護幅は `--article-max: 1240px` として、大画面の左右余白と長文可読幅を両立
+- CSSキャッシュクエリは全HTMLで `v=20260529-home-wide-layout` に統一済み
 - キービジュアル画像はクリック / Enter / Space でトップページ専用の軽量モーダル拡大表示が可能
 - 共通背景表示は維持
 - ユーザー実ブラウザ確認で表示良好と確認済み
@@ -159,9 +162,9 @@ py -m http.server 4173 -d velgard-site
 ### 最新更新表示
 - トップページでは `updates.json` から最新3件を控えめに表示
 - 現在の最新3件は以下
+  - 表示余白とトップ表示を調整
   - カレンダー表示を調整
   - 細部UIを調整
-  - ラクシア運用カレンダーを追加
 
 ## regulation正式規約ページ反映状況
 - `regulation.html` は準備中ではなく、正式規約ページとして公開中
@@ -202,8 +205,11 @@ py -m http.server 4173 -d velgard-site
 - active中の目次項目には `aria-current="true"` を付与する
 - 長い目次は目次ボックス内で内部スクロールでき、active項目が目次内で追従する
 - 目次リンククリックで該当章へ移動できる導線は維持
+- WORLD本文小見出しは、`body[data-page="world"] .article-box > .subsection` の上余白 `1.32em` と `h3` 下余白 `0.45em` で本文リズムを調整済み
+- 本文全体の `line-height` は変更せず、`4-1.` / `4-2.` / `4-3.` などの小見出し周辺だけを軽く整えている
 - `regulation.html` の右側目次には悪影響なし
 - `world.html` / `renderWorld.js` / `main.js` / `index.html` に `v=20260527-world-toc` のキャッシュ対策を適用済み
+- WORLD本文余白と大画面幅調整後、CSS読み込みは全HTMLで `v=20260529-home-wide-layout` に統一済み
 - `undefined` / `null` / `[]` の露出なし
 - ブラウザコンソール重大エラーなし
 
@@ -765,7 +771,7 @@ py -m http.server 4173 -d velgard-site
 - `assets/js/*.js` 構文OK
 - version付き `main.js` / `renderScenarios.js` / `renderScenarioDetail.js` / `renderSpotDetail.js` HTTP 200
 - `gallery.html` / `spot-detail.html` / `characters.html` の既存モーダル維持
-- 現在の `updates.json` は36件
+- 現在の `updates.json` は37件
 - 禁止旧表記・旧IDの復活なし
 
 ### 後工程候補
@@ -1000,7 +1006,14 @@ py -m http.server 4173 -d velgard-site
 - キャッシュ対策は `v=20260528-back-to-top`
 
 ## 更新履歴追記
-`data/updates.json` は現在36件です。以下の更新履歴を追加済みです。
+`data/updates.json` は現在37件です。以下の更新履歴を追加済みです。
+
+### 2026-05-29 表示余白とトップ表示を調整
+- 日付: 2026-05-29
+- タイトル: 表示余白とトップ表示を調整
+- 本文: WORLD本文の小見出し余白、トップページのキービジュアル表示、大画面時の横幅バランスを調整しました。
+- 対象: SITE
+- タグ: UI
 
 ### 2026-05-29 カレンダー表示を調整
 - 日付: 2026-05-29
