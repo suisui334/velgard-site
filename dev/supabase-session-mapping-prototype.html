@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Supabase F-2 Session Mapping Prototype | Velgard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f3ee;
+      --panel: #ffffff;
+      --text: #28231e;
+      --muted: #6f655b;
+      --line: #d8cdc0;
+      --accent: #426b5b;
+      --danger: #9a3d32;
+      --ok: #2f6f4d;
+      --warn: #8a6424;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 4vw, 2.25rem);
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      margin-bottom: 14px;
+    }
+
+    h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .lead {
+      color: var(--muted);
+      max-width: 880px;
+    }
+
+    .notice,
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 18px;
+      margin-top: 18px;
+    }
+
+    .notice {
+      border-color: #e3c36d;
+      background: #fff8df;
+      color: #49390f;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 11px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .help {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 400;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      min-height: 42px;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 9px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+    }
+
+    button.secondary {
+      color: var(--accent);
+      background: #fff;
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.72;
+    }
+
+    .status {
+      margin-top: 12px;
+      color: var(--muted);
+      white-space: pre-wrap;
+    }
+
+    .status.ok {
+      color: var(--ok);
+    }
+
+    .status.warn {
+      color: var(--warn);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    th {
+      background: #f0ebe4;
+      color: #483f36;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .empty {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .error-list {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--danger);
+    }
+
+    .preview-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .preview-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .preview-card .calendar-session-modal-head {
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+    }
+
+    .preview-card .eyebrow {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .preview-card dl,
+    .preview-card dd {
+      margin: 0;
+    }
+
+    .preview-card .calendar-session-modal-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .preview-card dt {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .preview-card .calendar-session-modal-block,
+    .preview-card .calendar-session-modal-supplement {
+      border-top: 1px solid var(--line);
+      margin-top: 12px;
+      padding-top: 12px;
+    }
+
+    .preview-card .calendar-session-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .preview-card .calendar-session-tags span {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 8px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    code {
+      background: #eee7df;
+      border-radius: 4px;
+      padding: 0.1em 0.35em;
+    }
+
+    @media (max-width: 720px) {
+      main {
+        width: min(100% - 20px, 1180px);
+        padding-top: 20px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel,
+      .notice {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Supabase F-2 セッション表示マッピングプロトタイプ</h1>
+    <p class="lead">
+      Supabaseのpublic sessionsを読み取り、既存 <code>sessionDisplay.js</code> が扱う表示用オブジェクトへ変換するローカル検証ページです。
+    </p>
+
+    <section class="notice" aria-label="重要な注意">
+      <h2>重要な注意</h2>
+      <p>
+        このページはdev専用です。本番の <code>calendar.html</code> / <code>session-detail.html</code> には接続しません。
+        入力した接続値は保存せず、ログにも出しません。
+      </p>
+      <p>
+        投稿RPC、Authログイン、追加SQL実行は行いません。<code>service_role</code>、secret key、Direct connection stringは入力しないでください。
+      </p>
+    </section>
+
+    <section class="panel" aria-labelledby="connection-heading">
+      <h2 id="connection-heading">接続入力欄</h2>
+      <div class="grid">
+        <label>
+          Supabase URL
+          <input id="supabase-url" type="url" inputmode="url" autocomplete="off" placeholder="https://...">
+          <span class="help">入力値は保存せず、画面にも全文表示しません。</span>
+        </label>
+        <label>
+          Publishable / anon key
+          <input id="supabase-key" type="password" autocomplete="off" placeholder="publishable / anon key">
+          <span class="help">service role / secret key は入力禁止です。</span>
+        </label>
+      </div>
+      <div class="actions">
+        <button id="run-checks" type="button">公開セッションを読み取る</button>
+        <button id="clear-inputs" class="secondary" type="button">入力をクリア</button>
+      </div>
+      <p id="connection-status" class="status">未実行です。</p>
+    </section>
+
+    <section class="panel" aria-labelledby="raw-heading">
+      <h2 id="raw-heading">Supabase raw sessions 簡易一覧</h2>
+      <div id="raw-sessions-result">
+        <p class="empty">まだ読み取っていません。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="mapped-heading">
+      <h2 id="mapped-heading">mapped display sessions 一覧</h2>
+      <div id="mapped-sessions-result">
+        <p class="empty">まだ変換していません。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="preview-heading">
+      <h2 id="preview-heading">sessionDisplay.js プレビュー</h2>
+      <div id="preview-result">
+        <p class="empty">まだプレビューしていません。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="errors-heading">
+      <h2 id="errors-heading">エラー表示</h2>
+      <div id="error-result">
+        <p class="empty">エラーはありません。</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./supabase-session-mapping-prototype.js"></script>
+</body>
+</html>
