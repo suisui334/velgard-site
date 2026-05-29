@@ -1445,3 +1445,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 ## Supabase F-7 UX設計メモ
 
 - `docs/supabase-f7-session-detail-integration-ux-plan.md`: `session-detail.html` へ参加希望コメント機能を統合する前のUX設計。PL / GM / 未ログインの表示・操作、コメント削除時の警告、段階統合方針を整理済み。本番ページ実装はまだ行わない。
+- `docs/supabase-f7a-session-detail-auth-state-plan.md`: 本番 `session-detail.html` へSupabase連携を段階導入する最初の仮統合計画。ログイン状態表示のみを対象とし、投稿・編集・削除・GM操作はまだ扱わない。

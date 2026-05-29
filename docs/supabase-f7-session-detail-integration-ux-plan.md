@@ -301,3 +301,9 @@ GM権限でこのコメントを削除します。削除後、参加申請人数
 3. F-7c 公開コメント読み取り統合の小さな実装計画
 4. GM用コメント一覧RPC / view要否の最終判断
 5. 本番統合前のrollback手順整理
+
+## 15. F-7aログイン状態表示 仮統合計画
+
+F-7の最初の段階として、ログイン状態表示だけを扱う仮統合計画を `docs/supabase-f7a-session-detail-auth-state-plan.md` に分離した。
+
+F-7aでは、`session-detail.html` 上にログイン中 / 未ログイン / 読み込み失敗と `public_profiles.display_name` を表示する範囲だけを検討する。参加希望コメント投稿、コメント編集、コメント削除、GM承認・却下、参加人数RPC表示はまだ扱わない。
