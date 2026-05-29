@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Supabase F-4 Application Comment Prototype | Velgard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f3ee;
+      --panel: #ffffff;
+      --text: #28231e;
+      --muted: #6f655b;
+      --line: #d8cdc0;
+      --accent: #426b5b;
+      --danger: #9a3d32;
+      --ok: #2f6f4d;
+      --warn: #8a6424;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 4vw, 2.25rem);
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      margin-bottom: 14px;
+    }
+
+    h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .lead {
+      color: var(--muted);
+      max-width: 920px;
+    }
+
+    .notice,
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 18px;
+      margin-top: 18px;
+    }
+
+    .notice {
+      border-color: #e3c36d;
+      background: #fff8df;
+      color: #49390f;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-weight: 700;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 11px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input {
+      min-height: 42px;
+    }
+
+    textarea {
+      min-height: 118px;
+      resize: vertical;
+    }
+
+    .help {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 400;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      min-height: 42px;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 9px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+    }
+
+    button.secondary {
+      color: var(--accent);
+      background: #fff;
+    }
+
+    button.danger {
+      border-color: var(--danger);
+      background: var(--danger);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.72;
+    }
+
+    .status {
+      margin-top: 12px;
+      color: var(--muted);
+      white-space: pre-wrap;
+    }
+
+    .status.ok {
+      color: var(--ok);
+    }
+
+    .status.warn {
+      color: var(--warn);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 840px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    th {
+      background: #f0ebe4;
+      color: #483f36;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .state-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .state-card dl {
+      display: grid;
+      grid-template-columns: minmax(130px, 200px) minmax(0, 1fr);
+      gap: 8px 14px;
+      margin: 0;
+    }
+
+    .state-card dt {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .state-card dd {
+      margin: 0;
+      word-break: break-word;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--muted);
+      background: #fff;
+    }
+
+    .badge.ok {
+      border-color: #a7c9b6;
+      color: var(--ok);
+      background: #edf8f1;
+    }
+
+    .badge.warn {
+      border-color: #e3c36d;
+      color: var(--warn);
+      background: #fff8df;
+    }
+
+    .error-list,
+    .log-list {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .error-list {
+      color: var(--danger);
+    }
+
+    .log-list {
+      color: var(--muted);
+    }
+
+    .empty {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    code {
+      background: #eee7df;
+      border-radius: 4px;
+      padding: 0.1em 0.35em;
+    }
+
+    @media (max-width: 720px) {
+      main {
+        width: min(100% - 20px, 1180px);
+        padding-top: 20px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel,
+      .notice {
+        padding: 14px;
+      }
+
+      .state-card dl {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Supabase F-4 参加希望コメント投稿プロトタイプ</h1>
+    <p class="lead">
+      Supabase Authログイン済み文脈で、prototype DBのテストセッションに対して
+      <code>create_application_comment</code> を呼び、公開コメントと参加人数の再読込を確認するdev専用ページです。
+    </p>
+
+    <section class="notice" aria-label="重要な注意">
+      <h2>重要な注意</h2>
+      <p>
+        このページはprototype DBへ書き込みます。本番の <code>session-detail.html</code> / <code>calendar.html</code> / 既存本番用 <code>assets/js</code> には接続していません。
+        検証後はログアウトしてください。
+      </p>
+      <p>
+        入力するkeyはpublishable / anon keyのみです。<code>service_role</code>、secret key、DB password、Direct connection stringは絶対に使わないでください。
+        コメント欄には個人情報や実Discord IDを入れないでください。
+      </p>
+    </section>
+
+    <section class="panel" aria-labelledby="connection-heading">
+      <h2 id="connection-heading">接続入力欄</h2>
+      <div class="grid">
+        <label>
+          Supabase URL
+          <input id="supabase-url" type="url" inputmode="url" autocomplete="off" placeholder="https://...">
+          <span class="help">入力値は保存せず、画面にも全文表示しません。</span>
+        </label>
+        <label>
+          Publishable / anon key
+          <input id="supabase-key" type="password" autocomplete="off" placeholder="publishable / anon key">
+          <span class="help">service role / secret key は入力禁止です。</span>
+        </label>
+      </div>
+      <div class="actions">
+        <button id="check-state" type="button">接続して状態確認</button>
+        <button id="load-sessions" type="button">public sessionsを読む</button>
+        <button id="clear-inputs" class="secondary" type="button">入力をクリア</button>
+      </div>
+      <p id="connection-status" class="status">未実行です。</p>
+    </section>
+
+    <section class="panel" aria-labelledby="login-heading">
+      <h2 id="login-heading">ログイン入力欄</h2>
+      <div class="grid">
+        <label>
+          Email
+          <input id="login-email" type="email" autocomplete="username" placeholder="テストユーザーのメール">
+          <span class="help">メールアドレスは状態表示にのみ使い、保存しません。</span>
+        </label>
+        <label>
+          Password
+          <input id="login-password" type="password" autocomplete="current-password" placeholder="テストユーザーのパスワード">
+          <span class="help">ログイン処理後に入力欄を空にします。</span>
+        </label>
+      </div>
+      <div class="actions">
+        <button id="login" type="button">ログイン</button>
+        <button id="logout" class="danger" type="button">ログアウト</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="state-heading">
+      <h2 id="state-heading">ログイン状態表示</h2>
+      <div id="auth-state-result">
+        <p class="empty">まだ確認していません。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="sessions-heading">
+      <h2 id="sessions-heading">public sessions一覧</h2>
+      <div id="sessions-result">
+        <p class="empty">まだ読み取っていません。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="selected-heading">
+      <h2 id="selected-heading">選択中session情報</h2>
+      <div id="selected-session-result">
+        <p class="empty">sessionを選択してください。</p>
+      </div>
+      <div class="grid" style="margin-top: 14px;">
+        <label>
+          任意session IDで失敗確認
+          <input id="manual-session-id" type="text" autocomplete="off" placeholder="private / hidden などの失敗確認用ID">
+          <span class="help">private / hidden は一覧に出さず、既知のテストIDを手入力した場合のみRPC失敗確認に使います。</span>
+        </label>
+      </div>
+      <div class="actions">
+        <button id="select-manual-session" class="secondary" type="button">手入力IDを選択</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="comment-heading">
+      <h2 id="comment-heading">コメント入力欄</h2>
+      <label>
+        参加希望コメント
+        <textarea id="comment-body">F-4 prototype application comment.</textarea>
+        <span class="help">prototype検証用です。個人情報、実Discord ID、秘密情報は入れないでください。</span>
+      </label>
+      <div class="actions">
+        <button id="post-comment" type="button">参加希望コメントを投稿</button>
+        <button id="refresh-readbacks" class="secondary" type="button">コメント・人数を再読込</button>
+      </div>
+      <p id="post-status" class="status">未投稿です。</p>
+    </section>
+
+    <section class="panel" aria-labelledby="comments-heading">
+      <h2 id="comments-heading">公開コメントRPC結果</h2>
+      <div id="comments-result">
+        <p class="empty">session選択後に再読込してください。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="counts-heading">
+      <h2 id="counts-heading">参加人数RPC結果</h2>
+      <div id="counts-result">
+        <p class="empty">まだ読み取っていません。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="errors-heading">
+      <h2 id="errors-heading">エラー表示</h2>
+      <div id="error-result">
+        <p class="empty">エラーはありません。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="log-heading">
+      <h2 id="log-heading">操作ログ</h2>
+      <div id="operation-log">
+        <p class="empty">まだ操作ログはありません。</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./supabase-application-comment-prototype.js"></script>
+</body>
+</html>
