@@ -53,6 +53,7 @@ py -m http.server 4173 -d velgard-site
   - `docs/scenario-file-policy.md`: シナリオファイル受け入れ方針
   - `docs/release-runbook.md`: 正式公開URL反映後の公開確認手順書
   - `docs/supabase-prototype-plan.md`: 参加希望コメント、申請管理、GM編集、〆ボタン、Discord同期に向けたSupabaseプロトタイプ設計メモ
+  - `docs/supabase-prototype-runbook.md`: Supabaseプロトタイプを実操作する直前の判断基準・作業順・RLSテスト手順
 
 ## data/*.json の役割
 - `site.json`: サイト共通設定、theme、meta関連
@@ -1381,6 +1382,7 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - シナリオファイル受け入れ方針は `docs/scenario-file-policy.md` に分離済み。
 - 正式公開URL反映後の公開確認手順は `docs/release-runbook.md` に分離済み。
 - 参加希望コメント、申請管理、GM編集、〆ボタン、Discord同期に向けたSupabaseプロトタイプ設計方針は `docs/supabase-prototype-plan.md` に分離済み。
+- Supabaseプロトタイプを実操作する直前の判断基準・作業順・RLSテスト手順は `docs/supabase-prototype-runbook.md` に分離済み。
 - シナリオ本文・PDF受け入れ基盤は実装済み。配布シナリオ本文作成と実ファイル配置はユーザー提供ファイル待ち。初期方針はTXT正本 / PDF任意で、本文・PDF・配布ファイルを受け取ってから反映する。
 - 互換維持中の `hooks.html` / `data/hooks.json` / `gallery-hook-*` ID / `assets/images/hooks/` / `characters.json` の `relatedHooks` は、未対応ではなく意図的な保留として扱う。
 

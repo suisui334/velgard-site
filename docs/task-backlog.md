@@ -249,6 +249,7 @@
 - コメント申請型では、参加人数はコメント件数ではなく申請者単位で管理する方針。
 - DiscordリンクはPL向けUIから削除済み。`discordThreadUrl` は将来のbot/Webhook同期用データとして残す。
 - 参加希望コメント、申請管理、GM編集、〆ボタン、Discord同期に向けたSupabaseプロトタイプ設計方針は `docs/supabase-prototype-plan.md` に分離済み。実Supabase登録、SQL実行、本番接続は未実施。
+- Supabaseプロトタイプを実操作する直前の判断基準・作業順・RLSテスト手順は `docs/supabase-prototype-runbook.md` に分離済み。
 - 詳細モーダルのフッター重なり・黒い領域隠れは修正済み。
 - 開催期間外ではラクシア日付、季節、月齢、Lv数値を表示しない。
 - ラクシア年切り替わりは3月1日起点。
