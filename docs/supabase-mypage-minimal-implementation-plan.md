@@ -255,3 +255,27 @@ A-3実装前に確認すること:
 3. A-3実装時の `renderMypage.js` 要否確認
 4. A-2静的アカウントアイコン実装
 5. A-4接続設定未構成時フォールバック計画
+
+## 13. A-3最小版実装メモ
+
+A-3最小版として、`mypage.html` と `assets/js/renderMypage.js` を静的な準備中ページとして追加した。
+
+実装内容:
+
+- `mypage.html` は既存ページと同じ `#site-header` / `#app.site-main` / `#site-footer` 構造を使う
+- `assets/js/main.js` に `mypage` rendererを登録する
+- `renderMypage.js` は静的な案内文と `index.html` / `calendar.html` への戻り導線だけを描画する
+- 既存CSSを流用し、新規CSSは追加しない
+
+これにより、次工程A-2静的アカウントアイコン実装時に `href="mypage.html"` を安全に設定できる。
+
+未実装のまま維持するもの:
+
+- Supabase接続
+- Authセッション復元
+- ログインフォーム
+- ログアウト処理
+- 自分の申請一覧表示
+- コメント投稿・編集・削除
+- GM承認・却下
+- `close_session`

@@ -16,6 +16,7 @@ import { renderGallery } from "./renderGallery.js?v=20260529-gallery-swipe";
 import { renderUpdates } from "./renderUpdates.js";
 import { renderTools } from "./renderTools.js?v=20260529-calendar-date-tools-history";
 import { renderCalendar } from "./renderCalendar.js?v=20260529-calendar-date-tools-history";
+import { renderMypage } from "./renderMypage.js?v=20260530-mypage-minimal";
 
 const navItems = [
   { label: "TOP", href: "index.html", key: "home", enabled: true },
@@ -49,7 +50,8 @@ const renderers = {
   gallery: renderGallery,
   updates: renderUpdates,
   tools: renderTools,
-  calendar: renderCalendar
+  calendar: renderCalendar,
+  mypage: renderMypage
 };
 
 function renderHeader(site, page) {

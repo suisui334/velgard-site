@@ -1450,3 +1450,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - `docs/supabase-account-nav-mypage-ux-plan.md`: Supabase Auth導入前の共通ヘッダーアカウントアイコン / マイページ導線UX設計。本文中ログイン状態常時表示は採用せず、ヘッダー右側のアイコンとマイページ最小構成を検討する。
 - `docs/supabase-account-nav-static-icon-implementation-plan.md`: A-2として共通ヘッダーに静的アカウントアイコンだけを追加する前の実装計画。Supabase接続、Auth復元、ログイン / ログアウト、`mypage.html` 実装はまだ扱わない。
 - `docs/supabase-mypage-minimal-implementation-plan.md`: A-3として `mypage.html` 最小版を作る前の実装計画。リンク先404回避のための準備中ページを想定し、Supabase接続やログイン / ログアウト処理はまだ扱わない。
+- A-3 `mypage.html` 最小版は、静的な準備中ページとして追加済み。Supabase接続、Auth復元、ログイン / ログアウト、申請一覧表示はまだ実装していない。
