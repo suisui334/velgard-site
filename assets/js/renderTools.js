@@ -1,5 +1,7 @@
 import { loadJson } from "./dataLoader.js";
 
+const HISTORY_STORAGE_KEY = "velgard.tools.rollHistory";
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
@@ -63,6 +65,51 @@ function formatCopyText(result) {
 
 function formatHistoryCopyText(history) {
   return history.map((item) => formatCopyText(item)).join("\n\n---\n\n");
+}
+
+function normalizeHistoryItem(item) {
+  if (!item || typeof item !== "object") return null;
+  const tableTitle = String(item.tableTitle || "").trim();
+  const rollLabel = String(item.rollLabel || "").trim();
+  const text = String(item.text || "").trim();
+  if (!tableTitle || !rollLabel || !text) return null;
+  const branchLabel = String(item.branchLabel || "").trim();
+  return {
+    tableTitle,
+    ...(branchLabel ? { branchLabel } : {}),
+    rollLabel,
+    text
+  };
+}
+
+function loadStoredHistory() {
+  try {
+    const raw = window.localStorage.getItem(HISTORY_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(normalizeHistoryItem).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function saveStoredHistory(history) {
+  try {
+    window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history.map(normalizeHistoryItem).filter(Boolean)));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function clearStoredHistory() {
+  try {
+    window.localStorage.removeItem(HISTORY_STORAGE_KEY);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function formatResult(result) {
@@ -162,7 +209,7 @@ function rollTable(selectedTable, tableMap) {
 }
 
 export async function renderTools(root) {
-  const data = await loadJson("data/randomTables.json?v=20260528-tools-nav-copy");
+  const data = await loadJson("data/randomTables.json?v=20260529-calendar-date-tools-history");
   const tables = Array.isArray(data.tables) ? data.tables : [];
   const tableMap = createTableMap(tables);
   const options = visibleTables(tables);
@@ -191,7 +238,10 @@ export async function renderTools(root) {
       <div class="article-box tool-history">
         <div class="tool-history-head">
           <h2>直近履歴</h2>
-          <button class="button tool-history-copy-all" type="button" id="random-table-history-copy-all" disabled>履歴をまとめてコピー</button>
+          <div class="tool-history-actions">
+            <button class="button tool-history-copy-all" type="button" id="random-table-history-copy-all" disabled>履歴をまとめてコピー</button>
+            <button class="button tool-history-reset" type="button" id="random-table-history-reset" disabled>履歴をすべて削除</button>
+          </div>
         </div>
         <ol id="random-table-history"></ol>
       </div>
@@ -203,13 +253,15 @@ export async function renderTools(root) {
   const resultArea = root.querySelector("#random-table-result");
   const historyList = root.querySelector("#random-table-history");
   const historyCopyAll = root.querySelector("#random-table-history-copy-all");
+  const historyReset = root.querySelector("#random-table-history-reset");
   const copyStatus = root.querySelector("#tool-copy-status");
-  const history = [];
+  const history = loadStoredHistory();
   let currentResult = null;
 
   const drawHistory = () => {
     historyList.innerHTML = formatHistory(history);
     historyCopyAll.disabled = !history.length;
+    historyReset.disabled = !history.length;
   };
 
   const showError = (message) => {
@@ -277,6 +329,9 @@ export async function renderTools(root) {
       resultArea.classList.remove("empty");
       resultArea.innerHTML = formatResult(result);
       history.unshift(result);
+      if (!saveStoredHistory(history)) {
+        showCopyStatus("履歴を保存できませんでした。ブラウザの保存領域を確認してください。", true);
+      }
       drawHistory();
     } catch (error) {
       showError(error.message || "ランダム表の処理に失敗しました。");
@@ -298,6 +353,18 @@ export async function renderTools(root) {
 
   historyCopyAll.addEventListener("click", () => {
     handleCopyHistoryAll(historyCopyAll);
+  });
+
+  historyReset.addEventListener("click", () => {
+    if (!history.length) {
+      showCopyStatus("削除する履歴がありません。", true);
+      return;
+    }
+    if (!window.confirm("履歴をすべて削除します。よろしいですか？")) return;
+    history.splice(0, history.length);
+    const cleared = clearStoredHistory();
+    drawHistory();
+    showCopyStatus(cleared ? "履歴をすべて削除しました。" : "画面上の履歴を削除しました。保存履歴の削除には失敗しました。", !cleared);
   });
 
   drawHistory();

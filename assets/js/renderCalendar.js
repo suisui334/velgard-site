@@ -8,13 +8,13 @@ import {
   getSessionStatusLabel,
   getSessionTitle,
   isClosedSession,
-  renderSessionDetailContent,
   renderSessionTags,
   shouldShowSessionState
-} from "./sessionDisplay.js?v=20260529-calendar-session-detail-polish";
+} from "./sessionDisplay.js?v=20260529-calendar-date-tools-history";
 
 const CONFIG_URL = "data/calendarConfig.json?v=20260529-calendar-cap-start";
-const SESSIONS_URL = "data/sessions.json?v=20260529-calendar-session-detail-polish";
+const SESSIONS_URL = "data/sessions.json?v=20260529-calendar-date-tools-history";
+const CALENDAR_SELECTED_DATE_KEY = "velgard.calendar.selectedDate";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -45,6 +45,55 @@ function groupSessionsByDate(sessions) {
 
 function sessionsForDate(sessionsByDate, isoDate) {
   return sessionsByDate.get(isoDate) || [];
+}
+
+function sessionDetailHref(session) {
+  const id = String(session?.id || "").trim();
+  return id ? `session-detail.html?id=${encodeURIComponent(id)}` : "session-detail.html";
+}
+
+function isValidIsoDate(value) {
+  try {
+    parseIsoDate(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function readStoredSelectedDate() {
+  try {
+    const stored = window.localStorage.getItem(CALENDAR_SELECTED_DATE_KEY);
+    return isValidIsoDate(stored) ? stored : "";
+  } catch {
+    return "";
+  }
+}
+
+function writeStoredSelectedDate(isoDate) {
+  try {
+    window.localStorage.setItem(CALENDAR_SELECTED_DATE_KEY, isoDate);
+  } catch {
+    // Storage failures should not block the calendar itself.
+  }
+}
+
+function readInitialSelectedDate(fallbackIsoDate) {
+  const params = new URLSearchParams(window.location.search);
+  const queryDate = params.get("date");
+  if (isValidIsoDate(queryDate)) return queryDate;
+  return readStoredSelectedDate() || fallbackIsoDate;
+}
+
+function updateSelectedDateState(isoDate) {
+  writeStoredSelectedDate(isoDate);
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.set("date", isoDate);
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  } catch {
+    // URL state is helpful, but non-critical.
+  }
 }
 
 function parseIsoDate(value) {
@@ -373,12 +422,12 @@ function renderSessionBadges(sessions) {
         const gmName = String(session.gmName || "GM未設定").trim() || "GM未設定";
         const title = getSessionTitle(session);
         return `
-        <button class="calendar-session-row ${closed ? "is-closed" : ""}" type="button" data-session-detail-id="${escapeHtml(session.id || "")}">
+        <a class="calendar-session-row ${closed ? "is-closed" : ""}" href="${escapeHtml(sessionDetailHref(session))}">
           ${closed ? `<span class="calendar-session-close" aria-label="締切">〆</span>` : ""}
           <span class="calendar-session-time">${escapeHtml(time)}</span>
           <span class="calendar-session-gm">${escapeHtml(gmName)}</span>
           <span class="calendar-session-title">${escapeHtml(title)}</span>
-        </button>
+        </a>
       `;
       }).join("")}
     </span>
@@ -387,7 +436,7 @@ function renderSessionBadges(sessions) {
 
 function renderSessionCard(session) {
   const detailButton = session.id
-    ? `<button class="button small calendar-session-detail-button" type="button" data-session-detail-id="${escapeHtml(session.id)}">詳細を見る</button>`
+    ? `<a class="button small calendar-session-detail-button" href="${escapeHtml(sessionDetailHref(session))}">詳細を見る</a>`
     : "";
   const actionsHtml = detailButton
     ? `<div class="calendar-session-actions">${detailButton}</div>`
@@ -420,18 +469,6 @@ function renderSessionCard(session) {
       ${renderSessionTags(session.tags)}
       ${actionsHtml}
     </article>
-  `;
-}
-
-function renderSessionModalShell() {
-  return `
-    <div class="calendar-session-modal" id="calendar-session-modal" hidden>
-      <div class="calendar-session-modal-backdrop" data-session-modal-close></div>
-      <section class="calendar-session-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="calendar-session-modal-title" tabindex="-1">
-        <button class="button calendar-session-modal-close" type="button" data-session-modal-close aria-label="セッション詳細を閉じる">閉じる</button>
-        <div id="calendar-session-modal-content"></div>
-      </section>
-    </div>
   `;
 }
 
@@ -546,15 +583,12 @@ export async function renderCalendar(root) {
     ? sessionsData.sessions.filter(isVisibleSession).sort(sortSessions)
     : [];
   const sessionsByDate = groupSessionsByDate(visibleSessions);
-  const sessionsById = new Map(
-    visibleSessions
-      .map((session) => [String(session.id || "").trim(), session])
-      .filter(([id]) => id)
-  );
-  const initialDate = todayInJapan();
+  const todayIso = todayInJapan();
+  const initialDate = readInitialSelectedDate(todayIso);
   const initialParsed = parseIsoDate(initialDate);
-  const todayResult = calculateCalendarResult(initialDate, config);
-  const todaySessions = sessionsForDate(sessionsByDate, initialDate);
+  const todayResult = calculateCalendarResult(todayIso, config);
+  const selectedResult = calculateCalendarResult(initialDate, config);
+  const selectedSessions = sessionsForDate(sessionsByDate, initialDate);
   let selectedIso = initialDate;
   let displayYear = initialParsed.year;
   let displayMonth = initialParsed.month;
@@ -570,7 +604,7 @@ export async function renderCalendar(root) {
         ${renderResultCard("今日の換算", todayResult)}
       </div>
       <div id="calendar-month-view">
-        ${renderMonthCalendar(displayYear, displayMonth, selectedIso, initialDate, config, sessionsByDate)}
+        ${renderMonthCalendar(displayYear, displayMonth, selectedIso, todayIso, config, sessionsByDate)}
       </div>
       <div class="article-box calendar-control-panel">
         <div class="calendar-control-copy">
@@ -580,7 +614,7 @@ export async function renderCalendar(root) {
         <form class="calendar-form" id="calendar-form">
           <label class="calendar-date-label" for="calendar-date-input">
             <span>現実日付</span>
-            <input type="date" id="calendar-date-input" value="${escapeHtml(initialDate)}">
+            <input type="date" id="calendar-date-input" value="${escapeHtml(selectedIso)}">
           </label>
           <div class="calendar-actions">
             <button class="button primary" type="submit">確認</button>
@@ -589,56 +623,17 @@ export async function renderCalendar(root) {
         </form>
       </div>
       <div id="calendar-selected" aria-live="polite">
-        ${renderSelectedPanel(todayResult, todaySessions, sessionsLoadError)}
+        ${renderSelectedPanel(selectedResult, selectedSessions, sessionsLoadError)}
       </div>
     </section>
   `;
-
-  document.getElementById("calendar-session-modal")?.remove();
-  document.body.insertAdjacentHTML("beforeend", renderSessionModalShell());
+  updateSelectedDateState(selectedIso);
 
   const form = root.querySelector("#calendar-form");
   const input = root.querySelector("#calendar-date-input");
   const todayButton = root.querySelector("#calendar-today-button");
   const selected = root.querySelector("#calendar-selected");
   const monthView = root.querySelector("#calendar-month-view");
-  const sessionModal = document.getElementById("calendar-session-modal");
-  const sessionModalDialog = sessionModal?.querySelector(".calendar-session-modal-dialog");
-  const sessionModalContent = sessionModal?.querySelector("#calendar-session-modal-content");
-  let sessionModalTrigger = null;
-
-  const closeSessionModal = () => {
-    if (!sessionModal || sessionModal.hidden) return;
-    sessionModal.hidden = true;
-    sessionModalContent.innerHTML = "";
-    document.body.classList.remove("is-modal-open");
-    if (sessionModalTrigger && document.contains(sessionModalTrigger)) {
-      sessionModalTrigger.focus();
-    }
-    sessionModalTrigger = null;
-  };
-
-  const openSessionModal = (session, trigger) => {
-    if (!sessionModal || !sessionModalDialog || !sessionModalContent || !session) return;
-    sessionModalTrigger = trigger;
-    sessionModalContent.innerHTML = renderSessionDetailContent(session, {
-      mode: "modal",
-      headingId: "calendar-session-modal-title",
-      formatDate: formatRealDate
-    });
-    sessionModal.hidden = false;
-    document.body.classList.add("is-modal-open");
-    window.requestAnimationFrame(() => {
-      sessionModalDialog.focus();
-    });
-  };
-
-  const openSessionById = (sessionId, trigger) => {
-    const session = sessionsById.get(String(sessionId || ""));
-    if (!session) return false;
-    openSessionModal(session, trigger);
-    return true;
-  };
 
   const drawSelected = () => {
     try {
@@ -650,13 +645,14 @@ export async function renderCalendar(root) {
   };
 
   const drawMonth = () => {
-    monthView.innerHTML = renderMonthCalendar(displayYear, displayMonth, selectedIso, initialDate, config, sessionsByDate);
+    monthView.innerHTML = renderMonthCalendar(displayYear, displayMonth, selectedIso, todayIso, config, sessionsByDate);
   };
 
   const selectDate = (isoDate, syncMonth = true) => {
     const parsed = parseIsoDate(isoDate);
     selectedIso = isoDate;
     input.value = isoDate;
+    updateSelectedDateState(isoDate);
     if (syncMonth) {
       displayYear = parsed.year;
       displayMonth = parsed.month;
@@ -686,31 +682,8 @@ export async function renderCalendar(root) {
     selectDate(todayInJapan(), true);
   });
 
-  selected.addEventListener("click", (event) => {
-    const detailButton = event.target.closest("[data-session-detail-id]");
-    if (!detailButton) return;
-    openSessionById(detailButton.dataset.sessionDetailId, detailButton);
-  });
-
-  sessionModal.addEventListener("click", (event) => {
-    if (event.target.closest("[data-session-modal-close]")) {
-      closeSessionModal();
-    }
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && sessionModal && !sessionModal.hidden) {
-      closeSessionModal();
-    }
-  });
-
   monthView.addEventListener("click", (event) => {
-    const sessionButton = event.target.closest("[data-session-detail-id]");
-    if (sessionButton) {
-      openSessionById(sessionButton.dataset.sessionDetailId, sessionButton);
-      return;
-    }
-
+    if (event.target.closest(".calendar-session-row")) return;
     const dayButton = event.target.closest("[data-calendar-date]");
     if (dayButton) {
       selectDate(dayButton.dataset.calendarDate, false);
@@ -739,7 +712,7 @@ export async function renderCalendar(root) {
   });
 
   monthView.addEventListener("keydown", (event) => {
-    if (event.target.closest("[data-session-detail-id]")) return;
+    if (event.target.closest(".calendar-session-row")) return;
     if (event.key !== "Enter" && event.key !== " ") return;
     const dayButton = event.target.closest("[data-calendar-date]");
     if (!dayButton) return;

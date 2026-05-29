@@ -1879,6 +1879,7 @@ body[data-page="calendar"] .calendar-session-row {
   font-family: inherit;
   line-height: 1.25;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -2235,6 +2236,137 @@ body[data-page="calendar"] .calendar-session-modal-meta--supplement dd {
   color: var(--muted);
 }
 
+body[data-page="session-detail"] .session-detail-section {
+  display: grid;
+  gap: 16px;
+}
+
+body[data-page="session-detail"] .session-detail-card {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+body[data-page="session-detail"] .calendar-session-modal-content {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .calendar-session-modal-head {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .calendar-session-modal-head .eyebrow {
+  margin: 0;
+}
+
+body[data-page="session-detail"] .calendar-session-modal-head h2 {
+  color: var(--soot);
+  font-size: clamp(1.35rem, 4vw, 2rem);
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .calendar-session-modal-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+body[data-page="session-detail"] .calendar-session-modal-meta div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(86, 96, 106, 0.14);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.68);
+}
+
+body[data-page="session-detail"] .calendar-session-modal-meta dt {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+body[data-page="session-detail"] .calendar-session-modal-meta dd {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .calendar-session-modal-block {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .calendar-session-modal-block h3 {
+  color: var(--rust);
+  font-size: 0.98rem;
+}
+
+body[data-page="session-detail"] .calendar-session-modal-block p,
+body[data-page="session-detail"] .calendar-session-modal-block pre {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .calendar-session-modal-block pre {
+  white-space: pre-wrap;
+}
+
+body[data-page="session-detail"] .calendar-session-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+body[data-page="session-detail"] .calendar-session-tags span {
+  display: inline-flex;
+  min-height: 22px;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(224, 227, 224, 0.72);
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+body[data-page="session-detail"] .calendar-session-modal-supplement {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(86, 96, 106, 0.14);
+}
+
+body[data-page="session-detail"] .calendar-session-modal-supplement h3 {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+body[data-page="session-detail"] .calendar-session-modal-meta--supplement div {
+  background: rgba(247, 247, 243, 0.56);
+}
+
+body[data-page="session-detail"] .calendar-session-modal-meta--supplement dt,
+body[data-page="session-detail"] .calendar-session-modal-meta--supplement dd {
+  color: var(--muted);
+}
+
 .tools-section {
   display: grid;
   gap: 16px;
@@ -2287,6 +2419,13 @@ body[data-page="calendar"] .calendar-session-modal-meta--supplement dd {
   justify-content: space-between;
 }
 
+.tool-history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .tool-result-card {
   display: grid;
   gap: 8px;
@@ -2311,13 +2450,15 @@ body[data-page="calendar"] .calendar-session-modal-meta--supplement dd {
 
 .tool-copy-button,
 .tool-history-copy,
-.tool-history-copy-all {
+.tool-history-copy-all,
+.tool-history-reset {
   min-height: 36px;
   padding: 0.45rem 0.85rem;
   font-size: 0.82rem;
 }
 
-.tool-history-copy-all:disabled {
+.tool-history-copy-all:disabled,
+.tool-history-reset:disabled {
   cursor: not-allowed;
   opacity: 0.54;
 }
@@ -2984,6 +3125,20 @@ body.is-modal-open .back-to-top {
     grid-template-columns: 1fr;
   }
 
+  body[data-page="session-detail"] .calendar-session-modal-meta {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page="session-detail"] .session-detail-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  body[data-page="session-detail"] .session-detail-actions .button {
+    justify-content: center;
+    width: 100%;
+  }
+
   .tool-panel .button {
     width: 100%;
   }
@@ -2994,8 +3149,13 @@ body.is-modal-open .back-to-top {
 
   .tool-copy-button,
   .tool-history-copy,
-  .tool-history-copy-all {
+  .tool-history-copy-all,
+  .tool-history-reset {
     width: 100%;
+  }
+
+  .tool-history-actions {
+    justify-content: stretch;
   }
 
   .tool-history-head {

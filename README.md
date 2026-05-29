@@ -165,9 +165,9 @@ py -m http.server 4173 -d velgard-site
 ### 最新更新表示
 - トップページでは `updates.json` から最新3件を控えめに表示
 - 現在の最新3件は以下
+  - セッション詳細ページと履歴保持を追加
   - カレンダー予定の詳細表示を追加
   - カレンダーにセッション予定表示を追加
-  - ギャラリーのスワイプ操作を追加
 
 ## regulation正式規約ページ反映状況
 - `regulation.html` は準備中ではなく、正式規約ページとして公開中
@@ -774,7 +774,7 @@ py -m http.server 4173 -d velgard-site
 - `assets/js/*.js` 構文OK
 - version付き `main.js` / `renderScenarios.js` / `renderScenarioDetail.js` / `renderSpotDetail.js` HTTP 200
 - `gallery.html` / `spot-detail.html` / `characters.html` の既存モーダル維持
-- 現在の `updates.json` は40件
+- 現在の `updates.json` は41件
 - 禁止旧表記・旧IDの復活なし
 
 ### 後工程候補
@@ -964,7 +964,11 @@ py -m http.server 4173 -d velgard-site
 - 直近履歴は同一ページ表示中に振った結果を全件表示
 - 履歴まとめコピーは表示中の全履歴を対象
 - 履歴0件時はまとめコピーを disabled
-- ページリロードで履歴が消える仕様は維持し、`localStorage` 等の永続保存は未実装
+- `localStorage` キー `velgard.tools.rollHistory` で直近履歴を保存し、ブラウザ更新後も復元
+- `履歴をすべて削除` ボタンを追加済み
+- 履歴0件時は全削除ボタンを disabled
+- 全削除時は確認ダイアログ後、画面上の履歴と `localStorage` 履歴を削除
+- `localStorage` のJSON parse失敗時は空履歴へフォールバックし、保存失敗時もページ全体を壊さずステータスメッセージで通知
 - コピー対象は、表名 / 分岐 / 出目 / 結果本文
 - 通常表、TDA自動分岐、アビス浸蝕表のコピー形式に対応
 - `navigator.clipboard.writeText()` と `textarea` fallback を併用
@@ -973,7 +977,7 @@ py -m http.server 4173 -d velgard-site
 - 表選択UIの見切れは、標準selectのまま親要素のoverflow、余白、z-index調整で緩和済み
 - HTML文字化け検出後、直近バックアップから復元し、UTF-8状態でキャッシュクエリのみ再適用済み
 - U+FFFDなし確認済み
-- キャッシュ対策は `v=20260528-tools-random-tables` / `v=20260528-tools-nav-copy` / `v=20260529-ui-polish` / `v=20260529-tools-history-full`
+- キャッシュ対策は `v=20260528-tools-random-tables` / `v=20260528-tools-nav-copy` / `v=20260529-ui-polish` / `v=20260529-tools-history-full` / `v=20260529-calendar-date-tools-history`
 
 ## CALENDAR / ラクシア運用カレンダー
 - `calendar.html` を独立ページとして追加済み
@@ -1011,14 +1015,18 @@ py -m http.server 4173 -d velgard-site
 - 選択日詳細エリアに「選択日のセッション予定」を追加済み
 - 選択日予定カードには、タイトル、`〆` 状態、開催時刻、GM名、レベル、募集人数、概要、タグを表示する
 - カレンダー拡張 Phase 1-B として、セッション詳細モーダルを追加済み
-- 選択日予定カードの「詳細を見る」から詳細モーダルを開ける
-- カレンダーセル内予定行クリック / タップから詳細モーダルを開ける
-- 日付セル本体は `div role="button"` とし、予定行クリック時に日付選択とモーダル表示が二重に走らないよう調整済み
-- 将来的には `session-detail.html?id=<session-id>` へ置き換えやすいよう、セッションID基準の導線として整理
-- 詳細モーダルDOMは `document.body` 直下へ生成し、`body.is-modal-open` で背景スクロールを抑制する
-- 詳細モーダルのフッター重なり・黒い領域隠れは修正済み
+- カレンダー拡張 Phase 1-E として、`session-detail.html?id=<session-id>` のセッション詳細ページを追加済み
+- `assets/js/renderSessionDetail.js` を追加済み
+- `session-detail.html` は `data/sessions.json` から該当セッションを取得し、`renderSessionDetailContent(session, { mode: "page" })` で表示する
+- `id` 未指定 / 不存在ID / 読み込み失敗時は自然なエラー表示を出す
+- カレンダーセル内予定行クリック / タップ、選択日予定カードの「詳細を見る」は `session-detail.html?id=<session-id>` へ遷移する
+- 詳細ページには「カレンダーへ戻る」導線があり、`calendar.html?date=<session.date>` へ戻る
+- `calendar.html?date=YYYY-MM-DD` に対応し、日付選択時にURLクエリを更新する
+- `localStorage` キー `velgard.calendar.selectedDate` で選択日を補助保存し、ブラウザ更新後やクエリなし表示でも復元できる
+- 不正な `date` クエリは画面を壊さず、保存済み日付または今日へフォールバックする
+- 既存の詳細モーダル生成・イベント処理は `renderCalendar.js` から削除済み
 - カレンダー拡張 Phase 1-C として、`assets/js/sessionDisplay.js` を追加し、セッション表示・詳細表示の整形ロジックを共通化済み
-- `renderSessionDetailContent(session, options)` 系の共通関数は、将来 `session-detail.html?id=<session-id>` を作る際にも流用できる前提
+- `renderSessionDetailContent(session, options)` 系の共通関数は、詳細ページと将来の表示拡張で流用できる前提
 - カレンダー拡張 Phase 1-D として、詳細モーダルの情報設計をPL向けに整理済み
 - 詳細モーダルの表示順は、基本情報、概要、詳細 / 参加条件、タグ、補足情報
 - 基本情報には開催日、開催時刻、GM、レベル帯、募集人数をまとめて表示する
@@ -1027,10 +1035,9 @@ py -m http.server 4173 -d velgard-site
 - DiscordリンクはPL向けUIから削除済み。`discordThreadUrl` は将来のbot/Webhook同期用データとして残す
 - 予定がない日は「この日のセッション予定はまだありません。」を表示する
 - 390px幅で横スクロールなし確認済み
-- Phase 1-A / Phase 1-B / Phase 1-C / Phase 1-D は静的モックUIと表示整理であり、セッション予定登録、編集、参加申請、認証、Discord連携、外部DB/APIは未実装
-- 現時点では `session-detail.html` は未作成で、詳細ページ遷移やURLクエリによるモーダル自動表示も未実装
+- Phase 1-A / Phase 1-B / Phase 1-C / Phase 1-D / Phase 1-E は静的モックUIと表示整理であり、セッション予定登録、編集、参加申請、認証、Discord連携、外部DB/APIは未実装
 - 〆ボタン、参加申請停止処理、保存処理は未実装
-- キャッシュ対策は `v=20260529-calendar-cap-start` / `v=20260529-calendar-sessions-mock-3` / `v=20260529-calendar-session-detail-polish`
+- キャッシュ対策は `v=20260529-calendar-cap-start` / `v=20260529-calendar-sessions-mock-3` / `v=20260529-calendar-session-detail-polish` / `v=20260529-calendar-date-tools-history`
 
 ## ページ上部へ戻るボタン
 - 全ページ共通の「ページ上部へ戻る」ボタンを追加済み
@@ -1047,7 +1054,14 @@ py -m http.server 4173 -d velgard-site
 - キャッシュ対策は `v=20260528-back-to-top`
 
 ## 更新履歴追記
-`data/updates.json` は現在40件です。以下の更新履歴を追加済みです。
+`data/updates.json` は現在41件です。以下の更新履歴を追加済みです。
+
+### 2026-05-29 セッション詳細ページと履歴保持を追加
+- 日付: 2026-05-29
+- タイトル: セッション詳細ページと履歴保持を追加
+- 本文: セッション予定の詳細ページ、カレンダー選択日の復元、TOOLS履歴の保存と全削除に対応しました。
+- 対象: SITE
+- タグ: UI
 
 ### 2026-05-29 カレンダー予定の詳細表示を追加
 - 日付: 2026-05-29

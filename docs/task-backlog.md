@@ -4,8 +4,8 @@
 
 ## 1. 現在の基準状態
 
-- `updates.json` は40件。
-- 最新更新は 2026-05-29「カレンダー予定の詳細表示を追加」。
+- `updates.json` は41件。
+- 最新更新は 2026-05-29「セッション詳細ページと履歴保持を追加」。
 - `scenarios.html` は正式な SCENARIOS / シナリオ入口。
 - `hooks.html` は既存リンク互換入口として維持。
 - `data/scenarios.json` は7件、`data/hooks.json` は7件維持。
@@ -30,6 +30,9 @@
 - ランダム表ツールの結果コピー機能と履歴別コピー機能は追加済み。
 - ランダム表ツールの履歴まとめコピー機能は追加済み。
 - ランダム表ツールの履歴表示上限は撤廃済みで、同一ページ表示中に振った結果は全件表示する。
+- ランダム表ツールの履歴は `localStorage` キー `velgard.tools.rollHistory` で保存し、ブラウザ更新後も復元する。
+- ランダム表ツールに `履歴をすべて削除` ボタンを追加済み。確認ダイアログ後、画面上の履歴と `localStorage` 履歴を削除する。
+- `localStorage` のJSON parse失敗時は空履歴へフォールバックし、保存失敗時もページ全体を壊さない。
 - ランダム表ツールの表選択UI見切れは標準selectのまま緩和済み。
 - `regulation.html` の右側目次見切れは調整済み。
 - `spot-detail.html` の関連キャラクターリンクは、`characters.html#character-<characterId>` で該当カード位置へ遷移できる。
@@ -53,6 +56,12 @@
 - カレンダー拡張 Phase 1-C として、`assets/js/sessionDisplay.js` にセッション表示・詳細表示の整形ロジックを共通化済み。
 - カレンダー拡張 Phase 1-D として、詳細モーダルの表示順をPL向けに整理済み。基本情報、概要、詳細 / 参加条件、タグ、補足情報の順で表示する。
 - 補足情報は状態、更新日、関連スポットID、シナリオID、公開範囲を控えめに表示し、空項目は表示しない。
+- カレンダー拡張 Phase 1-E として、`session-detail.html?id=<session.id>` のセッション詳細ページを追加済み。
+- `assets/js/renderSessionDetail.js` を追加し、`data/sessions.json` から該当セッションを取得して `renderSessionDetailContent(session, { mode: "page" })` で描画する。
+- カレンダーセル内予定行クリック / タップ、選択日予定カードの「詳細を見る」は `session-detail.html?id=<session.id>` へ遷移する。
+- `calendar.html?date=YYYY-MM-DD` に対応し、日付選択時はURLクエリと `localStorage` キー `velgard.calendar.selectedDate` を更新する。
+- ブラウザ更新後、クエリなし表示、不正クエリ時も、保存済み日付または今日へ自然にフォールバックする。
+- `session-detail.html` の「カレンダーへ戻る」は `calendar.html?date=<session.date>` へ戻る。
 - 月表示カレンダー、日付換算、季節、月齢、レベルキャップ表示に対応済み。
 - 月表示カレンダー上で、`levelCaps[].startDate` に一致する日付に `3Lv開始` などの開始バッジを表示済み。
 - 選択日詳細カードにも、レベルキャップ開始日のみ節目表示を出す。
@@ -60,10 +69,10 @@
 - ラクシア年切り替わりは3月1日起点。
 - ラクシア暦の月順は 3月〜2月。
 - ラクシア運用カレンダーは390px幅確認済み。
-- ラクシア運用カレンダー Phase 1 / Phase 1-A / Phase 1-B / Phase 1-C / Phase 1-D は読み取り専用・静的モックと表示整理で、`session-detail.html`、詳細ページ遷移、URLクエリ自動表示、予定登録、編集、〆ボタン、参加申請停止処理、認証、外部DB/API、Discord連携は将来フェーズ。
+- ラクシア運用カレンダー Phase 1 / Phase 1-A / Phase 1-B / Phase 1-C / Phase 1-D / Phase 1-E は読み取り専用・静的モック、表示整理、詳細ページ導入、日付保持で、予定登録、編集、〆ボタン、参加申請停止処理、認証、外部DB/API、Discord連携は将来フェーズ。
 - README / QA は現状反映済み。
 - 配布シナリオ本文作成は後回し。ユーザーが本文・PDF・配布ファイルを渡してから反映する。
-- 直近バックアップは `velgard-site_backup_2026-05-29_calendar-session-detail-polish-complete`。
+- 直近バックアップは `velgard-site_backup_2026-05-29_session-detail-date-tools-history-complete`。
 
 ## 2. すぐやる候補
 
@@ -103,7 +112,7 @@
 - ランダム表ツールは実装済み。実本文データ反映後、390px幅を含めてユーザー実ブラウザ確認済み。
 - 全ページ共通の「ページ上部へ戻る」ボタンは実装済み。スクロール後表示、同一ページ最上部へ戻る仕様、モーダル干渉対策、390px幅確認済み。
 - シナリオ本文・PDF受け入れ基盤は実装済み。`scenario-detail.html` の配布情報セクション、`textUrl` がある場合のTXTリンクとページ内本文表示欄、`pdfUrl` がある場合のPDFリンク、一覧カードの準備中 / 配布中 / 旧版バッジに対応済み。キャッシュ対策は `v=20260529-scenario-release-base`。
-- ラクシア運用カレンダー Phase 1 は実装済み。`calendar.html`、`calendarConfig.json`、月表示カレンダー、期間外表示、3月1日起点のラクシア年切り替わり、レベルキャップ開始日バッジに対応済み。Phase 1-A として `sessions.json` による静的予定表示モックを追加し、Phase 1-B〜1-D としてセッション詳細モーダル、予定行クリック導線、表示ロジック共通化、PL向け詳細表示整理に対応済み。キャッシュ対策は `v=20260529-calendar-cap-start` / `v=20260529-calendar-session-detail-polish`。
+- ラクシア運用カレンダー Phase 1 は実装済み。`calendar.html`、`calendarConfig.json`、月表示カレンダー、期間外表示、3月1日起点のラクシア年切り替わり、レベルキャップ開始日バッジに対応済み。Phase 1-A として `sessions.json` による静的予定表示モックを追加し、Phase 1-B〜1-D としてセッション詳細モーダル、予定行クリック導線、表示ロジック共通化、PL向け詳細表示整理に対応済み。Phase 1-E として `session-detail.html` と日付保持を追加済み。キャッシュ対策は `v=20260529-calendar-cap-start` / `v=20260529-calendar-session-detail-polish` / `v=20260529-calendar-date-tools-history`。
 - 公開前軽微UI改善バッチは完了済み。TOOLS選択UI見切れ緩和、履歴まとめコピー、履歴全件表示、regulation右側目次見切れ調整、spot-detail関連キャラクター遷移修正に対応済み。キャッシュ対策は `v=20260529-ui-polish` / `v=20260529-tools-history-full`。
 - 公開後軽微UI改善バッチ2は完了済み。WORLD本文小見出し余白、TOPキービジュアル拡大、大画面時の共通最大幅、長文記事系ページの可読幅保護を調整済み。CSSキャッシュ対策は `v=20260529-home-wide-layout`。
 - 幅設定は `--home-max: 1600px`、`--max: 1360px`、`--article-max: 1240px`。
@@ -189,10 +198,12 @@
 - 履歴まとめコピー機能追加済み。
 - 履歴表示上限は撤廃済み。同一ページ表示中に振った結果を全件表示する。
 - 履歴は新しい順表示を維持。
-- ページリロードで履歴が消える仕様は維持し、永続保存は未実装。
+- `localStorage` キー `velgard.tools.rollHistory` で履歴を保存し、ページリロード後も復元する。
+- `履歴をすべて削除` ボタンで画面上の履歴と `localStorage` 履歴を削除できる。
+- `localStorage` 破損時は空履歴へフォールバックする。
 - 表選択UIの見切れは標準selectのまま緩和済み。
 - 390px幅確認済み。
-- 今後の拡張候補として、表追加、履歴保存、カスタムselect化、スマホ向け追加操作などは必要に応じて後回し。
+- 今後の拡張候補として、表追加、クラウド同期、アカウント別履歴管理、カスタムselect化、スマホ向け追加操作などは必要に応じて後回し。
 
 ### ページ上部へ戻るボタン
 
@@ -232,8 +243,8 @@
 - 開催期間外ではラクシア日付、季節、月齢、Lv数値を表示しない。
 - ラクシア年切り替わりは3月1日起点。
 - 390px幅確認済み。
-- Phase 1 / Phase 1-A / Phase 1-B / Phase 1-C / Phase 1-D は読み取り専用・静的モックと表示整理。
-- `session-detail.html`、詳細ページ遷移、URLクエリ自動表示、セッション本番データ登録、予定登録、編集、〆ボタン、参加申請停止処理、参加申請、コメント、アカウント、外部DB/API、Discord連携は将来フェーズ。
+- Phase 1 / Phase 1-A / Phase 1-B / Phase 1-C / Phase 1-D / Phase 1-E は読み取り専用・静的モック、表示整理、詳細ページ導入、日付保持。
+- セッション本番データ登録、予定登録、編集、〆ボタン、参加申請停止処理、参加申請、コメント、アカウント、外部DB/API、Discord連携は将来フェーズ。
 
 ## 5. 互換維持として残すもの
 

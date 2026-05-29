@@ -727,6 +727,12 @@
 - [x] 履歴0件時のまとめコピー挙動が自然である
 - [x] 10回以上振っても履歴が消えず全件表示される
 - [x] 履歴まとめコピーが表示中の全履歴を対象にしている
+- [x] `localStorage` キー `velgard.tools.rollHistory` で履歴が保存される
+- [x] ブラウザ更新後もTOOLS履歴が復元される
+- [x] `履歴をすべて削除` ボタンが表示される
+- [x] 履歴0件時は全削除ボタンが disabled になる
+- [x] 全削除後、ブラウザ更新しても履歴が復活しない
+- [x] `localStorage` のJSON parse失敗時は空履歴へフォールバックする
 - [x] `結果本文未設定` が表示されない
 - [x] raw JSON / undefined / null / [] が露出していない
 - [x] 390px幅で横スクロールや操作部品のはみ出しがない
@@ -828,30 +834,39 @@
 - [x] `closed` 予定に `〆` が表示される
 - [x] 選択日詳細エリアに「選択日のセッション予定」が表示される
 - [x] 選択日予定カードにタイトル、開催時刻、GM名、レベル、募集人数、概要、タグが表示される
-- [x] 選択日予定カードの「詳細を見る」からセッション詳細モーダルを開ける
-- [x] カレンダーセル内予定行クリック / タップからセッション詳細モーダルを開ける
-- [x] 予定行クリック時に日付選択とモーダル表示が二重に暴発しない
-- [x] 詳細モーダルの表示順がPL向けに、基本情報、概要、詳細 / 参加条件、タグ、補足情報の順へ整理されている
-- [x] 詳細モーダル上部に開催日、開催時刻、GM、レベル帯、募集人数がまとまって表示される
-- [x] 詳細モーダル下部の補足情報に、状態、更新日、関連スポットID、シナリオID、公開範囲が控えめに表示される
-- [x] 詳細モーダルの空項目が表示されない
-- [x] 選択日予定カードと詳細モーダルにDiscordスレッドリンクやDiscord誘導ボタンが表示されない
+- [x] `session-detail.html?id=<session.id>` でセッション詳細ページが表示される
+- [x] `assets/js/renderSessionDetail.js` が存在し、セッション詳細ページ描画を担当している
+- [x] `renderSessionDetailContent(session, { mode: "page" })` で詳細表示ロジックを再利用している
+- [x] カレンダーセル内予定行クリック / タップで `session-detail.html?id=<session.id>` へ遷移する
+- [x] 選択日予定カードの「詳細を見る」で `session-detail.html?id=<session.id>` へ遷移する
+- [x] `session-detail.html` の表示順がPL向けに、基本情報、概要、詳細 / 参加条件、タグ、補足情報の順へ整理されている
+- [x] `session-detail.html` 上部に開催日、開催時刻、GM、レベル帯、募集人数がまとまって表示される
+- [x] `session-detail.html` 下部の補足情報に、状態、更新日、関連スポットID、シナリオID、公開範囲が控えめに表示される
+- [x] `session-detail.html` の空項目が表示されない
+- [x] `id` 未指定 / 不存在ID / 読み込み失敗時に自然なエラー表示になる
+- [x] `session-detail.html` に「カレンダーへ戻る」導線がある
+- [x] 選択日予定カードと `session-detail.html` にDiscordスレッドリンクやDiscord誘導ボタンが表示されない
 - [x] `discordThreadUrl` は将来のbot/Webhook同期用データとして残し、PL向けUIには出していない
 - [x] `assets/js/sessionDisplay.js` が存在し、セッション表示・詳細表示の整形ロジックが共通化されている
-- [x] `renderSessionDetailContent(session, options)` 系の共通関数を将来の `session-detail.html?id=...` に流用できる前提で整理されている
-- [x] 詳細モーダルがフッターや黒い領域に隠れない
-- [x] 詳細モーダルは閉じるボタン、背景クリック、Escキーで閉じられる
+- [x] `renderSessionDetailContent(session, options)` 系の共通関数を詳細ページと将来の表示拡張に流用できる前提で整理されている
+- [x] 既存の詳細モーダル生成・イベント処理は `renderCalendar.js` から削除済みである
+- [x] `calendar.html?date=YYYY-MM-DD` で指定日を選択表示できる
+- [x] 日付選択時にURLの `date` クエリが更新される
+- [x] `localStorage` キー `velgard.calendar.selectedDate` で選択日を補助保存する
+- [x] ブラウザ更新後も選択日が維持される
+- [x] クエリなしの `calendar.html` でも保存済み日付を復元できる
+- [x] 不正な `date` クエリでも画面が壊れず、保存済み日付または今日へフォールバックする
+- [x] `session-detail.html` の「カレンダーへ戻る」は `calendar.html?date=<session.date>` へ戻る
 - [x] 予定がない日の空表示が自然である
 - [x] セッション予定表示追加後もラクシア日付、季節、月齢、レベルキャップ表示が維持されている
-- [x] Phase 1-A / Phase 1-B / Phase 1-C / Phase 1-D は静的モックUIと表示整理であり、予定登録、編集、参加申請、認証、Discord連携、外部DB/APIを実装していない
-- [x] `session-detail.html`、詳細ページ遷移、URLクエリでのモーダル自動表示は未実装である
+- [x] Phase 1-A / Phase 1-B / Phase 1-C / Phase 1-D / Phase 1-E は静的モックUIと表示整理、詳細ページ導入、日付保持であり、予定登録、編集、参加申請、認証、Discord連携、外部DB/APIを実装していない
 - [x] 〆ボタン、参加申請停止処理、保存処理は未実装のままである
-- [x] カレンダー関連キャッシュクエリが `v=20260529-calendar-session-detail-polish` である
+- [x] カレンダー関連キャッシュクエリが `v=20260529-calendar-date-tools-history` である
 - [x] galleryスワイプ用キャッシュクエリ `v=20260529-gallery-swipe` が維持されている
 - [x] カレンダー予定表示は390px幅で横スクロールが出ない
 - [x] 390px幅で横スクロールが出ない
 - [x] raw JSON / undefined / null / [] が露出していない
-- 注記: ラクシア運用カレンダー Phase 1、月表示カレンダー、期間外表示、ラクシア年切り替わり修正、レベルキャップ開始日可視化、Phase 1-A 静的セッション予定モックUI、Phase 1-B セッション詳細モーダル、Phase 1-C 表示ロジック共通化、Phase 1-D PL向け詳細表示整理はユーザー実ブラウザ確認済み。
+- 注記: ラクシア運用カレンダー Phase 1、月表示カレンダー、期間外表示、ラクシア年切り替わり修正、レベルキャップ開始日可視化、Phase 1-A 静的セッション予定モックUI、Phase 1-B〜1-D の詳細表示整理、Phase 1-E の `session-detail.html` 導入と日付保持はユーザー実ブラウザ確認済み。
 
 ## 公開後軽微UI改善バッチ2確認
 - [x] WORLD本文小見出しの上余白が自然になっている
@@ -882,55 +897,59 @@
 - [ ] 画像説明文表示が維持されている
 
 ## 更新履歴確認
+- [ ] updates.html に「セッション詳細ページと履歴保持を追加」が表示される
+- [ ] index.html の最新更新欄に「セッション詳細ページと履歴保持を追加」が反映される
+- [ ] updates.json に「セッション詳細ページと履歴保持を追加」が追加されている
+- [ ] updates.json が41件である
 - [ ] updates.html に「カレンダー予定の詳細表示を追加」が表示される
 - [ ] index.html の最新更新欄に「カレンダー予定の詳細表示を追加」が反映される
 - [ ] updates.json に「カレンダー予定の詳細表示を追加」が追加されている
-- [ ] updates.json が40件である
+- [ ] updates.json が41件である
 - [ ] updates.html に「カレンダーにセッション予定表示を追加」が表示される
 - [ ] index.html の最新更新欄に「カレンダーにセッション予定表示を追加」が反映される
 - [ ] updates.json に「カレンダーにセッション予定表示を追加」が追加されている
-- [ ] updates.json が40件である
+- [ ] updates.json が41件である
 - [ ] updates.html に「ギャラリーのスワイプ操作を追加」が表示される
 - [ ] index.html の最新更新欄に「ギャラリーのスワイプ操作を追加」が反映される
 - [ ] updates.json に「ギャラリーのスワイプ操作を追加」が追加されている
-- [ ] updates.json が40件である
+- [ ] updates.json が41件である
 - [ ] updates.html に「表示余白とトップ表示を調整」が表示される
 - [ ] index.html の最新更新欄に「表示余白とトップ表示を調整」が反映される
 - [ ] updates.json に「表示余白とトップ表示を調整」が追加されている
-- [ ] updates.json が40件である
+- [ ] updates.json が41件である
 - [ ] updates.html に「カレンダー表示を調整」が表示される
 - [ ] index.html の最新更新欄に「カレンダー表示を調整」が反映される
 - [ ] updates.json に「カレンダー表示を調整」が追加されている
-- [ ] updates.json が40件である
+- [ ] updates.json が41件である
 - [ ] updates.html に「細部UIを調整」が表示される
 - [ ] index.html の最新更新欄に「細部UIを調整」が反映される
 - [ ] updates.json に「細部UIを調整」が追加されている
-- [ ] updates.json が40件である
+- [ ] updates.json が41件である
 - [ ] updates.html に「ラクシア運用カレンダーを追加」が表示される
 - [ ] index.html の最新更新欄に「ラクシア運用カレンダーを追加」が反映される
 - [ ] updates.json に「ラクシア運用カレンダーを追加」が追加されている
-- [ ] updates.json が40件である
+- [ ] updates.json が41件である
 - [ ] updates.html に「シナリオ本文の受け入れ基盤を追加」が表示される
 - [ ] index.html の最新更新欄に「シナリオ本文の受け入れ基盤を追加」が反映される
 - [ ] updates.json に「シナリオ本文の受け入れ基盤を追加」が追加されている
-- [ ] updates.json が40件である
+- [ ] updates.json が41件である
 - [ ] updates.html に「ページ上部へ戻るボタンを追加」が表示される
 - [ ] index.html の最新更新欄に「ページ上部へ戻るボタンを追加」が反映される
 - [ ] updates.json に「ページ上部へ戻るボタンを追加」が追加されている
-- [ ] updates.json が40件である
+- [ ] updates.json が41件である
 - [ ] updates.html に「ランダム表ツールを追加」が表示される
 - [ ] index.html の最新更新欄に「ランダム表ツールを追加」が反映される
 - [ ] updates.json に「ランダム表ツールを追加」が追加されている
-- [ ] updates.json が40件である
+- [ ] updates.json が41件である
 - [ ] updates.html に「ギャラリー検索機能を追加」が表示される
 - [ ] index.html の最新更新欄に「ギャラリー検索機能を追加」が反映される
 - [ ] updates.json に「ギャラリー検索機能を追加」が追加されている
-- [ ] updates.json が40件である
+- [ ] updates.json が41件である
 - [ ] 「ギャラリー検索機能を追加」の更新日が2026-05-28である
 - [ ] updates.html に「旧フック描画JSを整理」が表示される
 - [ ] index.html の最新更新欄に「旧フック描画JSを整理」が反映される
 - [ ] updates.json に「旧フック描画JSを整理」が追加されている
-- [ ] updates.json が40件である
+- [ ] updates.json が41件である
 - [ ] 「旧フック描画JSを整理」の更新日が2026-05-28である
 - [ ] updates.html に「スポット詳細の関連シナリオ参照を正本化」が表示される
 - [ ] index.html の最新更新欄に「スポット詳細の関連シナリオ参照を正本化」が反映される
@@ -990,11 +1009,11 @@
 - [ ] index.html の最新更新欄に「表示まわりを調整」が反映される
 - [ ] index.html の最新更新欄に「世界観本文を詳細版へ更新」が反映される
 - [ ] 更新履歴の件数が想定通り表示される
-- [ ] `updates.json` が40件になっている
+- [ ] `updates.json` が41件になっている
 - [ ] index.html の最新3件が以下の順になっている
+  - セッション詳細ページと履歴保持を追加
   - カレンダー予定の詳細表示を追加
   - カレンダーにセッション予定表示を追加
-  - ギャラリーのスワイプ操作を追加
 
 ## meta / OGP確認
 - [ ] 全HTMLにtitleが設定されている
@@ -1216,4 +1235,3 @@
 - [ ] 未実施または注意点を報告
 
 注意: README.md の「禁止旧表記」欄と docs/qa-checklist.md のチェック項目として記載される分は例外です。
-

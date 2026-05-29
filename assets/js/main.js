@@ -10,11 +10,12 @@ import { renderSpotDetail } from "./renderSpotDetail.js?v=20260529-ui-polish";
 import { renderCharacters } from "./renderCharacters.js?v=20260529-ui-polish";
 import { renderScenarios } from "./renderScenarios.js?v=20260529-scenario-release-base";
 import { renderScenarioDetail } from "./renderScenarioDetail.js?v=20260529-scenario-release-base";
+import { renderSessionDetail as renderSessionScheduleDetail } from "./renderSessionDetail.js?v=20260529-calendar-date-tools-history";
 import { renderTerms } from "./renderTerms.js?v=20260526-term-anchor";
 import { renderGallery } from "./renderGallery.js?v=20260529-gallery-swipe";
 import { renderUpdates } from "./renderUpdates.js";
-import { renderTools } from "./renderTools.js?v=20260529-tools-history-full";
-import { renderCalendar } from "./renderCalendar.js?v=20260529-calendar-session-detail-polish";
+import { renderTools } from "./renderTools.js?v=20260529-calendar-date-tools-history";
+import { renderCalendar } from "./renderCalendar.js?v=20260529-calendar-date-tools-history";
 
 const navItems = [
   { label: "TOP", href: "index.html", key: "home", enabled: true },
@@ -43,6 +44,7 @@ const renderers = {
   hooks: renderScenarios,
   scenarios: renderScenarios,
   "scenario-detail": renderScenarioDetail,
+  "session-detail": renderSessionScheduleDetail,
   terms: renderTerms,
   gallery: renderGallery,
   updates: renderUpdates,
@@ -53,7 +55,7 @@ const renderers = {
 function renderHeader(site, page) {
   const header = document.querySelector("#site-header");
   const links = navItems.filter((item) => item.enabled).map(({ label, href, key }) => {
-    const active = page === key || (page === "campaign-detail" && key === "campaigns") || (page === "episode-detail" && key === "campaigns") || (page === "spot-detail" && key === "spots") || ((page === "scenario-detail" || page === "hooks") && key === "scenarios");
+    const active = page === key || (page === "campaign-detail" && key === "campaigns") || (page === "episode-detail" && key === "campaigns") || (page === "spot-detail" && key === "spots") || ((page === "scenario-detail" || page === "hooks") && key === "scenarios") || (page === "session-detail" && key === "calendar");
     return `<a href="${href}" class="${active ? "is-active" : ""}">${label}</a>`;
   }).join("");
   header.innerHTML = `
