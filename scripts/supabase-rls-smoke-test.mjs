@@ -1,5 +1,7 @@
-import "dotenv/config";
+import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
+
+dotenv.config({ path: ".env.local" });
 
 const REQUIRED_ENV = [
   "SUPABASE_URL",
@@ -39,26 +41,63 @@ const SESSION = {
 };
 
 const RUN_DESTRUCTIVE_TESTS = process.env.RUN_DESTRUCTIVE_TESTS === "true";
-const sensitiveValues = Object.values(process.env).filter(
+const SENSITIVE_ENV = [...REQUIRED_ENV, ...FORBIDDEN_ENV];
+const sensitiveValues = SENSITIVE_ENV.map((name) => process.env[name]).filter(
   (value) => typeof value === "string" && value.length >= 8
 );
 
 const results = [];
 
-function sanitize(value) {
-  let text = value instanceof Error ? value.message : String(value ?? "");
+function sanitizeText(value) {
+  let text = String(value ?? "");
   for (const secret of sensitiveValues) {
     if (secret && text.includes(secret)) {
       text = text.split(secret).join("[redacted]");
     }
   }
-  return text.replace(/https:\/\/[^\s)]+/g, "[redacted-url]");
+  return text
+    .replace(/https:\/\/[^\s)]+/g, "[redacted-url]")
+    .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, "[redacted-token]");
+}
+
+function formatSupabaseError(error) {
+  if (!error) {
+    return "unknown error";
+  }
+
+  if (typeof error === "string") {
+    return sanitizeText(error);
+  }
+
+  const parts = [];
+  for (const key of ["message", "code", "details", "hint", "status", "name"]) {
+    if (error[key]) {
+      parts.push(`${key}=${sanitizeText(error[key])}`);
+    }
+  }
+
+  return parts.length > 0 ? parts.join(" | ") : "unrecognized error object";
+}
+
+function sanitize(value) {
+  if (value instanceof Error) {
+    return formatSupabaseError(value);
+  }
+  return sanitizeText(value);
 }
 
 function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
   }
+}
+
+function requireId(value, label) {
+  assert(
+    typeof value === "string" && value.length > 0,
+    `${label} was not available; check the earlier application/comment creation or SELECT test.`
+  );
+  return value;
 }
 
 function assertNoSensitiveColumns(rowOrRows, context) {
@@ -89,13 +128,13 @@ async function signIn(label, emailEnv, passwordEnv) {
     email: process.env[emailEnv],
     password: process.env[passwordEnv]
   });
-  assert(!error, `${label} sign-in failed: ${sanitize(error)}`);
+  assert(!error, `${label} sign-in failed: ${formatSupabaseError(error)}`);
   return client;
 }
 
 async function expectOk(operation, label) {
   const { data, error } = await operation;
-  assert(!error, `${label} failed: ${sanitize(error)}`);
+  assert(!error, `${label} failed: ${formatSupabaseError(error)}`);
   return data;
 }
 
@@ -140,6 +179,7 @@ async function getOwnApplication(client, sessionId) {
     `select own application for ${sessionId}`
   );
   assert(data.length === 1, `expected exactly one visible own application for ${sessionId}`);
+  assert(data[0].id, `visible own application for ${sessionId} did not include id`);
   return data[0];
 }
 
@@ -268,7 +308,7 @@ async function main() {
   await runTest("AUTH-010", "player A cannot set application status or close sessions", async () => {
     await expectError(
       playerA.rpc("set_application_status", {
-        target_application_id: playerARecruitingApplicationId,
+        target_application_id: requireId(playerARecruitingApplicationId, "player A recruiting application id"),
         new_status: "accepted"
       }),
       "player A set_application_status"
@@ -299,7 +339,7 @@ async function main() {
   await runTest("AUTH-013", "player A cannot edit player B comment, but can edit own comment", async () => {
     await expectError(
       playerA.rpc("edit_comment", {
-        target_comment_id: playerBCommentId,
+        target_comment_id: requireId(playerBCommentId, "player B comment id"),
         comment_body: "Player A should not be able to edit Player B comment."
       }),
       "player A edit player B comment"
@@ -311,7 +351,7 @@ async function main() {
     );
     await expectOk(
       playerA.rpc("edit_comment", {
-        target_comment_id: ownCommentId,
+        target_comment_id: requireId(ownCommentId, "player A own comment id"),
         comment_body: "Player A edited own comment from smoke test."
       }),
       "player A edit own comment"
@@ -322,7 +362,7 @@ async function main() {
     gmA = await signIn("gm A", "TEST_GM_A_EMAIL", "TEST_GM_A_PASSWORD");
     await expectOk(
       gmA.rpc("set_application_status", {
-        target_application_id: playerARecruitingApplicationId,
+        target_application_id: requireId(playerARecruitingApplicationId, "player A recruiting application id"),
         new_status: "accepted"
       }),
       "gm A accept own session application"
@@ -332,7 +372,7 @@ async function main() {
   await runTest("AUTH-015", "gm A cannot manage gm B session application or close gm B session", async () => {
     await expectError(
       gmA.rpc("set_application_status", {
-        target_application_id: otherGmApplicationId,
+        target_application_id: requireId(otherGmApplicationId, "other GM session application id"),
         new_status: "accepted"
       }),
       "gm A set status for gm B session application"

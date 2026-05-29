@@ -37,6 +37,8 @@ Copy-Item .env.example .env.local
 
 service role keyは不要です。`SUPABASE_SERVICE_ROLE_KEY` を `.env.local` に入れないでください。
 
+スクリプトは `.env.local` を明示的に読み込みます。PowerShell側で手動読み込みをしなくても、`.env.local` が存在し必要な値が入っていれば実行できます。
+
 ## 5. 必要な環境変数
 
 `.env.local` に設定する変数は以下です。
@@ -88,7 +90,19 @@ npm run supabase:rls:smoke
 - `FAIL`: 期待と違う。RLS / RPC / seed / Authユーザー設定を確認する。
 - `SKIP`: 初回では意図的に実行しない破壊的テスト。
 
+`FAIL` では、Supabase error object のうち `message` / `code` / `details` / `hint` / `status` / `name` を表示します。Project URL、key、password、token類は表示しないようにredactします。
+
 失敗が1件でもある場合、スクリプトは `process.exitCode = 1` を設定します。
+
+初回smoke testで `permission denied for table sessions` または `permission denied for table session_applications` が出る場合は、RLS policyではなくData APIロールへのGRANT不足の可能性があります。その場合は `docs/supabase/sql/007_rls_smoke_fix_grants_draft.sql` を確認し、SQL Editorで実行する前に内容をレビューします。
+
+SQL修正後は、再度以下を実行します。
+
+```powershell
+npm.cmd run supabase:rls:smoke
+```
+
+全件PASSするまで、本番サイト接続へ進みません。
 
 ## 8. 状態変更テストの扱い
 
