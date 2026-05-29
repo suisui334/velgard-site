@@ -68,6 +68,7 @@ py -m http.server 4173 -d velgard-site
 - `gallery.json`: 画像ギャラリー項目
 - `randomTables.json`: TOOLSページのランダム表データ
 - `calendarConfig.json`: ラクシア運用カレンダー設定
+- `sessions.json`: CALENDARページの静的セッション予定モックデータ
 - `updates.json`: 更新履歴
 
 ## 画像アセット配置状況
@@ -149,6 +150,8 @@ py -m http.server 4173 -d velgard-site
 - `SPOTS`
 - `SCENARIOS`
 - `GALLERY`
+- `TOOLS`
+- `CALENDAR`
 - `TERMS`
 - `UPDATES`
 - `REGULATION`
@@ -162,9 +165,9 @@ py -m http.server 4173 -d velgard-site
 ### 最新更新表示
 - トップページでは `updates.json` から最新3件を控えめに表示
 - 現在の最新3件は以下
+  - カレンダーにセッション予定表示を追加
   - ギャラリーのスワイプ操作を追加
   - 表示余白とトップ表示を調整
-  - カレンダー表示を調整
 
 ## regulation正式規約ページ反映状況
 - `regulation.html` は準備中ではなく、正式規約ページとして公開中
@@ -771,7 +774,7 @@ py -m http.server 4173 -d velgard-site
 - `assets/js/*.js` 構文OK
 - version付き `main.js` / `renderScenarios.js` / `renderScenarioDetail.js` / `renderSpotDetail.js` HTTP 200
 - `gallery.html` / `spot-detail.html` / `characters.html` の既存モーダル維持
-- 現在の `updates.json` は38件
+- 現在の `updates.json` は39件
 - 禁止旧表記・旧IDの復活なし
 
 ### 後工程候補
@@ -995,9 +998,23 @@ py -m http.server 4173 -d velgard-site
 - ラクシア年切り替わりは3月1日起点
 - 暦年の月順は 3月,4月,5月,6月,7月,8月,9月,10月,11月,12月,1月,2月
 - Phase 1 は読み取り専用
-- セッション予定登録、外部DB/API、アカウント、Discord連携は未実装
+- カレンダー拡張 Phase 1-A として、静的セッション予定モックUIを追加済み
+- `data/sessions.json` を追加済み
+- `sessions.json` は `schemaVersion` / `updatedAt` / `sessions` を持つ
+- 仮データは7件で、`recruiting` / `full` / `tentative` / `finished` / `canceled` / `closed` を含む
+- Discord IDは数値ではなく文字列で扱う
+- 月表示カレンダーの日付セルには、その日の予定を `時刻 GM名 タイトル` で全件縦表示する
+- `status: "closed"` の予定は、セル内で `〆 時刻 GM名 タイトル` 形式で表示する
+- `〆` は行頭に置き、`gmName` はJS側で接頭辞を足さずデータ値をそのまま表示する
+- `+n件` 圧縮は採用しない方針
+- `募集中` / `満席` の強い状態バッジ表示は行わない
+- 選択日詳細エリアに「選択日のセッション予定」を追加済み
+- 選択日予定カードには、タイトル、`〆` 状態、開催時刻、GM名、レベル、募集人数、概要、タグ、Discordスレッドリンクを表示する
+- 予定がない日は「この日のセッション予定はまだありません。」を表示する
 - 390px幅で横スクロールなし確認済み
-- キャッシュ対策は `v=20260529-calendar-cap-start`
+- Phase 1-A は静的モックUIであり、セッション予定登録、編集、参加申請、認証、Discord連携、外部DB/APIは未実装
+- 〆ボタン、参加申請停止処理、保存処理は未実装
+- キャッシュ対策は `v=20260529-calendar-cap-start` / `v=20260529-calendar-sessions-mock-3`
 
 ## ページ上部へ戻るボタン
 - 全ページ共通の「ページ上部へ戻る」ボタンを追加済み
@@ -1014,7 +1031,14 @@ py -m http.server 4173 -d velgard-site
 - キャッシュ対策は `v=20260528-back-to-top`
 
 ## 更新履歴追記
-`data/updates.json` は現在38件です。以下の更新履歴を追加済みです。
+`data/updates.json` は現在39件です。以下の更新履歴を追加済みです。
+
+### 2026-05-29 カレンダーにセッション予定表示を追加
+- 日付: 2026-05-29
+- タイトル: カレンダーにセッション予定表示を追加
+- 本文: カレンダーに静的セッション予定データを追加し、日付セルと選択日詳細で予定を確認できるようにしました。
+- 対象: CALENDAR
+- タグ: UI
 
 ### 2026-05-29 ギャラリーのスワイプ操作を追加
 - 日付: 2026-05-29

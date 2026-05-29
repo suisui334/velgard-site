@@ -1,8 +1,18 @@
 import { loadJson } from "./dataLoader.js";
 
 const CONFIG_URL = "data/calendarConfig.json?v=20260529-calendar-cap-start";
+const SESSIONS_URL = "data/sessions.json?v=20260529-calendar-sessions-mock-3";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const SESSION_STATUSES = {
+  draft: "下書き",
+  tentative: "仮予定",
+  recruiting: "募集中",
+  full: "満席",
+  closed: "締切",
+  finished: "終了",
+  canceled: "中止"
+};
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -12,6 +22,77 @@ function escapeHtml(value) {
     "\"": "&quot;",
     "'": "&#39;"
   }[char]));
+}
+
+function safeExternalUrl(value) {
+  const text = String(value || "").trim();
+  return /^https?:\/\//.test(text) ? text : "";
+}
+
+function sessionStatusLabel(status) {
+  return SESSION_STATUSES[status] || "未設定";
+}
+
+function sessionStatusClass(status) {
+  return Object.prototype.hasOwnProperty.call(SESSION_STATUSES, status) ? status : "unknown";
+}
+
+function isClosedSession(session) {
+  return session?.status === "closed";
+}
+
+function sessionTitle(session) {
+  const title = String(session?.title || "無題のセッション").trim();
+  return isClosedSession(session) ? `〆 ${title}` : title;
+}
+
+function shouldShowSessionState(session) {
+  return ["tentative", "finished", "canceled"].includes(session?.status);
+}
+
+function isVisibleSession(session) {
+  return session
+    && session.visibility === "public"
+    && session.status !== "draft"
+    && ISO_DATE_PATTERN.test(String(session.date || ""));
+}
+
+function sortSessions(a, b) {
+  const timeA = String(a.startTime || "99:99");
+  const timeB = String(b.startTime || "99:99");
+  if (timeA !== timeB) return timeA.localeCompare(timeB, "ja");
+  return String(a.title || "").localeCompare(String(b.title || ""), "ja");
+}
+
+function groupSessionsByDate(sessions) {
+  const groups = new Map();
+  sessions.filter(isVisibleSession).sort(sortSessions).forEach((session) => {
+    if (!groups.has(session.date)) {
+      groups.set(session.date, []);
+    }
+    groups.get(session.date).push(session);
+  });
+  return groups;
+}
+
+function sessionsForDate(sessionsByDate, isoDate) {
+  return sessionsByDate.get(isoDate) || [];
+}
+
+function formatSessionTime(session) {
+  const start = String(session.startTime || "").trim();
+  const end = String(session.endTime || "").trim();
+  if (start && end) return `${start}〜${end}`;
+  return start || end || "時刻未定";
+}
+
+function formatPlayerCount(session) {
+  const count = Number.isFinite(Number(session.playerCount)) ? Number(session.playerCount) : null;
+  const max = Number.isFinite(Number(session.playerMax)) ? Number(session.playerMax) : null;
+  if (count !== null && max !== null) return `${count} / ${max}名`;
+  if (max !== null) return `最大${max}名`;
+  if (count !== null) return `${count}名`;
+  return "未設定";
 }
 
 function parseIsoDate(value) {
@@ -330,7 +411,103 @@ function renderResultCard(title, result) {
   `;
 }
 
-function renderMonthCalendar(year, month, selectedIso, todayIso, config) {
+function renderSessionBadges(sessions) {
+  if (!sessions.length) return "";
+  return `
+    <span class="calendar-session-badges" aria-label="この日の予定 ${sessions.length}件">
+      ${sessions.map((session) => {
+        const closed = isClosedSession(session);
+        const time = String(session.startTime || "未定").trim() || "未定";
+        const gmName = String(session.gmName || "GM未設定").trim() || "GM未設定";
+        const title = String(session.title || "無題のセッション").trim() || "無題のセッション";
+        return `
+        <span class="calendar-session-row ${closed ? "is-closed" : ""}">
+          ${closed ? `<span class="calendar-session-close" aria-label="締切">〆</span>` : ""}
+          <span class="calendar-session-time">${escapeHtml(time)}</span>
+          <span class="calendar-session-gm">${escapeHtml(gmName)}</span>
+          <span class="calendar-session-title">${escapeHtml(title)}</span>
+        </span>
+      `;
+      }).join("")}
+    </span>
+  `;
+}
+
+function renderSessionTags(tags) {
+  if (!Array.isArray(tags) || !tags.length) return "";
+  return `
+    <div class="calendar-session-tags">
+      ${tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
+    </div>
+  `;
+}
+
+function renderSessionCard(session) {
+  const threadUrl = safeExternalUrl(session.discordThreadUrl);
+  const linkHtml = threadUrl
+    ? `<a class="button small" href="${escapeHtml(threadUrl)}" target="_blank" rel="noopener">Discordスレッド</a>`
+    : "";
+  return `
+    <article class="calendar-session-card">
+      <div class="calendar-session-card-head">
+        <h3>${escapeHtml(sessionTitle(session))}</h3>
+        ${shouldShowSessionState(session) ? `<span class="calendar-session-state-note calendar-session-status-${sessionStatusClass(session.status)}">${escapeHtml(sessionStatusLabel(session.status))}</span>` : ""}
+      </div>
+      <dl class="calendar-session-meta">
+        <div>
+          <dt>時刻</dt>
+          <dd>${escapeHtml(formatSessionTime(session))}</dd>
+        </div>
+        <div>
+          <dt>GM</dt>
+          <dd>${escapeHtml(session.gmName || "未設定")}</dd>
+        </div>
+        <div>
+          <dt>レベル</dt>
+          <dd>${escapeHtml(session.levelRange || "未設定")}</dd>
+        </div>
+        <div>
+          <dt>募集</dt>
+          <dd>${escapeHtml(formatPlayerCount(session))}</dd>
+        </div>
+      </dl>
+      ${session.summary ? `<p class="calendar-session-summary">${escapeHtml(session.summary)}</p>` : ""}
+      ${renderSessionTags(session.tags)}
+      ${linkHtml ? `<div class="calendar-session-actions">${linkHtml}</div>` : ""}
+    </article>
+  `;
+}
+
+function renderSessionsPanel(isoDate, sessions, hasLoadError = false) {
+  const bodyHtml = (() => {
+    if (hasLoadError) {
+      return `<p class="calendar-session-empty">予定データを読み込めませんでした。カレンダー本体はそのまま利用できます。</p>`;
+    }
+    if (!sessions.length) {
+      return `<p class="calendar-session-empty">この日のセッション予定はまだありません。</p>`;
+    }
+    return `<div class="calendar-session-list">${sessions.map(renderSessionCard).join("")}</div>`;
+  })();
+  return `
+    <article class="article-box calendar-sessions-panel">
+      <div class="calendar-sessions-head">
+        <h2>選択日のセッション予定</h2>
+        <span class="tag">${escapeHtml(hasLoadError ? "読み込み失敗" : `${sessions.length}件`)}</span>
+      </div>
+      <p class="calendar-sessions-date">${escapeHtml(formatRealDate(isoDate))}</p>
+      ${bodyHtml}
+    </article>
+  `;
+}
+
+function renderSelectedPanel(result, sessions, hasLoadError = false) {
+  return `
+    ${renderResultCard("選択日の換算", result)}
+    ${renderSessionsPanel(result.isoDate, sessions, hasLoadError)}
+  `;
+}
+
+function renderMonthCalendar(year, month, selectedIso, todayIso, config, sessionsByDate = new Map()) {
   const firstIso = toIsoDate(year, month, 1);
   const firstWeekday = new Date(parseIsoDate(firstIso).time).getUTCDay();
   const days = realDaysInMonth(year, month);
@@ -339,6 +516,7 @@ function renderMonthCalendar(year, month, selectedIso, todayIso, config) {
     const day = index + 1;
     const isoDate = toIsoDate(year, month, day);
     const result = calculateCalendarResult(isoDate, config);
+    const daySessions = result.inCampaign ? sessionsForDate(sessionsByDate, isoDate) : [];
     const weekday = REAL_WEEKDAYS[new Date(parseIsoDate(isoDate).time).getUTCDay()];
     const classes = [
       "calendar-day-cell",
@@ -361,6 +539,7 @@ function renderMonthCalendar(year, month, selectedIso, todayIso, config) {
           <span class="calendar-mini-tag">${escapeHtml(shortLevelLabel(result.levelCap))}</span>
           ${result.levelCap.isStart ? `<span class="calendar-mini-tag calendar-cap-start-tag">${escapeHtml(result.levelCap.startLabel)}</span>` : ""}
         </span>
+        ${renderSessionBadges(daySessions)}
       `
       : `<span class="calendar-day-status">${escapeHtml(result.levelCap.label)}</span>`;
 
@@ -400,9 +579,17 @@ function renderError(message) {
 
 export async function renderCalendar(root) {
   const config = await loadJson(CONFIG_URL);
+  let sessionsLoadError = false;
+  const sessionsData = await loadJson(SESSIONS_URL).catch((error) => {
+    console.warn(error);
+    sessionsLoadError = true;
+    return { sessions: [] };
+  });
+  const sessionsByDate = groupSessionsByDate(Array.isArray(sessionsData.sessions) ? sessionsData.sessions : []);
   const initialDate = todayInJapan();
   const initialParsed = parseIsoDate(initialDate);
   const todayResult = calculateCalendarResult(initialDate, config);
+  const todaySessions = sessionsForDate(sessionsByDate, initialDate);
   let selectedIso = initialDate;
   let displayYear = initialParsed.year;
   let displayMonth = initialParsed.month;
@@ -418,7 +605,7 @@ export async function renderCalendar(root) {
         ${renderResultCard("今日の換算", todayResult)}
       </div>
       <div id="calendar-month-view">
-        ${renderMonthCalendar(displayYear, displayMonth, selectedIso, initialDate, config)}
+        ${renderMonthCalendar(displayYear, displayMonth, selectedIso, initialDate, config, sessionsByDate)}
       </div>
       <div class="article-box calendar-control-panel">
         <div class="calendar-control-copy">
@@ -437,7 +624,7 @@ export async function renderCalendar(root) {
         </form>
       </div>
       <div id="calendar-selected" aria-live="polite">
-        ${renderResultCard("選択日の換算", todayResult)}
+        ${renderSelectedPanel(todayResult, todaySessions, sessionsLoadError)}
       </div>
     </section>
   `;
@@ -451,14 +638,14 @@ export async function renderCalendar(root) {
   const drawSelected = () => {
     try {
       const result = calculateCalendarResult(selectedIso, config);
-      selected.innerHTML = renderResultCard("選択日の換算", result);
+      selected.innerHTML = renderSelectedPanel(result, sessionsForDate(sessionsByDate, selectedIso), sessionsLoadError);
     } catch (error) {
       selected.innerHTML = renderError(error.message || "日付換算に失敗しました。");
     }
   };
 
   const drawMonth = () => {
-    monthView.innerHTML = renderMonthCalendar(displayYear, displayMonth, selectedIso, initialDate, config);
+    monthView.innerHTML = renderMonthCalendar(displayYear, displayMonth, selectedIso, initialDate, config, sessionsByDate);
   };
 
   const selectDate = (isoDate, syncMonth = true) => {
