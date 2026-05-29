@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Supabase F-3 Auth State Prototype | Velgard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f3ee;
+      --panel: #ffffff;
+      --text: #28231e;
+      --muted: #6f655b;
+      --line: #d8cdc0;
+      --accent: #426b5b;
+      --danger: #9a3d32;
+      --ok: #2f6f4d;
+      --warn: #8a6424;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1040px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 4vw, 2.25rem);
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      margin-bottom: 14px;
+    }
+
+    .lead {
+      color: var(--muted);
+      max-width: 850px;
+    }
+
+    .notice,
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 18px;
+      margin-top: 18px;
+    }
+
+    .notice {
+      border-color: #e3c36d;
+      background: #fff8df;
+      color: #49390f;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 11px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .help {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 400;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      min-height: 42px;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 9px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+    }
+
+    button.secondary {
+      color: var(--accent);
+      background: #fff;
+    }
+
+    button.danger {
+      border-color: var(--danger);
+      background: var(--danger);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.72;
+    }
+
+    .status {
+      margin-top: 12px;
+      color: var(--muted);
+      white-space: pre-wrap;
+    }
+
+    .status.ok {
+      color: var(--ok);
+    }
+
+    .status.warn {
+      color: var(--warn);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .state-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .state-card dl {
+      display: grid;
+      grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+      gap: 8px 14px;
+      margin: 0;
+    }
+
+    .state-card dt {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .state-card dd {
+      margin: 0;
+      word-break: break-word;
+    }
+
+    .error-list {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--danger);
+    }
+
+    .empty {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    code {
+      background: #eee7df;
+      border-radius: 4px;
+      padding: 0.1em 0.35em;
+    }
+
+    @media (max-width: 720px) {
+      main {
+        width: min(100% - 20px, 1040px);
+        padding-top: 20px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel,
+      .notice {
+        padding: 14px;
+      }
+
+      .state-card dl {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Supabase F-3 ログイン状態表示プロトタイプ</h1>
+    <p class="lead">
+      Supabase Authのログイン状態、ログアウト、再読込後のセッション復元、public_profiles表示名取得をdev専用ページで確認します。
+    </p>
+
+    <section class="notice" aria-label="重要な注意">
+      <h2>重要な注意</h2>
+      <p>
+        このページはdev専用です。本番の <code>calendar.html</code> / <code>session-detail.html</code> / 既存 <code>assets/js</code> には接続しません。
+      </p>
+      <p>
+        Supabase Authのセッション自体はsupabase-jsが内部保存する可能性があります。検証後は必ずログアウトしてください。
+        <code>service_role</code>、secret key、Direct connection stringは入力しないでください。
+      </p>
+    </section>
+
+    <section class="panel" aria-labelledby="connection-heading">
+      <h2 id="connection-heading">接続入力欄</h2>
+      <div class="grid">
+        <label>
+          Supabase URL
+          <input id="supabase-url" type="url" inputmode="url" autocomplete="off" placeholder="https://...">
+          <span class="help">入力値は保存せず、画面にも全文表示しません。</span>
+        </label>
+        <label>
+          Publishable / anon key
+          <input id="supabase-key" type="password" autocomplete="off" placeholder="publishable / anon key">
+          <span class="help">service role / secret key は入力禁止です。</span>
+        </label>
+      </div>
+      <div class="actions">
+        <button id="check-state" type="button">接続して状態確認</button>
+        <button id="clear-inputs" class="secondary" type="button">入力をクリア</button>
+      </div>
+      <p id="connection-status" class="status">未実行です。</p>
+    </section>
+
+    <section class="panel" aria-labelledby="login-heading">
+      <h2 id="login-heading">ログイン入力欄</h2>
+      <div class="grid">
+        <label>
+          Email
+          <input id="login-email" type="email" autocomplete="username" placeholder="テストユーザーのメール">
+          <span class="help">実値は保存しません。画面上の状態表示にはメールのみ出します。</span>
+        </label>
+        <label>
+          Password
+          <input id="login-password" type="password" autocomplete="current-password" placeholder="テストユーザーのパスワード">
+          <span class="help">成功後に入力欄を空にします。ログには出しません。</span>
+        </label>
+      </div>
+      <div class="actions">
+        <button id="login" type="button">ログイン</button>
+        <button id="logout" class="danger" type="button">ログアウト</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="state-heading">
+      <h2 id="state-heading">現在の状態表示</h2>
+      <div id="auth-state-result">
+        <p class="empty">まだ確認していません。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="profile-heading">
+      <h2 id="profile-heading">public_profiles 表示名確認</h2>
+      <div id="profile-result">
+        <p class="empty">まだ取得していません。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="errors-heading">
+      <h2 id="errors-heading">エラー表示</h2>
+      <div id="error-result">
+        <p class="empty">エラーはありません。</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./supabase-auth-state-prototype.js"></script>
+</body>
+</html>
