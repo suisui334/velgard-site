@@ -237,6 +237,8 @@ F-7a最小実装のローカル確認では、`session-detail.html` 本文中に
 
 このため、`assets/js/sessionAuthState.js` や `assets/js/supabaseRuntimeConfig.example.js` のような `session-detail.html` 専用の未使用JSは本番リポジトリに残さない。今後の認証UIは、サイト共通ヘッダー / マイページ導線として改めて設計する。
 
+関連する再設計は `docs/supabase-account-nav-mypage-ux-plan.md` に分離する。共通ヘッダー付近のアカウントアイコン、マイページ最小構成、ログイン / ログアウト導線、Supabase接続情報の扱いはそちらを正とする。
+
 未実装のまま維持するもの:
 
 - ログインフォーム
