@@ -63,6 +63,7 @@ py -m http.server 4173 -d velgard-site
   - `docs/supabase-step11-rls-smoke-fix-plan.md`: Supabase Step 11 RLS smoke test FAIL修正計画
   - `docs/supabase-rls-smoke-test-result.md`: Supabase Auth文脈RLSスモークテスト結果整理
   - `docs/supabase-production-connection-checklist.md`: Supabase本番サイト接続前チェックリスト
+  - `docs/supabase-frontend-integration-plan.md`: Supabaseフロント連携設計書
   - `docs/supabase-rls-test-matrix.md`: Supabase RLSテストケース表
   - `docs/supabase/sql/`: Supabase最小スキーマ、RLS/GRANT、RPCの実行候補SQL草案
 
@@ -1403,6 +1404,7 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - Supabase Step 11 RLS smoke test FAIL修正計画は `docs/supabase-step11-rls-smoke-fix-plan.md`、GRANT修正SQL草案は `docs/supabase/sql/007_rls_smoke_fix_grants_draft.sql` に分離済み。まだ追加SQL実行・本番接続は行わない。
 - Supabase Auth文脈RLSスモークテスト結果は `docs/supabase-rls-smoke-test-result.md` に整理済み。007 grant fix後の結果は `PASS 19 / FAIL 0 / SKIP 1` で、`AUTH-018` は破壊的close成功系のため意図的SKIP。
 - Supabase本番接続前の停止条件と確認事項は `docs/supabase-production-connection-checklist.md` に分離済み。次工程は本番ページ接続ではなく、Supabaseフロント連携設計を先に固める方針。
+- Supabaseフロント連携設計は `docs/supabase-frontend-integration-plan.md` に分離済み。当面は `data/sessions.json` を正本のまま維持し、Supabaseは参加希望コメント・申請状態まわりから読み取り専用プロトタイプで段階確認する方針。
 - シナリオ本文・PDF受け入れ基盤は実装済み。配布シナリオ本文作成と実ファイル配置はユーザー提供ファイル待ち。初期方針はTXT正本 / PDF任意で、本文・PDF・配布ファイルを受け取ってから反映する。
 - 互換維持中の `hooks.html` / `data/hooks.json` / `gallery-hook-*` ID / `assets/images/hooks/` / `characters.json` の `relatedHooks` は、未対応ではなく意図的な保留として扱う。
 
