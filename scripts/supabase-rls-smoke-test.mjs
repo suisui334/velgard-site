@@ -195,6 +195,45 @@ async function getPublicCountTotal(client, sessionId) {
   return Number(row.accepted_count ?? 0) + Number(row.pending_count ?? 0) + Number(row.waitlisted_count ?? 0);
 }
 
+async function getPublicComments(client, sessionId) {
+  return expectOk(
+    client.rpc("get_public_session_comments", {
+      target_session_id: sessionId
+    }),
+    `get public comments for ${sessionId}`
+  );
+}
+
+async function updateApplicationComment(client, commentId, body) {
+  return expectOk(
+    client.rpc("update_application_comment", {
+      target_comment_id: commentId,
+      comment_body: body
+    }),
+    `update application comment ${commentId}`
+  );
+}
+
+async function deleteApplicationCommentAndMaybeCancel(client, commentId) {
+  return expectOk(
+    client.rpc("delete_application_comment_and_maybe_cancel", {
+      target_comment_id: commentId
+    }),
+    `delete application comment ${commentId}`
+  );
+}
+
+function assertPublicCommentBody(comments, commentId, expectedBody, context) {
+  const row = comments.find((comment) => comment.comment_id === commentId);
+  assert(row, `${context} did not return comment ${commentId}`);
+  assert(row.body === expectedBody, `${context} returned an unexpected comment body`);
+}
+
+function assertPublicCommentMissing(comments, commentId, context) {
+  const row = comments.find((comment) => comment.comment_id === commentId);
+  assert(!row, `${context} returned deleted comment ${commentId}`);
+}
+
 function assertEnvironment() {
   const missing = REQUIRED_ENV.filter((name) => !process.env[name]);
   if (missing.length > 0) {
@@ -221,6 +260,11 @@ async function main() {
   let playerARecruitingApplicationId;
   let otherGmApplicationId;
   let playerBCommentId;
+  let playerAOtherGmCommentId;
+  let f6PlayerAEditableCommentId;
+  let f6GmEditableCommentId;
+  let f6OwnerDeletedCommentId;
+  let f6OwnerDeleteResult;
 
   await runTest("AUTH-001", "anon can read public sessions only", async () => {
     const data = await expectOk(
@@ -274,7 +318,14 @@ async function main() {
     const application = await getOwnApplication(playerA, SESSION.recruiting);
     playerARecruitingApplicationId = application.id;
     const total = await getPublicCountTotal(playerA, SESSION.recruiting);
-    assert(total >= 1, "public count total did not include player A");
+    if (["pending", "accepted", "waitlisted"].includes(application.status)) {
+      assert(total >= 1, "public count total did not include a countable player A application");
+    } else {
+      assert(
+        ["rejected", "canceled"].includes(application.status),
+        `unexpected player A application status after duplicate comment test: ${application.status}`
+      );
+    }
   });
 
   await runTest("AUTH-007", "player A can apply to tentative", async () => {
@@ -322,7 +373,11 @@ async function main() {
   });
 
   await runTest("AUTH-011", "player A can create an application on another GM public session", async () => {
-    await createApplicationComment(playerA, SESSION.otherGm, "Player A other-GM application from smoke test.");
+    playerAOtherGmCommentId = await createApplicationComment(
+      playerA,
+      SESSION.otherGm,
+      "Player A other-GM application from smoke test."
+    );
     const application = await getOwnApplication(playerA, SESSION.otherGm);
     otherGmApplicationId = application.id;
   });
@@ -358,6 +413,86 @@ async function main() {
     );
   });
 
+  await runTest("F6-EDIT-001", "player A can update own application comment", async () => {
+    f6PlayerAEditableCommentId = await createApplicationComment(
+      playerA,
+      SESSION.recruiting,
+      "F6 editable application comment from player A."
+    );
+    const editedBody = "F6 player A edited own application comment.";
+    const data = await updateApplicationComment(
+      playerA,
+      requireId(f6PlayerAEditableCommentId, "F6 player A editable comment id"),
+      editedBody
+    );
+    assert(data.length === 1, "update_application_comment did not return one updated row");
+    const comments = await getPublicComments(anon, SESSION.recruiting);
+    assertPublicCommentBody(
+      comments,
+      f6PlayerAEditableCommentId,
+      editedBody,
+      "F6 player A edited comment public RPC check"
+    );
+  });
+
+  await runTest("F6-EDIT-002", "player A cannot update player B application comment", async () => {
+    await expectError(
+      playerA.rpc("update_application_comment", {
+        target_comment_id: requireId(playerBCommentId, "player B comment id"),
+        comment_body: "Player A should not update Player B comment through F6 RPC."
+      }),
+      "player A update player B application comment"
+    );
+  });
+
+  await runTest("F6-EDIT-005", "anon cannot update application comments", async () => {
+    await expectError(
+      anon.rpc("update_application_comment", {
+        target_comment_id: requireId(playerBCommentId, "player B comment id"),
+        comment_body: "Anon should not update comments."
+      }),
+      "anon update_application_comment"
+    );
+  });
+
+  await runTest("F6-EDIT-006", "blank application comment update is rejected", async () => {
+    await expectError(
+      playerA.rpc("update_application_comment", {
+        target_comment_id: requireId(f6PlayerAEditableCommentId, "F6 player A editable comment id"),
+        comment_body: "   "
+      }),
+      "blank update_application_comment"
+    );
+  });
+
+  await runTest("F6-EDIT-007", "overlong application comment update is rejected", async () => {
+    await expectError(
+      playerA.rpc("update_application_comment", {
+        target_comment_id: requireId(f6PlayerAEditableCommentId, "F6 player A editable comment id"),
+        comment_body: "x".repeat(4001)
+      }),
+      "overlong update_application_comment"
+    );
+  });
+
+  await runTest("F6-DELETE-002", "player A cannot delete player B application comment", async () => {
+    await expectError(
+      playerA.rpc("delete_application_comment_and_maybe_cancel", {
+        target_comment_id: requireId(playerBCommentId, "player B comment id")
+      }),
+      "player A delete player B application comment"
+    );
+  });
+
+  await runTest("F6-DELETE-005", "anon cannot delete application comments", async () => {
+    await expectError(
+      anon.rpc("delete_application_comment_and_maybe_cancel", {
+        target_comment_id: requireId(playerBCommentId, "player B comment id")
+      }),
+      "anon delete_application_comment_and_maybe_cancel"
+    );
+  });
+
   await runTest("AUTH-014", "gm A can sign in and manage own session application", async () => {
     gmA = await signIn("gm A", "TEST_GM_A_EMAIL", "TEST_GM_A_PASSWORD");
     await expectOk(
@@ -366,6 +501,47 @@ async function main() {
         new_status: "accepted"
       }),
       "gm A accept own session application"
+    );
+  });
+
+  await runTest("F6-EDIT-003", "gm A can update own session application comment", async () => {
+    f6GmEditableCommentId = await createApplicationComment(
+      playerB,
+      SESSION.recruiting,
+      "F6 GM editable application comment from player B."
+    );
+    const editedBody = "F6 GM A edited own session application comment.";
+    const data = await updateApplicationComment(
+      gmA,
+      requireId(f6GmEditableCommentId, "F6 GM editable comment id"),
+      editedBody
+    );
+    assert(data.length === 1, "GM update_application_comment did not return one updated row");
+    const comments = await getPublicComments(anon, SESSION.recruiting);
+    assertPublicCommentBody(
+      comments,
+      f6GmEditableCommentId,
+      editedBody,
+      "F6 GM edited comment public RPC check"
+    );
+  });
+
+  await runTest("F6-EDIT-004", "gm A cannot update gm B session application comment", async () => {
+    await expectError(
+      gmA.rpc("update_application_comment", {
+        target_comment_id: requireId(playerAOtherGmCommentId, "player A other GM comment id"),
+        comment_body: "GM A should not update a GM B session comment through F6 RPC."
+      }),
+      "gm A update GM B session application comment"
+    );
+  });
+
+  await runTest("F6-DELETE-004", "gm A cannot delete gm B session application comment", async () => {
+    await expectError(
+      gmA.rpc("delete_application_comment_and_maybe_cancel", {
+        target_comment_id: requireId(playerAOtherGmCommentId, "player A other GM comment id")
+      }),
+      "gm A delete GM B session application comment"
     );
   });
 
@@ -405,6 +581,117 @@ async function main() {
       "gm B close gm A session"
     );
   });
+
+  if (RUN_DESTRUCTIVE_TESTS) {
+    await runTest("F6-DELETE-001", "player A can delete own application comment when destructive tests are enabled", async () => {
+      const keepAliveCommentId = await createApplicationComment(
+        playerA,
+        SESSION.recruiting,
+        "F6 keep-alive application comment before owner delete."
+      );
+      f6OwnerDeletedCommentId = await createApplicationComment(
+        playerA,
+        SESSION.recruiting,
+        "F6 owner delete target application comment."
+      );
+      requireId(keepAliveCommentId, "F6 keep-alive comment id");
+      f6OwnerDeleteResult = await deleteApplicationCommentAndMaybeCancel(
+        playerA,
+        requireId(f6OwnerDeletedCommentId, "F6 owner delete target comment id")
+      );
+      assert(f6OwnerDeleteResult.length === 1, "delete RPC did not return one result row");
+    });
+
+    await runTest("F6-DELETE-003", "gm A can delete own session application comment when destructive tests are enabled", async () => {
+      const gmDeleteTargetCommentId = await createApplicationComment(
+        playerB,
+        SESSION.recruiting,
+        "F6 GM delete target application comment."
+      );
+      const data = await deleteApplicationCommentAndMaybeCancel(
+        gmA,
+        requireId(gmDeleteTargetCommentId, "F6 GM delete target comment id")
+      );
+      assert(data.length === 1, "GM delete RPC did not return one result row");
+    });
+
+    await runTest("F6-DELETE-007", "deleting one of multiple active application comments preserves application status", async () => {
+      const row = f6OwnerDeleteResult?.[0];
+      assert(row, "F6 owner delete result was not available");
+      assert(row.application_canceled === false, "application was canceled even though an active comment remained");
+      assert(
+        Number(row.active_application_comment_count ?? 0) > 0,
+        "delete RPC did not report remaining active application comments"
+      );
+      assert(row.application_status !== "canceled", "application status became canceled unexpectedly");
+    });
+
+    await runTest("F6-DELETE-009", "deleted application comment is not returned by public comments RPC", async () => {
+      const comments = await getPublicComments(anon, SESSION.recruiting);
+      assertPublicCommentMissing(
+        comments,
+        requireId(f6OwnerDeletedCommentId, "F6 owner deleted comment id"),
+        "F6 public comments deleted filter check"
+      );
+    });
+
+    await runTest("F6-EDIT-008", "deleted application comment cannot be updated", async () => {
+      await expectError(
+        playerA.rpc("update_application_comment", {
+          target_comment_id: requireId(f6OwnerDeletedCommentId, "F6 owner deleted comment id"),
+          comment_body: "This deleted comment should not be editable."
+        }),
+        "update deleted application comment"
+      );
+    });
+  } else {
+    await skipTest(
+      "F6-DELETE-001",
+      "player A delete own application comment success",
+      "RUN_DESTRUCTIVE_TESTS is not true; logical delete success test is intentionally skipped."
+    );
+    await skipTest(
+      "F6-DELETE-003",
+      "gm A delete own session application comment success",
+      "RUN_DESTRUCTIVE_TESTS is not true; GM logical delete success test is intentionally skipped."
+    );
+    await skipTest(
+      "F6-DELETE-007",
+      "active application comments remain after deleting one comment",
+      "RUN_DESTRUCTIVE_TESTS is not true; delete state preservation test is intentionally skipped."
+    );
+    await skipTest(
+      "F6-DELETE-009",
+      "deleted application comment is hidden from public comments RPC",
+      "RUN_DESTRUCTIVE_TESTS is not true; deleted comment visibility test is intentionally skipped."
+    );
+    await skipTest(
+      "F6-EDIT-008",
+      "deleted application comment cannot be updated",
+      "RUN_DESTRUCTIVE_TESTS is not true; deleted comment edit rejection test is intentionally skipped."
+    );
+  }
+
+  await skipTest(
+    "F6-DELETE-006",
+    "last active application comment deletion cancels the application",
+    "Dedicated last-active fixture is not available in the current smoke test; avoid canceling reusable seeded applications."
+  );
+  await skipTest(
+    "F6-DELETE-008",
+    "non-application comment deletion does not change application status",
+    "Current public RPC fixtures create application comments only; non-application fixture requires a future seed update."
+  );
+  await skipTest(
+    "F6-DELETE-010",
+    "application counts exclude canceled applications after delete",
+    "Dedicated canceled-by-delete fixture is not available in the current smoke test."
+  );
+  await skipTest(
+    "F6-DELETE-011",
+    "accepted application last-comment deletion is guarded",
+    "Accepted last-comment deletion is operationally heavy and requires a dedicated disposable fixture."
+  );
 
   if (RUN_DESTRUCTIVE_TESTS) {
     await runTest("AUTH-018", "gm A can close own session when destructive tests are enabled", async () => {

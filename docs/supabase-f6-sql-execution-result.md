@@ -114,6 +114,10 @@ F-6 RLS smoke test更新計画は `docs/supabase-f6-rls-smoke-test-update-plan.m
 この計画では、`update_application_comment` / `delete_application_comment_and_maybe_cancel` のAuth文脈テスト、fixture、後片付け、`RUN_DESTRUCTIVE_TESTS` 扱いを整理する。
 この段階では、まだスモークテストスクリプト本体は変更しない。
 
+F-6 RLS smoke testスクリプトは `scripts/supabase-rls-smoke-test.mjs` に追加済み。
+通常実行では `PASS 29 / FAIL 0 / SKIP 10` を確認済み。
+削除成功・申請取消系は `RUN_DESTRUCTIVE_TESTS` なしではSKIPする。
+
 ## 6. 注意点
 
 - accepted済み申請の最後の有効コメントを削除すると、F-6短期案では申請が `canceled` になる可能性がある。

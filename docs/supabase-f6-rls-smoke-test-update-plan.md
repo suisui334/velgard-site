@@ -174,3 +174,24 @@ F-6追加テストでは、次のfixtureが必要になる。
 4. テスト結果docs記録
 5. F-6 devコメント編集・削除プロトタイプ設計・実装
 6. 本番 `session-detail.html` 統合前UX設計
+
+## 12. スクリプト実装メモ
+
+`scripts/supabase-rls-smoke-test.mjs` にF-6追加RPCのAuth文脈テストを追加済み。
+
+通常実行で確認した結果:
+
+```text
+PASS: 29
+FAIL: 0
+SKIP: 10
+```
+
+通常実行では、コメント削除成功系、削除済みコメント確認、最後の有効コメント削除による `canceled` 化、accepted済み申請の最後の有効コメント削除はSKIPする。
+
+実行時の注意:
+
+- `RUN_DESTRUCTIVE_TESTS=true` なしでは、論理削除成功系と復旧困難な状態変更は実行しない。
+- 現行fixtureでは非申請コメントと最後の有効申請コメントを安全に作り分けられないため、該当ケースはSKIPする。
+- `close_session` はF-6対象外のまま。
+- 本番ページへのSupabase接続、追加SQL実行、dev UI実装は行っていない。
