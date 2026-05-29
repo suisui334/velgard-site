@@ -1448,3 +1448,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - `docs/supabase-f7a-session-detail-auth-state-plan.md`: 本番 `session-detail.html` へSupabase連携を段階導入する最初の仮統合計画。ログイン状態表示のみを対象とし、投稿・編集・削除・GM操作はまだ扱わない。
 - F-7a最小実装のローカル確認では、`session-detail.html` 本文中のログイン状態表示欄と接続設定未構成時の安全フォールバックを確認済み。ただし本番UXでは本文中の常時表示を採用せず、将来はサイト共通ヘッダー付近のアカウントアイコン / マイページ導線として再設計する。
 - `docs/supabase-account-nav-mypage-ux-plan.md`: Supabase Auth導入前の共通ヘッダーアカウントアイコン / マイページ導線UX設計。本文中ログイン状態常時表示は採用せず、ヘッダー右側のアイコンとマイページ最小構成を検討する。
+- `docs/supabase-account-nav-static-icon-implementation-plan.md`: A-2として共通ヘッダーに静的アカウントアイコンだけを追加する前の実装計画。Supabase接続、Auth復元、ログイン / ログアウト、`mypage.html` 実装はまだ扱わない。
