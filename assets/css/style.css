@@ -2328,6 +2328,123 @@ body[data-page="session-detail"] .calendar-session-modal-block pre {
   white-space: pre-wrap;
 }
 
+body[data-page="session-detail"] .session-application-panel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(137, 111, 72, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 253, 244, 0.82);
+}
+
+body[data-page="session-detail"] .session-application-panel h3 {
+  margin: 0;
+  color: var(--rust);
+  font-size: 0.98rem;
+}
+
+body[data-page="session-detail"] .session-application-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-application-copy p {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-application-note {
+  color: var(--muted);
+}
+
+body[data-page="session-detail"] .session-comment-form-mock {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-comment-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+body[data-page="session-detail"] .session-comment-select,
+body[data-page="session-detail"] .session-comment-textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 250, 0.74);
+  color: var(--ink);
+  font: inherit;
+  opacity: 1;
+}
+
+body[data-page="session-detail"] .session-comment-select {
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+body[data-page="session-detail"] .session-comment-textarea {
+  min-height: 112px;
+  padding: 10px 12px;
+  line-height: 1.65;
+  resize: none;
+}
+
+body[data-page="session-detail"] .session-comment-select:disabled,
+body[data-page="session-detail"] .session-comment-textarea:disabled {
+  cursor: not-allowed;
+}
+
+body[data-page="session-detail"] .session-comment-count-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-application-button {
+  justify-self: start;
+  min-height: 42px;
+  max-width: 100%;
+  padding: 0 16px;
+  border: 1px solid rgba(86, 96, 106, 0.24);
+  border-radius: 999px;
+  background: rgba(224, 227, 224, 0.68);
+  color: var(--muted);
+  font-weight: 800;
+  cursor: not-allowed;
+}
+
+body[data-page="session-detail"] .session-comment-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body[data-page="session-detail"] .session-application-panel.is-closed,
+body[data-page="session-detail"] .session-application-panel.is-finished,
+body[data-page="session-detail"] .session-application-panel.is-canceled {
+  border-color: rgba(86, 96, 106, 0.2);
+  background: rgba(247, 247, 243, 0.72);
+}
+
+body[data-page="session-detail"] .session-application-panel.is-closed h3,
+body[data-page="session-detail"] .session-application-panel.is-finished h3,
+body[data-page="session-detail"] .session-application-panel.is-canceled h3 {
+  color: var(--muted);
+}
+
 body[data-page="session-detail"] .calendar-session-tags {
   display: flex;
   flex-wrap: wrap;

@@ -22,7 +22,7 @@
       "tags": ["鉄道", "調査"],
       "visibility": "public",
       "createdAt": "2026-05-29",
-      "updatedAt": "2026-05-29"
+      "updatedAt": "2026-05-29T21:30:00"
     },
     {
       "id": "session-2026-06-08-flower-mist-closed",
@@ -44,7 +44,7 @@
       "tags": ["花霧谷", "採取"],
       "visibility": "public",
       "createdAt": "2026-05-29",
-      "updatedAt": "2026-05-29"
+      "updatedAt": "2026-05-29 22:00"
     },
     {
       "id": "session-2026-06-08-market-tentative",

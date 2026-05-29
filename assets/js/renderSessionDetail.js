@@ -3,9 +3,9 @@ import {
   escapeHtml,
   getSessionDisplayTitle,
   renderSessionDetailContent
-} from "./sessionDisplay.js?v=20260529-calendar-date-tools-history";
+} from "./sessionDisplay.js?v=20260529-session-comment-ui-mock";
 
-const SESSIONS_URL = "data/sessions.json?v=20260529-calendar-date-tools-history";
+const SESSIONS_URL = "data/sessions.json?v=20260529-session-comment-ui-mock";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 

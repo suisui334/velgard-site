@@ -66,6 +66,19 @@ export function formatPlayerCount(session, options = {}) {
   return base;
 }
 
+export function formatSessionUpdatedAt(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+
+  const dateOnly = text.match(/^(\d{4}-\d{2}-\d{2})$/);
+  if (dateOnly) return dateOnly[1];
+
+  const dateTime = text.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}):(\d{2})(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/);
+  if (dateTime) return `${dateTime[1]} ${dateTime[2]}:${dateTime[3]}`;
+
+  return "";
+}
+
 export function renderSessionTags(tags) {
   if (!Array.isArray(tags) || !tags.length) return "";
   return `
@@ -98,6 +111,64 @@ export function renderSessionSummary(session) {
     : "";
 }
 
+function renderSessionApplicationPanel(session) {
+  const status = session?.status;
+  if (status === "closed") {
+    return `
+      <section class="session-application-panel session-comment-application-panel is-closed" aria-labelledby="session-application-title">
+        <div class="session-application-copy">
+          <h3 id="session-application-title">参加希望コメント</h3>
+          <p>このセッションは募集を締め切っています。</p>
+          <p class="session-application-note">新規の参加希望コメントは受け付けていません。</p>
+        </div>
+        <button class="session-application-button session-comment-button" type="button" disabled>募集締切</button>
+      </section>
+    `;
+  }
+
+  if (status === "finished" || status === "canceled") {
+    const className = status === "finished" ? "is-finished" : "is-canceled";
+    const lead = status === "finished"
+      ? "このセッションは終了しています。"
+      : "このセッションは中止されています。";
+    return `
+      <section class="session-application-panel session-comment-application-panel ${className}" aria-labelledby="session-application-title">
+        <div class="session-application-copy">
+          <h3 id="session-application-title">参加希望コメント</h3>
+          <p>${escapeHtml(lead)}</p>
+        </div>
+      </section>
+    `;
+  }
+
+  const lead = status === "full"
+    ? "現在は定員到達状態です。コメント機能は現在準備中です。"
+    : "コメント機能は現在準備中です。";
+  return `
+    <section class="session-application-panel session-comment-application-panel is-preparing" aria-labelledby="session-application-title">
+      <div class="session-application-copy">
+        <h3 id="session-application-title">参加希望コメント</h3>
+        <p>${escapeHtml(lead)}</p>
+        <p class="session-application-note">将来的には、この欄から参加希望コメントを投稿できるようにする予定です。</p>
+      </div>
+      <div class="session-comment-form-mock" aria-label="参加希望コメント入力モック">
+        <label class="session-comment-field">
+          <span>申請用テンプレート</span>
+          <select class="session-comment-select" disabled>
+            <option>テンプレートを選択（準備中）</option>
+          </select>
+        </label>
+        <label class="session-comment-field">
+          <span>コメント内容</span>
+          <textarea class="session-comment-textarea" rows="4" disabled placeholder="参加希望コメントの入力欄（準備中）"></textarea>
+        </label>
+        <button class="session-application-button session-comment-button" type="button" disabled>コメント投稿（準備中）</button>
+      </div>
+      <p class="session-comment-count-note">※参加人数はコメント件数ではなく、申請者単位で管理する想定です。</p>
+    </section>
+  `;
+}
+
 export function renderSessionDetailContent(session, options = {}) {
   const mode = options.mode || "modal";
   const headingId = options.headingId || "calendar-session-modal-title";
@@ -117,10 +188,7 @@ export function renderSessionDetailContent(session, options = {}) {
   ].join("");
   const supplementalRows = [
     renderSessionDetailRow("状態", getSessionStatusLabel(session?.status)),
-    renderSessionDetailRow("更新日", session?.updatedAt),
-    renderSessionDetailArrayRow("関連スポットID", session?.relatedSpotIds),
-    renderSessionDetailRow("シナリオID", session?.scenarioId),
-    renderSessionDetailRow("公開範囲", session?.visibility)
+    renderSessionDetailRow("更新日時", formatSessionUpdatedAt(session?.updatedAt))
   ].join("");
   const supplementalHtml = supplementalRows
     ? `
@@ -132,6 +200,7 @@ export function renderSessionDetailContent(session, options = {}) {
       </section>
     `
     : "";
+  const applicationHtml = mode === "page" ? renderSessionApplicationPanel(session) : "";
 
   return `
     <div class="calendar-session-modal-content session-detail-content session-detail-content--${escapeHtml(mode)}">
@@ -144,6 +213,7 @@ export function renderSessionDetailContent(session, options = {}) {
       </dl>
       ${renderSessionSummary(session)}
       ${detailBlocks}
+      ${applicationHtml}
       ${renderSessionTags(session?.tags)}
       ${supplementalHtml}
     </div>
