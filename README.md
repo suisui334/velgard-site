@@ -55,6 +55,8 @@ py -m http.server 4173 -d velgard-site
   - `docs/supabase-prototype-plan.md`: 参加希望コメント、申請管理、GM編集、〆ボタン、Discord同期に向けたSupabaseプロトタイプ設計メモ
   - `docs/supabase-prototype-runbook.md`: Supabaseプロトタイプを実操作する直前の判断基準・作業順・RLSテスト手順
   - `docs/supabase-step0-2-preflight.md`: Supabase Freeプロトタイプ Step 0〜2 の実操作前チェックと停止ポイント
+  - `docs/supabase-step4-sql-execution-plan.md`: Supabase Step 4 SQL実行前の段階実行計画と検証SQL草案
+  - `docs/supabase-step5-rls-test-plan.md`: Supabase Step 5 RLSテスト準備計画
   - `docs/supabase-rls-test-matrix.md`: Supabase RLSテストケース表
   - `docs/supabase/sql/`: Supabase最小スキーマ、RLS/GRANT、RPCの実行候補SQL草案
 
@@ -1388,6 +1390,7 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - 参加希望コメント、申請管理、GM編集、〆ボタン、Discord同期に向けたSupabaseプロトタイプ設計方針は `docs/supabase-prototype-plan.md` に分離済み。
 - Supabaseプロトタイプを実操作する直前の判断基準・作業順・RLSテスト手順は `docs/supabase-prototype-runbook.md` に分離済み。
 - Supabase Freeプロトタイプ Step 0〜2 の準備パックは `docs/supabase-step0-2-preflight.md`、`docs/supabase-rls-test-matrix.md`、`docs/supabase/sql/` に分離済み。参加希望コメントは公開申請欄に近い扱いだが表示用RPC/viewではDiscord IDや内部user_idを出さず、private / hidden コメントは漏洩防止、`full` sessionは新規申請不可の方針へ整理済み。まだSupabase登録、SQL実行、本番接続は行わない。
+- Supabase Step 4 SQL実行前の段階実行計画は `docs/supabase-step4-sql-execution-plan.md`、Step 5 RLSテスト準備計画は `docs/supabase-step5-rls-test-plan.md` に分離済み。検証用SQL草案は `docs/supabase/sql/` 配下に置き、本番サイト接続コードは追加しない。
 - シナリオ本文・PDF受け入れ基盤は実装済み。配布シナリオ本文作成と実ファイル配置はユーザー提供ファイル待ち。初期方針はTXT正本 / PDF任意で、本文・PDF・配布ファイルを受け取ってから反映する。
 - 互換維持中の `hooks.html` / `data/hooks.json` / `gallery-hook-*` ID / `assets/images/hooks/` / `characters.json` の `relatedHooks` は、未対応ではなく意図的な保留として扱う。
 
