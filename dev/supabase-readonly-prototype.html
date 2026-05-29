@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Supabase F-1 Readonly Prototype | Velgard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f3ee;
+      --panel: #ffffff;
+      --text: #28231e;
+      --muted: #6f655b;
+      --line: #d8cdc0;
+      --accent: #426b5b;
+      --danger: #9a3d32;
+      --ok: #2f6f4d;
+      --warn: #8a6424;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 4vw, 2.25rem);
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      margin-bottom: 14px;
+    }
+
+    h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .lead {
+      color: var(--muted);
+      max-width: 820px;
+    }
+
+    .notice,
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 18px;
+      margin-top: 18px;
+    }
+
+    .notice {
+      border-color: #e3c36d;
+      background: #fff8df;
+      color: #49390f;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 11px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .help {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 400;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      min-height: 42px;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 9px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+    }
+
+    button.secondary {
+      color: var(--accent);
+      background: #fff;
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.72;
+    }
+
+    .status {
+      margin-top: 12px;
+      color: var(--muted);
+      white-space: pre-wrap;
+    }
+
+    .status.ok {
+      color: var(--ok);
+    }
+
+    .status.warn {
+      color: var(--warn);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 680px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    th {
+      background: #f0ebe4;
+      color: #483f36;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .empty {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    .error-list {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--danger);
+    }
+
+    code {
+      background: #eee7df;
+      border-radius: 4px;
+      padding: 0.1em 0.35em;
+    }
+
+    @media (max-width: 720px) {
+      main {
+        width: min(100% - 20px, 1120px);
+        padding-top: 20px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel,
+      .notice {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Supabase F-1 読み取り専用プロトタイプ</h1>
+    <p class="lead">
+      公開サイト本体へ接続する前のローカル検証ページです。ここではSupabaseの公開セッション、公開コメントRPC、参加人数RPCの読み取りだけを確認します。
+    </p>
+
+    <section class="notice" aria-label="重要な注意">
+      <h2>重要な注意</h2>
+      <p>
+        このページは通常導線に載せない検証用です。入力した接続値は保存しません。
+        <code>service_role</code> やsecret key、DB passwordは絶対に入力しないでください。
+      </p>
+      <p>
+        投稿RPC、Authログイン、コメント保存、GitHub Pages本番ページへの接続は行いません。
+      </p>
+    </section>
+
+    <section class="panel" aria-labelledby="connection-heading">
+      <h2 id="connection-heading">接続入力欄</h2>
+      <div class="grid">
+        <label>
+          Supabase URL
+          <input id="supabase-url" type="url" inputmode="url" autocomplete="off" placeholder="https://...">
+          <span class="help">入力値は保存せず、画面にも全文表示しません。</span>
+        </label>
+        <label>
+          Publishable / anon key
+          <input id="supabase-key" type="password" autocomplete="off" placeholder="publishable / anon key">
+          <span class="help">service role / secret key は入力禁止です。</span>
+        </label>
+      </div>
+      <label style="margin-top: 14px;">
+        テスト用 public session id
+        <input id="session-id" type="text" autocomplete="off" value="rls-test-public-recruiting">
+        <span class="help">公開コメントRPCと参加人数RPCの確認に使います。</span>
+      </label>
+      <div class="actions">
+        <button id="run-checks" type="button">読み取りテスト実行</button>
+        <button id="clear-inputs" class="secondary" type="button">入力をクリア</button>
+      </div>
+      <p id="connection-status" class="status">未実行です。</p>
+    </section>
+
+    <section class="panel" aria-labelledby="sessions-heading">
+      <h2 id="sessions-heading">public sessions一覧</h2>
+      <div id="sessions-result">
+        <p class="empty">まだ読み取っていません。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="comments-heading">
+      <h2 id="comments-heading">公開コメントRPC結果</h2>
+      <div id="comments-result">
+        <p class="empty">まだ読み取っていません。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="counts-heading">
+      <h2 id="counts-heading">参加人数RPC結果</h2>
+      <div id="counts-result">
+        <p class="empty">まだ読み取っていません。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="errors-heading">
+      <h2 id="errors-heading">エラー表示</h2>
+      <div id="error-result">
+        <p class="empty">エラーはありません。</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./supabase-readonly-prototype.js"></script>
+</body>
+</html>
