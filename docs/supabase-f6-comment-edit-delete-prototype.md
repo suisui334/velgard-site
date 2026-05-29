@@ -247,3 +247,9 @@ F-6 dev プロトタイプは DB 状態を変更します。
 - `close_session`
 - GM/admin本番管理画面
 - `RUN_DESTRUCTIVE_TESTS=true` の自動実行
+
+## 17. F-7 UX設計への接続
+
+F-6 devプロトタイプで確認したコメント編集・論理削除の挙動は、`docs/supabase-f7-session-detail-integration-ux-plan.md` に引き継ぐ。
+F-7では、本番 `session-detail.html` へ実装する前に、PL / GM / 未ログインの表示分岐、申請状態文言、削除警告、段階統合方針を整理する。
+F-7時点でも、本番ページ接続、追加SQL実行、`close_session`、Discord連携は扱わない。

@@ -317,3 +317,8 @@
 - `assets/images/hooks/` を将来 `assets/images/scenarios/` へ移すか。
 - OGP軽量版PNGとfavicon軽量版で公開上問題ないか。
 - 正式公開URL反映後のDiscord OGP確認とスマホ実機確認。
+
+## Supabase F-7 session-detail統合前UX設計
+
+- `docs/supabase-f7-session-detail-integration-ux-plan.md` に、参加希望コメント機能を本番 `session-detail.html` へ統合する前のUX方針を分離済み。
+- 次工程候補: F-7 UX設計書 commit / push、ログイン状態表示のみの統合設計、公開コメント読み取り統合計画、GM用コメント一覧RPC / view要否判断、rollback手順整理。

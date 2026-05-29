@@ -1441,3 +1441,7 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - OGP画像は正式公開URLの絶対URLへ差し替え済み
 - X / Twitterカード互換metaは今回不要
 - 現在のHTML上のOGP参照は `https://suisui334.github.io/velgard-site/assets/images/common/ogp-main-1200x630.png`
+
+## Supabase F-7 UX設計メモ
+
+- `docs/supabase-f7-session-detail-integration-ux-plan.md`: `session-detail.html` へ参加希望コメント機能を統合する前のUX設計。PL / GM / 未ログインの表示・操作、コメント削除時の警告、段階統合方針を整理済み。本番ページ実装はまだ行わない。
