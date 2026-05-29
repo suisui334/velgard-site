@@ -1,0 +1,4 @@
+# Local-only environment files for Supabase prototype checks.
+.env
+.env.local
+.env*.local
