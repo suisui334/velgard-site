@@ -338,3 +338,9 @@ A-2実装前に確認すること:
 3. A-2実装時のリンク有効化方針最終確認
 4. `mypage.html` 最小版設計
 5. A-3接続設定未構成時フォールバック計画
+
+## 14. mypage.html最小版計画との関係
+
+`mypage.html` 最小版の詳細は `docs/supabase-mypage-minimal-implementation-plan.md` に分離する。
+
+静的アカウントアイコンに `href="mypage.html"` を設定する前に、準備中ページとして成立する `mypage.html` を用意することで、リンク先404を避けられる。A-2実装時にリンクを有効化するかどうかは、A-3最小版の実装状況を見て判断する。
