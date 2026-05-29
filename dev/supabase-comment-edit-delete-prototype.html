@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Supabase F-6 コメント編集・削除プロトタイプ | Velgard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f3ee;
+      --panel: #ffffff;
+      --text: #28231e;
+      --muted: #6f655b;
+      --line: #d8cdc0;
+      --accent: #426b5b;
+      --danger: #9a3d32;
+      --ok: #2f6f4d;
+      --warn: #8a6424;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 4vw, 2.25rem);
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 14px;
+    }
+
+    h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .lead {
+      color: var(--muted);
+      max-width: 940px;
+    }
+
+    .notice,
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 18px;
+      margin-top: 18px;
+    }
+
+    .notice {
+      border-color: #e3c36d;
+      background: #fff8df;
+      color: #49390f;
+    }
+
+    .danger-zone {
+      border-color: #d8aaa4;
+      background: #fff0ee;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .step-grid,
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .mode-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .step-card,
+    .mode-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+    }
+
+    .step-card strong,
+    .mode-card strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-weight: 700;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 11px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input {
+      min-height: 42px;
+    }
+
+    input[type="checkbox"] {
+      width: auto;
+      min-height: 0;
+    }
+
+    textarea {
+      min-height: 112px;
+      resize: vertical;
+    }
+
+    .help {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 400;
+    }
+
+    .inline-check {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-weight: 700;
+      margin-top: 12px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      min-height: 42px;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 9px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+    }
+
+    button.secondary {
+      color: var(--accent);
+      background: #fff;
+    }
+
+    button.danger {
+      border-color: var(--danger);
+      background: var(--danger);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.62;
+    }
+
+    .status {
+      margin-top: 12px;
+      color: var(--muted);
+      white-space: pre-wrap;
+    }
+
+    .status.ok {
+      color: var(--ok);
+    }
+
+    .status.warn {
+      color: var(--warn);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 920px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 10px;
+      text-align: left;
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    th {
+      background: #f0ebe4;
+      color: #483f36;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .state-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .state-card dl {
+      display: grid;
+      grid-template-columns: minmax(130px, 210px) minmax(0, 1fr);
+      gap: 8px 14px;
+      margin: 0;
+    }
+
+    .state-card dt {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .state-card dd {
+      margin: 0;
+      word-break: break-word;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--muted);
+      background: #fff;
+    }
+
+    .badge.ok {
+      border-color: #a7c9b6;
+      color: var(--ok);
+      background: #edf8f1;
+    }
+
+    .badge.warn {
+      border-color: #e3c36d;
+      color: var(--warn);
+      background: #fff8df;
+    }
+
+    .badge.error {
+      border-color: #d8aaa4;
+      color: var(--danger);
+      background: #fff0ee;
+    }
+
+    .checklist,
+    .memo-list {
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+    }
+
+    .memo-list {
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .memo-list label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+    }
+
+    .error-list,
+    .log-list {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .error-list {
+      color: var(--danger);
+    }
+
+    .log-list {
+      color: var(--muted);
+    }
+
+    .empty {
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    code {
+      background: #eee7df;
+      border-radius: 4px;
+      padding: 0.1em 0.35em;
+    }
+
+    @media (max-width: 860px) {
+      .step-grid,
+      .mode-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      main {
+        width: min(100% - 20px, 1180px);
+        padding-top: 20px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .panel,
+      .notice {
+        padding: 14px;
+      }
+
+      .state-card dl {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Supabase F-6 コメント編集・削除プロトタイプ</h1>
+    <p class="lead">
+      dev専用ページです。参加希望コメントの「編集」と「テスト用コメントの論理削除」だけを確認します。
+      本番ページには接続していません。
+    </p>
+
+    <section class="notice" aria-label="重要な注意">
+      <h2>重要な注意</h2>
+      <p>
+        このページはプロトタイプDBのコメント本文と申請状態を変更します。本番の <code>session-detail.html</code> / <code>calendar.html</code> / 既存本番用 <code>assets/js</code> には接続していません。
+        <code>close_session</code>、Discord連携、通知、メール送信は扱いません。
+      </p>
+      <p>
+        入力するkeyはpublishable / anon keyのみです。<code>service_role</code>、secret key、DB password、Direct connection stringは絶対に使わないでください。
+        削除は論理削除ですが、この画面では元に戻しません。
+      </p>
+    </section>
+
+    <section class="panel" aria-labelledby="steps-heading">
+      <h2 id="steps-heading">確認手順</h2>
+      <div class="step-grid">
+        <div class="step-card"><strong>1. 接続する</strong><span class="help">URLとkeyを手入力</span></div>
+        <div class="step-card"><strong>2. ログインする</strong><span class="help">テストユーザーで確認</span></div>
+        <div class="step-card"><strong>3. セッションを選ぶ</strong><span class="help">一覧から対象を選択</span></div>
+        <div class="step-card"><strong>4. コメントを編集</strong><span class="help">通常確認</span></div>
+        <div class="step-card"><strong>5. テスト用だけ削除</strong><span class="help">注意確認</span></div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="mode-heading">
+      <h2 id="mode-heading">確認の種類</h2>
+      <div class="mode-grid">
+        <div class="mode-card">
+          <strong>通常確認</strong>
+          <p class="help">ページ表示、ログイン、セッション一覧、コメント一覧、コメント編集。</p>
+        </div>
+        <div class="mode-card">
+          <strong>注意確認</strong>
+          <p class="help">テスト用コメントの論理削除。チェックボックスと確認ダイアログを必須にしています。</p>
+        </div>
+        <div class="mode-card danger-zone">
+          <strong>避ける確認</strong>
+          <p class="help">承認済み申請の最後の有効コメント削除。原則として実行しないでください。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="connection-heading">
+      <h2 id="connection-heading">手順1: 接続する</h2>
+      <div class="grid">
+        <label>
+          Supabase URL
+          <input id="supabase-url" type="url" inputmode="url" autocomplete="off" placeholder="https://...">
+          <span class="help">入力値は保存せず、画面にも全文表示しません。</span>
+        </label>
+        <label>
+          Publishable / anon key
+          <input id="supabase-key" type="password" autocomplete="off" placeholder="publishable / anon key">
+          <span class="help">service role / secret key は入力禁止です。</span>
+        </label>
+      </div>
+      <div class="actions">
+        <button id="check-state" type="button">接続して状態確認</button>
+        <button id="load-sessions" type="button">セッション一覧を読む</button>
+        <button id="clear-inputs" class="secondary" type="button">入力をクリア</button>
+      </div>
+      <p id="connection-status" class="status">未実行です。</p>
+    </section>
+
+    <section class="panel" aria-labelledby="login-heading">
+      <h2 id="login-heading">手順2: ログインする</h2>
+      <div class="grid">
+        <label>
+          メールアドレス
+          <input id="login-email" type="email" autocomplete="username" placeholder="テストユーザーのメール">
+          <span class="help">状態表示にのみ使い、保存しません。</span>
+        </label>
+        <label>
+          パスワード
+          <input id="login-password" type="password" autocomplete="current-password" placeholder="テストユーザーのパスワード">
+          <span class="help">ログイン処理後に入力欄を空にします。</span>
+        </label>
+      </div>
+      <div class="actions">
+        <button id="login" type="button">ログイン</button>
+        <button id="logout" class="danger" type="button">ログアウト</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="state-heading">
+      <h2 id="state-heading">ログイン状態</h2>
+      <div id="auth-state-result">
+        <p class="empty">まだ確認していません。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="sessions-heading">
+      <h2 id="sessions-heading">手順3: セッションを選ぶ</h2>
+      <h3>公開セッション一覧</h3>
+      <div id="public-sessions-result">
+        <p class="empty">まだ読み取っていません。</p>
+      </div>
+      <h3 style="margin-top: 18px;">自分がGMのセッション</h3>
+      <p class="status">
+        ログイン中ユーザーがGMとして扱えるセッションだけを表示します。内部IDは画面に表示しません。
+      </p>
+      <div id="gm-sessions-result">
+        <p class="empty">ログイン後に読み取ってください。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="selected-heading">
+      <h2 id="selected-heading">選択中セッション</h2>
+      <div id="selected-session-result">
+        <p class="empty">セッションを選択してください。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="comments-heading">
+      <h2 id="comments-heading">コメント一覧</h2>
+      <p class="status">
+        公開セッションでは公開コメントRPCの範囲で本文を表示します。private / hidden や現行RPCで返らない列は表示せず、必要なら今後GM用RPC / viewを検討します。
+      </p>
+      <div class="actions">
+        <button id="reload-comments" type="button">コメント・人数を再読込</button>
+      </div>
+      <div id="comments-result" style="margin-top: 14px;">
+        <p class="empty">セッション選択後に再読込してください。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="selected-comment-heading">
+      <h2 id="selected-comment-heading">選択中コメント</h2>
+      <div id="selected-comment-result">
+        <p class="empty">コメントを選択してください。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="edit-heading">
+      <h2 id="edit-heading">手順4: コメントを編集してみる</h2>
+      <div class="grid">
+        <label>
+          自分のコメントとして編集する本文
+          <textarea id="owner-edit-body" placeholder="編集後のコメント本文"></textarea>
+          <span class="help">空文字と4000字超過は送信しません。本人以外ならRPC側で拒否されます。</span>
+        </label>
+        <label>
+          GMとして編集する本文
+          <textarea id="gm-edit-body" placeholder="GM権限で編集する本文"></textarea>
+          <span class="help">GM / admin 以外、または他GMセッションならRPC側で拒否されます。</span>
+        </label>
+      </div>
+      <div class="actions">
+        <button id="owner-update-comment" type="button">自分のコメントとして編集</button>
+        <button id="gm-update-comment" type="button">GMとして編集</button>
+      </div>
+    </section>
+
+    <section class="panel danger-zone" aria-labelledby="delete-heading">
+      <h2 id="delete-heading">手順5: テスト用コメントだけ削除してみる</h2>
+      <p>
+        削除は論理削除ですが、この画面では元に戻しません。削除成功テストは、必ずテスト用に作ったコメントだけで行ってください。
+        承認済み申請の最後の有効コメント削除は原則避けてください。
+      </p>
+      <label class="inline-check">
+        <input id="delete-test-confirm" type="checkbox">
+        <span>これはテスト用コメントであり、削除後は戻さない前提で確認します。</span>
+      </label>
+      <div class="actions">
+        <button id="owner-delete-comment" class="danger" type="button">自分のコメントとして論理削除</button>
+        <button id="gm-delete-comment" class="danger" type="button">GMとして論理削除</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="counts-heading">
+      <h2 id="counts-heading">参加人数RPC表示</h2>
+      <div id="counts-result">
+        <p class="empty">まだ読み取っていません。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="state-change-heading">
+      <h2 id="state-change-heading">状態変化確認欄</h2>
+      <div id="state-change-result">
+        <p class="empty">編集・削除後にRPC戻り値と再読込結果を表示します。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="result-heading">
+      <h2 id="result-heading">操作結果</h2>
+      <p id="operation-result" class="status">未実行です。</p>
+    </section>
+
+    <section class="panel" aria-labelledby="memo-heading">
+      <h2 id="memo-heading">確認メモ</h2>
+      <ul class="memo-list">
+        <li><label><input type="checkbox"> ページが開いた</label></li>
+        <li><label><input type="checkbox"> ログインできた</label></li>
+        <li><label><input type="checkbox"> セッション一覧が出た</label></li>
+        <li><label><input type="checkbox"> コメント一覧が出た</label></li>
+        <li><label><input type="checkbox"> 自分のコメントを編集できた</label></li>
+        <li><label><input type="checkbox"> テスト用コメントだけ削除できた</label></li>
+        <li><label><input type="checkbox"> secret類は画面に出ていない</label></li>
+      </ul>
+    </section>
+
+    <section class="panel" aria-labelledby="checklist-heading">
+      <h2 id="checklist-heading">権限確認チェックリスト</h2>
+      <ul class="checklist">
+        <li>本人が自分のコメントを編集できる</li>
+        <li>本人が他人のコメントを編集できない</li>
+        <li>GMが自分のセッションコメントを編集できる</li>
+        <li>GMが他GMセッションコメントを編集できない</li>
+        <li>未ログインでは編集できない</li>
+        <li>本人が自分のコメントを削除できる</li>
+        <li>本人が他人のコメントを削除できない</li>
+        <li>GMが自分のセッションコメントを削除できる</li>
+        <li>GMが他GMセッションコメントを削除できない</li>
+        <li>未ログインでは削除できない</li>
+        <li>削除済みコメントは編集できない</li>
+        <li>削除済みコメントは公開コメント一覧に出ない</li>
+        <li>取消済みは参加人数に含まれない</li>
+      </ul>
+    </section>
+
+    <section class="panel" aria-labelledby="errors-heading">
+      <h2 id="errors-heading">エラー表示</h2>
+      <div id="error-result">
+        <p class="empty">エラーはありません。</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="log-heading">
+      <h2 id="log-heading">操作ログ</h2>
+      <div id="operation-log">
+        <p class="empty">まだ操作ログはありません。</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./supabase-comment-edit-delete-prototype.js"></script>
+</body>
+</html>

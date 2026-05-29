@@ -1427,6 +1427,7 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - Supabase F-6 RLS smoke test更新計画は `docs/supabase-f6-rls-smoke-test-update-plan.md` に分離済み。コメント編集・削除・申請取消RPCのAuth文脈テスト、fixture、後片付け、`RUN_DESTRUCTIVE_TESTS` 扱いを整理している。
 - Supabase F-6 RLS smoke testスクリプトは `scripts/supabase-rls-smoke-test.mjs` に追加済み。通常実行では `PASS 29 / FAIL 0 / SKIP 10` を確認し、削除成功・申請取消系は `RUN_DESTRUCTIVE_TESTS` なしではSKIPする。
 - Supabase F-6 devコメント編集・削除プロトタイプ設計は `docs/supabase-f6-comment-edit-delete-prototype-plan.md` に分離済み。`update_application_comment` / `delete_application_comment_and_maybe_cancel` の画面構成、操作範囲、警告、権限確認を整理している。
+- Supabase F-6 devコメント編集・削除プロトタイプは `docs/supabase-f6-comment-edit-delete-prototype.md` と `dev/supabase-comment-edit-delete-prototype.html` / `dev/supabase-comment-edit-delete-prototype.js` に分離済み。コメント編集・論理削除RPCのdev検証用で、本番ページ接続や `close_session` は扱わない。
 - シナリオ本文・PDF受け入れ基盤は実装済み。配布シナリオ本文作成と実ファイル配置はユーザー提供ファイル待ち。初期方針はTXT正本 / PDF任意で、本文・PDF・配布ファイルを受け取ってから反映する。
 - 互換維持中の `hooks.html` / `data/hooks.json` / `gallery-hook-*` ID / `assets/images/hooks/` / `characters.json` の `relatedHooks` は、未対応ではなく意図的な保留として扱う。
 

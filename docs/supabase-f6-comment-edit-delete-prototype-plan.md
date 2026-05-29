@@ -248,3 +248,5 @@ F-6 devプロトタイプでは、以下を扱わない。
 3. ユーザー実ブラウザ確認
 4. 確認結果docs記録
 5. 本番 `session-detail.html` 統合前UX設計
+
+実装ファイルは `dev/supabase-comment-edit-delete-prototype.html` / `dev/supabase-comment-edit-delete-prototype.js`、実装メモは `docs/supabase-f6-comment-edit-delete-prototype.md` に分離する。
