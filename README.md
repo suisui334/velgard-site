@@ -70,6 +70,7 @@ py -m http.server 4173 -d velgard-site
   - `docs/supabase-f3-auth-state-prototype.md`: Supabase F-3 dev ログイン状態表示プロトタイプ手順
   - `docs/supabase-f4-application-comment-prototype.md`: Supabase F-4 dev 参加希望コメント投稿プロトタイプ手順
   - `docs/supabase-f5-gm-application-management-plan.md`: Supabase F-5 GM承認・却下プロトタイプ設計
+  - `docs/supabase-f5-gm-application-management-prototype.md`: Supabase F-5 dev GM承認・却下プロトタイプ手順
   - `docs/supabase-rls-test-matrix.md`: Supabase RLSテストケース表
   - `docs/supabase/sql/`: Supabase最小スキーマ、RLS/GRANT、RPCの実行候補SQL草案
 
@@ -1417,6 +1418,7 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - Supabase F-3 dev ログイン状態表示プロトタイプは `docs/supabase-f3-auth-state-prototype.md` と `dev/supabase-auth-state-prototype.html` / `dev/supabase-auth-state-prototype.js` に分離済み。Authログイン状態、ログアウト、再読込後のセッション復元、`public_profiles.display_name` 取得をdev専用で確認する。
 - Supabase F-4 dev 参加希望コメント投稿プロトタイプは `docs/supabase-f4-application-comment-prototype.md` と `dev/supabase-application-comment-prototype.html` / `dev/supabase-application-comment-prototype.js` に分離済み。prototype DBのテストsessionに `create_application_comment` を呼ぶが、本番ページへ接続せずGM操作は扱わない。
 - Supabase F-5 GM承認・却下プロトタイプ設計は `docs/supabase-f5-gm-application-management-plan.md` に分離済み。対象RPCは `set_application_status` のみとし、`close_session` や本番ページ統合は別工程にする方針。
+- Supabase F-5 dev GM承認・却下プロトタイプは `docs/supabase-f5-gm-application-management-prototype.md` と `dev/supabase-gm-application-management-prototype.html` / `dev/supabase-gm-application-management-prototype.js` に分離済み。ユーザー実ブラウザ確認済みで、`set_application_status` による `accepted` / `rejected` 変更を確認した。本番UXは専用GM一覧ページではなく、`session-detail.html` の参加希望コメント欄へGM操作を統合する方針。
 - シナリオ本文・PDF受け入れ基盤は実装済み。配布シナリオ本文作成と実ファイル配置はユーザー提供ファイル待ち。初期方針はTXT正本 / PDF任意で、本文・PDF・配布ファイルを受け取ってから反映する。
 - 互換維持中の `hooks.html` / `data/hooks.json` / `gallery-hook-*` ID / `assets/images/hooks/` / `characters.json` の `relatedHooks` は、未対応ではなく意図的な保留として扱う。
 
