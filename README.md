@@ -165,9 +165,9 @@ py -m http.server 4173 -d velgard-site
 ### 最新更新表示
 - トップページでは `updates.json` から最新3件を控えめに表示
 - 現在の最新3件は以下
+  - カレンダー予定の詳細表示を追加
   - カレンダーにセッション予定表示を追加
   - ギャラリーのスワイプ操作を追加
-  - 表示余白とトップ表示を調整
 
 ## regulation正式規約ページ反映状況
 - `regulation.html` は準備中ではなく、正式規約ページとして公開中
@@ -774,7 +774,7 @@ py -m http.server 4173 -d velgard-site
 - `assets/js/*.js` 構文OK
 - version付き `main.js` / `renderScenarios.js` / `renderScenarioDetail.js` / `renderSpotDetail.js` HTTP 200
 - `gallery.html` / `spot-detail.html` / `characters.html` の既存モーダル維持
-- 現在の `updates.json` は39件
+- 現在の `updates.json` は40件
 - 禁止旧表記・旧IDの復活なし
 
 ### 後工程候補
@@ -1009,12 +1009,28 @@ py -m http.server 4173 -d velgard-site
 - `+n件` 圧縮は採用しない方針
 - `募集中` / `満席` の強い状態バッジ表示は行わない
 - 選択日詳細エリアに「選択日のセッション予定」を追加済み
-- 選択日予定カードには、タイトル、`〆` 状態、開催時刻、GM名、レベル、募集人数、概要、タグ、Discordスレッドリンクを表示する
+- 選択日予定カードには、タイトル、`〆` 状態、開催時刻、GM名、レベル、募集人数、概要、タグを表示する
+- カレンダー拡張 Phase 1-B として、セッション詳細モーダルを追加済み
+- 選択日予定カードの「詳細を見る」から詳細モーダルを開ける
+- カレンダーセル内予定行クリック / タップから詳細モーダルを開ける
+- 日付セル本体は `div role="button"` とし、予定行クリック時に日付選択とモーダル表示が二重に走らないよう調整済み
+- 将来的には `session-detail.html?id=<session-id>` へ置き換えやすいよう、セッションID基準の導線として整理
+- 詳細モーダルDOMは `document.body` 直下へ生成し、`body.is-modal-open` で背景スクロールを抑制する
+- 詳細モーダルのフッター重なり・黒い領域隠れは修正済み
+- カレンダー拡張 Phase 1-C として、`assets/js/sessionDisplay.js` を追加し、セッション表示・詳細表示の整形ロジックを共通化済み
+- `renderSessionDetailContent(session, options)` 系の共通関数は、将来 `session-detail.html?id=<session-id>` を作る際にも流用できる前提
+- カレンダー拡張 Phase 1-D として、詳細モーダルの情報設計をPL向けに整理済み
+- 詳細モーダルの表示順は、基本情報、概要、詳細 / 参加条件、タグ、補足情報
+- 基本情報には開催日、開催時刻、GM、レベル帯、募集人数をまとめて表示する
+- `状態` / `更新日` / `関連スポットID` / `シナリオID` / `公開範囲` は下部の「補足情報」へ移し、控えめに表示する
+- 空項目は表示しない
+- DiscordリンクはPL向けUIから削除済み。`discordThreadUrl` は将来のbot/Webhook同期用データとして残す
 - 予定がない日は「この日のセッション予定はまだありません。」を表示する
 - 390px幅で横スクロールなし確認済み
-- Phase 1-A は静的モックUIであり、セッション予定登録、編集、参加申請、認証、Discord連携、外部DB/APIは未実装
+- Phase 1-A / Phase 1-B / Phase 1-C / Phase 1-D は静的モックUIと表示整理であり、セッション予定登録、編集、参加申請、認証、Discord連携、外部DB/APIは未実装
+- 現時点では `session-detail.html` は未作成で、詳細ページ遷移やURLクエリによるモーダル自動表示も未実装
 - 〆ボタン、参加申請停止処理、保存処理は未実装
-- キャッシュ対策は `v=20260529-calendar-cap-start` / `v=20260529-calendar-sessions-mock-3`
+- キャッシュ対策は `v=20260529-calendar-cap-start` / `v=20260529-calendar-sessions-mock-3` / `v=20260529-calendar-session-detail-polish`
 
 ## ページ上部へ戻るボタン
 - 全ページ共通の「ページ上部へ戻る」ボタンを追加済み
@@ -1031,7 +1047,14 @@ py -m http.server 4173 -d velgard-site
 - キャッシュ対策は `v=20260528-back-to-top`
 
 ## 更新履歴追記
-`data/updates.json` は現在39件です。以下の更新履歴を追加済みです。
+`data/updates.json` は現在40件です。以下の更新履歴を追加済みです。
+
+### 2026-05-29 カレンダー予定の詳細表示を追加
+- 日付: 2026-05-29
+- タイトル: カレンダー予定の詳細表示を追加
+- 本文: カレンダーの予定行や予定カードからセッション詳細を確認できるモーダルを追加し、予定詳細の表示導線と読みやすさを整理しました。
+- 対象: CALENDAR
+- タグ: UI
 
 ### 2026-05-29 カレンダーにセッション予定表示を追加
 - 日付: 2026-05-29

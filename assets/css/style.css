@@ -1862,9 +1862,11 @@ body[data-page="calendar"] .calendar-session-badges {
 }
 
 body[data-page="calendar"] .calendar-session-row {
+  appearance: none;
   display: grid;
   grid-template-columns: auto auto auto minmax(0, 1fr);
   gap: 4px;
+  width: 100%;
   min-width: 0;
   align-items: start;
   padding: 3px 5px;
@@ -1874,11 +1876,22 @@ body[data-page="calendar"] .calendar-session-row {
   color: var(--ink);
   font-size: 0.64rem;
   font-weight: 800;
+  font-family: inherit;
   line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
 }
 
 body[data-page="calendar"] .calendar-session-row:not(.is-closed) {
   grid-template-columns: auto auto minmax(0, 1fr);
+}
+
+body[data-page="calendar"] .calendar-session-row:hover,
+body[data-page="calendar"] .calendar-session-row:focus-visible {
+  border-color: rgba(151, 89, 50, 0.36);
+  background: rgba(255, 250, 241, 0.94);
+  box-shadow: 0 0 0 2px rgba(151, 89, 50, 0.12);
+  outline: none;
 }
 
 body[data-page="calendar"] .calendar-session-row.is-closed {
@@ -2068,6 +2081,158 @@ body[data-page="calendar"] .calendar-session-actions .button {
   min-height: 36px;
   padding: 7px 12px;
   font-size: 0.82rem;
+}
+
+body[data-page="calendar"] .calendar-session-detail-button {
+  border-color: rgba(151, 89, 50, 0.28);
+  background: rgba(255, 247, 236, 0.9);
+  color: var(--rust);
+}
+
+body[data-page="calendar"] .calendar-session-modal[hidden] {
+  display: none;
+}
+
+body[data-page="calendar"] .calendar-session-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(18px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  overflow-y: auto;
+}
+
+body[data-page="calendar"] .calendar-session-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(23, 28, 32, 0.58);
+}
+
+body[data-page="calendar"] .calendar-session-modal-dialog {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 14px;
+  width: min(720px, 100%);
+  max-height: calc(100vh - 42px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px;
+  border: 1px solid rgba(86, 96, 106, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 250, 0.98);
+  box-shadow: 0 22px 60px rgba(23, 28, 32, 0.28);
+}
+
+body[data-page="calendar"] .calendar-session-modal-dialog:focus {
+  outline: 2px solid rgba(151, 89, 50, 0.42);
+  outline-offset: 3px;
+}
+
+body[data-page="calendar"] .calendar-session-modal-close {
+  justify-self: end;
+  min-height: 36px;
+  padding: 7px 12px;
+  font-size: 0.82rem;
+}
+
+body[data-page="calendar"] .calendar-session-modal-content {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+body[data-page="calendar"] .calendar-session-modal-head {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+body[data-page="calendar"] .calendar-session-modal-head .eyebrow {
+  margin: 0;
+}
+
+body[data-page="calendar"] .calendar-session-modal-head h2 {
+  color: var(--soot);
+  font-size: clamp(1.25rem, 4vw, 1.75rem);
+  overflow-wrap: anywhere;
+}
+
+body[data-page="calendar"] .calendar-session-modal-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+body[data-page="calendar"] .calendar-session-modal-meta div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid rgba(86, 96, 106, 0.14);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.68);
+}
+
+body[data-page="calendar"] .calendar-session-modal-meta dt {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+body[data-page="calendar"] .calendar-session-modal-meta dd {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="calendar"] .calendar-session-modal-block {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+body[data-page="calendar"] .calendar-session-modal-block h3 {
+  color: var(--rust);
+  font-size: 0.95rem;
+}
+
+body[data-page="calendar"] .calendar-session-modal-block p,
+body[data-page="calendar"] .calendar-session-modal-block pre {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="calendar"] .calendar-session-modal-block pre {
+  white-space: pre-wrap;
+}
+
+body[data-page="calendar"] .calendar-session-modal-supplement {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(86, 96, 106, 0.14);
+}
+
+body[data-page="calendar"] .calendar-session-modal-supplement h3 {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+body[data-page="calendar"] .calendar-session-modal-meta--supplement div {
+  background: rgba(247, 247, 243, 0.56);
+}
+
+body[data-page="calendar"] .calendar-session-modal-meta--supplement dt,
+body[data-page="calendar"] .calendar-session-modal-meta--supplement dd {
+  color: var(--muted);
 }
 
 .tools-section {
@@ -2804,6 +2969,19 @@ body.is-modal-open .back-to-top {
   body[data-page="calendar"] .calendar-session-actions .button {
     width: 100%;
     justify-content: center;
+  }
+
+  body[data-page="calendar"] .calendar-session-modal {
+    padding: max(12px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+
+  body[data-page="calendar"] .calendar-session-modal-dialog {
+    max-height: calc(100vh - 24px);
+    padding: 14px;
+  }
+
+  body[data-page="calendar"] .calendar-session-modal-meta {
+    grid-template-columns: 1fr;
   }
 
   .tool-panel .button {
