@@ -1423,6 +1423,7 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - Supabase F-6 コメント編集・削除・申請取消RPC設計は `docs/supabase-f6-comment-edit-delete-application-cancel-plan.md` に分離済み。最後の有効コメント削除時の申請取消、人数除外、`session-detail.html` 統合前のRPC / RLS / UI方針を整理している。
 - Supabase F-6 SQL草案は `docs/supabase/sql/008_comment_management_rpc_draft.sql` に分離済み。`update_application_comment` と `delete_application_comment_and_maybe_cancel` の実行候補草案であり、まだSupabase SQL Editorでは実行しない。
 - Supabase F-6 SQL実行前レビュー計画は `docs/supabase-f6-sql-execution-review-plan.md` に分離済み。008草案の実行順序、リスク、ロールバック、RLS smoke test更新要否を整理している。
+- Supabase F-6 SQL実行結果は `docs/supabase-f6-sql-execution-result.md` に記録済み。ユーザーがSQL Editorで実行し、`edited_by` / `deleted_by` とコメント編集・削除RPCの作成、authenticatedのみexecute可を確認済み。本番ページ接続は未実施。
 - シナリオ本文・PDF受け入れ基盤は実装済み。配布シナリオ本文作成と実ファイル配置はユーザー提供ファイル待ち。初期方針はTXT正本 / PDF任意で、本文・PDF・配布ファイルを受け取ってから反映する。
 - 互換維持中の `hooks.html` / `data/hooks.json` / `gallery-hook-*` ID / `assets/images/hooks/` / `characters.json` の `relatedHooks` は、未対応ではなく意図的な保留として扱う。
 

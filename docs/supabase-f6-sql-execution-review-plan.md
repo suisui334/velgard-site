@@ -407,3 +407,24 @@ F-6 SQL実行後も、以下が完了するまで本番接続へ進まない。
 - `close_session`
 - GM/admin本番管理画面
 - Git commit / push
+
+## 11. 実行結果
+
+F-6 SQLの実行結果は以下に分離する。
+
+```text
+docs/supabase-f6-sql-execution-result.md
+```
+
+ユーザーがSupabase SQL Editorで実行済み。Codex自身はSQL Editorを実行していない。
+
+確認済み:
+
+- `edited_by` / `deleted_by` カラム追加済み
+- `update_application_comment` 作成済み
+- `delete_application_comment_and_maybe_cancel` 作成済み
+- 操作RPCのexecute権限は `authenticated` のみ
+- `anon` は操作RPCを実行不可
+- `canceled` は既存status制約に含まれている
+
+次工程では、RLS smoke test更新とAuth文脈での編集・削除・取消テストを行う。

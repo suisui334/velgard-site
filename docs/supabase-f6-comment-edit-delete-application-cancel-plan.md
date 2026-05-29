@@ -488,3 +488,23 @@ docs/supabase-f6-sql-execution-review-plan.md
 - この計画書作成時点ではSQLを実行しない
 - 本番ページ接続やdevプロトタイプ実装へは進まない
 - 実行判断は計画書レビュー後に別工程で行う
+
+## 19. SQL実行結果
+
+F-6 SQL実行結果は以下に分離する。
+
+```text
+docs/supabase-f6-sql-execution-result.md
+```
+
+ユーザーがSupabase SQL Editorで実行済み。Codex自身はSQL Editorを実行していない。
+
+実行済み:
+
+- `edited_by` / `deleted_by` カラム追加
+- `update_application_comment` 作成
+- `delete_application_comment_and_maybe_cancel` 作成
+- 操作RPCの `revoke all from public`
+- 操作RPCの `grant execute to authenticated`
+
+以降は、F-6 RLS smoke test更新、Auth文脈での編集・削除・取消テスト、devコメント編集・削除プロトタイプへ進む。
