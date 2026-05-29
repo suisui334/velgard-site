@@ -455,3 +455,20 @@ GM向け:
 - RLS smoke testへのコメント削除・申請取消ケース追加
 - dev配下でコメント編集・削除プロトタイプ作成
 - `session-detail.html` 統合前の本番UX詳細設計
+
+## 17. SQL草案ファイル
+
+F-6 RPC SQL草案は以下に分離する。
+
+```text
+docs/supabase/sql/008_comment_management_rpc_draft.sql
+```
+
+このSQL草案は、`update_application_comment` と `delete_application_comment_and_maybe_cancel` の実行候補である。
+
+注意:
+
+- まだSupabase SQL Editorで実行しない
+- 本番DBへ適用しない
+- 実行前にRLS / SECURITY DEFINER / grant / revokeを再レビューする
+- 実行後はRLS smoke testへ編集・削除・申請取消ケースを追加して確認する
