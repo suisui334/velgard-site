@@ -472,3 +472,19 @@ docs/supabase/sql/008_comment_management_rpc_draft.sql
 - 本番DBへ適用しない
 - 実行前にRLS / SECURITY DEFINER / grant / revokeを再レビューする
 - 実行後はRLS smoke testへ編集・削除・申請取消ケースを追加して確認する
+
+## 18. SQL実行前レビュー計画
+
+008草案をSQL Editorで実行する前のレビュー計画は以下に分離する。
+
+```text
+docs/supabase-f6-sql-execution-review-plan.md
+```
+
+この計画書では、実行前確認SQL、推奨実行順序、リスク、ロールバック方針、実行後検証項目、RLS smoke test更新要否を整理する。
+
+注意:
+
+- この計画書作成時点ではSQLを実行しない
+- 本番ページ接続やdevプロトタイプ実装へは進まない
+- 実行判断は計画書レビュー後に別工程で行う
