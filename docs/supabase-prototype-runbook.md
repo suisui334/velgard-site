@@ -184,15 +184,23 @@ velgard-calendar-auth-test
 | profiles.discord_user_id閲覧 | anon | 失敗 |
 | public_profiles閲覧 | anon | id / display_nameのみ |
 | open sessionコメント申請 | player | 成功 |
+| full sessionコメント申請 | player | 失敗 |
 | closed session申請 | player | 失敗 |
 | finished session申請 | player | 失敗 |
 | canceled session申請 | player | 失敗 |
 | 同一session追加コメント | player | commentは増えるがapplicationは1件 |
+| 自分コメント閲覧 | player | 成功 |
+| public sessionの他人コメント閲覧 | player / anon | 表示用RPCで成功 |
+| private / hidden sessionの無関係コメント閲覧 | player | 失敗 |
 | 自分コメント編集 | player | 成功 |
 | 他人コメント編集 | player | 失敗 |
+| コメント直接insert | player | 失敗 |
+| application直接insert | player | 失敗 |
 | 自分の申請をcanceled | player | 成功 |
 | 自分の申請をaccepted | player | 失敗 |
 | 自分をadmin化 | player | 失敗 |
+| 自分のsessionコメント閲覧 | gm | 成功 |
+| 他GM private / hidden sessionコメント閲覧 | gm | 失敗 |
 | 自分のsession申請をaccepted | gm | 成功 |
 | 他GM session申請変更 | gm | 失敗 |
 | 自分のsessionをclosed | gm | 成功 |
@@ -208,10 +216,16 @@ velgard-calendar-auth-test
 - service role keyなしでフロント想定権限のテストができる
 - anonに機密情報が漏れない
 - playerが他人のデータを変更できない
+- playerがpublic sessionの参加希望コメントを読める
+- public comment表示でDiscord IDや内部user_idが返らない
+- playerがprivate / hidden sessionの無関係コメントを読めない
+- Discord IDは公開view / public RPC / public JSONレスポンスへ出さない
 - playerが自分をgm/adminにできない
 - GMが他GMの予定を変更できない
+- GMが他GM private / hidden sessionの参加希望コメント本文を読めない
 - adminだけが全体管理できる
 - コメント件数ではなく申請者単位で人数が数えられる
+- full状態で新規申請が止まる
 - closed状態で新規申請が止まる
 - `sessions.status = 'closed'` が〆状態の正本として機能する
 
@@ -222,7 +236,10 @@ velgard-calendar-auth-test
 - anonがDiscord IDを読める
 - anonがuser_rolesを読める
 - playerが他人コメントを編集できる
+- playerがprivate / hidden sessionの無関係コメント本文を読める
+- コメント表示経由でDiscord IDや内部user_idが漏れる
 - playerが自分をadmin/gmにできる
+- full sessionへ申請できる
 - closed/finished/canceled sessionへ申請できる
 - playerが自分の申請をacceptedにできる
 - GMが他GM sessionをclosedにできる
@@ -271,3 +288,10 @@ velgard-calendar-auth-test
 - 支払い設定
 - Git commit / push
 - GitHub Pages公開反映
+
+## 13. 関連資料
+
+- `docs/supabase-prototype-plan.md`: 設計方針・スキーマ・RLS方針の資料
+- `docs/supabase-step0-2-preflight.md`: Supabase Freeプロトタイプ Step 0〜2 の実操作前チェックと停止ポイント
+- `docs/supabase-rls-test-matrix.md`: RLSテストケース表
+- `docs/supabase/sql/`: 最小スキーマ、RLS/GRANT、RPCの実行候補SQL草案

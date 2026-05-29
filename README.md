@@ -54,6 +54,9 @@ py -m http.server 4173 -d velgard-site
   - `docs/release-runbook.md`: 正式公開URL反映後の公開確認手順書
   - `docs/supabase-prototype-plan.md`: 参加希望コメント、申請管理、GM編集、〆ボタン、Discord同期に向けたSupabaseプロトタイプ設計メモ
   - `docs/supabase-prototype-runbook.md`: Supabaseプロトタイプを実操作する直前の判断基準・作業順・RLSテスト手順
+  - `docs/supabase-step0-2-preflight.md`: Supabase Freeプロトタイプ Step 0〜2 の実操作前チェックと停止ポイント
+  - `docs/supabase-rls-test-matrix.md`: Supabase RLSテストケース表
+  - `docs/supabase/sql/`: Supabase最小スキーマ、RLS/GRANT、RPCの実行候補SQL草案
 
 ## data/*.json の役割
 - `site.json`: サイト共通設定、theme、meta関連
@@ -1008,7 +1011,8 @@ py -m http.server 4173 -d velgard-site
 - `data/sessions.json` を追加済み
 - `sessions.json` は `schemaVersion` / `updatedAt` / `sessions` を持つ
 - 仮データは7件で、`recruiting` / `full` / `tentative` / `finished` / `canceled` / `closed` を含む
-- Discord IDは数値ではなく文字列で扱う
+- Discord ID相当の将来用値は文字列で扱う。現行 `data/sessions.json` には実Discord IDが含まれるため、個人識別子として注意対象にする。
+- 将来Supabaseへ移行する場合、Discord IDは `profiles.discord_user_id` などの非公開列へ移し、公開view / public RPC / public JSONレスポンスには出さない。
 - 月表示カレンダーの日付セルには、その日の予定を `時刻 GM名 タイトル` で全件縦表示する
 - `status: "closed"` の予定は、セル内で `〆 時刻 GM名 タイトル` 形式で表示する
 - `〆` は行頭に置き、`gmName` はJS側で接頭辞を足さずデータ値をそのまま表示する
@@ -1383,6 +1387,7 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - 正式公開URL反映後の公開確認手順は `docs/release-runbook.md` に分離済み。
 - 参加希望コメント、申請管理、GM編集、〆ボタン、Discord同期に向けたSupabaseプロトタイプ設計方針は `docs/supabase-prototype-plan.md` に分離済み。
 - Supabaseプロトタイプを実操作する直前の判断基準・作業順・RLSテスト手順は `docs/supabase-prototype-runbook.md` に分離済み。
+- Supabase Freeプロトタイプ Step 0〜2 の準備パックは `docs/supabase-step0-2-preflight.md`、`docs/supabase-rls-test-matrix.md`、`docs/supabase/sql/` に分離済み。参加希望コメントは公開申請欄に近い扱いだが表示用RPC/viewではDiscord IDや内部user_idを出さず、private / hidden コメントは漏洩防止、`full` sessionは新規申請不可の方針へ整理済み。まだSupabase登録、SQL実行、本番接続は行わない。
 - シナリオ本文・PDF受け入れ基盤は実装済み。配布シナリオ本文作成と実ファイル配置はユーザー提供ファイル待ち。初期方針はTXT正本 / PDF任意で、本文・PDF・配布ファイルを受け取ってから反映する。
 - 互換維持中の `hooks.html` / `data/hooks.json` / `gallery-hook-*` ID / `assets/images/hooks/` / `characters.json` の `relatedHooks` は、未対応ではなく意図的な保留として扱う。
 

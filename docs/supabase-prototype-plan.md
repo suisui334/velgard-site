@@ -109,6 +109,9 @@ notifications
 - `discord_user_id` は `text`
 - 数値型にしない
 - anonに公開しない
+- 現行 `data/sessions.json` の18桁値は実Discord IDとして扱い、仮値扱いしない
+- 現行公開JSONに実Discord IDが含まれることはリスクとして認識する
+- Supabase移行時は `profiles.discord_user_id` などの非公開列へ移し、公開view / public RPC / public JSONレスポンスには出さない
 
 ### profiles公開
 
@@ -173,9 +176,13 @@ close_session()
 ### session_comments
 
 - コメント閲覧範囲は慎重に設計
-- 最小プロトタイプでは authenticated のみにしてよい
+- 参加希望コメントは公開申請欄に近い扱いとし、public sessionの表示可能コメントは他PLからも読める方針にする
+- private / hidden sessionのコメント、deleted_at付きコメント、将来のinternal扱いコメントは公開しない
+- anonにも見せる場合は、`user_id` や `discord_user_id` を含まない公開用view/RPCを使う
 - 本人だけ本文編集
 - GM/adminは対象sessionのコメント管理
+- `full` sessionは満席として扱い、新規コメント申請を拒否する
+- キャンセル待ちは `waitlist_enabled` / `application_status = 'waitlisted'` / `session_waitlist` などを別設計として後回しにする
 - `deleted_at` 付きは通常表示しない
 - 投稿・編集はRPC推奨
 
@@ -195,23 +202,31 @@ close_session()
 | 3 | guestがhidden sessionを読む | 失敗 |
 | 4 | guestがコメント投稿RPCを実行 | 失敗 |
 | 5 | player Aがopen sessionにコメント申請 | 成功 |
-| 6 | player Aがclosed sessionにコメント申請 | 失敗 |
-| 7 | player Aがfinished sessionにコメント申請 | 失敗 |
-| 8 | player Aがcanceled sessionにコメント申請 | 失敗 |
-| 9 | player Aが同じsessionに追加コメント | commentは増えるがapplicationは1件 |
-| 10 | player Aが自分のコメントを編集 | 成功 |
-| 11 | player Aがplayer Bのコメントを編集 | 失敗 |
-| 12 | player Aが自分の申請をcanceledにする | 成功 |
-| 13 | player Aが自分の申請をacceptedにする | 失敗 |
-| 14 | GM Aが自分のsession申請をacceptedにする | 成功 |
-| 15 | GM Aが他GMのsession申請を変更 | 失敗 |
-| 16 | GM Aが自分のsessionをclosedにする | 成功 |
-| 17 | GM Aが他GMのsessionをclosedにする | 失敗 |
-| 18 | adminが全件管理する | 成功 |
-| 19 | anonがuser_rolesを読む | 失敗 |
-| 20 | anonがprofiles.discord_user_idを読む | 失敗 |
-| 21 | public_profilesでid/display_nameのみ読む | 成功 |
-| 22 | public count RPCでprivate session人数を見る | 返らない |
+| 6 | player Aがfull sessionにコメント申請 | 失敗 |
+| 7 | player Aがclosed sessionにコメント申請 | 失敗 |
+| 8 | player Aがfinished sessionにコメント申請 | 失敗 |
+| 9 | player Aがcanceled sessionにコメント申請 | 失敗 |
+| 10 | player Aが同じsessionに追加コメント | commentは増えるがapplicationは1件 |
+| 11 | player Aが自分のコメントを読む | 成功 |
+| 12 | player Aがpublic sessionのplayer Bコメントを読む | 成功 |
+| 13 | GM Aが自分のsessionコメントを読む | 成功 |
+| 14 | player Aがprivate / hidden sessionの無関係コメントを読む | 失敗 |
+| 15 | player Aが自分のコメントを編集 | 成功 |
+| 16 | player Aがplayer Bのコメントを編集 | 失敗 |
+| 17 | player Aがsession_commentsへ直接insert | 失敗 |
+| 18 | player Aがsession_applicationsへ直接insert | 失敗 |
+| 19 | player Aが自分の申請をcanceledにする | 成功 |
+| 20 | player Aが自分の申請をacceptedにする | 失敗 |
+| 21 | player Aが自分をadmin/gm化 | 失敗 |
+| 22 | GM Aが自分のsession申請をacceptedにする | 成功 |
+| 23 | GM Aが他GMのsession申請を変更 | 失敗 |
+| 24 | GM Aが自分のsessionをclosedにする | 成功 |
+| 25 | GM Aが他GMのsessionをclosedにする | 失敗 |
+| 26 | adminが全件管理する | 成功 |
+| 27 | anonがuser_rolesを読む | 失敗 |
+| 28 | anonがprofiles.discord_user_idを読む | 失敗 |
+| 29 | public_profilesでid/display_nameのみ読む | 成功 |
+| 30 | public count RPCでprivate session人数を見る | 返らない |
 
 ## 9. Supabaseプロジェクト作成前チェックリスト
 
@@ -254,3 +269,10 @@ close_session()
 - コメント投稿UI本実装
 - Git commit / push
 - GitHub Pages公開反映
+
+## 12. 関連資料
+
+- `docs/supabase-prototype-runbook.md`: 実操作直前の判断基準・作業順・RLSテスト手順
+- `docs/supabase-step0-2-preflight.md`: Supabase Freeプロトタイプ Step 0〜2 の実操作前チェックと停止ポイント
+- `docs/supabase-rls-test-matrix.md`: RLSテストケース表
+- `docs/supabase/sql/`: 最小スキーマ、RLS/GRANT、RPCの実行候補SQL草案
