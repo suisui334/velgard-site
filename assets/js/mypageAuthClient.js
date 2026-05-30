@@ -31,14 +31,194 @@
     return {
       section,
       primary: section.querySelector("[data-mypage-auth-primary]") || paragraphs[0] || null,
-      detail: section.querySelector("[data-mypage-auth-detail]") || paragraphs[1] || null
+      detail: section.querySelector("[data-mypage-auth-detail]") || paragraphs[1] || null,
+      content: section.querySelector("[data-mypage-auth-content]") || null,
+      message: section.querySelector("[data-mypage-auth-message]") || null
     };
+  }
+
+  function ensureAuthElements(elements) {
+    if (!elements) return;
+
+    if (!elements.content) {
+      elements.content = document.createElement("div");
+      elements.content.dataset.mypageAuthContent = "";
+      elements.section.append(elements.content);
+    }
+
+    if (!elements.message) {
+      elements.message = document.createElement("p");
+      elements.message.className = "status";
+      elements.message.dataset.mypageAuthMessage = "";
+      elements.message.setAttribute("role", "status");
+      elements.message.setAttribute("aria-live", "polite");
+      elements.message.hidden = true;
+      elements.section.append(elements.message);
+    }
   }
 
   function setStatus(elements, primaryText, detailText) {
     if (!elements) return;
     if (elements.primary) elements.primary.textContent = primaryText;
-    if (elements.detail) elements.detail.textContent = detailText;
+    if (elements.detail) {
+      elements.detail.textContent = detailText || "";
+      elements.detail.hidden = !detailText;
+    }
+  }
+
+  function setMessage(elements, message) {
+    if (!elements || !elements.message) return;
+    elements.message.textContent = message || "";
+    elements.message.hidden = !message;
+  }
+
+  function clearContent(elements) {
+    if (!elements || !elements.content) return;
+    elements.content.replaceChildren();
+  }
+
+  function createInputField(labelText, input) {
+    const label = document.createElement("label");
+    label.className = "calendar-date-label";
+    label.append(document.createTextNode(labelText));
+    label.append(input);
+    return label;
+  }
+
+  function setFormBusy(form, busy) {
+    const controls = form.querySelectorAll("input, button");
+    controls.forEach((control) => {
+      control.disabled = busy;
+    });
+
+    const submit = form.querySelector("[data-mypage-login-submit]");
+    if (submit) submit.textContent = busy ? "送信中" : "ログイン";
+  }
+
+  function renderAnonymous(client, elements, message) {
+    ensureAuthElements(elements);
+    setStatus(
+      elements,
+      "ログインすると、今後ここで参加申請状況や参加予定を確認できるようになります。",
+      ""
+    );
+    clearContent(elements);
+
+    const form = document.createElement("form");
+    form.className = "calendar-form";
+    form.dataset.mypageLoginForm = "";
+
+    const emailInput = document.createElement("input");
+    emailInput.type = "email";
+    emailInput.name = "email";
+    emailInput.autocomplete = "username";
+    emailInput.required = true;
+
+    const passwordInput = document.createElement("input");
+    passwordInput.type = "password";
+    passwordInput.name = "password";
+    passwordInput.autocomplete = "current-password";
+    passwordInput.required = true;
+
+    const submit = document.createElement("button");
+    submit.className = "button primary";
+    submit.type = "submit";
+    submit.dataset.mypageLoginSubmit = "";
+    submit.textContent = "ログイン";
+
+    form.append(
+      createInputField("メールアドレス", emailInput),
+      createInputField("パスワード", passwordInput),
+      submit
+    );
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      handleLogin(client, elements, form);
+    });
+
+    elements.content.append(form);
+    setMessage(elements, message || "");
+  }
+
+  function renderAuthenticated(client, elements, message) {
+    ensureAuthElements(elements);
+    setStatus(
+      elements,
+      "ログイン済みです。",
+      "参加申請一覧・参加予定セッションは今後対応予定です。"
+    );
+    clearContent(elements);
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const logout = document.createElement("button");
+    logout.className = "button";
+    logout.type = "button";
+    logout.dataset.mypageLogout = "";
+    logout.textContent = "ログアウト";
+    logout.addEventListener("click", () => {
+      handleLogout(client, elements, logout);
+    });
+
+    actions.append(logout);
+    elements.content.append(actions);
+    setMessage(elements, message || "");
+  }
+
+  async function handleLogin(client, elements, form) {
+    const emailInput = form.querySelector('input[name="email"]');
+    const passwordInput = form.querySelector('input[name="password"]');
+    const email = emailInput ? emailInput.value.trim() : "";
+    const password = passwordInput ? passwordInput.value : "";
+
+    if (!email || !password) {
+      if (passwordInput) passwordInput.value = "";
+      setMessage(elements, "ログインできませんでした。入力内容を確認してください。");
+      return;
+    }
+
+    try {
+      setMessage(elements, "");
+      setFormBusy(form, true);
+      const { data, error } = await client.auth.signInWithPassword({ email, password });
+      if (passwordInput) passwordInput.value = "";
+
+      if (error || !data || !data.session) {
+        setMessage(elements, "ログインできませんでした。入力内容を確認してください。");
+        return;
+      }
+
+      renderAuthenticated(client, elements);
+    } catch (error) {
+      if (passwordInput) passwordInput.value = "";
+      setMessage(elements, "ログインできませんでした。入力内容を確認してください。");
+    } finally {
+      if (form.isConnected) setFormBusy(form, false);
+    }
+  }
+
+  async function handleLogout(client, elements, button) {
+    try {
+      setMessage(elements, "");
+      button.disabled = true;
+      button.textContent = "ログアウト中";
+      const { error } = await client.auth.signOut();
+
+      if (error) {
+        setMessage(elements, "ログアウトに失敗しました。時間を置いて再度お試しください。");
+        button.disabled = false;
+        button.textContent = "ログアウト";
+        return;
+      }
+
+      renderAnonymous(client, elements);
+    } catch (error) {
+      setMessage(elements, "ログアウトに失敗しました。時間を置いて再度お試しください。");
+      button.disabled = false;
+      button.textContent = "ログアウト";
+    }
   }
 
   function loadSupabaseSdk() {
@@ -76,14 +256,17 @@
       return { status: "already-initialized" };
     }
     elements.section.dataset.mypageAuthInitialized = "true";
+    ensureAuthElements(elements);
 
     const config = getConfig();
     if (!hasConfig(config)) {
+      clearContent(elements);
       setStatus(
         elements,
         "アカウント機能は準備中です。",
         "接続設定が未構成のため、Supabaseには接続していません。"
       );
+      setMessage(elements, "");
       return { status: "unconfigured" };
     }
 
@@ -93,35 +276,31 @@
       const { data, error } = await client.auth.getSession();
 
       if (error) {
+        clearContent(elements);
         setStatus(
           elements,
           "セッションを確認できませんでした。",
           "時間を置いて再度お試しください。"
         );
+        setMessage(elements, "");
         return { status: "session-error" };
       }
 
       if (data && data.session) {
-        setStatus(
-          elements,
-          "ログイン状態を確認しました。",
-          "表示名や参加申請一覧は今後対応予定です。"
-        );
+        renderAuthenticated(client, elements);
         return { status: "authenticated" };
       }
 
-      setStatus(
-        elements,
-        "現在ログインしていません。",
-        "ログイン機能は次の工程で対応予定です。"
-      );
+      renderAnonymous(client, elements);
       return { status: "anonymous" };
     } catch (error) {
+      clearContent(elements);
       setStatus(
         elements,
-        "アカウント機能の初期化に失敗しました。",
+        "アカウント機能を初期化できませんでした。",
         "時間を置いて再度お試しください。"
       );
+      setMessage(elements, "");
       return { status: "initialization-error" };
     }
   }
