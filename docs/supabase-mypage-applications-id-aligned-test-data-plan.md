@@ -99,6 +99,7 @@ docs/supabase/sql/010_mypage_applications_id_aligned_test_data_draft.sql
 - `session-2026-06-08-railway-incident` をDB側 `public.sessions.id` に使う。
 - `session_comments` と `session_applications` をセットで作る。
 - 既定では `ROLLBACK` で終わる。実データを作る場合は、確認後に最後を `COMMIT` へ変更する。
+- 草案には機械的な停止チェックを入れ、対象profile不在、既存sessionの公開JSON不一致、M-10で表示しない既存申請状態を検出した場合はINSERT前に停止する。
 
 ## 8. 実行前停止条件
 
@@ -114,6 +115,8 @@ docs/supabase/sql/010_mypage_applications_id_aligned_test_data_draft.sql
 ## 9. rollback / cleanup 方針
 
 草案は初期状態では `ROLLBACK` にしているため、試読時にはデータを残さない。
+
+ただし、`ROLLBACK` のままでもトランザクション内ではINSERTを試行するdry-runになる。事前確認SELECTと停止チェックの結果を見て、想定と違う場合は `COMMIT` へ変更せず停止する。
 
 実際に検証データを作る場合は、`COMMIT` に変更して実行する。M-10のGitHub Pages確認が終わるまでは、申請行とコメント行を残してよい。
 

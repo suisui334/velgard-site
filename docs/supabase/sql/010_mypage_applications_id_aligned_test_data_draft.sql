@@ -91,6 +91,59 @@ join m10_id_aligned_test_params as params
  and params.target_player_id = sa.user_id;
 
 -- ------------------------------------------------------------
+-- 2.5. 停止条件の機械チェック
+-- ------------------------------------------------------------
+-- ここで止まった場合は、後続のINSERTへ進まない。
+-- エラーメッセージにはemail / user_id全文 / secret類を含めない。
+do $$
+begin
+  if not exists (
+    select 1
+    from public.profiles as p
+    join m10_id_aligned_test_params as params
+      on params.target_player_id = p.id
+  ) then
+    raise exception 'M10 stop: target profile was not found.';
+  end if;
+
+  if exists (
+    select 1
+    from m10_id_aligned_test_params as params
+    where params.target_status not in ('pending', 'accepted', 'waitlisted')
+  ) then
+    raise exception 'M10 stop: target status is not suitable for mypage visible test.';
+  end if;
+
+  if exists (
+    select 1
+    from public.sessions as s
+    join m10_id_aligned_test_params as params
+      on params.target_session_id = s.id
+    where s.title <> '灰壁線異常調査'
+       or s.date <> '2026-06-08'::date
+       or s.start_time is distinct from '21:00'::time
+       or s.end_time is distinct from '24:00'::time
+       or s.gm_name is distinct from 'GMサンプルA'
+       or s.status <> 'recruiting'
+       or s.visibility <> 'public'
+  ) then
+    raise exception 'M10 stop: existing session does not match public JSON fields.';
+  end if;
+
+  if exists (
+    select 1
+    from public.session_applications as sa
+    join m10_id_aligned_test_params as params
+      on params.target_session_id = sa.session_id
+     and params.target_player_id = sa.user_id
+    where sa.status not in ('pending', 'waitlisted', 'accepted')
+  ) then
+    raise exception 'M10 stop: existing application status is not visible in M-10 mypage.';
+  end if;
+end
+$$;
+
+-- ------------------------------------------------------------
 -- 3. 公開JSONとIDが一致する public.sessions 行を用意する
 -- ------------------------------------------------------------
 -- data/sessions.json の sessions[].id と一致させる。
