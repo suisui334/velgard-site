@@ -161,3 +161,13 @@ M-5はDB変更を伴わない前提のため、ロールバックはフロント
 4. M-5実装可否判断
 5. 実装する場合は、`mypage.html` 内のAuth client初期化・`auth.getSession` 復元だけに限定する
 6. 問題が出た場合はC案の未構成フォールバックへ戻す
+
+## 12. M-5最小実装メモ
+
+M-5最小実装として、`assets/js/supabaseRuntimeConfig.js` の空placeholderと `assets/js/mypageAuthClient.js` を追加し、`mypage.html` から読み込む構成にした。
+
+- `supabaseRuntimeConfig.js` は `url` / `anonKey` とも空文字で、実Project URL / key実値は未投入。
+- config空欄時はSupabase SDKを読み込まず、既存の未構成フォールバックを維持する。
+- configが入っている場合のみ、Supabase SDKを動的に読み込み、client初期化後に `auth.getSession` で既存セッションを確認する。
+- M-5の表示は、未構成、未ログイン、ログイン状態確認、初期化失敗の短い文言に限定する。
+- ログインフォーム、ログアウト、`display_name` 取得、`public_profiles` 取得、自分の申請一覧、参加予定セッションは未実装。

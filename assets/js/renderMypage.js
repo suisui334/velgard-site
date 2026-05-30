@@ -15,11 +15,15 @@ export async function renderMypage(root) {
           <a class="button" href="calendar.html">CALENDARへ戻る</a>
         </p>
       </article>
-      <article class="article-box">
+      <article class="article-box" data-mypage-auth-section>
         <h2>アカウント機能</h2>
-        <p>ログイン・ログアウト、参加申請一覧、参加予定セッションの確認は今後対応予定です。</p>
-        <p>現在は接続設定が未構成のため、Supabaseには接続していません。</p>
+        <p data-mypage-auth-primary>アカウント機能は準備中です。</p>
+        <p data-mypage-auth-detail>接続設定が未構成のため、Supabaseには接続していません。</p>
       </article>
     </section>
   `;
+
+  if (window.VELGARD_MYPAGE_AUTH && typeof window.VELGARD_MYPAGE_AUTH.init === "function") {
+    await window.VELGARD_MYPAGE_AUTH.init(root);
+  }
 }
