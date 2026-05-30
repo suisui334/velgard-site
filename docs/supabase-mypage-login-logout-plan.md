@@ -204,3 +204,9 @@ M-6最小実装として、`mypage.html` のアカウント機能セクション
 既存の `auth.getSession` によるセッション復元は維持し、ログイン済みセッションがある場合はログインフォームではなくログイン済み表示とログアウトボタンを出す。ログイン後もemail / user_id / tokenは画面に出さない。
 
 `display_name` / `public_profiles` 取得、自分の申請一覧、参加予定セッション、コメント履歴、`session-detail.html` 投稿統合、GM操作、追加SQL、追加RPCは未実装のまま。
+
+## 14. M-7一般サインアップ計画への接続
+
+次工程の一般サインアップ実装計画は `docs/supabase-mypage-signup-plan.md` に分離する。
+
+M-7では、ユーザー方針としてサイト上に誰でも登録できる一般サインアップフォームを置く前提で、メールアドレス + パスワード + パスワード確認、Supabase Auth `signUp`、登録成功時の短い案内、既存ログインフォームとの切り替えを整理する。`display_name` / `public_profiles` 登録、自分の申請一覧、参加予定セッション、`session-detail.html` 投稿統合はまだ扱わない。

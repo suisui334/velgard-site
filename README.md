@@ -69,6 +69,7 @@ py -m http.server 4173 -d velgard-site
   - `docs/supabase-mypage-auth-client-restore-plan.md`: M-5 マイページAuth client初期化・Auth復元実装計画書
   - `docs/supabase-mypage-auth-client-restore-final-check.md`: M-5実装直前のAuth client初期化方式・確認手順・ロールバック最終確認メモ
   - `docs/supabase-mypage-login-logout-plan.md`: M-6 マイページログイン / ログアウト最小実装計画書
+  - `docs/supabase-mypage-signup-plan.md`: M-7 マイページ一般サインアップ実装計画書
   - `docs/supabase-f1-readonly-prototype.md`: Supabase F-1 ローカル読み取り専用プロトタイプ手順
   - `docs/supabase-f2-public-session-read-plan.md`: Supabase F-2 公開セッション読み取りプロトタイプ設計
   - `docs/supabase-f2-session-mapping-prototype.md`: Supabase F-2 dev セッション表示マッピングプロトタイプ手順
@@ -1470,3 +1471,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - M-5最小実装として、`assets/js/supabaseRuntimeConfig.js` の空placeholderと `assets/js/mypageAuthClient.js` を追加し、`mypage.html` で読み込むようにした。実Project URL / key実値は未投入で、未構成時はアカウント機能セクション内の安全フォールバックを維持する。ログインフォーム、ログアウト、`display_name` 取得、自分の申請一覧は未実装。
 - `docs/supabase-mypage-login-logout-plan.md`: M-6として、`mypage.html` のアカウント機能セクション内にメールアドレス + パスワードのログインフォーム、`signInWithPassword`、ログアウトボタン、`signOut` を最小実装する前の範囲、UI、安全条件、確認手順、ロールバック方針を整理した。この工程では実装変更は行っていない。
 - M-6最小実装として、`mypage.html` のアカウント機能セクション内にメールアドレス + パスワードログインとログアウトを追加した。`display_name` / `public_profiles` 取得、自分の申請一覧、参加予定セッションは未実装のままとし、email / user_id / token は画面に出さない。
+- `docs/supabase-mypage-signup-plan.md`: M-7として、サイト上に誰でも登録できる一般サインアップフォームを置く前の仕様、UI、Supabase設定確認、安全条件、確認手順、ロールバック方針を整理した。この工程では実装変更、Supabase設定変更、追加SQL、`display_name` / `public_profiles` 登録は行っていない。
