@@ -66,6 +66,7 @@ py -m http.server 4173 -d velgard-site
   - `docs/supabase-frontend-integration-plan.md`: Supabaseフロント連携設計書
   - `docs/supabase-mypage-auth-connection-decision.md`: M-5前のマイページAuth実接続採否判断メモ
   - `docs/supabase-mypage-auth-connection-hold-note.md`: Supabase実接続を保留し未構成フォールバック維持とする現状整理メモ
+  - `docs/supabase-mypage-auth-client-restore-plan.md`: M-5 マイページAuth client初期化・Auth復元実装計画書
   - `docs/supabase-f1-readonly-prototype.md`: Supabase F-1 ローカル読み取り専用プロトタイプ手順
   - `docs/supabase-f2-public-session-read-plan.md`: Supabase F-2 公開セッション読み取りプロトタイプ設計
   - `docs/supabase-f2-session-mapping-prototype.md`: Supabase F-2 dev セッション表示マッピングプロトタイプ手順
@@ -1460,5 +1461,6 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - `docs/supabase-mypage-runtime-config-fallback-plan.md`: M-2/M-3として、`mypage.html` のAuth実装前にruntime config分離と接続設定未構成フォールバックをどう扱うかを整理した。実Project URL / key実値、Supabase接続、Auth復元、ログイン / ログアウトはまだ入れない。
 - M-2/M-3最小実装として、実値なしの `assets/js/supabaseRuntimeConfig.example.js` と、`mypage.html` 内のアカウント操作セクションの未構成フォールバック表示を追加した。example configはHTMLから読み込まず、Supabase接続、Auth復元、ログイン / ログアウトは未実装のまま。
 - `docs/supabase-mypage-runtime-config-deployment-review-plan.md`: M-4として、GitHub Pages静的運用でSupabase Auth実接続へ進む前の実config運用方針、公開可能key管理、接続前チェックリスト、ロールバック方針を整理した。実config作成、Supabase接続、Auth復元、ログイン / ログアウトはまだ行わない。
-- `docs/supabase-mypage-auth-connection-decision.md`: M-5前に、Supabase Auth実接続へ進むか未構成フォールバックを維持するかの判断材料を短く整理した。短期推奨は未構成フォールバック維持で、実接続前にpublishable key / anon keyのrepo公開運用についてユーザー判断を挟む。
-- `docs/supabase-mypage-auth-connection-hold-note.md`: Supabase実接続へはまだ進まず、現状を未構成フォールバック維持として整理した。ACCOUNT導線、`mypage.html` 最小版、runtime config example、未構成フォールバックは安定状態として維持する。
+- `docs/supabase-mypage-auth-connection-decision.md`: M-5前に、Supabase Auth実接続へ進むか未構成フォールバックを維持するかの判断材料を短く整理した。M-5前時点では未構成フォールバック維持を短期安全策として記録し、その後M-5計画で実接続へ進む方向へ更新した。
+- `docs/supabase-mypage-auth-connection-hold-note.md`: Supabase実接続を保留した時点の現状を、未構成フォールバック維持として整理した。ACCOUNT導線、`mypage.html` 最小版、runtime config example、未構成フォールバックは安定状態として維持し、現在はロールバック / 保留案として残す。
+- `docs/supabase-mypage-auth-client-restore-plan.md`: M-5として、`mypage.html` でAuth client初期化と `auth.getSession` による既存セッション復元へ進む前の実装計画を整理した。ユーザー判断としてpublishable key / anon keyを公開前提で扱い、Supabase Auth実接続へ進む方向とする。ただし、この工程では実値投入、実config作成、接続実装は行っていない。

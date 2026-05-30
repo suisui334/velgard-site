@@ -6,9 +6,9 @@
 
 ## 1. 現在は未構成フォールバック維持とする
 
-現時点では、`mypage.html` のアカウント機能は未構成フォールバックのまま維持する。
+保留メモ作成時点では、`mypage.html` のアカウント機能は未構成フォールバックのまま維持する判断だった。
 
-これは、GitHub Pages静的運用でpublishable key / anon keyをどのように扱うかが未決定であり、実接続前にユーザー判断を挟む必要があるためである。
+これは当時、GitHub Pages静的運用でpublishable key / anon keyをどのように扱うかが未決定であり、実接続前にユーザー判断を挟む必要があったためである。
 
 ## 2. Supabase実接続はまだ行わない
 
@@ -28,7 +28,7 @@
 
 publishable key / anon keyはブラウザ配布前提で扱える可能性があるが、GitHub repoへ実値を置くかどうかは別の運用判断である。
 
-現時点では、実Project URL / anon key / publishable keyをREADME、docs、チャット、作業報告、GitHub repoへ記録しない。
+保留メモ作成時点でも、実Project URL / anon key / publishable keyをREADME、docs、チャット、作業報告、GitHub repoへ記録しない方針だった。
 
 ## 4. 実接続前にユーザー判断が必要
 
@@ -66,3 +66,13 @@ publishable key / anon keyはブラウザ配布前提で扱える可能性があ
 - Supabaseと無関係な表示確認
 - `updates.json` を変更しない範囲の軽微な資料整理
 - マイページ実接続以外の次工程候補整理
+
+## 8. M-5計画への接続
+
+Auth client初期化と既存セッション復元へ進む場合の実装計画は、`docs/supabase-mypage-auth-client-restore-plan.md` に分離する。
+
+この保留メモは、未構成フォールバック維持を安定状態として記録した過去方針である。その後、ユーザーはSupabase / アカウント / スケジュール登録 / テンプレート関連の流れを止めずに進めたい意向を示した。
+
+したがって、次段階ではpublishable key / anon keyを公開前提で扱い、GitHub Pages静的サイトでSupabase Auth実接続へ進むためのM-5計画へ移る。
+
+ただし、この時点でも実Project URL / anon key / publishable key実値はdocs、README、チャット、作業報告へ記録しない。未構成フォールバックは、問題が出た場合のロールバック / 保留案として残す。

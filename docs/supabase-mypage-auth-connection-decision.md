@@ -80,17 +80,20 @@
 - `mypage.html` だけで完結させ、`session-detail.html` 本文中の常時ログイン状態表示へ戻らない。
 - 投稿、編集、削除、GM承認・却下は今回の接続判断に含めない。
 
-## 9. 現時点の推奨
+## 9. 現時点の推奨 / 方針更新
 
-短期は未構成フォールバックを維持する。
+過去方針として、短期は未構成フォールバックを維持する判断を記録した。これは、`ACCOUNT` 導線、`mypage.html` 最小版、runtime config example、未構成フォールバックを安定状態として保つための安全策だった。
 
-Supabase実接続へ進む前に、publishable key / anon keyをGitHub repoへ置く運用を採用するか、ユーザー判断を挟む。実接続する場合でも、`service_role`、secret key、DB passwordは絶対に使わない。
+その後、ユーザーはSupabase / アカウント / スケジュール登録 / テンプレート関連の流れを止めずに進めたい意向を示した。したがって、次段階ではpublishable key / anon keyを公開前提で扱い、GitHub Pages静的サイトでSupabase Auth実接続へ進むためのM-5計画へ移る。
+
+ただし、この時点でも実Project URL / anon key / publishable key実値はdocs、README、チャット、作業報告へ記録しない。実接続する場合でも、`service_role`、secret key、DB passwordは絶対に使わない。
 
 ## 10. 次工程候補
 
 1. この判断メモのcommit / push
 2. `docs/supabase-mypage-auth-connection-hold-note.md` で未構成フォールバック維持の現状を整理
-3. publishable key / anon keyをrepoへ置くかどうかのユーザー最終判断
-4. 未構成フォールバック維持のままサイト側軽作業へ戻る
-5. 実config運用案を決めたうえで、M-5 Auth client初期化計画を作る
-6. 実接続へ進む場合も、まず `mypage.html` 内のログイン / ログアウト入口に限定する
+3. `docs/supabase-mypage-auth-client-restore-plan.md` でM-5 Auth client初期化・Auth復元計画を確認
+4. publishable key / anon keyを公開前提で扱い、GitHub Pages静的サイトで実接続へ進む方針をM-5計画へ反映する
+5. M-5実装可否を判断する
+6. 実接続へ進む場合も、まず `mypage.html` 内のAuth client初期化・既存セッション復元に限定する
+7. 問題が出た場合は未構成フォールバックへ戻す
