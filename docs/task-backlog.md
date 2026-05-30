@@ -375,3 +375,7 @@
 ## Supabase M-5前 mypage Auth実接続採否判断
 - `docs/supabase-mypage-auth-connection-decision.md` に、Supabase Auth実接続へ進む前の採否判断材料、publishable key / anon keyのrepo公開運用、接続前チェックリスト、現時点の推奨を整理済み。
 - 現時点の推奨は短期未構成フォールバック維持。実接続前に、publishable key / anon keyをGitHub repoへ置く運用を採用するかユーザー判断を挟む。
+
+## Supabase mypage Auth実接続保留
+- `docs/supabase-mypage-auth-connection-hold-note.md` に、Supabase実接続へまだ進まず、未構成フォールバック維持とする現状を整理済み。
+- ACCOUNT導線、`mypage.html` 最小版、runtime config example、未構成フォールバックは安定状態として維持する。実接続へ進む場合は、publishable key / anon keyのrepo公開運用についてユーザー判断を挟む。
