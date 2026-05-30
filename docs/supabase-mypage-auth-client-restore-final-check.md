@@ -193,3 +193,9 @@ M-5最小実装として、Auth client初期化と既存セッション復元の
 - ログイン済み時は「ログイン状態を確認しました。表示名や参加申請一覧は今後対応予定です。」と短く表示する。
 - ログインフォーム、ログアウト、`display_name` 取得、`public_profiles` 取得、自分の申請一覧、参加予定セッションは未実装のまま。
 - 実Project URL / key実値、secret類、tokenはREADME、docs、チャット、作業報告へ記録しない。
+
+## 14. M-6ログイン / ログアウト計画への接続
+
+次工程のログイン / ログアウト最小実装計画は `docs/supabase-mypage-login-logout-plan.md` に分離する。
+
+M-6では、M-5のAuth client初期化・既存セッション復元の器を前提に、メールアドレス + パスワードログイン、`signInWithPassword`、ログアウトボタン、`signOut` だけを扱う。`display_name` 取得、`public_profiles` 取得、自分の申請一覧、参加予定セッション、`session-detail.html` 投稿統合はまだ扱わない。

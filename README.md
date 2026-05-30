@@ -68,6 +68,7 @@ py -m http.server 4173 -d velgard-site
   - `docs/supabase-mypage-auth-connection-hold-note.md`: Supabase実接続を保留し未構成フォールバック維持とする現状整理メモ
   - `docs/supabase-mypage-auth-client-restore-plan.md`: M-5 マイページAuth client初期化・Auth復元実装計画書
   - `docs/supabase-mypage-auth-client-restore-final-check.md`: M-5実装直前のAuth client初期化方式・確認手順・ロールバック最終確認メモ
+  - `docs/supabase-mypage-login-logout-plan.md`: M-6 マイページログイン / ログアウト最小実装計画書
   - `docs/supabase-f1-readonly-prototype.md`: Supabase F-1 ローカル読み取り専用プロトタイプ手順
   - `docs/supabase-f2-public-session-read-plan.md`: Supabase F-2 公開セッション読み取りプロトタイプ設計
   - `docs/supabase-f2-session-mapping-prototype.md`: Supabase F-2 dev セッション表示マッピングプロトタイプ手順
@@ -1467,3 +1468,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - `docs/supabase-mypage-auth-client-restore-plan.md`: M-5として、`mypage.html` でAuth client初期化と `auth.getSession` による既存セッション復元へ進む前の実装計画を整理した。ユーザー判断としてpublishable key / anon keyを公開前提で扱い、Supabase Auth実接続へ進む方向とする。ただし、この工程では実値投入、実config作成、接続実装は行っていない。
 - `docs/supabase-mypage-auth-client-restore-final-check.md`: M-5実装直前の最終確認として、`assets/js/supabaseRuntimeConfig.js` を実configとして読む方式、M-5で扱う範囲、UI / エラー表示、実装後確認手順、ロールバック方針を整理した。この工程でも実値投入、実config作成、接続実装は行っていない。
 - M-5最小実装として、`assets/js/supabaseRuntimeConfig.js` の空placeholderと `assets/js/mypageAuthClient.js` を追加し、`mypage.html` で読み込むようにした。実Project URL / key実値は未投入で、未構成時はアカウント機能セクション内の安全フォールバックを維持する。ログインフォーム、ログアウト、`display_name` 取得、自分の申請一覧は未実装。
+- `docs/supabase-mypage-login-logout-plan.md`: M-6として、`mypage.html` のアカウント機能セクション内にメールアドレス + パスワードのログインフォーム、`signInWithPassword`、ログアウトボタン、`signOut` を最小実装する前の範囲、UI、安全条件、確認手順、ロールバック方針を整理した。この工程では実装変更は行っていない。
