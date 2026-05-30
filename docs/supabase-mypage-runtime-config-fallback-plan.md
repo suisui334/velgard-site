@@ -188,3 +188,18 @@ M-2/M-3はDB状態変更を伴わないため、ロールバック時にSupabase
 3. M-3 `supabaseRuntimeConfig.example.js` 作成計画
 4. M-4 実config運用方針の最終確認
 5. M-5 Auth client初期化計画
+
+## 13. M-2/M-3最小実装メモ
+
+M-2/M-3最小実装では、以下だけを追加する。
+
+- 実値なしの `assets/js/supabaseRuntimeConfig.example.js`
+- `mypage.html` 内のアカウント操作セクションに、接続設定未構成時の準備中表示
+
+実装上の注意:
+
+- `supabaseRuntimeConfig.example.js` は資料ファイルとして置き、`mypage.html` からは読み込まない
+- ログイン状態カード単体は追加しない
+- 「ログイン中 / 未ログイン」は表示しない
+- Supabase SDK読み込み、client初期化、Auth復元、ログイン / ログアウトは実装しない
+- 実Project URL / anon key / publishable key実値は記録しない

@@ -203,3 +203,5 @@ PL向けには短く、人間向けに表示する。内部SQL、token、key、U
 M-2/M-3の詳細は `docs/supabase-mypage-runtime-config-fallback-plan.md` に分離する。
 
 Auth実装へ進む前に、実Project URL / anon key / publishable keyをGitHub、README、docs、チャットへ残さない運用と、接続設定が未構成でも `mypage.html` が壊れないフォールバックを先に整理する。
+
+M-2/M-3最小実装では、ログイン状態カード単体ではなく、マイページ内の「アカウント機能」セクションとして未構成フォールバックを表示する。Supabase接続、Auth復元、ログイン / ログアウト、申請一覧表示はまだ扱わない。

@@ -15,6 +15,11 @@ export async function renderMypage(root) {
           <a class="button" href="calendar.html">CALENDARへ戻る</a>
         </p>
       </article>
+      <article class="article-box">
+        <h2>アカウント機能</h2>
+        <p>ログイン・ログアウト、参加申請一覧、参加予定セッションの確認は今後対応予定です。</p>
+        <p>現在は接続設定が未構成のため、Supabaseには接続していません。</p>
+      </article>
     </section>
   `;
 }
