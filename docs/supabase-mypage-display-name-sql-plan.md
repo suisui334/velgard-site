@@ -165,3 +165,13 @@ SQL適用後は、以下を確認する。
 - GM操作。
 - Discord連携。
 - 追加通知。
+
+## 12. 実行前レビュー計画
+
+009草案をSQL Editorで実行する前のレビュー計画は、以下に分離する。
+
+```text
+docs/supabase-mypage-display-name-sql-execution-review-plan.md
+```
+
+このレビュー計画では、実行範囲、事前確認SQL、trigger / backfill / RPC確認点、実行順序、ロールバック、実行後検証、RLS smoke test更新要否を整理する。
