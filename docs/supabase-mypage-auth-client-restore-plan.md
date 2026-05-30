@@ -157,6 +157,7 @@ M-5はDB変更を伴わない前提のため、ロールバックはフロント
 
 1. この計画書のcommit / push
 2. 実値をdocs / README / チャットへ記録しない運用を再確認
-3. M-5実装可否判断
-4. 実装する場合は、`mypage.html` 内のAuth client初期化・`auth.getSession` 復元だけに限定する
-5. 問題が出た場合はC案の未構成フォールバックへ戻す
+3. `docs/supabase-mypage-auth-client-restore-final-check.md` でM-5実装直前のAuth client初期化方式、実装後確認手順、ロールバック方針を最終確認
+4. M-5実装可否判断
+5. 実装する場合は、`mypage.html` 内のAuth client初期化・`auth.getSession` 復元だけに限定する
+6. 問題が出た場合はC案の未構成フォールバックへ戻す
