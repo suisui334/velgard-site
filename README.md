@@ -72,6 +72,7 @@ py -m http.server 4173 -d velgard-site
   - `docs/supabase-mypage-display-name-sql-execution-review-plan.md`: M-9 display_name SQL実行前レビュー計画
   - `docs/supabase-mypage-display-name-sql-result.md`: M-9 display_name SQL反映結果
   - `docs/supabase-mypage-applications-list-result.md`: M-10 マイページ申請一覧・参加予定表示 実装結果
+  - `docs/supabase-mypage-applications-id-aligned-test-data-result.md`: M-10 ID整合検証データ投入結果
   - `docs/supabase-mypage-login-logout-plan.md`: M-6 マイページログイン / ログアウト最小実装計画書
   - `docs/supabase-mypage-signup-plan.md`: M-7 マイページ一般サインアップ実装計画書
   - `docs/supabase-f1-readonly-prototype.md`: Supabase F-1 ローカル読み取り専用プロトタイプ手順
@@ -1486,4 +1487,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - M-9フロント追加修正として、ログイン済み画面では現在の表示名を入力欄とは別DOMで明示し、取得完了時の反映が入力中の値を上書きしないようにした。保存成功時は現在表示名テキストと入力欄を保存後の値へ更新する。
 - M-9 display_name保存時の `42702 ambiguous_column` は、`update_display_name` RPC側で `public.profiles as p` と `returning p.id, p.display_name` を明示する修正により解消済み。ユーザー実ブラウザで表示名保存、表示更新、再読み込み後維持、再ログイン後維持を確認済み。
 - M-10として、`mypage.html` のログイン済みアカウント機能内に本人の「参加申請中」「参加予定」表示を追加した。`session_applications` から本人行のみを読み、`data/sessions.json` の公開セッションと `session_id` で突合する。`pending` / `waitlisted` は参加申請中、`accepted` は参加予定に分類し、`rejected` / `canceled` は今回表示しない。email / user_id全文 / token / key / gmUserId / コメント本文 / 内部ID類は画面に出さない。
-- M-10では、公開セッションが突合できる場合のみ `session-detail.html?id=...` への詳細リンクを出し、突合できない場合は「非公開または未同期のセッション」と表示する。現テストデータは `rls-test-*` 系IDで公開JSONの `session-2026-*` 系IDとは一致しないため、未同期セッションの安全表示を確認済み。公開セッション突合・詳細リンクは、ID整合データで再確認予定。Supabase SQL Editorは実行しておらず、公開版確認はユーザー実ブラウザ確認前。
+- M-10では、公開セッションが突合できる場合のみ `session-detail.html?id=...` への詳細リンクを出し、突合できない場合は「非公開または未同期のセッション」と表示する。未同期セッションの安全表示を確認済み。ID整合検証データにより、公開版 mypage で「灰壁線異常調査」の表示、`詳細を見る`、`session-detail.html?id=session-2026-06-08-railway-incident` への遷移を確認済み。cleanupは別工程で判断する。

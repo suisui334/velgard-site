@@ -40,11 +40,11 @@
 
 ## 安全条件
 
-- Supabase SQL Editorは実行していない。
+- M-10フロント実装時点では、Supabase SQL Editorは実行していない。
 - `service_role` などのsecret類は使用していない。
 - `updates.json` は変更していない。
 - `session-detail.html` の本番投稿統合、参加希望コメント投稿UI、GM承認・却下UI、`close_session` 呼び出しは行っていない。
-- 公開版確認済みとは記録しない。公開版確認およびGitHub Pages確認はまだ行っていない。
+- M-10フロント実装時点では、公開版確認およびGitHub Pages確認はまだ行っていない。ID整合検証後の公開版確認結果は後続セクションに記録する。
 
 ## ID不一致の追加調査結果
 
@@ -56,7 +56,24 @@ M-10のフロント実装は、公開JSON `data/sessions.json` の `sessions[].i
 
 公開セッションに突合できた場合のみ、カード内に `詳細を見る` を表示する。`詳細を見る` の実ブラウザ確認は、DB側の `sessions.id` / `session_applications.session_id` と公開JSON `sessions[].id` が一致する申請データを作成した後に行う。
 
-この追加調査でも、Supabase SQL Editorは実行していない。secret類は未使用・未出力。公開版確認およびGitHub Pages確認はまだ行っていない。
+この追加調査時点でも、Supabase SQL Editorは実行していない。secret類は未使用・未出力。公開版確認およびGitHub Pages確認はまだ行っていない。
+
+## ID整合検証データ投入後の公開版確認結果
+
+M-10 follow-upとして、ユーザーがSupabase SQL EditorでID整合検証データを投入した。Codexはこのdocs更新工程でSQL Editorを実行していない。
+
+- 対象公開セッションID: `session-2026-06-08-railway-incident`
+- DB count確認: `public.sessions` 1件、`public.session_comments` 1件、`public.session_applications` for test player 1件。
+- GitHub Pages公開版の `mypage.html` で、参加申請中に「灰壁線異常調査」が表示された。
+- 「非公開または未同期のセッション」ではなく、公開JSONに突合した表示になった。
+- `詳細を見る` が表示された。
+- `詳細を見る` から `session-detail.html?id=session-2026-06-08-railway-incident` に遷移した。
+- email / user_id / token / key / gmUserId は画面に出ていない。
+- console error はない。
+
+実UUID、実email、secret、key、tokenは記録しない。SQL Editor上で置換した実UUIDも記録しない。
+
+`010_mypage_applications_id_aligned_test_data_draft.sql` は使用済みのため、同じSQLを再実行しない。cleanupはまだ実行しておらず、検証データを残すか削除するかは別工程で判断する。
 
 ## RLS smoke test
 

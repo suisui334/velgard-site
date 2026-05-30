@@ -138,7 +138,27 @@ docs/supabase/sql/010_mypage_applications_id_aligned_test_data_draft.sql
 - email / user_id全文 / token / key / gmUserId が画面やconsoleに漏れない。
 - 既存の `rls-test-*` など未同期行は、引き続き「非公開または未同期のセッション」と表示され、詳細リンクを出さない。
 
+## 10.5. 投入・公開版確認結果
+
+M-10 follow-upとして、ユーザーがSupabase SQL EditorでID整合検証データを投入し、公開版 mypage で詳細リンク表示・遷移まで確認済み。
+
+- 対象公開セッションID: `session-2026-06-08-railway-incident`
+- DB count確認: `public.sessions` 1件、`public.session_comments` 1件、`public.session_applications` for test player 1件。
+- 公開版 mypage で、参加申請中に「灰壁線異常調査」が表示された。
+- 「非公開または未同期のセッション」ではなくなり、`詳細を見る` が表示された。
+- `session-detail.html?id=session-2026-06-08-railway-incident` への遷移を確認済み。
+- email / user_id / token / key / gmUserId の画面漏れなし。
+- console errorなし。
+
+このdocsには実UUID、実email、secret、key、tokenを記録しない。SQL Editor上で置換した実UUIDも記録しない。
+
+`010_mypage_applications_id_aligned_test_data_draft.sql` は使用済みのため、同じSQLを再実行しない。再確認が必要な場合も、先に対象データの有無とcountを確認する。
+
+cleanupはまだ実行していない。検証データを残すか削除するかは別工程で判断する。
+
 ## 11. この工程で行わないこと
+
+以下は計画作成時点の禁止事項。投入後の確認結果は「10.5. 投入・公開版確認結果」に記録する。
 
 - Supabase SQL EditorでSQLを実行しない。
 - DBデータを変更しない。

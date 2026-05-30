@@ -3,6 +3,9 @@
 -- 010_mypage_applications_id_aligned_test_data_draft.sql
 --
 -- DRAFT ONLY:
+-- - M-10 ID整合検証で使用済み。同じSQLを再実行しない。
+-- - 再確認が必要な場合も、必ず対象データの有無とcountを先に確認する。
+-- - cleanupは未実行。検証データを残すか削除するかは別工程で判断する。
 -- - SQL Editorで実行する前に必ずレビューする。
 -- - このファイルには実email、実user_id、secret、DB passwordを書かない。
 -- - service_role key / secret key / Direct connection string は使わない。

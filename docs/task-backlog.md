@@ -441,5 +441,6 @@
 - `mypage.html` のログイン済みアカウント機能内に、本人の「参加申請中」「参加予定」表示を追加済み。`pending` / `waitlisted` は参加申請中、`accepted` は参加予定、`rejected` / `canceled` は今回非表示。
 - `session_applications` の本人行を `data/sessions.json` の公開セッションと `session_id` で突合し、タイトル、日付、開始時刻、GM表示名、セッション状態、申請ステータス、更新日時、公開詳細リンクを表示する。突合できない場合は内部IDを出さず「非公開または未同期のセッション」と表示する。
 - `closed` / `finished` / `canceled` / `cancelled` / `archived` の公開セッションは、`accepted` でも参加予定に出さない。email / user_id全文 / token / key / gmUserId / コメント本文 / 内部ID類は画面に出さない。
-- RLS smoke testへM-10向けの読み取り観点を追加済み。Supabase SQL Editorは実行しておらず、公開版確認はユーザー実ブラウザ確認前。
-- M-10 follow-up: DB側の `sessions.id` / `session_applications.session_id` と `data/sessions.json` の `sessions[].id` を一致させた検証データで、mypage の詳細リンク表示・遷移を確認する。現テストデータは `rls-test-*` 系で、公開JSONの `session-2026-*` 系IDとは一致しないため、全件が「非公開または未同期のセッション」になる。
+- RLS smoke testへM-10向けの読み取り観点を追加済み。M-10フロント実装時点ではSupabase SQL Editorを実行しておらず、公開版確認はユーザー実ブラウザ確認前だった。
+- M-10 follow-up完了: DB側の `sessions.id` / `session_applications.session_id` と `data/sessions.json` の `sessions[].id` を一致させた検証データで、mypage の詳細リンク表示・遷移を確認済み。対象は `session-2026-06-08-railway-incident`。公開版 mypage で「灰壁線異常調査」、`詳細を見る`、`session-detail.html?id=session-2026-06-08-railway-incident` への遷移を確認済み。
+- M-10 follow-up後の残タスク: 検証データのcleanup要否判断、`session-detail.html` 本番投稿統合前の設計確認、mypage申請一覧の履歴表示、GM操作統合。
