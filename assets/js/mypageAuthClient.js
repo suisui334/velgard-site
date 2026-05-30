@@ -5,6 +5,31 @@
   const SDK_LOAD_KEY = "__VELGARD_SUPABASE_SDK_LOAD";
   const MIN_PASSWORD_LENGTH = 8;
   const DISPLAY_NAME_MAX_LENGTH = 40;
+  const SESSIONS_DATA_URL = "data/sessions.json?v=20260531-mypage-applications";
+  const APPLICATION_SELECT_COLUMNS = "session_id,status,comment_id,created_at,updated_at,canceled_at";
+  const APPLICATION_STATUSES = ["pending", "waitlisted", "accepted"];
+  const APPLICATION_STATUS_GROUPS = Object.freeze({
+    pending: "pending",
+    waitlisted: "pending",
+    accepted: "accepted"
+  });
+  const APPLICATION_STATUS_LABELS = Object.freeze({
+    pending: "参加申請中",
+    waitlisted: "参加申請中（キャンセル待ち）",
+    accepted: "参加予定"
+  });
+  const SESSION_STATUS_LABELS = Object.freeze({
+    draft: "下書き",
+    tentative: "仮予定",
+    recruiting: "募集中",
+    full: "満席",
+    closed: "締切",
+    finished: "終了",
+    canceled: "中止",
+    cancelled: "中止",
+    archived: "アーカイブ"
+  });
+  const ENDED_SESSION_STATUSES = new Set(["closed", "finished", "canceled", "cancelled", "archived"]);
 
   function getConfig() {
     const config = window.VELGARD_SUPABASE_CONFIG || {};
@@ -95,6 +120,305 @@
     label.append(document.createTextNode(labelText));
     label.append(input);
     return label;
+  }
+
+  function normalizeStatus(value) {
+    return String(value || "").trim().toLowerCase();
+  }
+
+  function getApplicationGroup(application) {
+    return APPLICATION_STATUS_GROUPS[normalizeStatus(application && application.status)] || "";
+  }
+
+  function getApplicationStatusLabel(status) {
+    return APPLICATION_STATUS_LABELS[normalizeStatus(status)] || "申請状況未設定";
+  }
+
+  function getSessionStatusLabel(status) {
+    return SESSION_STATUS_LABELS[normalizeStatus(status)] || "未設定";
+  }
+
+  function isEndedSession(session) {
+    return ENDED_SESSION_STATUSES.has(normalizeStatus(session && session.status));
+  }
+
+  function isPublicSession(session) {
+    return Boolean(
+      session
+        && typeof session.id === "string"
+        && session.id.trim()
+        && session.visibility === "public"
+    );
+  }
+
+  function getSessionTitle(session) {
+    return String(session && session.title ? session.title : "無題のセッション").trim();
+  }
+
+  function formatApplicationUpdatedAt(value) {
+    const text = String(value || "").trim();
+    if (!text) return "未設定";
+
+    const dateOnly = text.match(/^(\d{4}-\d{2}-\d{2})$/);
+    if (dateOnly) return dateOnly[1];
+
+    const dateTime = text.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}):(\d{2})(?::\d{2})?(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/);
+    if (dateTime) return `${dateTime[1]} ${dateTime[2]}:${dateTime[3]}`;
+
+    return text;
+  }
+
+  function formatSessionDate(session) {
+    return String(session && session.date ? session.date : "").trim() || "日付未定";
+  }
+
+  function formatSessionStartTime(session) {
+    return String(session && session.startTime ? session.startTime : "").trim() || "時刻未定";
+  }
+
+  function createMetaItem(labelText, valueText) {
+    const item = document.createElement("div");
+    const label = document.createElement("dt");
+    const value = document.createElement("dd");
+    label.textContent = labelText;
+    value.textContent = valueText;
+    item.append(label, value);
+    return item;
+  }
+
+  function createApplicationSection(titleText, descriptionText, emptyText) {
+    const section = document.createElement("section");
+    section.className = "mypage-application-section";
+
+    const head = document.createElement("div");
+    head.className = "mypage-application-section-head";
+
+    const title = document.createElement("h3");
+    title.textContent = titleText;
+
+    const description = document.createElement("p");
+    description.textContent = descriptionText;
+
+    head.append(title, description);
+
+    const state = document.createElement("p");
+    state.className = "mypage-application-state";
+    state.setAttribute("role", "status");
+    state.setAttribute("aria-live", "polite");
+    state.textContent = "読み込み中です。";
+
+    const list = document.createElement("div");
+    list.className = "mypage-application-list";
+
+    section.append(head, state, list);
+    return { section, state, list, emptyText };
+  }
+
+  function createApplicationsPanel() {
+    const container = document.createElement("div");
+    container.className = "mypage-applications";
+    container.dataset.mypageApplicationsPanel = "";
+
+    const pending = createApplicationSection(
+      "参加申請中",
+      "参加希望コメントを送信済みで、GMの確認待ち、またはキャンセル待ちのセッションです。",
+      "現在、参加申請中のセッションはありません。"
+    );
+
+    const accepted = createApplicationSection(
+      "参加予定",
+      "GMに承認された参加予定セッションです。",
+      "現在、参加予定のセッションはありません。"
+    );
+
+    container.append(pending.section, accepted.section);
+    return { container, pending, accepted };
+  }
+
+  function setApplicationSectionState(section, message, options = {}) {
+    section.list.replaceChildren();
+    section.state.textContent = message;
+    section.state.hidden = false;
+    section.state.classList.toggle("is-error", Boolean(options.error));
+  }
+
+  function setApplicationsLoading(panel) {
+    setApplicationSectionState(panel.pending, "読み込み中です。");
+    setApplicationSectionState(panel.accepted, "読み込み中です。");
+  }
+
+  function getApplicationUpdatedAt(application) {
+    return formatApplicationUpdatedAt((application && application.updated_at) || (application && application.created_at));
+  }
+
+  function createApplicationDetailLink(session) {
+    const link = document.createElement("a");
+    link.className = "button mypage-application-detail-link";
+    link.href = `session-detail.html?id=${encodeURIComponent(session.id)}`;
+    link.textContent = "詳細を見る";
+    return link;
+  }
+
+  function createApplicationCard(item) {
+    const { application, session } = item;
+    const card = document.createElement("article");
+    card.className = "mypage-application-card";
+
+    const head = document.createElement("div");
+    head.className = "mypage-application-card-head";
+
+    const title = document.createElement("h4");
+    title.textContent = session ? getSessionTitle(session) : "非公開または未同期のセッション";
+
+    const badge = document.createElement("span");
+    badge.className = "tag";
+    badge.textContent = getApplicationStatusLabel(application.status);
+
+    head.append(title, badge);
+
+    if (session) {
+      head.append(createApplicationDetailLink(session));
+    }
+
+    const meta = document.createElement("dl");
+    meta.className = "mypage-application-meta";
+
+    if (session) {
+      meta.append(
+        createMetaItem("日付", formatSessionDate(session)),
+        createMetaItem("開始時刻", formatSessionStartTime(session)),
+        createMetaItem("GM", String(session.gmName || "GM未設定").trim() || "GM未設定"),
+        createMetaItem("セッション状態", getSessionStatusLabel(session.status)),
+        createMetaItem("申請ステータス", getApplicationStatusLabel(application.status)),
+        createMetaItem("更新日時", getApplicationUpdatedAt(application))
+      );
+    } else {
+      meta.append(
+        createMetaItem("申請ステータス", getApplicationStatusLabel(application.status)),
+        createMetaItem("更新日時", getApplicationUpdatedAt(application))
+      );
+    }
+
+    card.append(head, meta);
+
+    return card;
+  }
+
+  function getApplicationSortKey(item) {
+    if (item.session) {
+      return `${formatSessionDate(item.session)}T${formatSessionStartTime(item.session)}`;
+    }
+    return `9999-99-99T${getApplicationUpdatedAt(item.application)}`;
+  }
+
+  function sortApplicationItems(items) {
+    return items.sort((a, b) => {
+      const keyA = getApplicationSortKey(a);
+      const keyB = getApplicationSortKey(b);
+      if (keyA !== keyB) return keyA.localeCompare(keyB, "ja");
+      const titleA = a.session ? getSessionTitle(a.session) : "";
+      const titleB = b.session ? getSessionTitle(b.session) : "";
+      return titleA.localeCompare(titleB, "ja");
+    });
+  }
+
+  function renderApplicationItems(section, items) {
+    section.list.replaceChildren();
+    section.state.classList.remove("is-error");
+
+    if (!items.length) {
+      section.state.textContent = section.emptyText;
+      section.state.hidden = false;
+      return;
+    }
+
+    section.state.hidden = true;
+    sortApplicationItems(items).forEach((item) => {
+      section.list.append(createApplicationCard(item));
+    });
+  }
+
+  function renderApplications(panel, applications, sessionsById) {
+    const grouped = {
+      pending: [],
+      accepted: []
+    };
+
+    applications.forEach((application) => {
+      const group = getApplicationGroup(application);
+      if (!group) return;
+
+      const sessionId = String(application && application.session_id ? application.session_id : "").trim();
+      const session = sessionsById.get(sessionId) || null;
+      if (group === "accepted" && isEndedSession(session)) return;
+
+      grouped[group].push({ application, session });
+    });
+
+    renderApplicationItems(panel.pending, grouped.pending);
+    renderApplicationItems(panel.accepted, grouped.accepted);
+  }
+
+  function showApplicationsLoadFailure(panel, error) {
+    const message = "申請情報を取得できませんでした。時間を置いて再度お試しください。";
+    setApplicationSectionState(panel.pending, message, { error: true });
+    setApplicationSectionState(panel.accepted, message, { error: true });
+
+    if (error) {
+      console.warn("mypage applications load failed", {
+        code: error?.code || "unknown",
+        name: error?.name || "unknown",
+        status: error?.status || "unknown"
+      });
+    }
+  }
+
+  async function fetchPublicSessionsMap() {
+    const response = await fetch(SESSIONS_DATA_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error("sessions-json-load-failed");
+    const data = await response.json();
+    const sessions = Array.isArray(data && data.sessions) ? data.sessions : [];
+    const map = new Map();
+    sessions.filter(isPublicSession).forEach((session) => {
+      map.set(session.id, session);
+    });
+    return map;
+  }
+
+  async function fetchOwnApplications(client, session) {
+    const { data, error } = await client
+      .from("session_applications")
+      .select(APPLICATION_SELECT_COLUMNS)
+      .eq("user_id", session.user.id)
+      .in("status", APPLICATION_STATUSES)
+      .order("updated_at", { ascending: false });
+
+    if (error) throw error;
+    return Array.isArray(data) ? data : [];
+  }
+
+  async function loadApplications(client, panel, knownSession) {
+    setApplicationsLoading(panel);
+
+    try {
+      const session = await getActiveSession(client, knownSession);
+      if (!session) {
+        renderApplicationItems(panel.pending, []);
+        renderApplicationItems(panel.accepted, []);
+        return;
+      }
+
+      const [applications, sessionsById] = await Promise.all([
+        fetchOwnApplications(client, session),
+        fetchPublicSessionsMap()
+      ]);
+
+      if (!panel.container.isConnected) return;
+      renderApplications(panel, applications, sessionsById);
+    } catch (error) {
+      if (!panel.container.isConnected) return;
+      showApplicationsLoadFailure(panel, error);
+    }
   }
 
   function setFormBusy(form, busy, busyText, readyText) {
@@ -498,11 +822,12 @@
     setStatus(
       elements,
       "ログイン済みです。",
-      "参加申請一覧・参加予定セッションは今後対応予定です。"
+      "表示名と参加申請中・参加予定セッションを確認できます。"
     );
     clearContent(elements);
 
     const displayNameEditor = createDisplayNameEditor(client, elements, session);
+    const applicationsPanel = createApplicationsPanel();
 
     const actions = document.createElement("div");
     actions.className = "actions";
@@ -526,9 +851,10 @@
     });
 
     actions.append(changePassword, logout);
-    elements.content.append(displayNameEditor.container, actions);
+    elements.content.append(displayNameEditor.container, actions, applicationsPanel.container);
     setMessage(elements, message || "");
     loadDisplayName(client, displayNameEditor);
+    loadApplications(client, applicationsPanel, session);
   }
 
   function renderPasswordChangeForm(client, elements, message) {

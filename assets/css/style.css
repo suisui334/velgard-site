@@ -2508,6 +2508,122 @@ body[data-page="session-detail"] .calendar-session-modal-meta--supplement dd {
   color: var(--muted);
 }
 
+body[data-page="mypage"] [data-mypage-auth-content],
+body[data-page="mypage"] [data-mypage-display-name-panel],
+body[data-page="mypage"] .mypage-applications {
+  display: grid;
+  gap: 16px;
+}
+
+body[data-page="mypage"] .mypage-applications {
+  margin-top: 2px;
+}
+
+body[data-page="mypage"] .mypage-application-section {
+  display: grid;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(86, 96, 106, 0.18);
+}
+
+body[data-page="mypage"] .mypage-application-section-head {
+  display: grid;
+  gap: 4px;
+}
+
+body[data-page="mypage"] .mypage-application-section-head h3,
+body[data-page="mypage"] .mypage-application-section-head p,
+body[data-page="mypage"] .mypage-application-card-head h4 {
+  margin: 0;
+}
+
+body[data-page="mypage"] .mypage-application-section-head p {
+  color: var(--muted);
+}
+
+body[data-page="mypage"] .mypage-application-state {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(75, 63, 99, 0.18);
+  border-radius: 7px;
+  color: var(--deep);
+  background: rgba(184, 162, 207, 0.14);
+  font-weight: 700;
+}
+
+body[data-page="mypage"] .mypage-application-state.is-error {
+  border-color: rgba(151, 89, 50, 0.28);
+  color: var(--rust);
+  background: rgba(255, 247, 236, 0.9);
+}
+
+body[data-page="mypage"] .mypage-application-list {
+  display: grid;
+  gap: 10px;
+}
+
+body[data-page="mypage"] .mypage-application-card {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 7px;
+  background: rgba(255, 255, 250, 0.62);
+}
+
+body[data-page="mypage"] .mypage-application-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+body[data-page="mypage"] .mypage-application-card-head h4 {
+  flex: 1 1 240px;
+  min-width: 0;
+  color: var(--soot);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="mypage"] .mypage-application-detail-link {
+  min-height: 34px;
+  padding: 6px 11px;
+  font-size: 0.82rem;
+}
+
+body[data-page="mypage"] .mypage-application-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+body[data-page="mypage"] .mypage-application-meta div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid rgba(86, 96, 106, 0.14);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.54);
+}
+
+body[data-page="mypage"] .mypage-application-meta dt {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+body[data-page="mypage"] .mypage-application-meta dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
 .tools-section {
   display: grid;
   gap: 16px;
@@ -3271,6 +3387,19 @@ body.is-modal-open .back-to-top {
 
   body[data-page="calendar"] .calendar-session-meta {
     grid-template-columns: 1fr;
+  }
+
+  body[data-page="mypage"] .mypage-application-card {
+    padding: 12px;
+  }
+
+  body[data-page="mypage"] .mypage-application-meta {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page="mypage"] .mypage-application-detail-link {
+    width: 100%;
+    justify-content: center;
   }
 
   body[data-page="calendar"] .calendar-session-actions .button {

@@ -265,6 +265,7 @@ async function main() {
   let f6GmEditableCommentId;
   let f6OwnerDeletedCommentId;
   let f6OwnerDeleteResult;
+  let playerBRecruitingApplicationId;
 
   await runTest("AUTH-001", "anon can read public sessions only", async () => {
     const data = await expectOk(
@@ -306,6 +307,19 @@ async function main() {
       }),
       "anon create_application_comment"
     );
+  });
+
+  await runTest("M10-APP-001", "anon cannot read session_applications rows", async () => {
+    const { data, error } = await anon
+      .from("session_applications")
+      .select("session_id, status")
+      .eq("session_id", SESSION.recruiting)
+      .limit(1);
+
+    if (error) return;
+
+    assert(Array.isArray(data), "anon session_applications select did not return an array");
+    assert(data.length === 0, "anon session_applications select returned rows");
   });
 
   await runTest("AUTH-005", "player A can sign in", async () => {
@@ -389,6 +403,49 @@ async function main() {
       SESSION.recruiting,
       "Player B application comment from smoke test."
     );
+    const application = await getOwnApplication(playerB, SESSION.recruiting);
+    playerBRecruitingApplicationId = application.id;
+  });
+
+  await runTest("M10-APP-002", "player A direct application select sees own rows but not player B rows", async () => {
+    const data = await expectOk(
+      playerA
+        .from("session_applications")
+        .select("id, session_id, status")
+        .eq("session_id", SESSION.recruiting),
+      "player A direct application select for recruiting"
+    );
+    const playerAApplicationId = requireId(playerARecruitingApplicationId, "player A recruiting application id");
+    const playerBApplicationId = requireId(playerBRecruitingApplicationId, "player B recruiting application id");
+    assert(data.some((row) => row.id === playerAApplicationId), "player A own application was not visible");
+    assert(
+      !data.some((row) => row.id === playerBApplicationId),
+      "player B application was visible to player A"
+    );
+    assertNoSensitiveColumns(data, "player A direct application select");
+  });
+
+  await runTest("M10-APP-003", "player A mypage application column select does not expose user identity fields", async () => {
+    const data = await expectOk(
+      playerA
+        .from("session_applications")
+        .select("session_id, status, comment_id, created_at, updated_at, canceled_at")
+        .eq("session_id", SESSION.recruiting),
+      "player A mypage application column select"
+    );
+    assert(data.length >= 1, "player A mypage application column select returned no own rows");
+    assertNoSensitiveColumns(data, "player A mypage application column select");
+  });
+
+  await runTest("M10-APP-004", "player A cannot see private or hidden application rows", async () => {
+    const data = await expectOk(
+      playerA
+        .from("session_applications")
+        .select("session_id, status")
+        .in("session_id", [SESSION.private, SESSION.hidden]),
+      "player A private hidden applications select"
+    );
+    assert(data.length === 0, "private or hidden application rows leaked to player A");
   });
 
   await runTest("AUTH-013", "player A cannot edit player B comment, but can edit own comment", async () => {

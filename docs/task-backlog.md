@@ -436,3 +436,10 @@
 ## Supabase M-9 mypage display_name RPC修正結果
 - 表示名保存時の `42702 ambiguous_column` は、`update_display_name` RPC側で `public.profiles as p` と `returning p.id, p.display_name` を明示する修正により解消済み。
 - 修正後、ユーザー実ブラウザで表示名保存、保存成功表示、表示名テキスト更新、入力欄更新、再読み込み後維持、再ログイン後維持、email / user_id / token非表示を確認済み。
+
+## Supabase M-10 mypage 申請一覧・参加予定表示
+- `mypage.html` のログイン済みアカウント機能内に、本人の「参加申請中」「参加予定」表示を追加済み。`pending` / `waitlisted` は参加申請中、`accepted` は参加予定、`rejected` / `canceled` は今回非表示。
+- `session_applications` の本人行を `data/sessions.json` の公開セッションと `session_id` で突合し、タイトル、日付、開始時刻、GM表示名、セッション状態、申請ステータス、更新日時、公開詳細リンクを表示する。突合できない場合は内部IDを出さず「非公開または未同期のセッション」と表示する。
+- `closed` / `finished` / `canceled` / `cancelled` / `archived` の公開セッションは、`accepted` でも参加予定に出さない。email / user_id全文 / token / key / gmUserId / コメント本文 / 内部ID類は画面に出さない。
+- RLS smoke testへM-10向けの読み取り観点を追加済み。Supabase SQL Editorは実行しておらず、公開版確認はユーザー実ブラウザ確認前。
+- M-10 follow-up: DB側の `sessions.id` / `session_applications.session_id` と `data/sessions.json` の `sessions[].id` を一致させた検証データで、mypage の詳細リンク表示・遷移を確認する。現テストデータは `rls-test-*` 系で、公開JSONの `session-2026-*` 系IDとは一致しないため、全件が「非公開または未同期のセッション」になる。
