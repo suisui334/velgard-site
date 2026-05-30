@@ -197,3 +197,9 @@ PL向けには短く、人間向けに表示する。内部SQL、token、key、U
 3. M-3 runtime config分離計画
 4. M-4 Authセッション復元計画
 5. M-5 mypage内ログインフォーム計画
+
+## 12. M-2/M-3 runtime config / 未構成フォールバック計画への分離
+
+M-2/M-3の詳細は `docs/supabase-mypage-runtime-config-fallback-plan.md` に分離する。
+
+Auth実装へ進む前に、実Project URL / anon key / publishable keyをGitHub、README、docs、チャットへ残さない運用と、接続設定が未構成でも `mypage.html` が壊れないフォールバックを先に整理する。

@@ -1455,3 +1455,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - `docs/supabase-mypage-auth-state-implementation-plan.md`: A-4として `mypage.html` にAuth状態表示を入れる前の実装計画。まず接続設定未構成時の安全フォールバックを優先し、その後Authセッション復元と `display_name` 表示を検討する。ログイン / ログアウト、申請一覧、投稿・編集・削除・GM操作はまだ扱わない。
 - A-4aのローカル検討では、`mypage.html` にログイン状態カードを常時表示する案は採用しない方針に整理した。次に進む場合は、ログイン状態単体ではなく、マイページ内のログイン / ログアウト、申請一覧、参加予定などのアカウント操作UXと一体で再設計する。
 - `docs/supabase-mypage-account-actions-ux-plan.md`: A-4a方針修正を受け、`mypage.html` をログイン状態単体カードではなく、ログイン / ログアウト、申請状況、参加予定などのアカウント操作入口として育てるUXを再整理した。実装、Supabase接続、Auth復元はまだ行わない。
+- `docs/supabase-mypage-runtime-config-fallback-plan.md`: M-2/M-3として、`mypage.html` のAuth実装前にruntime config分離と接続設定未構成フォールバックをどう扱うかを整理した。実Project URL / key実値、Supabase接続、Auth復元、ログイン / ログアウトはまだ入れない。

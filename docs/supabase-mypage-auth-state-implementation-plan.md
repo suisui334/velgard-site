@@ -315,3 +315,14 @@ A-4a方針修正を受け、Auth状態表示単体ではなく、マイページ
 - ログイン / ログアウト、申請状況、参加予定など、ユーザーが次にできることと一体化して扱う
 - `session-detail.html` 本文中にはログインフォームやログイン状態常時表示を置かない
 - Supabase接続、Auth復元、ログイン / ログアウトは、再設計書の段階実装案に沿って後続工程で判断する
+
+## 16. runtime config / 未構成フォールバック計画への分離
+
+Supabase Auth実装前のruntime config分離と、接続設定未構成時の安全フォールバックは `docs/supabase-mypage-runtime-config-fallback-plan.md` に分離する。
+
+新しい段階方針:
+
+- まず接続設定未構成時のフォールバックUXを、ログイン状態カード単体ではなくマイページのアカウント操作導線内で扱う
+- 次に実値なしのruntime config exampleを検討する
+- 実Project URL / anon key / publishable key実値はREADME、docs、チャットへ記録しない
+- Supabase SDK読み込み、client初期化、Auth復元、ログイン / ログアウトは後続工程で判断する
