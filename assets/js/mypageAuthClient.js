@@ -3,6 +3,7 @@
 
   const SDK_SRC = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
   const SDK_LOAD_KEY = "__VELGARD_SUPABASE_SDK_LOAD";
+  const MIN_PASSWORD_LENGTH = 8;
 
   function getConfig() {
     const config = window.VELGARD_SUPABASE_CONFIG || {};
@@ -85,17 +86,44 @@
     return label;
   }
 
-  function setFormBusy(form, busy) {
+  function setFormBusy(form, busy, busyText, readyText) {
     const controls = form.querySelectorAll("input, button");
     controls.forEach((control) => {
       control.disabled = busy;
     });
 
-    const submit = form.querySelector("[data-mypage-login-submit]");
-    if (submit) submit.textContent = busy ? "送信中" : "ログイン";
+    const submit = form.querySelector("[data-mypage-form-submit]");
+    if (submit) submit.textContent = busy ? busyText : readyText;
   }
 
-  function renderAnonymous(client, elements, message) {
+  function createAuthModeSwitch(client, elements, activeMode) {
+    const switcher = document.createElement("div");
+    switcher.className = "actions";
+    switcher.setAttribute("role", "tablist");
+    switcher.setAttribute("aria-label", "アカウント操作の切り替え");
+
+    const modes = [
+      { mode: "login", label: "ログイン" },
+      { mode: "signup", label: "新規登録" }
+    ];
+
+    modes.forEach(({ mode, label }) => {
+      const button = document.createElement("button");
+      button.className = mode === activeMode ? "button primary" : "button";
+      button.type = "button";
+      button.setAttribute("role", "tab");
+      button.setAttribute("aria-selected", String(mode === activeMode));
+      button.textContent = label;
+      button.addEventListener("click", () => {
+        if (mode !== activeMode) renderAnonymous(client, elements, "", mode);
+      });
+      switcher.append(button);
+    });
+
+    return switcher;
+  }
+
+  function renderAnonymous(client, elements, message, mode = "login") {
     ensureAuthElements(elements);
     setStatus(
       elements,
@@ -104,9 +132,22 @@
     );
     clearContent(elements);
 
+    elements.content.append(createAuthModeSwitch(client, elements, mode));
+
+    if (mode === "signup") {
+      renderSignupForm(client, elements);
+    } else {
+      renderLoginForm(client, elements);
+    }
+
+    setMessage(elements, message || "");
+  }
+
+  function renderLoginForm(client, elements) {
     const form = document.createElement("form");
     form.className = "calendar-form";
     form.dataset.mypageLoginForm = "";
+    form.noValidate = true;
 
     const emailInput = document.createElement("input");
     emailInput.type = "email";
@@ -124,6 +165,7 @@
     submit.className = "button primary";
     submit.type = "submit";
     submit.dataset.mypageLoginSubmit = "";
+    submit.dataset.mypageFormSubmit = "";
     submit.textContent = "ログイン";
 
     form.append(
@@ -138,7 +180,52 @@
     });
 
     elements.content.append(form);
-    setMessage(elements, message || "");
+  }
+
+  function renderSignupForm(client, elements) {
+    const form = document.createElement("form");
+    form.className = "calendar-form";
+    form.dataset.mypageSignupForm = "";
+    form.noValidate = true;
+
+    const emailInput = document.createElement("input");
+    emailInput.type = "email";
+    emailInput.name = "email";
+    emailInput.autocomplete = "username";
+    emailInput.required = true;
+
+    const passwordInput = document.createElement("input");
+    passwordInput.type = "password";
+    passwordInput.name = "password";
+    passwordInput.autocomplete = "new-password";
+    passwordInput.required = true;
+
+    const passwordConfirmInput = document.createElement("input");
+    passwordConfirmInput.type = "password";
+    passwordConfirmInput.name = "passwordConfirm";
+    passwordConfirmInput.autocomplete = "new-password";
+    passwordConfirmInput.required = true;
+
+    const submit = document.createElement("button");
+    submit.className = "button primary";
+    submit.type = "submit";
+    submit.dataset.mypageSignupSubmit = "";
+    submit.dataset.mypageFormSubmit = "";
+    submit.textContent = "登録する";
+
+    form.append(
+      createInputField("メールアドレス", emailInput),
+      createInputField("パスワード", passwordInput),
+      createInputField("パスワード確認", passwordConfirmInput),
+      submit
+    );
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      handleSignup(client, elements, form);
+    });
+
+    elements.content.append(form);
   }
 
   function renderAuthenticated(client, elements, message) {
@@ -173,7 +260,7 @@
     const email = emailInput ? emailInput.value.trim() : "";
     const password = passwordInput ? passwordInput.value : "";
 
-    if (!email || !password) {
+    if (!email || !password || !emailInput.checkValidity()) {
       if (passwordInput) passwordInput.value = "";
       setMessage(elements, "ログインできませんでした。入力内容を確認してください。");
       return;
@@ -181,7 +268,7 @@
 
     try {
       setMessage(elements, "");
-      setFormBusy(form, true);
+      setFormBusy(form, true, "送信中", "ログイン");
       const { data, error } = await client.auth.signInWithPassword({ email, password });
       if (passwordInput) passwordInput.value = "";
 
@@ -195,7 +282,85 @@
       if (passwordInput) passwordInput.value = "";
       setMessage(elements, "ログインできませんでした。入力内容を確認してください。");
     } finally {
-      if (form.isConnected) setFormBusy(form, false);
+      if (form.isConnected) setFormBusy(form, false, "送信中", "ログイン");
+    }
+  }
+
+  function clearSignupPasswords(form) {
+    const passwordInput = form.querySelector('input[name="password"]');
+    const passwordConfirmInput = form.querySelector('input[name="passwordConfirm"]');
+    if (passwordInput) passwordInput.value = "";
+    if (passwordConfirmInput) passwordConfirmInput.value = "";
+  }
+
+  function signupFailureMessage(error) {
+    const message = String(error && error.message ? error.message : "").toLowerCase();
+    if (message.includes("already") || message.includes("registered") || message.includes("exists")) {
+      return "すでに登録済みの可能性があります。ログインをお試しください。";
+    }
+    if (message.includes("password")) {
+      return "パスワードは十分な長さで入力してください。";
+    }
+    return "登録できませんでした。入力内容を確認してください。";
+  }
+
+  async function handleSignup(client, elements, form) {
+    const emailInput = form.querySelector('input[name="email"]');
+    const passwordInput = form.querySelector('input[name="password"]');
+    const passwordConfirmInput = form.querySelector('input[name="passwordConfirm"]');
+    const email = emailInput ? emailInput.value.trim() : "";
+    const password = passwordInput ? passwordInput.value : "";
+    const passwordConfirm = passwordConfirmInput ? passwordConfirmInput.value : "";
+
+    if (!email || !password || !passwordConfirm || !emailInput.checkValidity()) {
+      clearSignupPasswords(form);
+      setMessage(elements, "登録できませんでした。入力内容を確認してください。");
+      return;
+    }
+
+    if (password !== passwordConfirm) {
+      clearSignupPasswords(form);
+      setMessage(elements, "パスワードが一致しません。");
+      return;
+    }
+
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      clearSignupPasswords(form);
+      setMessage(elements, "パスワードは十分な長さで入力してください。");
+      return;
+    }
+
+    try {
+      setMessage(elements, "");
+      setFormBusy(form, true, "登録中", "登録する");
+      const { data, error } = await client.auth.signUp({ email, password });
+      clearSignupPasswords(form);
+
+      if (error) {
+        setMessage(elements, signupFailureMessage(error));
+        return;
+      }
+
+      if (data && data.session) {
+        renderAuthenticated(
+          client,
+          elements,
+          "登録を受け付けました。確認メールが届いた場合は、メール内のリンクを確認してください。"
+        );
+        return;
+      }
+
+      renderAnonymous(
+        client,
+        elements,
+        "登録を受け付けました。確認メールが届いた場合は、メール内のリンクを確認してください。",
+        "login"
+      );
+    } catch (error) {
+      clearSignupPasswords(form);
+      setMessage(elements, "登録できませんでした。入力内容を確認してください。");
+    } finally {
+      if (form.isConnected) setFormBusy(form, false, "登録中", "登録する");
     }
   }
 
