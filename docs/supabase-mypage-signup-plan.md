@@ -230,3 +230,13 @@ M-7一般サインアップとして、`mypage.html` のアカウント機能セ
 登録処理は Supabase Auth `signUp` を使う。登録成功時は「登録を受け付けました。確認メールが届いた場合は、メール内のリンクを確認してください。」という短い案内を出し、Supabaseがセッションを返した場合は既存のログイン済み表示へ切り替える。
 
 `display_name` 登録、`profiles` / `public_profiles` 書き込み、自分の申請一覧、参加予定セッション、コメント履歴、`session-detail.html` 投稿統合、GM操作、追加SQL、追加RPCは未実装のまま。登録後もemail / user_id / tokenは画面に出さない。
+
+## 14. M-8アカウント補助導線 実装メモ
+
+M-8では、M-7のログイン / 新規登録UIを維持したまま、未ログイン時に「パスワードを忘れた方はこちら」導線を追加した。導線先はメールアドレスだけを入力する再設定フォームで、「再設定メールを送る」と「ログインへ戻る」を表示する。
+
+再設定メール送信は Supabase Auth `resetPasswordForEmail` を使い、戻り先は現在のoriginと `mypage.html` の配置パスから組み立てる。GitHub Pagesの `/velgard-site/mypage.html` とローカルの `/mypage.html` の両方を想定し、メールアドレスの存在有無は画面で断定しない。
+
+ログイン済みユーザーには「パスワードを変更する」導線を追加し、新しいパスワードと確認入力を受け付ける。変更処理は Supabase Auth `updateUser({ password })` に限定し、成功時は「パスワードを変更しました。」とだけ表示する。
+
+登録済み可能性の案内は「登録できませんでした。すでに登録済みの可能性があります。ログイン、またはパスワード再設定をお試しください。」に変更した。`display_name` 登録、`profiles` / `public_profiles` 書き込み、自分の申請一覧、参加予定セッション、コメント履歴、`session-detail.html` 投稿統合、GM操作、追加SQL、追加RPCは未実装のまま。email / user_id / tokenは画面に出さない。

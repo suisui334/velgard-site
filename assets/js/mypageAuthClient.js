@@ -17,6 +17,16 @@
     return Boolean(config.url && config.anonKey);
   }
 
+  function getMypageRedirectUrl() {
+    const pagePath = "/mypage.html";
+    const pathname = window.location.pathname || pagePath;
+    const basePath = pathname.endsWith(pagePath)
+      ? pathname.slice(0, -pagePath.length)
+      : pathname.replace(/\/[^/]*$/, "");
+    const normalizedBasePath = basePath === "/" ? "" : basePath.replace(/\/$/, "");
+    return `${window.location.origin}${normalizedBasePath}${pagePath}`;
+  }
+
   function findAccountElements(root) {
     const scope = root || document;
     let section = scope.querySelector("[data-mypage-auth-section]");
@@ -132,9 +142,13 @@
     );
     clearContent(elements);
 
-    elements.content.append(createAuthModeSwitch(client, elements, mode));
+    if (mode !== "reset") {
+      elements.content.append(createAuthModeSwitch(client, elements, mode));
+    }
 
-    if (mode === "signup") {
+    if (mode === "reset") {
+      renderPasswordResetForm(client, elements);
+    } else if (mode === "signup") {
       renderSignupForm(client, elements);
     } else {
       renderLoginForm(client, elements);
@@ -179,7 +193,20 @@
       handleLogin(client, elements, form);
     });
 
-    elements.content.append(form);
+    const forgotActions = document.createElement("div");
+    forgotActions.className = "actions";
+
+    const forgotPassword = document.createElement("button");
+    forgotPassword.className = "button";
+    forgotPassword.type = "button";
+    forgotPassword.dataset.mypagePasswordResetOpen = "";
+    forgotPassword.textContent = "パスワードを忘れた方はこちら";
+    forgotPassword.addEventListener("click", () => {
+      renderAnonymous(client, elements, "", "reset");
+    });
+
+    forgotActions.append(forgotPassword);
+    elements.content.append(form, forgotActions);
   }
 
   function renderSignupForm(client, elements) {
@@ -228,6 +255,50 @@
     elements.content.append(form);
   }
 
+  function renderPasswordResetForm(client, elements) {
+    const form = document.createElement("form");
+    form.className = "calendar-form";
+    form.dataset.mypagePasswordResetForm = "";
+    form.noValidate = true;
+
+    const emailInput = document.createElement("input");
+    emailInput.type = "email";
+    emailInput.name = "email";
+    emailInput.autocomplete = "username";
+    emailInput.required = true;
+
+    const submit = document.createElement("button");
+    submit.className = "button primary";
+    submit.type = "submit";
+    submit.dataset.mypagePasswordResetSubmit = "";
+    submit.dataset.mypageFormSubmit = "";
+    submit.textContent = "再設定メールを送る";
+
+    form.append(
+      createInputField("メールアドレス", emailInput),
+      submit
+    );
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      handlePasswordReset(client, elements, form);
+    });
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const backToLogin = document.createElement("button");
+    backToLogin.className = "button";
+    backToLogin.type = "button";
+    backToLogin.textContent = "ログインへ戻る";
+    backToLogin.addEventListener("click", () => {
+      renderAnonymous(client, elements);
+    });
+
+    actions.append(backToLogin);
+    elements.content.append(form, actions);
+  }
+
   function renderAuthenticated(client, elements, message) {
     ensureAuthElements(elements);
     setStatus(
@@ -240,6 +311,15 @@
     const actions = document.createElement("div");
     actions.className = "actions";
 
+    const changePassword = document.createElement("button");
+    changePassword.className = "button";
+    changePassword.type = "button";
+    changePassword.dataset.mypagePasswordChangeOpen = "";
+    changePassword.textContent = "パスワードを変更する";
+    changePassword.addEventListener("click", () => {
+      renderPasswordChangeForm(client, elements);
+    });
+
     const logout = document.createElement("button");
     logout.className = "button";
     logout.type = "button";
@@ -249,8 +329,77 @@
       handleLogout(client, elements, logout);
     });
 
-    actions.append(logout);
+    actions.append(changePassword, logout);
     elements.content.append(actions);
+    setMessage(elements, message || "");
+  }
+
+  function renderPasswordChangeForm(client, elements, message) {
+    ensureAuthElements(elements);
+    setStatus(
+      elements,
+      "ログイン済みです。",
+      "新しいパスワードを入力してください。"
+    );
+    clearContent(elements);
+
+    const form = document.createElement("form");
+    form.className = "calendar-form";
+    form.dataset.mypagePasswordChangeForm = "";
+    form.noValidate = true;
+
+    const passwordInput = document.createElement("input");
+    passwordInput.type = "password";
+    passwordInput.name = "newPassword";
+    passwordInput.autocomplete = "new-password";
+    passwordInput.required = true;
+
+    const passwordConfirmInput = document.createElement("input");
+    passwordConfirmInput.type = "password";
+    passwordConfirmInput.name = "newPasswordConfirm";
+    passwordConfirmInput.autocomplete = "new-password";
+    passwordConfirmInput.required = true;
+
+    const submit = document.createElement("button");
+    submit.className = "button primary";
+    submit.type = "submit";
+    submit.dataset.mypagePasswordChangeSubmit = "";
+    submit.dataset.mypageFormSubmit = "";
+    submit.textContent = "変更する";
+
+    form.append(
+      createInputField("新しいパスワード", passwordInput),
+      createInputField("新しいパスワード確認", passwordConfirmInput),
+      submit
+    );
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      handlePasswordChange(client, elements, form);
+    });
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const back = document.createElement("button");
+    back.className = "button";
+    back.type = "button";
+    back.textContent = "戻る";
+    back.addEventListener("click", () => {
+      renderAuthenticated(client, elements);
+    });
+
+    const logout = document.createElement("button");
+    logout.className = "button";
+    logout.type = "button";
+    logout.dataset.mypageLogout = "";
+    logout.textContent = "ログアウト";
+    logout.addEventListener("click", () => {
+      handleLogout(client, elements, logout);
+    });
+
+    actions.append(back, logout);
+    elements.content.append(form, actions);
     setMessage(elements, message || "");
   }
 
@@ -286,6 +435,38 @@
     }
   }
 
+  async function handlePasswordReset(client, elements, form) {
+    const emailInput = form.querySelector('input[name="email"]');
+    const email = emailInput ? emailInput.value.trim() : "";
+
+    if (!email || !emailInput.checkValidity()) {
+      setMessage(elements, "入力内容を確認してください。");
+      return;
+    }
+
+    try {
+      setMessage(elements, "");
+      setFormBusy(form, true, "送信中", "再設定メールを送る");
+      const { error } = await client.auth.resetPasswordForEmail(email, {
+        redirectTo: getMypageRedirectUrl()
+      });
+
+      if (emailInput) emailInput.value = "";
+
+      if (error) {
+        setMessage(elements, "パスワード再設定メールを送信できませんでした。時間を置いて再度お試しください。");
+        return;
+      }
+
+      setMessage(elements, "パスワード再設定メールを送信しました。届いたメールの案内に従ってください。");
+    } catch (error) {
+      if (emailInput) emailInput.value = "";
+      setMessage(elements, "パスワード再設定メールを送信できませんでした。時間を置いて再度お試しください。");
+    } finally {
+      if (form.isConnected) setFormBusy(form, false, "送信中", "再設定メールを送る");
+    }
+  }
+
   function clearSignupPasswords(form) {
     const passwordInput = form.querySelector('input[name="password"]');
     const passwordConfirmInput = form.querySelector('input[name="passwordConfirm"]');
@@ -296,7 +477,7 @@
   function signupFailureMessage(error) {
     const message = String(error && error.message ? error.message : "").toLowerCase();
     if (message.includes("already") || message.includes("registered") || message.includes("exists")) {
-      return "すでに登録済みの可能性があります。ログインをお試しください。";
+      return "登録できませんでした。すでに登録済みの可能性があります。ログイン、またはパスワード再設定をお試しください。";
     }
     if (message.includes("password")) {
       return "パスワードは十分な長さで入力してください。";
@@ -361,6 +542,57 @@
       setMessage(elements, "登録できませんでした。入力内容を確認してください。");
     } finally {
       if (form.isConnected) setFormBusy(form, false, "登録中", "登録する");
+    }
+  }
+
+  function clearPasswordChangeFields(form) {
+    const passwordInput = form.querySelector('input[name="newPassword"]');
+    const passwordConfirmInput = form.querySelector('input[name="newPasswordConfirm"]');
+    if (passwordInput) passwordInput.value = "";
+    if (passwordConfirmInput) passwordConfirmInput.value = "";
+  }
+
+  async function handlePasswordChange(client, elements, form) {
+    const passwordInput = form.querySelector('input[name="newPassword"]');
+    const passwordConfirmInput = form.querySelector('input[name="newPasswordConfirm"]');
+    const password = passwordInput ? passwordInput.value : "";
+    const passwordConfirm = passwordConfirmInput ? passwordConfirmInput.value : "";
+
+    if (!password || !passwordConfirm) {
+      clearPasswordChangeFields(form);
+      setMessage(elements, "パスワードを変更できませんでした。入力内容を確認してください。");
+      return;
+    }
+
+    if (password !== passwordConfirm) {
+      clearPasswordChangeFields(form);
+      setMessage(elements, "パスワードが一致しません。");
+      return;
+    }
+
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      clearPasswordChangeFields(form);
+      setMessage(elements, "パスワードは十分な長さで入力してください。");
+      return;
+    }
+
+    try {
+      setMessage(elements, "");
+      setFormBusy(form, true, "変更中", "変更する");
+      const { error } = await client.auth.updateUser({ password });
+      clearPasswordChangeFields(form);
+
+      if (error) {
+        setMessage(elements, "パスワードを変更できませんでした。時間を置いて再度お試しください。");
+        return;
+      }
+
+      renderAuthenticated(client, elements, "パスワードを変更しました。");
+    } catch (error) {
+      clearPasswordChangeFields(form);
+      setMessage(elements, "パスワードを変更できませんでした。時間を置いて再度お試しください。");
+    } finally {
+      if (form.isConnected) setFormBusy(form, false, "変更中", "変更する");
     }
   }
 

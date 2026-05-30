@@ -1473,3 +1473,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - M-6最小実装として、`mypage.html` のアカウント機能セクション内にメールアドレス + パスワードログインとログアウトを追加した。`display_name` / `public_profiles` 取得、自分の申請一覧、参加予定セッションは未実装のままとし、email / user_id / token は画面に出さない。
 - `docs/supabase-mypage-signup-plan.md`: M-7として、サイト上に誰でも登録できる一般サインアップフォームを置く前の仕様、UI、Supabase設定確認、安全条件、確認手順、ロールバック方針を整理した。この工程では実装変更、Supabase設定変更、追加SQL、`display_name` / `public_profiles` 登録は行っていない。
 - M-7一般サインアップとして、`mypage.html` 内でログイン / 新規登録を切り替え、Supabase Auth `signUp` で登録できる最小UIを追加した。`display_name` 登録、`profiles` / `public_profiles` 書き込み、自分の申請一覧、参加予定セッションは未実装のままとし、email / user_id / token は画面に出さない。
+- M-8アカウント補助導線として、`mypage.html` 内にパスワード再設定メール送信とログイン済みユーザー向けパスワード変更を追加した。登録済み可能性の案内は列挙につながらない短文にし、email / user_id / token は画面に出さない。申請一覧、参加予定セッション、`display_name` 登録、プロフィール書き込みは未実装のまま。
