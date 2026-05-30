@@ -68,6 +68,7 @@ py -m http.server 4173 -d velgard-site
   - `docs/supabase-mypage-auth-connection-hold-note.md`: Supabase実接続を保留し未構成フォールバック維持とする現状整理メモ
   - `docs/supabase-mypage-auth-client-restore-plan.md`: M-5 マイページAuth client初期化・Auth復元実装計画書
   - `docs/supabase-mypage-auth-client-restore-final-check.md`: M-5実装直前のAuth client初期化方式・確認手順・ロールバック最終確認メモ
+  - `docs/supabase-mypage-display-name-sql-plan.md`: M-9 display_name / public_profiles 用SQL草案計画
   - `docs/supabase-mypage-login-logout-plan.md`: M-6 マイページログイン / ログアウト最小実装計画書
   - `docs/supabase-mypage-signup-plan.md`: M-7 マイページ一般サインアップ実装計画書
   - `docs/supabase-f1-readonly-prototype.md`: Supabase F-1 ローカル読み取り専用プロトタイプ手順
@@ -1474,3 +1475,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - `docs/supabase-mypage-signup-plan.md`: M-7として、サイト上に誰でも登録できる一般サインアップフォームを置く前の仕様、UI、Supabase設定確認、安全条件、確認手順、ロールバック方針を整理した。この工程では実装変更、Supabase設定変更、追加SQL、`display_name` / `public_profiles` 登録は行っていない。
 - M-7一般サインアップとして、`mypage.html` 内でログイン / 新規登録を切り替え、Supabase Auth `signUp` で登録できる最小UIを追加した。`display_name` 登録、`profiles` / `public_profiles` 書き込み、自分の申請一覧、参加予定セッションは未実装のままとし、email / user_id / token は画面に出さない。
 - M-8アカウント補助導線として、`mypage.html` 内にパスワード再設定メール送信とログイン済みユーザー向けパスワード変更を追加した。登録済み可能性の案内は列挙につながらない短文にし、email / user_id / token は画面に出さない。申請一覧、参加予定セッション、`display_name` 登録、プロフィール書き込みは未実装のまま。
+- `docs/supabase-mypage-display-name-sql-plan.md` と `docs/supabase/sql/009_profiles_display_name_rpc_draft.sql`: M-9として、`display_name` を安全に扱うためのprofiles自動作成trigger、既存ユーザーbackfill、`update_display_name` RPC、`public_profiles` 最小公開確認のSQL草案を整理した。この工程ではSQL実行、`mypage.html` 実装、`assets/js/mypageAuthClient.js` 変更は行っていない。
