@@ -203,3 +203,9 @@ M-2/M-3最小実装では、以下だけを追加する。
 - 「ログイン中 / 未ログイン」は表示しない
 - Supabase SDK読み込み、client初期化、Auth復元、ログイン / ログアウトは実装しない
 - 実Project URL / anon key / publishable key実値は記録しない
+
+## 14. M-4 実config運用方針レビューへの分離
+
+実configをGitHub Pages静的運用でどう扱うか、公開可能keyをrepoへcommitするか、実接続前に何を確認するかは `docs/supabase-mypage-runtime-config-deployment-review-plan.md` に分離する。
+
+M-4では、未構成フォールバックから実接続へ進む前の判断材料として、運用候補比較、接続前チェックリスト、エラー・ログ方針、ロールバック方針を整理する。実config作成、実URL / key投入、Supabase SDK読み込み、Auth復元、ログイン / ログアウトはまだ行わない。

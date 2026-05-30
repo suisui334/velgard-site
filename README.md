@@ -1457,3 +1457,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - `docs/supabase-mypage-account-actions-ux-plan.md`: A-4a方針修正を受け、`mypage.html` をログイン状態単体カードではなく、ログイン / ログアウト、申請状況、参加予定などのアカウント操作入口として育てるUXを再整理した。実装、Supabase接続、Auth復元はまだ行わない。
 - `docs/supabase-mypage-runtime-config-fallback-plan.md`: M-2/M-3として、`mypage.html` のAuth実装前にruntime config分離と接続設定未構成フォールバックをどう扱うかを整理した。実Project URL / key実値、Supabase接続、Auth復元、ログイン / ログアウトはまだ入れない。
 - M-2/M-3最小実装として、実値なしの `assets/js/supabaseRuntimeConfig.example.js` と、`mypage.html` 内のアカウント操作セクションの未構成フォールバック表示を追加した。example configはHTMLから読み込まず、Supabase接続、Auth復元、ログイン / ログアウトは未実装のまま。
+- `docs/supabase-mypage-runtime-config-deployment-review-plan.md`: M-4として、GitHub Pages静的運用でSupabase Auth実接続へ進む前の実config運用方針、公開可能key管理、接続前チェックリスト、ロールバック方針を整理した。実config作成、Supabase接続、Auth復元、ログイン / ログアウトはまだ行わない。
