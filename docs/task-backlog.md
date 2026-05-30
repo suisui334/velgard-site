@@ -423,3 +423,16 @@
 ## Supabase M-9 mypage display_name SQL反映結果
 - `docs/supabase-mypage-display-name-sql-result.md` に、`handle_new_auth_user_profile` と `update_display_name(new_display_name text)` の存在、`update_display_name` の anon execute不可 / authenticated execute可、`public_profiles` が `id` / `display_name` のみ、`auth_users_without_profile = 0` を確認済みとして整理済み。
 - `profiles` 自動作成trigger と `update_display_name` RPC は追加済みまたは既存反映済み扱いとし、M-9 SQLについて追加SQLはこれ以上実行しない。次工程は `mypage.html` のdisplay_name表示・編集フロント実装。
+
+## Supabase M-9 mypage display_name フロント最小実装
+- `mypage.html` のログイン済みアカウント機能内に、`public_profiles` から取得した `display_name` の表示と編集フォームを追加済み。
+- 保存は `update_display_name` RPCで行い、空欄と40文字超は送信しない。email / user_id / tokenは画面に出さず、自分の申請一覧、参加予定セッション、`session-detail.html` 統合は未実装のまま。
+
+## Supabase M-9 mypage display_name フロント修正
+- 新規登録フォームに表示名欄を追加し、`signUp` のuser metadataへ `display_name` を渡すよう修正済み。
+- 既存ユーザーは `update_display_name` RPCでマイページから表示名を保存する。email / user_id / tokenは画面に出さず、自分の申請一覧、参加予定セッション、`session-detail.html` 統合は未実装のまま。
+- ログイン済み画面では現在の表示名を入力欄とは別DOMで表示し、取得反映が入力中の値を上書きしないようにした。保存成功後は現在表示名と入力欄を保存後の値へ更新する。
+
+## Supabase M-9 mypage display_name RPC修正結果
+- 表示名保存時の `42702 ambiguous_column` は、`update_display_name` RPC側で `public.profiles as p` と `returning p.id, p.display_name` を明示する修正により解消済み。
+- 修正後、ユーザー実ブラウザで表示名保存、保存成功表示、表示名テキスト更新、入力欄更新、再読み込み後維持、再ログイン後維持、email / user_id / token非表示を確認済み。

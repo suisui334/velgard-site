@@ -4,6 +4,7 @@
   const SDK_SRC = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
   const SDK_LOAD_KEY = "__VELGARD_SUPABASE_SDK_LOAD";
   const MIN_PASSWORD_LENGTH = 8;
+  const DISPLAY_NAME_MAX_LENGTH = 40;
 
   function getConfig() {
     const config = window.VELGARD_SUPABASE_CONFIG || {};
@@ -104,6 +105,26 @@
 
     const submit = form.querySelector("[data-mypage-form-submit]");
     if (submit) submit.textContent = busy ? busyText : readyText;
+  }
+
+  function normalizeDisplayName(value) {
+    return String(value || "").trim();
+  }
+
+  function countDisplayNameCharacters(value) {
+    return Array.from(value).length;
+  }
+
+  async function getActiveSession(client, knownSession) {
+    if (knownSession && knownSession.user && knownSession.user.id) {
+      return knownSession;
+    }
+
+    const { data, error } = await client.auth.getSession();
+    if (error || !data || !data.session || !data.session.user || !data.session.user.id) {
+      return null;
+    }
+    return data.session;
   }
 
   function createAuthModeSwitch(client, elements, activeMode) {
@@ -215,6 +236,12 @@
     form.dataset.mypageSignupForm = "";
     form.noValidate = true;
 
+    const displayNameInput = document.createElement("input");
+    displayNameInput.type = "text";
+    displayNameInput.name = "displayName";
+    displayNameInput.autocomplete = "nickname";
+    displayNameInput.required = true;
+
     const emailInput = document.createElement("input");
     emailInput.type = "email";
     emailInput.name = "email";
@@ -241,6 +268,7 @@
     submit.textContent = "登録する";
 
     form.append(
+      createInputField("表示名", displayNameInput),
       createInputField("メールアドレス", emailInput),
       createInputField("パスワード", passwordInput),
       createInputField("パスワード確認", passwordConfirmInput),
@@ -299,7 +327,173 @@
     elements.content.append(form, actions);
   }
 
-  function renderAuthenticated(client, elements, message) {
+  function createDisplayNameEditor(client, elements, session) {
+    const container = document.createElement("div");
+    container.dataset.mypageDisplayNamePanel = "";
+
+    const current = document.createElement("p");
+    current.className = "status";
+    current.dataset.mypageDisplayNameCurrent = "";
+
+    const currentLabel = document.createElement("span");
+    currentLabel.textContent = "表示名：";
+
+    const currentValue = document.createElement("strong");
+    currentValue.dataset.mypageDisplayNameCurrentValue = "";
+    currentValue.textContent = "確認中";
+
+    current.append(currentLabel, currentValue);
+
+    const form = document.createElement("form");
+    form.className = "calendar-form";
+    form.dataset.mypageDisplayNameForm = "";
+    form.noValidate = true;
+
+    const displayNameInput = document.createElement("input");
+    displayNameInput.type = "text";
+    displayNameInput.name = "displayName";
+    displayNameInput.autocomplete = "nickname";
+    displayNameInput.required = true;
+    displayNameInput.placeholder = "表示名を入力";
+
+    const submit = document.createElement("button");
+    submit.className = "button primary";
+    submit.type = "button";
+    submit.dataset.mypageDisplayNameSubmit = "";
+    submit.dataset.mypageFormSubmit = "";
+    submit.disabled = true;
+    submit.textContent = "保存";
+
+    form.append(
+      createInputField("表示名", displayNameInput),
+      submit
+    );
+
+    const editor = {
+      container,
+      current,
+      currentValue,
+      form,
+      input: displayNameInput,
+      submit,
+      session,
+      inputDirty: false
+    };
+
+    displayNameInput.addEventListener("input", () => {
+      editor.inputDirty = true;
+    });
+
+    submit.addEventListener("click", (event) => {
+      handleDisplayNameSave(client, elements, editor, event);
+    });
+
+    form.addEventListener("submit", (event) => {
+      handleDisplayNameSave(client, elements, editor, event);
+    });
+
+    container.append(current, form);
+    return editor;
+  }
+
+  function setDisplayNameEditorState(editor, displayName, options = {}) {
+    const nextDisplayName = normalizeDisplayName(displayName);
+    editor.currentValue.textContent = nextDisplayName || "未設定";
+
+    if (!options.preserveDirtyInput || !editor.inputDirty) {
+      editor.input.value = nextDisplayName;
+      editor.inputDirty = false;
+    }
+
+    editor.input.disabled = false;
+    editor.input.readOnly = false;
+    editor.submit.disabled = false;
+  }
+
+  function setDisplayNameEditorError(editor) {
+    editor.currentValue.textContent = "確認できませんでした";
+    editor.input.disabled = false;
+    editor.input.readOnly = false;
+    editor.submit.disabled = false;
+  }
+
+  function showDisplayNameSaveFailure(elements, error) {
+    setMessage(elements, "表示名を保存できませんでした。\nしばらくしても続く場合は、管理者へお知らせください。");
+
+    if (error) {
+      console.warn("display_name update failed", {
+        code: error?.code || "unknown",
+        name: error?.name || "unknown"
+      });
+    }
+  }
+
+  async function loadDisplayName(client, editor) {
+    try {
+      const session = await getActiveSession(client, editor.session);
+      if (!session) {
+        setDisplayNameEditorError(editor);
+        return;
+      }
+
+      const { data, error } = await client
+        .from("public_profiles")
+        .select("display_name")
+        .eq("id", session.user.id)
+        .single();
+
+      if (error || !data || typeof data.display_name !== "string") {
+        setDisplayNameEditorError(editor);
+        return;
+      }
+
+      setDisplayNameEditorState(editor, data.display_name, { preserveDirtyInput: true });
+    } catch (error) {
+      setDisplayNameEditorError(editor);
+    }
+  }
+
+  async function handleDisplayNameSave(client, elements, editor, event) {
+    event?.preventDefault?.();
+
+    const displayNameInput = editor.input;
+    const nextDisplayName = normalizeDisplayName(displayNameInput ? displayNameInput.value : "");
+
+    if (!nextDisplayName) {
+      setMessage(elements, "表示名を入力してください。");
+      return;
+    }
+
+    if (countDisplayNameCharacters(nextDisplayName) > DISPLAY_NAME_MAX_LENGTH) {
+      setMessage(elements, "表示名は40文字以内で入力してください。");
+      return;
+    }
+
+    try {
+      setMessage(elements, "");
+      setFormBusy(editor.form, true, "保存中", "保存");
+      const { data, error } = await client.rpc("update_display_name", {
+        new_display_name: nextDisplayName
+      });
+
+      if (error) {
+        showDisplayNameSaveFailure(elements, error);
+        return;
+      }
+
+      const row = Array.isArray(data) ? data[0] : data;
+      const savedDisplayName = normalizeDisplayName(row && row.display_name ? row.display_name : nextDisplayName);
+      editor.inputDirty = false;
+      setDisplayNameEditorState(editor, savedDisplayName);
+      setMessage(elements, "表示名を保存しました。");
+    } catch (error) {
+      showDisplayNameSaveFailure(elements, error);
+    } finally {
+      if (editor.form.isConnected) setFormBusy(editor.form, false, "保存中", "保存");
+    }
+  }
+
+  function renderAuthenticated(client, elements, message, session) {
     ensureAuthElements(elements);
     setStatus(
       elements,
@@ -307,6 +501,8 @@
       "参加申請一覧・参加予定セッションは今後対応予定です。"
     );
     clearContent(elements);
+
+    const displayNameEditor = createDisplayNameEditor(client, elements, session);
 
     const actions = document.createElement("div");
     actions.className = "actions";
@@ -330,8 +526,9 @@
     });
 
     actions.append(changePassword, logout);
-    elements.content.append(actions);
+    elements.content.append(displayNameEditor.container, actions);
     setMessage(elements, message || "");
+    loadDisplayName(client, displayNameEditor);
   }
 
   function renderPasswordChangeForm(client, elements, message) {
@@ -426,7 +623,7 @@
         return;
       }
 
-      renderAuthenticated(client, elements);
+      renderAuthenticated(client, elements, "", data.session);
     } catch (error) {
       if (passwordInput) passwordInput.value = "";
       setMessage(elements, "ログインできませんでした。入力内容を確認してください。");
@@ -486,12 +683,26 @@
   }
 
   async function handleSignup(client, elements, form) {
+    const displayNameInput = form.querySelector('input[name="displayName"]');
     const emailInput = form.querySelector('input[name="email"]');
     const passwordInput = form.querySelector('input[name="password"]');
     const passwordConfirmInput = form.querySelector('input[name="passwordConfirm"]');
+    const displayName = normalizeDisplayName(displayNameInput ? displayNameInput.value : "");
     const email = emailInput ? emailInput.value.trim() : "";
     const password = passwordInput ? passwordInput.value : "";
     const passwordConfirm = passwordConfirmInput ? passwordConfirmInput.value : "";
+
+    if (!displayName) {
+      clearSignupPasswords(form);
+      setMessage(elements, "表示名を入力してください。");
+      return;
+    }
+
+    if (countDisplayNameCharacters(displayName) > DISPLAY_NAME_MAX_LENGTH) {
+      clearSignupPasswords(form);
+      setMessage(elements, "表示名は40文字以内で入力してください。");
+      return;
+    }
 
     if (!email || !password || !passwordConfirm || !emailInput.checkValidity()) {
       clearSignupPasswords(form);
@@ -514,7 +725,15 @@
     try {
       setMessage(elements, "");
       setFormBusy(form, true, "登録中", "登録する");
-      const { data, error } = await client.auth.signUp({ email, password });
+      const { data, error } = await client.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: displayName
+          }
+        }
+      });
       clearSignupPasswords(form);
 
       if (error) {
@@ -526,7 +745,8 @@
         renderAuthenticated(
           client,
           elements,
-          "登録を受け付けました。確認メールが届いた場合は、メール内のリンクを確認してください。"
+          "登録を受け付けました。確認メールが届いた場合は、メール内のリンクを確認してください。",
+          data.session
         );
         return;
       }
@@ -684,7 +904,7 @@
       }
 
       if (data && data.session) {
-        renderAuthenticated(client, elements);
+        renderAuthenticated(client, elements, "", data.session);
         return { status: "authenticated" };
       }
 
