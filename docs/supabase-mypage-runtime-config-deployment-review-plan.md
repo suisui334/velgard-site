@@ -162,7 +162,8 @@ window.VELGARD_SUPABASE_CONFIG = {
 ## 11. 次工程候補
 
 1. このレビュー計画書のcommit / push
-2. 実config運用方針のユーザー最終判断
-3. 未構成フォールバック維持またはruntime config読み込み計画
-4. Auth client初期化計画
-5. Authセッション復元計画
+2. `docs/supabase-mypage-auth-connection-decision.md` でM-5前の実接続採否判断を確認
+3. 実config運用方針のユーザー最終判断
+4. 未構成フォールバック維持またはruntime config読み込み計画
+5. Auth client初期化計画
+6. Authセッション復元計画

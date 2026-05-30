@@ -371,3 +371,7 @@
 ## Supabase M-4 mypage runtime config 実接続前レビュー計画
 - `docs/supabase-mypage-runtime-config-deployment-review-plan.md` に、GitHub Pages静的運用での実config候補、公開可能keyの扱い、接続前チェックリスト、エラー・ログ方針、ロールバック方針を整理済み。
 - 次工程候補: M-4計画 commit / push、実config運用方針のユーザー最終判断、未構成フォールバック維持またはAuth client初期化計画。
+
+## Supabase M-5前 mypage Auth実接続採否判断
+- `docs/supabase-mypage-auth-connection-decision.md` に、Supabase Auth実接続へ進む前の採否判断材料、publishable key / anon keyのrepo公開運用、接続前チェックリスト、現時点の推奨を整理済み。
+- 現時点の推奨は短期未構成フォールバック維持。実接続前に、publishable key / anon keyをGitHub repoへ置く運用を採用するかユーザー判断を挟む。
