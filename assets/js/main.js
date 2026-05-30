@@ -60,6 +60,9 @@ function renderHeader(site, page) {
     const active = page === key || (page === "campaign-detail" && key === "campaigns") || (page === "episode-detail" && key === "campaigns") || (page === "spot-detail" && key === "spots") || ((page === "scenario-detail" || page === "hooks") && key === "scenarios") || (page === "session-detail" && key === "calendar");
     return `<a href="${href}" class="${active ? "is-active" : ""}">${label}</a>`;
   }).join("");
+  const accountLink = `
+    <a href="mypage.html" class="account-nav__link" aria-label="マイページへ移動" title="マイページ">ACCOUNT</a>
+  `;
   header.innerHTML = `
     <header class="site-header">
       <div class="header-inner">
@@ -68,7 +71,7 @@ function renderHeader(site, page) {
           <span class="brand-title">${site.title}</span>
         </a>
         <button class="nav-toggle" type="button" aria-label="メニューを開く" aria-expanded="false">☰</button>
-        <nav class="global-nav" aria-label="グローバルナビゲーション">${links}</nav>
+        <nav class="global-nav" aria-label="グローバルナビゲーション">${links}${accountLink}</nav>
       </div>
     </header>
   `;

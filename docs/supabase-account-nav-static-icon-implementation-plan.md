@@ -344,3 +344,28 @@ A-2実装前に確認すること:
 `mypage.html` 最小版の詳細は `docs/supabase-mypage-minimal-implementation-plan.md` に分離する。
 
 静的アカウントアイコンに `href="mypage.html"` を設定する前に、準備中ページとして成立する `mypage.html` を用意することで、リンク先404を避けられる。A-2実装時にリンクを有効化するかどうかは、A-3最小版の実装状況を見て判断する。
+
+## 15. A-2静的導線実装メモ
+
+A-3で `mypage.html` 最小版が追加済みになったため、A-2では共通ヘッダーのナビ末尾に静的な `ACCOUNT` 導線を追加した。
+
+実装内容:
+
+- `assets/js/main.js` の `renderHeader` で、`mypage.html` への `account-nav__link` を共通ヘッダーに追加する
+- 表示はCALENDAR右側に同一行で収まりやすい、控えめな `ACCOUNT` テキスト導線にする
+- `aria-label="マイページへ移動"` と `title="マイページ"` を付ける
+- `mypage` 表示時の強いactive表示は付けない
+- `assets/css/style.css` に `account-nav__link` の最小CSSを追加し、ACCOUNTだけが下段に落ちないように調整する
+- 共通ヘッダー変更を各ページで確実に反映するため、既存HTMLの構造は変えず `assets/js/main.js` / `assets/css/style.css` のcache-bust queryのみ更新する
+
+未実装のまま維持するもの:
+
+- Supabase接続
+- Authセッション復元
+- ログインフォーム
+- ログアウト処理
+- `display_name` 表示
+- 自分の申請一覧表示
+- コメント投稿・編集・削除
+- GM承認・却下
+- `close_session`
