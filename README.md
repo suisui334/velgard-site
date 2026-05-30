@@ -1452,3 +1452,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - `docs/supabase-mypage-minimal-implementation-plan.md`: A-3として `mypage.html` 最小版を作る前の実装計画。リンク先404回避のための準備中ページを想定し、Supabase接続やログイン / ログアウト処理はまだ扱わない。
 - A-3 `mypage.html` 最小版は、静的な準備中ページとして追加済み。Supabase接続、Auth復元、ログイン / ログアウト、申請一覧表示はまだ実装していない。
 - A-2静的アカウント導線は、共通ヘッダーのナビ末尾に `ACCOUNT` リンクとして追加済み。リンク先は `mypage.html`。CALENDAR右側に同一行で収まるよう、activeなしの控えめなテキスト導線に調整し、各HTMLの `main.js` / `style.css` cache-bust queryのみ更新した。Supabase接続、Auth復元、ログイン / ログアウト処理はまだ実装していない。
+- `docs/supabase-mypage-auth-state-implementation-plan.md`: A-4として `mypage.html` にAuth状態表示を入れる前の実装計画。まず接続設定未構成時の安全フォールバックを優先し、その後Authセッション復元と `display_name` 表示を検討する。ログイン / ログアウト、申請一覧、投稿・編集・削除・GM操作はまだ扱わない。
