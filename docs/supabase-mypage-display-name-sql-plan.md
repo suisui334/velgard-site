@@ -175,3 +175,21 @@ docs/supabase-mypage-display-name-sql-execution-review-plan.md
 ```
 
 このレビュー計画では、実行範囲、事前確認SQL、trigger / backfill / RPC確認点、実行順序、ロールバック、実行後検証、RLS smoke test更新要否を整理する。
+
+## 13. 反映結果
+
+M-9 display_name SQLの反映結果は、以下に分離する。
+
+```text
+docs/supabase-mypage-display-name-sql-result.md
+```
+
+確認済み事項:
+
+- `handle_new_auth_user_profile` が存在する。
+- `update_display_name(new_display_name text)` が存在する。
+- `update_display_name` は `anon` execute不可、`authenticated` execute可。
+- `public_profiles` は `id` / `display_name` のみ。
+- `auth_users_without_profile` は `0`。
+
+`profiles` 自動作成trigger と `update_display_name` RPC は追加済みまたは既存反映済み扱いとする。追加SQLはこれ以上実行せず、次工程は `mypage.html` のdisplay_name表示・編集フロント実装とする。

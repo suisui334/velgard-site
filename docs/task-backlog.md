@@ -419,3 +419,7 @@
 ## Supabase M-9 mypage display_name SQL実行前レビュー計画
 - `docs/supabase-mypage-display-name-sql-execution-review-plan.md` に、009草案をSQL Editorで実行する前の実行範囲、事前確認SQL、trigger / backfill / RPC確認点、実行順序、ロールバック、実行後検証、RLS smoke test更新要否を分離済み。
 - この工程でもSQL Editor実行、`mypage.html` 変更、`assets/js/mypageAuthClient.js` 変更、表示名フォーム実装、本番接続拡張は行わない。
+
+## Supabase M-9 mypage display_name SQL反映結果
+- `docs/supabase-mypage-display-name-sql-result.md` に、`handle_new_auth_user_profile` と `update_display_name(new_display_name text)` の存在、`update_display_name` の anon execute不可 / authenticated execute可、`public_profiles` が `id` / `display_name` のみ、`auth_users_without_profile = 0` を確認済みとして整理済み。
+- `profiles` 自動作成trigger と `update_display_name` RPC は追加済みまたは既存反映済み扱いとし、M-9 SQLについて追加SQLはこれ以上実行しない。次工程は `mypage.html` のdisplay_name表示・編集フロント実装。

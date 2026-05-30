@@ -583,6 +583,26 @@ SQL適用後は、最低限以下を確認する。
 1. ユーザーがレビュー計画と009草案を確認する。
 2. SQL Editorで実行する範囲を決める。
 3. ユーザーがSupabase SQL Editorで事前確認SQLから段階実行する。
-4. 実行結果を `docs/supabase-mypage-display-name-sql-execution-result.md` へ整理する。
+4. 実行結果を `docs/supabase-mypage-display-name-sql-result.md` へ整理する。
 5. RLS smoke test更新計画または実装へ進む。
 6. SQLとRLS確認が安定してから、`mypage.html` / `assets/js/mypageAuthClient.js` のdisplay_name実装へ進む。
+
+## 15. 反映結果
+
+M-9 display_name SQLの反映結果は、以下に分離する。
+
+```text
+docs/supabase-mypage-display-name-sql-result.md
+```
+
+確認済み:
+
+- `handle_new_auth_user_profile` が存在する。
+- `update_display_name(new_display_name text)` が存在する。
+- `update_display_name` は `anon` execute不可。
+- `update_display_name` は `authenticated` execute可。
+- `public_profiles` は `id` / `display_name` のみ。
+- `auth_users_without_profile` は `0`。
+- `profiles` 自動作成trigger と `update_display_name` RPC は追加済みまたは既存反映済み扱い。
+
+M-9 SQLについて、追加SQLはこれ以上実行しない。次工程は `mypage.html` のdisplay_name表示・編集フロント実装とする。
