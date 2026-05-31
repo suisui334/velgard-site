@@ -454,4 +454,18 @@ GM履歴:
 - `git add .`
 - commit / push
 
-SQL草案ファイルは今回は作成しない。次工程M-11D-2で、今回の設計を正本にして別途作成する。
+M-11D-1時点ではSQL草案ファイルは作成しない。次工程M-11D-2で、今回の設計を正本にして別途作成する。
+
+## 17. M-11D-2 追記
+
+2026-06-01に、M-11D-2として本人申請辞退RPCの設計docsとSQL草案を追加した。
+
+- 設計docs: `docs/supabase-session-detail-application-withdraw-rpc-plan.md`
+- SQL草案: `docs/supabase/sql/012_session_application_cancel_my_rpc_draft.sql`
+- 採用RPC案: `cancel_my_session_application(target_session_id text)`
+- 採用status: `canceled`
+- 対象status: `pending` / `waitlisted` / `accepted`
+- `rejected` は辞退対象外。
+- `canceled` は安全に現在値を返す。
+- コメント本文は削除しない。
+- SQL Editor実行、DB変更、RPC実行、本番フロント実装、GM履歴RPC実装、`updates.json` 変更、commit / pushは行っていない。
