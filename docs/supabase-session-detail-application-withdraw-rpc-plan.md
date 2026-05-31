@@ -106,9 +106,11 @@ cancel_my_session_application(target_session_id text)
 
 - `revoke all on function public.cancel_my_session_application(text) from public`
 - `revoke all on function public.cancel_my_session_application(text) from anon`
+- `revoke all on function public.cancel_my_session_application(text) from authenticated`
 - `grant execute on function public.cancel_my_session_application(text) to authenticated`
 
 anon / public には実行権限を付与しない。
+`authenticated` は一度revokeしてから再grantし、適用後の権限状態を読みやすくする。`information_schema.routine_privileges` ではownerまたは管理者ロールが表示される場合があるが、anon / PUBLICへの広いgrantでなければ問題扱いしない。
 
 ## 11. SQL草案
 
@@ -126,6 +128,7 @@ docs/supabase/sql/012_session_application_cancel_my_rpc_draft.sql
 - 既存関数名衝突確認
 - RLS policy / 直接UPDATE grant確認
 - `create or replace function public.cancel_my_session_application(target_session_id text)`
+- apply sectionの `begin` / `commit`
 - grant / revoke
 - post-apply確認
 - rollback草案

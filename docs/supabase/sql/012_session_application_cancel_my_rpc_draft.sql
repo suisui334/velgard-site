@@ -156,6 +156,11 @@ select
 -- 1. cancel_my_session_application
 -- ============================================================
 
+-- Run this apply section after the preflight checks pass.
+-- The transaction keeps create/revoke/grant together, avoiding a temporary
+-- broad EXECUTE grant if a later statement fails.
+begin;
+
 create or replace function public.cancel_my_session_application(
   target_session_id text
 )
@@ -248,9 +253,12 @@ $$;
 
 revoke all on function public.cancel_my_session_application(text) from public;
 revoke all on function public.cancel_my_session_application(text) from anon;
+revoke all on function public.cancel_my_session_application(text) from authenticated;
 grant execute on function public.cancel_my_session_application(text) to authenticated;
 
 notify pgrst, 'reload schema';
+
+commit;
 
 -- ============================================================
 -- 2. Post-apply verification checks
@@ -270,10 +278,12 @@ where n.nspname = 'public'
   and p.proname = 'cancel_my_session_application';
 
 -- Verify execute grants.
--- Expected grantee:
+-- Expected client grantee:
 --   authenticated
 -- Expected absent:
 --   anon, PUBLIC/public
+-- Owner or administrative roles may also appear in information_schema and are
+-- not a client-side broad grant.
 select
   routine_name,
   grantee,
