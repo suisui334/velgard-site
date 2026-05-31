@@ -289,3 +289,19 @@ docs/supabase/sql/013_gm_session_application_history_rpc_draft.sql
 ```
 
 このSQL草案は実行していない。SQL Editor未実行、DB変更なし。
+
+## 14. M-11E-2 実行前レビュー追記
+
+2026-06-01に、`013_gm_session_application_history_rpc_draft.sql` の実行前レビューを行った。
+
+確認結果:
+
+- 戻り値は `display_name` / `application_status` / `created_at` / `updated_at` / `canceled_at` / `comment_count` / `last_comment_at` に限定する方針で維持する。
+- `user_id`、email、`application_id`、`comment_id`、Discord ID、role、token、key、secret類は返さない。
+- 非GM / 非adminは0件返却ではなく `not allowed` エラーで拒否する方針を維持する。
+- `security definer` と `set search_path = ''` を使い、`public` schema参照を明示する方針を維持する。
+- grantは `authenticated` のみとし、`anon` / `public` には広げない。
+- コメント集計は有効な参加希望コメントだけを数え、削除済みコメントしかない場合も `session_applications` 行を主軸に履歴行を残す。
+- SQL Editorのpost-apply確認ではGM履歴RPCを呼び出さず、カタログ情報で戻り値定義を確認する。GM / admin / PL / anonの挙動確認は、後続のAuth文脈クライアントまたはsmoke testで行う。
+
+このレビュー工程では、SQL Editor実行、DB変更、GM履歴RPC実行、本番フロント実装、`updates.json` 変更、secret類の記録、commit / pushは行っていない。

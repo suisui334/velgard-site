@@ -39,11 +39,12 @@
 -- 0. Preflight checks
 -- ============================================================
 
--- 0-1. Confirm helper functions exist and are security definer.
+-- 0-1. Confirm helper functions exist, are security definer, and pin search_path.
 select
   p.oid::regprocedure as function_name,
   p.prosecdef as is_security_definer,
   p.provolatile as volatility,
+  p.proconfig as function_config,
   pg_catalog.pg_get_function_arguments(p.oid) as arguments,
   pg_catalog.pg_get_function_result(p.oid) as result_type
 from pg_catalog.pg_proc p
@@ -121,6 +122,7 @@ select
   p.oid::regprocedure as function_name,
   p.prosecdef as is_security_definer,
   p.provolatile as volatility,
+  p.proconfig as function_config,
   pg_catalog.pg_get_function_arguments(p.oid) as arguments,
   pg_catalog.pg_get_function_result(p.oid) as result_type
 from pg_catalog.pg_proc p
@@ -158,7 +160,8 @@ where table_schema = 'public'
 order by table_name, grantee, privilege_type;
 
 -- Stop before creating/replacing the RPC if:
---   - is_admin() or is_session_gm(text) is missing or unexpected,
+--   - is_admin() or is_session_gm(text) is missing, unexpected, or does not
+--     pin search_path,
 --   - public_profiles exposes more than id / display_name,
 --   - required columns are missing,
 --   - status check does not include canceled,
@@ -277,6 +280,7 @@ select
   p.oid::regprocedure as function_name,
   p.prosecdef as is_security_definer,
   p.provolatile as volatility,
+  p.proconfig as function_config,
   pg_catalog.pg_get_function_arguments(p.oid) as arguments,
   pg_catalog.pg_get_function_result(p.oid) as result_type
 from pg_catalog.pg_proc p
@@ -301,18 +305,23 @@ where routine_schema = 'public'
   and routine_name = 'get_gm_session_application_history'
 order by grantee, privilege_type;
 
--- Verify callable column shape without returning data.
--- Replace only with a reviewed non-secret public test session id when running.
+-- Verify declared return columns without executing the RPC in SQL Editor.
+-- Auth-context behavior must be checked later through reviewed clients or the
+-- smoke test, not from the SQL Editor owner/editor context.
 select
-  display_name,
-  application_status,
-  created_at,
-  updated_at,
-  canceled_at,
-  comment_count,
-  last_comment_at
-from public.get_gm_session_application_history('__REPLACE_WITH_REVIEWED_TEST_SESSION_ID__')
-limit 0;
+  p.parameter_name,
+  p.data_type,
+  p.ordinal_position
+from information_schema.parameters p
+where p.specific_schema = 'public'
+  and p.parameter_mode = 'OUT'
+  and p.specific_name in (
+    select r.specific_name
+    from information_schema.routines r
+    where r.specific_schema = 'public'
+      and r.routine_name = 'get_gm_session_application_history'
+  )
+order by p.ordinal_position;
 
 -- Verify function body for review. Do not paste secrets or real internal IDs into docs.
 select pg_catalog.pg_get_functiondef(
