@@ -184,9 +184,8 @@ export function renderSessionDetailContent(session, options = {}) {
       </dl>
       ${renderSessionSummary(session)}
       ${detailBlocks}
-      ${applicationHtml}
-      ${renderSessionTags(session?.tags)}
       ${supplementalHtml}
+      ${applicationHtml}
     </div>
   `;
 }

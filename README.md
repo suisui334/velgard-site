@@ -1064,7 +1064,7 @@ py -m http.server 4173 -d velgard-site
 - カレンダー拡張 Phase 1-C として、`assets/js/sessionDisplay.js` を追加し、セッション表示・詳細表示の整形ロジックを共通化済み
 - `renderSessionDetailContent(session, options)` 系の共通関数は、詳細ページと将来の表示拡張で流用できる前提
 - カレンダー拡張 Phase 1-D として、セッション詳細表示の情報設計をPL向けに整理済み
-- セッション詳細表示の表示順は、基本情報、概要、詳細 / 参加条件、参加希望コメント、タグ、補足情報
+- セッション詳細表示の表示順は、基本情報、概要、補足情報、参加希望コメント
 - 基本情報には開催日、開催時刻、GM、レベル帯、募集人数をまとめて表示する
 - PL向け詳細では `関連スポットID` / `シナリオID` / `公開範囲` を表示しない
 - 補足情報は `状態` と `更新日時` 中心に整理する
@@ -1491,3 +1491,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - M-10として、`mypage.html` のログイン済みアカウント機能内に本人の「参加申請中」「参加予定」表示を追加した。`session_applications` から本人行のみを読み、`data/sessions.json` の公開セッションと `session_id` で突合する。`pending` / `waitlisted` は参加申請中、`accepted` は参加予定に分類し、`rejected` / `canceled` は今回表示しない。email / user_id全文 / token / key / gmUserId / コメント本文 / 内部ID類は画面に出さない。
 - M-10では、公開セッションが突合できる場合のみ `session-detail.html?id=...` への詳細リンクを出し、突合できない場合は「非公開または未同期のセッション」と表示する。未同期セッションの安全表示を確認済み。ID整合検証データにより、公開版 mypage で「灰壁線異常調査」の表示、`詳細を見る`、`session-detail.html?id=session-2026-06-08-railway-incident` への遷移を確認済み。cleanupは別工程で判断する。
 - M-11Aとして、`session-detail.html` の参加希望コメント欄を読み取り専用表示へ更新した。`get_public_session_comments` と `get_public_session_application_counts` で公開コメント一覧と公開カウントを取得し、表示名、本文、申請状態、投稿/編集日時、申請中人数、承認済み人数を表示する。`参加希望人数` と `キャンセル待ち` はM-11Aの画面には表示しない。締切時間表示は `data/sessions.json` に `applicationDeadline` / `deadlineTime` 等の明示フィールドを追加する別工程で扱い、`startTime` / `endTime` は流用しない。投稿、編集、削除、GM操作、`close_session`、SQL実行、DB変更は行っていない。実装結果は `docs/supabase-session-detail-application-comments-read-result.md` に整理済み。
+- M-11A follow-upとして、`session-detail.html` の表示順を基本情報、概要、補足情報、参加希望コメントへ整理し、概要をカード状ブロック表示にした。`鉄道` / `調査` のような自由タグはsession-detailでは表示しない。将来のセッション種別は `sessionType` または `type` の明示フィールドで、候補を `単発シナリオ`、`キャンペーン`、`特殊`、`その他` として扱い、calendar の種別フィルターへ展開する方針。

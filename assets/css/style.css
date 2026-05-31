@@ -2333,6 +2333,10 @@ body[data-page="session-detail"] .calendar-session-modal-block {
   display: grid;
   gap: 6px;
   min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(86, 96, 106, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 250, 0.68);
 }
 
 body[data-page="session-detail"] .calendar-session-modal-block h3 {
@@ -2603,29 +2607,14 @@ body[data-page="session-detail"] .session-application-panel.is-canceled h3 {
   color: var(--muted);
 }
 
-body[data-page="session-detail"] .calendar-session-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-body[data-page="session-detail"] .calendar-session-tags span {
-  display: inline-flex;
-  min-height: 22px;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(224, 227, 224, 0.72);
-  color: var(--muted);
-  font-size: 0.74rem;
-  font-weight: 800;
-}
-
 body[data-page="session-detail"] .calendar-session-modal-supplement {
   display: grid;
   gap: 8px;
-  padding-top: 4px;
-  border-top: 1px solid rgba(86, 96, 106, 0.14);
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(86, 96, 106, 0.14);
+  border-radius: 8px;
+  background: rgba(247, 247, 243, 0.56);
 }
 
 body[data-page="session-detail"] .calendar-session-modal-supplement h3 {

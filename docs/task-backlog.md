@@ -54,7 +54,7 @@
 - DiscordリンクはPL向けUIから削除済み。現行 `data/sessions.json` には実Discord IDが含まれるため注意対象とし、将来Supabaseへ移行する場合は `profiles.discord_user_id` などの非公開列へ移す。
 - 詳細モーダルのフッター重なり・黒い領域隠れは修正済み。
 - カレンダー拡張 Phase 1-C として、`assets/js/sessionDisplay.js` にセッション表示・詳細表示の整形ロジックを共通化済み。
-- カレンダー拡張 Phase 1-D として、セッション詳細表示の表示順をPL向けに整理済み。基本情報、概要、詳細 / 参加条件、参加希望コメント、タグ、補足情報の順で表示する。
+- カレンダー拡張 Phase 1-D として、セッション詳細表示の表示順をPL向けに整理済み。M-11A follow-up後は、session-detailでは基本情報、概要、補足情報、参加希望コメントの順で表示し、自由タグは表示しない。
 - PL向け詳細では関連スポットID、シナリオID、公開範囲を表示せず、補足情報は状態と更新日時中心に整理済み。
 - `updatedAt` は日付＋時刻表示に対応済み。日付のみの場合も表示が壊れない。
 - カレンダー拡張 Phase 1-E として、`session-detail.html?id=<session.id>` のセッション詳細ページを追加済み。
@@ -243,7 +243,7 @@
 - カレンダーセル内予定行クリック / タップ、または選択日予定カードの「詳細を見る」から詳細モーダルを開ける。
 - Phase 1-C として `assets/js/sessionDisplay.js` を追加し、セッション表示・詳細表示の整形ロジックを共通化済み。
 - Phase 1-D としてセッション詳細表示の情報設計をPL向けに整理済み。
-- セッション詳細表示は、基本情報、概要、詳細 / 参加条件、参加希望コメント、タグ、補足情報の順で表示する。
+- セッション詳細表示は、基本情報、概要、補足情報、参加希望コメントの順で表示する。`鉄道` / `調査` のような自由タグはsession-detailでは表示しない。
 - PL向け詳細では関連スポットID、シナリオID、公開範囲を表示せず、補足情報は状態と更新日時中心に整理する。
 - Phase 2-A として、参加希望コメント型の静的UIモックを追加済み。通常予定では disabled のテンプレート選択、textarea、`コメント投稿（準備中）` を表示し、`closed` 予定では `募集締切` 表示にする。
 - コメント申請型では、参加人数はコメント件数ではなく申請者単位で管理する方針。
@@ -448,5 +448,7 @@
 ## Supabase M-11 session-detail 参加希望コメント統合前 調査・設計
 - `docs/supabase-session-detail-application-comments-integration-plan.md` に、`session-detail.html` の現状構造、既存RPC/RLSで使えるもの、不足点、M-11A〜M-11Fの段階分割、M-11Aの最小読み取り範囲、M-10 ID整合検証データの扱いを整理済み。
 - M-11A完了: `session-detail.html` の参加希望コメント欄を読み取り専用表示へ更新済み。`get_public_session_comments` と `get_public_session_application_counts` を使い、公開コメント一覧と `申請中` / `承認済み` の公開カウントを表示する。`参加希望人数` と `キャンセル待ち` はM-11Aの画面には表示しない。投稿、編集、削除、GM承認・却下、DB変更、cleanup、`close_session` は扱っていない。実装結果は `docs/supabase-session-detail-application-comments-read-result.md` に整理済み。
-- session-detail の締切時間表示は、`data/sessions.json` に `applicationDeadline` / `deadlineTime` 等の明示フィールドを追加する設計が必要。`startTime` / `endTime` の流用はしない。
+- M-11A follow-upとして、`session-detail.html` の表示順を基本情報、概要、補足情報、参加希望コメントへ整理し、概要をカード状ブロック表示にした。自由タグはsession-detailでは表示しない。
+- session-detail の締切時間表示は、`data/sessions.json` に `applicationDeadline` / `deadlineTime` 等の明示フィールドを追加する設計が必要。`startTime` / `endTime` は開催時刻であり、締切時間として流用しない。
+- セッション種別は自由タグではなく、将来 `data/sessions.json` に `sessionType` または `type` のような明示フィールドを追加して扱う。候補は `単発シナリオ`、`キャンペーン`、`特殊`、`その他`。`session-detail` / `calendar` / 一覧で表示し、calendar の種別フィルターへ展開する。
 - 次工程候補はM-11Bとして、ログイン済みPLの参加希望コメント投稿を `create_application_comment` で統合すること。自分の申請状態、編集・削除、GM操作は引き続き段階分割して扱う。
