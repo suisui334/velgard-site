@@ -2437,6 +2437,140 @@ body[data-page="session-detail"] .session-comment-count-note {
   overflow-wrap: anywhere;
 }
 
+body[data-page="session-detail"] .session-comment-counts,
+body[data-page="session-detail"] .session-comment-list {
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-comment-state {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(86, 96, 106, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 250, 0.62);
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-comment-state.is-error {
+  border-color: rgba(135, 63, 53, 0.28);
+  background: rgba(255, 246, 244, 0.72);
+  color: var(--rust);
+}
+
+body[data-page="session-detail"] .session-comment-count-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+body[data-page="session-detail"] .session-comment-count-item {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(86, 96, 106, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 250, 0.66);
+}
+
+body[data-page="session-detail"] .session-comment-count-item dt {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+body[data-page="session-detail"] .session-comment-count-item dd {
+  margin: 0;
+  color: var(--soot);
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+body[data-page="session-detail"] .session-comment-items {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+body[data-page="session-detail"] .session-comment-item {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(86, 96, 106, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 250, 0.7);
+}
+
+body[data-page="session-detail"] .session-comment-item-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-comment-author {
+  color: var(--soot);
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-comment-status-badge {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(224, 227, 224, 0.72);
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+body[data-page="session-detail"] .session-comment-status-badge.is-accepted {
+  background: rgba(111, 143, 104, 0.18);
+  color: var(--herb);
+}
+
+body[data-page="session-detail"] .session-comment-status-badge.is-pending,
+body[data-page="session-detail"] .session-comment-status-badge.is-waitlisted {
+  background: rgba(185, 154, 82, 0.2);
+  color: #80682f;
+}
+
+body[data-page="session-detail"] .session-comment-status-badge.is-rejected,
+body[data-page="session-detail"] .session-comment-status-badge.is-canceled {
+  background: rgba(135, 63, 53, 0.14);
+  color: var(--rust);
+}
+
+body[data-page="session-detail"] .session-comment-body,
+body[data-page="session-detail"] .session-comment-meta {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-comment-body {
+  color: var(--ink);
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+body[data-page="session-detail"] .session-comment-meta {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
 body[data-page="session-detail"] .session-application-button {
   justify-self: start;
   min-height: 42px;

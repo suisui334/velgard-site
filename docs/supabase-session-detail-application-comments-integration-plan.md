@@ -107,6 +107,10 @@ M-11Aの推奨範囲:
 
 M-11Aで使う既存RPCは読み取り専用で、`anon` にも実行権限があるため、DB変更なしで始められる見込み。ただし実装直前に公開RPCの戻り列が内部情報を含まないことを再確認する。
 
+M-11A実装結果は `docs/supabase-session-detail-application-comments-read-result.md` に分離した。`session-detail.html` の参加希望コメント欄は公開コメント一覧と公開カウントの読み取り専用表示になり、人数カードは `申請中` / `承認済み` のみ表示する。投稿、編集、削除、GM操作、`close_session`、SQL実行、DB変更は行っていない。
+
+`session-detail.html` の締切時間表示は、`data/sessions.json` に `applicationDeadline` / `deadlineTime` 等の明示フィールドを追加する設計が必要。`startTime` / `endTime` の流用はしない。
+
 ## 7. M-10 ID整合検証データの扱い
 
 M-10 follow-upで投入済みの検証データは、M-11Aの読み取り表示検証にも使える。
@@ -199,4 +203,3 @@ M-11B以降で追加・再確認する観点:
 - `updates.json` 変更
 - secret類の出力
 - commit / push
-

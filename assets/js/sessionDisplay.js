@@ -113,58 +113,29 @@ export function renderSessionSummary(session) {
 
 function renderSessionApplicationPanel(session) {
   const status = session?.status;
-  if (status === "closed") {
-    return `
-      <section class="session-application-panel session-comment-application-panel is-closed" aria-labelledby="session-application-title">
-        <div class="session-application-copy">
-          <h3 id="session-application-title">参加希望コメント</h3>
-          <p>このセッションは募集を締め切っています。</p>
-          <p class="session-application-note">新規の参加希望コメントは受け付けていません。</p>
-        </div>
-        <button class="session-application-button session-comment-button" type="button" disabled>募集締切</button>
-      </section>
-    `;
-  }
+  const statusClass = `is-${getSessionStatusClass(status)}`;
+  const lead = (() => {
+    if (status === "closed") return "このセッションは募集を締め切っています。参加希望コメントは読み取り専用で確認できます。";
+    if (status === "finished") return "このセッションは終了しています。参加希望コメントは読み取り専用で確認できます。";
+    if (status === "canceled") return "このセッションは中止されています。参加希望コメントは読み取り専用で確認できます。";
+    if (status === "full") return "現在は定員到達状態です。参加希望コメントは読み取り専用で確認できます。";
+    return "公開されている参加希望コメントと申請人数を読み取り専用で表示します。";
+  })();
 
-  if (status === "finished" || status === "canceled") {
-    const className = status === "finished" ? "is-finished" : "is-canceled";
-    const lead = status === "finished"
-      ? "このセッションは終了しています。"
-      : "このセッションは中止されています。";
-    return `
-      <section class="session-application-panel session-comment-application-panel ${className}" aria-labelledby="session-application-title">
-        <div class="session-application-copy">
-          <h3 id="session-application-title">参加希望コメント</h3>
-          <p>${escapeHtml(lead)}</p>
-        </div>
-      </section>
-    `;
-  }
-
-  const lead = status === "full"
-    ? "現在は定員到達状態です。コメント機能は現在準備中です。"
-    : "コメント機能は現在準備中です。";
   return `
-    <section class="session-application-panel session-comment-application-panel is-preparing" aria-labelledby="session-application-title">
+    <section class="session-application-panel session-comment-application-panel is-readonly ${escapeHtml(statusClass)}" data-session-application-panel data-session-id="${escapeHtml(session?.id || "")}" aria-labelledby="session-application-title">
       <div class="session-application-copy">
         <h3 id="session-application-title">参加希望コメント</h3>
         <p>${escapeHtml(lead)}</p>
-        <p class="session-application-note">将来的には、この欄から参加希望コメントを投稿できるようにする予定です。</p>
+        <p class="session-application-note" data-session-comment-auth-note>参加希望コメントの投稿にはログインが必要です。ACCOUNTからログインしてください。</p>
       </div>
-      <div class="session-comment-form-mock" aria-label="参加希望コメント入力モック">
-        <label class="session-comment-field">
-          <span>申請用テンプレート</span>
-          <select class="session-comment-select" disabled>
-            <option>テンプレートを選択（準備中）</option>
-          </select>
-        </label>
-        <label class="session-comment-field">
-          <span>コメント内容</span>
-          <textarea class="session-comment-textarea" rows="4" disabled placeholder="参加希望コメントの入力欄（準備中）"></textarea>
-        </label>
-        <button class="session-application-button session-comment-button" type="button" disabled>コメント投稿（準備中）</button>
+      <div class="session-comment-counts" data-session-comment-counts aria-live="polite">
+        <p class="session-comment-state">読み込み中</p>
       </div>
-      <p class="session-comment-count-note">※参加人数はコメント件数ではなく、申請者単位で管理する想定です。</p>
+      <div class="session-comment-list" data-session-comment-list aria-live="polite">
+        <p class="session-comment-state">読み込み中</p>
+      </div>
+      <p class="session-comment-count-note">※人数はコメント件数ではなく、申請者単位で表示しています。</p>
     </section>
   `;
 }

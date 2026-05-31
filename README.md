@@ -83,6 +83,8 @@ py -m http.server 4173 -d velgard-site
   - `docs/supabase-f5-gm-application-management-plan.md`: Supabase F-5 GM承認・却下プロトタイプ設計
   - `docs/supabase-f5-gm-application-management-prototype.md`: Supabase F-5 dev GM承認・却下プロトタイプ手順
   - `docs/supabase-f6-comment-edit-delete-application-cancel-plan.md`: Supabase F-6 コメント編集・削除・申請取消RPC設計
+  - `docs/supabase-session-detail-application-comments-integration-plan.md`: Supabase M-11 session-detail 参加希望コメント統合前 調査・設計
+  - `docs/supabase-session-detail-application-comments-read-result.md`: Supabase M-11A session-detail 参加希望コメント読み取り表示 実装結果
   - `docs/supabase-rls-test-matrix.md`: Supabase RLSテストケース表
   - `docs/supabase/sql/`: Supabase最小スキーマ、RLS/GRANT、RPCの実行候補SQL草案
 
@@ -1488,3 +1490,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - M-9 display_name保存時の `42702 ambiguous_column` は、`update_display_name` RPC側で `public.profiles as p` と `returning p.id, p.display_name` を明示する修正により解消済み。ユーザー実ブラウザで表示名保存、表示更新、再読み込み後維持、再ログイン後維持を確認済み。
 - M-10として、`mypage.html` のログイン済みアカウント機能内に本人の「参加申請中」「参加予定」表示を追加した。`session_applications` から本人行のみを読み、`data/sessions.json` の公開セッションと `session_id` で突合する。`pending` / `waitlisted` は参加申請中、`accepted` は参加予定に分類し、`rejected` / `canceled` は今回表示しない。email / user_id全文 / token / key / gmUserId / コメント本文 / 内部ID類は画面に出さない。
 - M-10では、公開セッションが突合できる場合のみ `session-detail.html?id=...` への詳細リンクを出し、突合できない場合は「非公開または未同期のセッション」と表示する。未同期セッションの安全表示を確認済み。ID整合検証データにより、公開版 mypage で「灰壁線異常調査」の表示、`詳細を見る`、`session-detail.html?id=session-2026-06-08-railway-incident` への遷移を確認済み。cleanupは別工程で判断する。
+- M-11Aとして、`session-detail.html` の参加希望コメント欄を読み取り専用表示へ更新した。`get_public_session_comments` と `get_public_session_application_counts` で公開コメント一覧と公開カウントを取得し、表示名、本文、申請状態、投稿/編集日時、申請中人数、承認済み人数を表示する。`参加希望人数` と `キャンセル待ち` はM-11Aの画面には表示しない。締切時間表示は `data/sessions.json` に `applicationDeadline` / `deadlineTime` 等の明示フィールドを追加する別工程で扱い、`startTime` / `endTime` は流用しない。投稿、編集、削除、GM操作、`close_session`、SQL実行、DB変更は行っていない。実装結果は `docs/supabase-session-detail-application-comments-read-result.md` に整理済み。

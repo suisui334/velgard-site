@@ -447,4 +447,6 @@
 
 ## Supabase M-11 session-detail 参加希望コメント統合前 調査・設計
 - `docs/supabase-session-detail-application-comments-integration-plan.md` に、`session-detail.html` の現状構造、既存RPC/RLSで使えるもの、不足点、M-11A〜M-11Fの段階分割、M-11Aの最小読み取り範囲、M-10 ID整合検証データの扱いを整理済み。
-- 次工程候補はM-11Aとして、公開コメント一覧と公開人数の読み取り表示だけを `session-detail.html` の参加希望コメント欄に統合すること。投稿、編集、削除、GM承認・却下、DB変更、cleanup、`close_session` はまだ扱わない。
+- M-11A完了: `session-detail.html` の参加希望コメント欄を読み取り専用表示へ更新済み。`get_public_session_comments` と `get_public_session_application_counts` を使い、公開コメント一覧と `申請中` / `承認済み` の公開カウントを表示する。`参加希望人数` と `キャンセル待ち` はM-11Aの画面には表示しない。投稿、編集、削除、GM承認・却下、DB変更、cleanup、`close_session` は扱っていない。実装結果は `docs/supabase-session-detail-application-comments-read-result.md` に整理済み。
+- session-detail の締切時間表示は、`data/sessions.json` に `applicationDeadline` / `deadlineTime` 等の明示フィールドを追加する設計が必要。`startTime` / `endTime` の流用はしない。
+- 次工程候補はM-11Bとして、ログイン済みPLの参加希望コメント投稿を `create_application_comment` で統合すること。自分の申請状態、編集・削除、GM操作は引き続き段階分割して扱う。
