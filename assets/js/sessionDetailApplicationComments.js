@@ -14,6 +14,7 @@ const COMMENT_DELETE_ERROR_MESSAGE = "コメントを削除できませんでし
 const COMMENT_DELETE_PERMISSION_MESSAGE = "権限がないか、コメントの状態が変更された可能性があります。";
 const COMMENT_DELETE_CONFIRM_TEXT = "この参加希望コメントを削除しますか？";
 const COMMENT_DELETE_CONFIRM_NOTE = "最後の有効コメントを削除した場合、参加申請が取り消されることがあります。";
+const WITHDRAW_ELIGIBLE_STATUSES = new Set(["pending", "waitlisted", "accepted"]);
 const panelEditStates = new WeakMap();
 const panelCommentRenderContexts = new WeakMap();
 
@@ -26,11 +27,29 @@ const APPLICATION_STATUS_LABELS = Object.freeze({
 });
 
 const APPLICATION_STATUS_MESSAGES = Object.freeze({
-  pending: "参加申請中です。追加コメントを送信できます。人数は重複して増えません。",
-  accepted: "参加予定として承認済みです。補足コメントを送信できます。",
-  waitlisted: "申請中です。追加コメントを送信できます。",
+  pending: "参加申請中です。",
+  accepted: "参加予定として承認済みです。",
+  waitlisted: "参加申請中です。",
   rejected: "このセッションへの申請は現在行えません。",
-  canceled: "参加申請は取り消されています。コメント送信で再申請として扱われます。"
+  canceled: "このセッションへの参加申請は取り下げ済みです。再申請する場合は、参加希望コメントを投稿してください。"
+});
+
+const APPLICATION_WITHDRAW_UI_COPY = Object.freeze({
+  pending: {
+    note: "参加申請を取り下げる機能は次工程で実装予定です。",
+    confirmTitle: "参加申請を取り下げますか？",
+    confirmNote: "コメントは履歴として残りますが、申請中人数からは除外されます。"
+  },
+  waitlisted: {
+    note: "参加申請を取り下げる機能は次工程で実装予定です。",
+    confirmTitle: "参加申請を取り下げますか？",
+    confirmNote: "コメントは履歴として残りますが、申請中人数からは除外されます。"
+  },
+  accepted: {
+    note: "参加を取り下げる場合は、GMへの連絡も推奨されます。取り下げ機能は次工程で実装予定です。",
+    confirmTitle: "承認済みの参加予定を取り下げますか？",
+    confirmNote: "参加予定から外れます。必要ならGMへコメントで事情を伝えてください。"
+  }
 });
 
 const SENSITIVE_FIELD_NAMES = new Set([
@@ -521,6 +540,79 @@ function shouldShowCommentForm(ownApplication) {
   return getOwnApplicationStatus(ownApplication) !== "rejected";
 }
 
+function shouldShowWithdrawUi(ownApplication) {
+  return WITHDRAW_ELIGIBLE_STATUSES.has(getOwnApplicationStatus(ownApplication));
+}
+
+function appendApplicationWithdrawUi(target, ownApplication) {
+  const status = getOwnApplicationStatus(ownApplication);
+  if (!shouldShowWithdrawUi(ownApplication)) return;
+
+  const copy = APPLICATION_WITHDRAW_UI_COPY[status] || APPLICATION_WITHDRAW_UI_COPY.pending;
+  const container = document.createElement("div");
+  container.className = `session-application-withdraw is-${status}`;
+  container.setAttribute("role", "group");
+  container.setAttribute("aria-label", "参加申請取り下げUI");
+
+  const note = document.createElement("p");
+  note.className = "session-application-withdraw-note";
+  note.textContent = copy.note;
+
+  const openButton = document.createElement("button");
+  openButton.className = "session-application-button session-comment-button session-application-withdraw-open";
+  openButton.type = "button";
+  openButton.textContent = "参加申請を取り下げる";
+  openButton.setAttribute("aria-expanded", "false");
+
+  const confirm = document.createElement("div");
+  confirm.className = "session-application-withdraw-confirm";
+  confirm.hidden = true;
+  confirm.setAttribute("role", "group");
+  confirm.setAttribute("aria-label", "参加申請取り下げ確認");
+
+  const title = document.createElement("p");
+  title.className = "session-application-withdraw-confirm-title";
+  title.textContent = copy.confirmTitle;
+
+  const confirmNote = document.createElement("p");
+  confirmNote.className = "session-application-withdraw-confirm-note";
+  confirmNote.textContent = copy.confirmNote;
+
+  const disabledNote = document.createElement("p");
+  disabledNote.className = "session-application-withdraw-disabled-note";
+  disabledNote.textContent = "この工程では取り下げは実行されません。確定操作は次工程で実装予定です。";
+
+  const actions = document.createElement("div");
+  actions.className = "session-application-withdraw-actions";
+
+  const confirmButton = document.createElement("button");
+  confirmButton.className = "session-application-button session-comment-button session-application-withdraw-confirm-button";
+  confirmButton.type = "button";
+  confirmButton.textContent = "取り下げる（次工程で実装予定）";
+  confirmButton.disabled = true;
+
+  const cancelButton = document.createElement("button");
+  cancelButton.className = "session-application-button session-comment-button session-application-withdraw-cancel";
+  cancelButton.type = "button";
+  cancelButton.textContent = "キャンセル";
+
+  openButton.addEventListener("click", () => {
+    const willOpen = confirm.hidden;
+    confirm.hidden = !willOpen;
+    openButton.setAttribute("aria-expanded", String(willOpen));
+  });
+
+  cancelButton.addEventListener("click", () => {
+    confirm.hidden = true;
+    openButton.setAttribute("aria-expanded", "false");
+  });
+
+  actions.append(confirmButton, cancelButton);
+  confirm.append(title, confirmNote, disabledNote, actions);
+  container.append(note, openButton, confirm);
+  target.append(container);
+}
+
 function renderPostControl(target, options = {}) {
   if (!target) return;
   const authState = options.authState || "unknown";
@@ -551,6 +643,8 @@ function renderPostControl(target, options = {}) {
   const message = getOwnApplicationMessage(options.ownApplication);
   const status = getOwnApplicationStatus(options.ownApplication);
   target.append(createStateMessage(message, status === "rejected" ? "is-warn" : "is-ok"));
+
+  appendApplicationWithdrawUi(target, options.ownApplication);
 
   if (options.feedbackMessage) {
     target.append(createStateMessage(options.feedbackMessage, options.feedbackModifier || ""));

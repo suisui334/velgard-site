@@ -2407,6 +2407,61 @@ body[data-page="session-detail"] .session-comment-form {
   min-width: 0;
 }
 
+body[data-page="session-detail"] .session-application-withdraw {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(185, 154, 82, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 250, 235, 0.6);
+}
+
+body[data-page="session-detail"] .session-application-withdraw-note,
+body[data-page="session-detail"] .session-application-withdraw-confirm-title,
+body[data-page="session-detail"] .session-application-withdraw-confirm-note,
+body[data-page="session-detail"] .session-application-withdraw-disabled-note {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-application-withdraw-note,
+body[data-page="session-detail"] .session-application-withdraw-confirm-note,
+body[data-page="session-detail"] .session-application-withdraw-disabled-note {
+  color: #80682f;
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+body[data-page="session-detail"] .session-application-withdraw-confirm {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(135, 63, 53, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 246, 244, 0.56);
+}
+
+body[data-page="session-detail"] .session-application-withdraw-confirm[hidden] {
+  display: none;
+}
+
+body[data-page="session-detail"] .session-application-withdraw-confirm-title {
+  color: var(--soot);
+  font-size: 0.86rem;
+  font-weight: 900;
+  line-height: 1.55;
+}
+
+body[data-page="session-detail"] .session-application-withdraw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
 body[data-page="session-detail"] .session-comment-login-actions {
   display: flex;
   flex-wrap: wrap;
@@ -2724,7 +2779,9 @@ body[data-page="session-detail"] .session-comment-delete-confirm-button:not(:dis
 }
 
 body[data-page="session-detail"] .session-comment-delete-cancel:not(:disabled),
-body[data-page="session-detail"] .session-comment-edit-cancel:not(:disabled) {
+body[data-page="session-detail"] .session-comment-edit-cancel:not(:disabled),
+body[data-page="session-detail"] .session-application-withdraw-cancel:not(:disabled),
+body[data-page="session-detail"] .session-application-withdraw-open:not(:disabled) {
   border-color: rgba(86, 96, 106, 0.24);
   background: rgba(255, 255, 250, 0.84);
   color: var(--muted);
