@@ -469,3 +469,29 @@ M-11D-1時点ではSQL草案ファイルは作成しない。次工程M-11D-2で
 - `canceled` は安全に現在値を返す。
 - コメント本文は削除しない。
 - SQL Editor実行、DB変更、RPC実行、本番フロント実装、GM履歴RPC実装、`updates.json` 変更、commit / pushは行っていない。
+
+## 18. M-11D-2 SQL適用結果追記
+
+2026-06-01に、ユーザーがSupabase SQL Editorで `cancel_my_session_application(target_session_id text)` を作成した。適用結果は `docs/supabase-session-detail-application-withdraw-rpc-result.md` に分離して記録した。
+
+確認済み:
+
+- status制約に `canceled` が含まれる。
+- `session_applications` に `session_id` / `user_id` / `status` / `created_at` / `updated_at` / `canceled_at` がある。
+- 作成前に同名RPC `cancel_my_session_application` は存在しない。
+- 作成後の関数定義は `cancel_my_session_application(text)`、`security definer = true`、引数 `target_session_id text`。
+- 戻り値は `session_id` / `application_status` / `canceled_at` / `updated_at`。
+- grant確認では `authenticated EXECUTE` と `postgres EXECUTE` があり、`anon EXECUTE` はない。
+- `postgres EXECUTE` はownerまたは管理者側の表示として扱い、anon / PUBLICへの広いgrantとは見なさない。
+
+未実施:
+
+- RPC実行テストはまだ行っていない。
+- rollbackは未実行。
+- 本番フロント実装はまだ行っていない。
+- このdocs追記工程でCodexはSQL Editorを実行していない。
+- このdocs追記工程でCodexはDB変更、RPC実行、`updates.json` 変更、commit / pushを行っていない。
+
+注意:
+
+- `docs/supabase/sql/012_session_application_cancel_my_rpc_draft.sql` のRPC作成SQLは適用済みのため、通常運用では同じ作成SQLをそのまま再実行しない。

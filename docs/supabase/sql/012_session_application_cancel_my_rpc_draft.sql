@@ -2,9 +2,11 @@
 -- Velgard Supabase M-11D-2
 -- 012_session_application_cancel_my_rpc_draft.sql
 --
--- DRAFT ONLY:
---   This SQL draft has not been run in Supabase SQL Editor.
---   Do not run against production without review.
+-- APPLIED RESULT NOTE:
+--   User reported this RPC creation SQL was applied in Supabase SQL Editor
+--   on 2026-06-01. Keep this file as the reviewed draft / trace record.
+--   Do not rerun the create/replace section in normal operation unless a new
+--   reviewed change plan explicitly requires it.
 --   Do not paste Project URL, API keys, service role keys, DB passwords,
 --   direct connection strings, JWT secrets, tokens, real emails, or user IDs here.
 --   This draft creates/replaces one RPC definition and does not intentionally

@@ -154,7 +154,7 @@ docs/supabase/sql/012_session_application_cancel_my_rpc_draft.sql
 
 破壊的な成功系は専用fixtureと `RUN_DESTRUCTIVE_TESTS=true` の運用を分ける。
 
-## 13. 未実行事項
+## 13. 設計作成工程での未実行事項
 
 - SQL Editorは実行していない。
 - DB変更はしていない。
@@ -163,3 +163,32 @@ docs/supabase/sql/012_session_application_cancel_my_rpc_draft.sql
 - GM履歴RPCは実装していない。
 - `updates.json` は変更していない。
 - secret類、実Project URL、実key、実email、実user_id全文は記録していない。
+
+## 14. SQL適用結果追記
+
+2026-06-01に、ユーザーがSupabase SQL Editorで `cancel_my_session_application(target_session_id text)` を作成した。
+
+結果docs:
+
+```text
+docs/supabase-session-detail-application-withdraw-rpc-result.md
+```
+
+適用結果:
+
+- status制約に `canceled` が含まれることを確認済み。
+- `session_applications` の必要列を確認済み。
+- 同名RPCが作成前に存在しないことを確認済み。
+- RPC作成本体を実行し、成功。
+- 関数定義は `cancel_my_session_application(text)`、`security definer = true`、引数 `target_session_id text`。
+- 戻り値は `session_id / application_status / canceled_at / updated_at`。
+- grant確認では `authenticated EXECUTE` と `postgres EXECUTE` が出ており、`anon EXECUTE` は出ていない。
+- `postgres EXECUTE` はownerまたは管理者側の表示として扱い、anon / PUBLICへの広いgrantとは見なさない。
+
+注意:
+
+- `docs/supabase/sql/012_session_application_cancel_my_rpc_draft.sql` のRPC作成SQLは適用済みのため、通常運用では同じ作成SQLをそのまま再実行しない。
+- RPC実行テストはまだ行っていない。
+- rollbackは未実行。
+- このdocs追記工程でCodexはSQL Editorを実行していない。
+- このdocs追記工程でCodexはDB変更、RPC実行、本番フロント実装、`updates.json` 変更、commit / pushを行っていない。
