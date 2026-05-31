@@ -2603,6 +2603,23 @@ body[data-page="session-detail"] .session-comment-body {
   white-space: pre-wrap;
 }
 
+body[data-page="session-detail"] .session-comment-edit-form {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-comment-edit-textarea {
+  min-height: 136px;
+}
+
+body[data-page="session-detail"] .session-comment-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
 body[data-page="session-detail"] .session-comment-meta {
   color: var(--muted);
   font-size: 0.78rem;
@@ -2660,6 +2677,12 @@ body[data-page="session-detail"] .session-application-button:not(:disabled) {
 
 body[data-page="session-detail"] .session-application-button:not(:disabled):hover {
   filter: brightness(0.96);
+}
+
+body[data-page="session-detail"] .session-comment-edit-cancel:not(:disabled) {
+  border-color: rgba(86, 96, 106, 0.24);
+  background: rgba(255, 255, 250, 0.84);
+  color: var(--muted);
 }
 
 body[data-page="session-detail"] .session-application-button:disabled {

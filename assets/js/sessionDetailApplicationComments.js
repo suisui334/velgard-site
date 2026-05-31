@@ -3,10 +3,15 @@ const SDK_LOAD_KEY = "__VELGARD_SUPABASE_SDK_LOAD";
 const COMMENT_RPC = "get_public_session_comments";
 const COUNT_RPC = "get_public_session_application_counts";
 const POST_RPC = "create_application_comment";
+const UPDATE_RPC = "update_application_comment";
 const APPLICATION_SELECT_COLUMNS = "session_id,status,created_at,updated_at,canceled_at";
 const COMMENT_MAX_LENGTH = 4000;
 const POST_ALLOWED_STATUSES = new Set(["recruiting", "tentative"]);
-const COMMENT_ACTION_PENDING_MESSAGE = "編集・削除機能は次工程で実装予定です。";
+const COMMENT_DELETE_PENDING_MESSAGE = "削除機能は次工程で実装予定です。";
+const COMMENT_UPDATE_ERROR_MESSAGE = "コメントを保存できませんでした。時間をおいて再度お試しください。";
+const COMMENT_UPDATE_PERMISSION_MESSAGE = "編集権限がないか、コメントの状態が変更された可能性があります。";
+const panelEditStates = new WeakMap();
+const panelCommentRenderContexts = new WeakMap();
 
 const APPLICATION_STATUS_LABELS = Object.freeze({
   pending: "申請中",
@@ -195,6 +200,19 @@ async function createApplicationComment(client, sessionId, body) {
   if (error) throw new Error("application-comment-post-failed");
 }
 
+async function updateApplicationComment(client, commentId, body) {
+  const targetCommentId = String(commentId || "").trim();
+  if (!targetCommentId) throw new Error("application-comment-update-target-missing");
+
+  const { data, error } = await client.rpc(UPDATE_RPC, {
+    target_comment_id: targetCommentId,
+    comment_body: body
+  });
+
+  if (error) throw new Error("application-comment-update-failed");
+  assertNoSensitiveFields(data);
+}
+
 async function getAuthSession(client) {
   if (!client?.auth || typeof client.auth.getSession !== "function") {
     return { state: "unknown", session: null };
@@ -312,6 +330,47 @@ function setInlineStatus(target, message, modifier = "") {
   target.hidden = !message;
 }
 
+function getPanelEditState(panel) {
+  return panelEditStates.get(panel) || {
+    activeCommentId: "",
+    isPosting: false,
+    isSaving: false
+  };
+}
+
+function setPanelEditState(panel, patch = {}) {
+  if (!panel) return;
+  panelEditStates.set(panel, {
+    ...getPanelEditState(panel),
+    ...patch
+  });
+}
+
+function clearPanelEditMode(panel) {
+  setPanelEditState(panel, {
+    activeCommentId: "",
+    isSaving: false
+  });
+}
+
+function isPanelBusy(panel) {
+  const state = getPanelEditState(panel);
+  return Boolean(state.isPosting || state.isSaving);
+}
+
+function setRenderedEditButtonsDisabled(panel, disabled) {
+  if (!panel) return;
+  panel.querySelectorAll("[data-session-comment-edit-action]").forEach((button) => {
+    button.disabled = disabled;
+  });
+}
+
+function rerenderPanelComments(panel) {
+  const context = panelCommentRenderContexts.get(panel);
+  if (!context) return;
+  renderComments(context.target, context.rows, context.options);
+}
+
 function appendCommentForm(target, options = {}) {
   const form = document.createElement("form");
   form.className = "session-comment-form";
@@ -384,6 +443,8 @@ function appendCommentForm(target, options = {}) {
     }
 
     isSubmitting = true;
+    setPanelEditState(options.panel, { isPosting: true });
+    setRenderedEditButtonsDisabled(options.panel, true);
     form.setAttribute("aria-busy", "true");
     textarea.disabled = true;
     button.disabled = true;
@@ -393,12 +454,15 @@ function appendCommentForm(target, options = {}) {
       await createApplicationComment(options.client, options.sessionId, validation.body);
       textarea.value = "";
       setInlineStatus(status, "送信しました。表示を更新しています。", "is-ok");
+      setPanelEditState(options.panel, { isPosting: false });
       await refreshPanel(options.panel, options.sessionId, {
         feedbackMessage: "参加希望コメントを送信しました。",
         feedbackModifier: "is-ok"
       });
     } catch {
       isSubmitting = false;
+      setPanelEditState(options.panel, { isPosting: false });
+      rerenderPanelComments(options.panel);
       form.removeAttribute("aria-busy");
       textarea.disabled = false;
       updateAvailability(false);
@@ -510,7 +574,7 @@ function normalizeComments(rows) {
       updatedAt: String(row?.updated_at || "").trim(),
       editedAt: String(row?.edited_at || "").trim(),
       isOwn,
-      canEdit: isOwn && toBooleanFlag(row?.can_edit),
+      canEdit: toBooleanFlag(row?.can_edit),
       canDelete: isOwn && toBooleanFlag(row?.can_delete)
     };
   }).sort((a, b) => {
@@ -532,11 +596,137 @@ function renderCommentMeta(comment) {
   return parts.join(" / ");
 }
 
-function appendCommentOperationPreview(item, comment) {
-  const operations = [];
-  if (comment.canEdit) operations.push("編集");
-  if (comment.canDelete) operations.push("削除");
-  if (!operations.length) return;
+function canStartCommentEdit(comment, options = {}) {
+  const editState = getPanelEditState(options.panel);
+  return Boolean(
+    options.authState === "authenticated"
+    && comment.canEdit
+    && comment.commentId
+    && !editState.activeCommentId
+    && !isPanelBusy(options.panel)
+  );
+}
+
+function appendCommentEditForm(item, comment, rows, target, options = {}) {
+  const form = document.createElement("form");
+  form.className = "session-comment-edit-form";
+  form.noValidate = true;
+
+  const field = document.createElement("label");
+  field.className = "session-comment-field";
+
+  const labelText = document.createElement("span");
+  labelText.textContent = "コメント本文";
+
+  const textarea = document.createElement("textarea");
+  textarea.className = "session-comment-textarea session-comment-edit-textarea";
+  textarea.name = "application-comment-edit";
+  textarea.rows = 5;
+  textarea.value = comment.body;
+
+  field.append(labelText, textarea);
+
+  const actions = document.createElement("div");
+  actions.className = "session-comment-edit-actions";
+
+  const saveButton = document.createElement("button");
+  saveButton.className = "session-application-button session-comment-button session-comment-edit-save";
+  saveButton.type = "submit";
+  saveButton.textContent = "保存";
+
+  const cancelButton = document.createElement("button");
+  cancelButton.className = "session-application-button session-comment-button session-comment-edit-cancel";
+  cancelButton.type = "button";
+  cancelButton.textContent = "キャンセル";
+
+  actions.append(saveButton, cancelButton);
+
+  const status = document.createElement("p");
+  status.setAttribute("aria-live", "polite");
+  setInlineStatus(status, "");
+
+  let isSaving = false;
+
+  const updateAvailability = (showValidation = false) => {
+    const validation = validateCommentBody(textarea.value);
+    saveButton.disabled = isSaving || !validation.ok;
+    cancelButton.disabled = isSaving;
+
+    if (showValidation && !validation.ok) {
+      setInlineStatus(status, validation.message, "is-error");
+      return;
+    }
+
+    if (!isSaving) {
+      setInlineStatus(status, "");
+    }
+  };
+
+  textarea.addEventListener("input", () => updateAvailability(true));
+
+  cancelButton.addEventListener("click", () => {
+    if (isSaving) return;
+    clearPanelEditMode(options.panel);
+    renderComments(target, rows, options);
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (isSaving) return;
+
+    if (
+      options.authState !== "authenticated"
+      || !comment.canEdit
+      || !comment.commentId
+      || isPanelBusy(options.panel)
+    ) {
+      setInlineStatus(status, COMMENT_UPDATE_PERMISSION_MESSAGE, "is-error");
+      return;
+    }
+
+    const validation = validateCommentBody(textarea.value);
+    if (!validation.ok) {
+      updateAvailability(false);
+      setInlineStatus(status, validation.message, "is-error");
+      return;
+    }
+
+    isSaving = true;
+    setPanelEditState(options.panel, { isSaving: true });
+    setRenderedEditButtonsDisabled(options.panel, true);
+    form.setAttribute("aria-busy", "true");
+    textarea.disabled = true;
+    saveButton.disabled = true;
+    cancelButton.disabled = true;
+    setInlineStatus(status, "保存中です。", "is-warn");
+
+    try {
+      await updateApplicationComment(options.client, comment.commentId, validation.body);
+      setInlineStatus(status, "保存しました。表示を更新しています。", "is-ok");
+      clearPanelEditMode(options.panel);
+      await refreshPanel(options.panel, options.sessionId, {
+        feedbackMessage: "参加希望コメントを保存しました。",
+        feedbackModifier: "is-ok"
+      });
+    } catch {
+      isSaving = false;
+      setPanelEditState(options.panel, { isSaving: false });
+      form.removeAttribute("aria-busy");
+      textarea.disabled = false;
+      updateAvailability(false);
+      setInlineStatus(status, COMMENT_UPDATE_ERROR_MESSAGE, "is-error");
+    }
+  });
+
+  updateAvailability(false);
+  form.append(field, actions, status);
+  item.append(form);
+}
+
+function appendCommentOperationPreview(item, comment, rows, target, options = {}) {
+  const showEdit = comment.canEdit;
+  const showDelete = comment.canDelete;
+  if (!showEdit && !showDelete) return;
 
   const preview = document.createElement("div");
   preview.className = "session-comment-operation-preview";
@@ -544,27 +734,56 @@ function appendCommentOperationPreview(item, comment) {
   const buttons = document.createElement("div");
   buttons.className = "session-comment-operation-buttons";
 
-  for (const label of operations) {
+  if (showEdit) {
+    const editButton = document.createElement("button");
+    editButton.className = "session-application-button session-comment-operation-button";
+    editButton.type = "button";
+    editButton.textContent = "編集";
+    editButton.dataset.sessionCommentEditAction = "true";
+    editButton.disabled = !canStartCommentEdit(comment, options);
+    editButton.addEventListener("click", () => {
+      if (!canStartCommentEdit(comment, options)) return;
+      setPanelEditState(options.panel, { activeCommentId: comment.commentId, isSaving: false });
+      renderComments(target, rows, options);
+    });
+    buttons.append(editButton);
+  }
+
+  if (showDelete) {
     const button = document.createElement("button");
     button.className = "session-application-button session-comment-operation-button";
     button.type = "button";
     button.disabled = true;
-    button.setAttribute("aria-label", `${label}機能は次工程で実装予定です`);
-    button.textContent = label;
+    button.setAttribute("aria-label", "削除機能は次工程で実装予定です");
+    button.textContent = "削除";
     buttons.append(button);
   }
 
-  const note = document.createElement("p");
-  note.className = "session-comment-operation-note";
-  note.textContent = COMMENT_ACTION_PENDING_MESSAGE;
+  preview.append(buttons);
 
-  preview.append(buttons, note);
+  const noteText = (() => {
+    if (showDelete) return COMMENT_DELETE_PENDING_MESSAGE;
+    if (showEdit && !comment.commentId) return "コメントを確認できませんでした。表示を更新してください。";
+    return "";
+  })();
+
+  if (noteText) {
+    const note = document.createElement("p");
+    note.className = "session-comment-operation-note";
+    note.textContent = noteText;
+    preview.append(note);
+  }
+
   item.append(preview);
 }
 
-function renderComments(target, rows) {
+function renderComments(target, rows, options = {}) {
   if (!target) return;
+  if (options.panel) {
+    panelCommentRenderContexts.set(options.panel, { target, rows, options });
+  }
   const comments = normalizeComments(rows);
+  const editState = getPanelEditState(options.panel);
   target.replaceChildren();
 
   if (!comments.length) {
@@ -592,12 +811,18 @@ function renderComments(target, rows) {
 
     header.append(name, status);
 
-    const body = document.createElement("p");
-    body.className = "session-comment-body";
-    body.textContent = comment.body;
-
     const metaText = renderCommentMeta(comment);
-    item.append(header, body);
+    item.append(header);
+
+    if (editState.activeCommentId && editState.activeCommentId === comment.commentId) {
+      appendCommentEditForm(item, comment, rows, target, options);
+    } else {
+      const body = document.createElement("p");
+      body.className = "session-comment-body";
+      body.textContent = comment.body;
+      item.append(body);
+    }
+
     if (metaText) {
       const meta = document.createElement("p");
       meta.className = "session-comment-meta";
@@ -605,7 +830,9 @@ function renderComments(target, rows) {
       item.append(meta);
     }
 
-    appendCommentOperationPreview(item, comment);
+    if (!editState.activeCommentId || editState.activeCommentId !== comment.commentId) {
+      appendCommentOperationPreview(item, comment, rows, target, options);
+    }
     list.append(item);
   }
 
@@ -645,12 +872,6 @@ async function refreshPanel(panel, sessionId, options = {}) {
       getAuthSession(client)
     ]);
 
-    if (commentsResult.status === "fulfilled") {
-      renderComments(commentsTarget, commentsResult.value);
-    } else {
-      setState(commentsTarget, "参加希望コメントを取得できませんでした", "is-error");
-    }
-
     if (countsResult.status === "fulfilled") {
       renderCounts(countsTarget, countsResult.value);
     } else {
@@ -670,6 +891,17 @@ async function refreshPanel(panel, sessionId, options = {}) {
     }
 
     renderAuthNote(authNote, authContext.state);
+    if (commentsResult.status === "fulfilled") {
+      renderComments(commentsTarget, commentsResult.value, {
+        client,
+        panel,
+        sessionId,
+        authState: authContext.state
+      });
+    } else {
+      setState(commentsTarget, "参加希望コメントを取得できませんでした", "is-error");
+    }
+
     renderPostControl(postTarget, {
       client,
       panel,

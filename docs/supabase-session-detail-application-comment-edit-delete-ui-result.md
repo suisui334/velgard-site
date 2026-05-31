@@ -83,11 +83,13 @@ M-11C-2として、`session-detail.html` の参加希望コメント一覧で、
 
 ## 8. 次工程
 
-次工程では、編集準備UIから `update_application_comment` へ接続する段階に進む。
+当時の次工程では、編集準備UIから `update_application_comment` へ接続する段階に進む。
 
 削除RPC接続、GM承認 / 却下、GM編集 / 削除、`close_session` は引き続き別工程で扱う。
 
 将来候補として、参加希望コメント一覧に「新しい順 / 古い順」切替を追加する余地がある。初期表示は新しい順を基本とする。
+
+2026-06-01追記: M-11C-3として、編集準備UIを `update_application_comment` へ接続済み。編集モード、保存 / キャンセル、空欄 / 4000文字超過バリデーション、保存成功後の再取得フローを追加した。削除RPC接続、GM操作、`close_session` は未実装のまま。結果は `docs/supabase-session-detail-application-comment-edit-result.md` に分離した。
 
 ## 9. 実行していないこと
 
