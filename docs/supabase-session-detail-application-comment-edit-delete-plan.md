@@ -200,6 +200,14 @@ can_delete boolean
 
 現在のコメント描画では `normalizeComments()` が `comment_id` を保持していない。編集・削除UIを出す場合は、内部状態として `commentId`、`canEdit`、`canDelete` を保持しつつ、画面テキストには出さない形に変更する必要がある。
 
+M-11C-1後の現状:
+
+- `get_public_session_comments(target_session_id text)` は11列版へ置換済み。
+- 既存8列の末尾に `is_own`, `can_edit`, `can_delete` が追加済み。
+- `user_id`, email, Discord ID, role, `application_id`, `edited_by`, `deleted_by` は返さない。
+- 現行フロントはまだ追加3列を利用していないため、M-11C-2で `normalizeComments()` の内部状態へ取り込む。
+- SQL適用結果は `docs/supabase-session-detail-application-comment-own-flags-result.md` に記録済み。
+
 ## 8. 編集UIの差し込み位置案
 
 M-11C本実装では、自分のコメントだけに編集UIを出す。

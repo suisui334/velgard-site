@@ -2,11 +2,15 @@
 -- Velgard Supabase M-11C-1
 -- 011_session_comment_own_flags_rpc_draft.sql
 --
--- DRAFT ONLY:
---   Do not run this SQL until it has been reviewed.
+-- APPLIED / DRAFT HISTORY NOTE:
+--   This SQL was applied on 2026-06-01 after review.
+--   Do not rerun the replacement section as routine operation.
+--   For future changes, create a new reviewed SQL draft based on the current
+--   11-column function definition.
 --   Do not paste Project URL, API keys, service role keys, DB passwords,
 --   direct connection strings, JWT secrets, tokens, real emails, or user IDs here.
 --   This draft does not change data by itself, but it replaces an RPC definition.
+--   Rollback has not been executed.
 -- ============================================================
 
 -- Purpose:

@@ -291,7 +291,26 @@ M-11C-5:
 
 GM/adminのコメント編集・削除UI、GM承認・却下UIは今回もM-11C-2以降の本人UIとは分ける。
 
-## 12. 今回実行していないこと
+## 12. SQL適用結果追記
+
+2026-06-01に、ユーザーがSupabase SQL Editorで `docs/supabase/sql/011_session_comment_own_flags_rpc_draft.sql` を適用し、`public.get_public_session_comments(target_session_id text)` は11列版へ置換済み。
+
+適用結果は `docs/supabase-session-detail-application-comment-own-flags-result.md` に分離して記録した。
+
+概要:
+
+- 既存8列を維持したまま、末尾に `is_own`, `can_edit`, `can_delete` が追加された。
+- `anon` では3列とも `false`。
+- `authenticated` 本人コメントでは3列とも `true`。
+- 他人コメントでは3列とも `false`。
+- `user_id`, email, Discord ID, role, `application_id`, `edited_by`, `deleted_by` は返さない。
+- grant確認で `anon` / `authenticated` に `EXECUTE` があることを確認済み。
+- `postgres` もgrant結果に表示されたが、管理者/所有者側の表示として問題扱いしない。
+- 既存 `session-detail.html?id=session-2026-06-08-railway-incident` の表示が壊れていないことを確認済み。
+- rollbackは未実行。
+- 同じ置換SQLは通常運用で再実行しない。
+
+## 13. 計画作成時に実行していないこと
 
 - Supabase SQL EditorでSQLを実行していない。
 - DBデータを変更していない。
