@@ -61,6 +61,20 @@ order by grantee, privilege_type;
 -- Review current function body before replacement.
 select pg_catalog.pg_get_functiondef('public.get_public_session_comments(text)'::regprocedure);
 
+-- Confirm the existing callable column shape without returning data.
+-- Expected pre-replacement shape: the original 8 columns only.
+select
+  comment_id,
+  session_id,
+  display_name,
+  body,
+  application_status,
+  created_at,
+  updated_at,
+  edited_at
+from public.get_public_session_comments('__REPLACE_WITH_PUBLIC_SESSION_ID__')
+limit 0;
+
 -- Stop before running the replacement if:
 --   - the function has unexpected overloads or arguments,
 --   - the existing return columns differ from the M-11 docs,
@@ -74,9 +88,13 @@ select pg_catalog.pg_get_functiondef('public.get_public_session_comments(text)':
 
 -- PostgreSQL cannot change a function's table return type with CREATE OR REPLACE
 -- alone. Use a transaction and do not use CASCADE; if DROP fails, stop and review.
+-- Run this replacement section as one block. Do not continue after a transaction
+-- error; rollback and review instead.
 begin;
 
-drop function if exists public.get_public_session_comments(text);
+-- The function is expected to exist. If this fails because it is missing, stop
+-- and confirm the target project/schema instead of silently creating a new RPC.
+drop function public.get_public_session_comments(text);
 
 create function public.get_public_session_comments(
   target_session_id text
@@ -174,7 +192,23 @@ select
 from public.get_public_session_comments('__REPLACE_WITH_PUBLIC_SESSION_ID__')
 limit 0;
 
+-- Verify execute grants were restored and not widened.
+-- Expected grantees: anon and authenticated only.
+select
+  routine_name,
+  grantee,
+  privilege_type
+from information_schema.routine_privileges
+where routine_schema = 'public'
+  and routine_name = 'get_public_session_comments'
+order by grantee, privilege_type;
+
 -- Manual behavior checks to run only with reviewed disposable/auth-context fixtures:
+--   SQL Editor usually runs with owner/editor privileges. Do not use SQL Editor
+--   results to infer anon/authenticated behavior. Verify these cases through
+--   the site, a reviewed smoke test, or Supabase client/REST calls that use
+--   anon/publishable credentials plus real signed-in test users. Do not use
+--   service_role or other privileged credentials for these auth-context checks.
 --   anon:
 --     is_own = false, can_edit = false, can_delete = false for all returned rows.
 --   authenticated owner:
@@ -196,7 +230,7 @@ limit 0;
 --
 -- begin;
 --
--- drop function if exists public.get_public_session_comments(text);
+-- drop function public.get_public_session_comments(text);
 --
 -- create function public.get_public_session_comments(
 --   target_session_id text
