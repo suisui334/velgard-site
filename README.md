@@ -90,6 +90,7 @@ py -m http.server 4173 -d velgard-site
   - `docs/supabase-session-detail-application-comment-own-flags-result.md`: Supabase M-11C-1 session-detail 参加希望コメント本人判定RPC SQL適用結果
   - `docs/supabase-session-detail-application-comment-edit-delete-ui-result.md`: Supabase M-11C-2 session-detail 参加希望コメント編集・削除準備UI 実装結果
   - `docs/supabase-session-detail-application-comment-edit-result.md`: Supabase M-11C-3 session-detail 参加希望コメント編集RPC 実装結果
+  - `docs/supabase-session-detail-application-comment-delete-result.md`: Supabase M-11C-4 session-detail 参加希望コメント削除RPC 実装結果
   - `docs/supabase-rls-test-matrix.md`: Supabase RLSテストケース表
   - `docs/supabase/sql/`: Supabase最小スキーマ、RLS/GRANT、RPCの実行候補SQL草案
 
@@ -1502,3 +1503,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - M-11C-1として、公開コメントRPC `get_public_session_comments(target_session_id text)` は既存8列の末尾に `is_own` / `can_edit` / `can_delete` を追加した11列版へ更新済み。`user_id` / email / Discord ID / role / `application_id` は返さない。適用結果は `docs/supabase-session-detail-application-comment-own-flags-result.md` に整理済み。
 - M-11C-2として、`session-detail.html` の参加希望コメント一覧で `is_own` / `can_edit` / `can_delete` を正規化し、自分のコメントだけにdisabledの編集 / 削除準備UIを表示するようにした。他人コメントには表示せず、編集 / 削除RPC呼び出し、SQL Editor実行、DB変更、GM操作、`updates.json` 変更は行っていない。follow-upでコメント初期表示を `created_at` 降順の新しい順にした。将来、参加希望コメント一覧に「新しい順 / 古い順」切替を追加する余地あり。実装結果は `docs/supabase-session-detail-application-comment-edit-delete-ui-result.md` に整理済み。
 - M-11C-3として、ログイン済みPL本人の参加希望コメント編集UIを `update_application_comment` に接続した。編集ボタン押下で対象カードだけをtextarea編集モードにし、保存時は空欄 / 4000文字超過を検証してからRPCを呼び、成功後にコメント一覧・公開カウント・本人申請状態を再取得する。削除RPC、GM操作、SQL Editor実行、DB変更、Codex側での編集保存実行、`updates.json` 変更は行っていない。実装結果は `docs/supabase-session-detail-application-comment-edit-result.md` に整理済み。
+- M-11C-4として、ログイン済みPL本人の参加希望コメント削除UIを `delete_application_comment_and_maybe_cancel` に接続した。`can_delete === true` かつログイン済み、内部 `comment_id` あり、投稿中 / 保存中 / 削除中でない場合だけ削除ボタンを有効化し、対象カード内で確認UIを挟んでからRPCを呼ぶ。成功後に公開コメント一覧・公開カウント・本人申請状態を再取得する。GM操作、SQL Editor実行、DB変更、Codex側での削除確定実行、`updates.json` 変更は行っていない。実装結果は `docs/supabase-session-detail-application-comment-delete-result.md` に整理済み。

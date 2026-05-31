@@ -4,12 +4,16 @@ const COMMENT_RPC = "get_public_session_comments";
 const COUNT_RPC = "get_public_session_application_counts";
 const POST_RPC = "create_application_comment";
 const UPDATE_RPC = "update_application_comment";
+const DELETE_RPC = "delete_application_comment_and_maybe_cancel";
 const APPLICATION_SELECT_COLUMNS = "session_id,status,created_at,updated_at,canceled_at";
 const COMMENT_MAX_LENGTH = 4000;
 const POST_ALLOWED_STATUSES = new Set(["recruiting", "tentative"]);
-const COMMENT_DELETE_PENDING_MESSAGE = "削除機能は次工程で実装予定です。";
 const COMMENT_UPDATE_ERROR_MESSAGE = "コメントを保存できませんでした。時間をおいて再度お試しください。";
 const COMMENT_UPDATE_PERMISSION_MESSAGE = "編集権限がないか、コメントの状態が変更された可能性があります。";
+const COMMENT_DELETE_ERROR_MESSAGE = "コメントを削除できませんでした。時間をおいて再度お試しください。";
+const COMMENT_DELETE_PERMISSION_MESSAGE = "権限がないか、コメントの状態が変更された可能性があります。";
+const COMMENT_DELETE_CONFIRM_TEXT = "この参加希望コメントを削除しますか？";
+const COMMENT_DELETE_CONFIRM_NOTE = "最後の有効コメントを削除した場合、参加申請が取り消されることがあります。";
 const panelEditStates = new WeakMap();
 const panelCommentRenderContexts = new WeakMap();
 
@@ -213,6 +217,18 @@ async function updateApplicationComment(client, commentId, body) {
   assertNoSensitiveFields(data);
 }
 
+async function deleteApplicationComment(client, commentId) {
+  const targetCommentId = String(commentId || "").trim();
+  if (!targetCommentId) throw new Error("application-comment-delete-target-missing");
+
+  const { data, error } = await client.rpc(DELETE_RPC, {
+    target_comment_id: targetCommentId
+  });
+
+  if (error) throw new Error("application-comment-delete-failed");
+  assertNoSensitiveFields(data);
+}
+
 async function getAuthSession(client) {
   if (!client?.auth || typeof client.auth.getSession !== "function") {
     return { state: "unknown", session: null };
@@ -331,10 +347,13 @@ function setInlineStatus(target, message, modifier = "") {
 }
 
 function getPanelEditState(panel) {
-  return panelEditStates.get(panel) || {
+  return {
     activeCommentId: "",
+    activeDeleteCommentId: "",
     isPosting: false,
-    isSaving: false
+    isSaving: false,
+    isDeleting: false,
+    ...(panelEditStates.get(panel) || {})
   };
 }
 
@@ -353,14 +372,23 @@ function clearPanelEditMode(panel) {
   });
 }
 
-function isPanelBusy(panel) {
-  const state = getPanelEditState(panel);
-  return Boolean(state.isPosting || state.isSaving);
+function clearPanelDeleteMode(panel) {
+  setPanelEditState(panel, {
+    activeDeleteCommentId: "",
+    isDeleting: false
+  });
 }
 
-function setRenderedEditButtonsDisabled(panel, disabled) {
+function isPanelBusy(panel) {
+  const state = getPanelEditState(panel);
+  return Boolean(state.isPosting || state.isSaving || state.isDeleting);
+}
+
+function setRenderedOperationButtonsDisabled(panel, disabled) {
   if (!panel) return;
-  panel.querySelectorAll("[data-session-comment-edit-action]").forEach((button) => {
+  panel.querySelectorAll(
+    "[data-session-comment-edit-action], [data-session-comment-delete-action], [data-session-comment-delete-confirm-action]"
+  ).forEach((button) => {
     button.disabled = disabled;
   });
 }
@@ -444,7 +472,7 @@ function appendCommentForm(target, options = {}) {
 
     isSubmitting = true;
     setPanelEditState(options.panel, { isPosting: true });
-    setRenderedEditButtonsDisabled(options.panel, true);
+    setRenderedOperationButtonsDisabled(options.panel, true);
     form.setAttribute("aria-busy", "true");
     textarea.disabled = true;
     button.disabled = true;
@@ -575,7 +603,7 @@ function normalizeComments(rows) {
       editedAt: String(row?.edited_at || "").trim(),
       isOwn,
       canEdit: toBooleanFlag(row?.can_edit),
-      canDelete: isOwn && toBooleanFlag(row?.can_delete)
+      canDelete: toBooleanFlag(row?.can_delete)
     };
   }).sort((a, b) => {
     const aTime = getCommentCreatedTime(a);
@@ -603,6 +631,19 @@ function canStartCommentEdit(comment, options = {}) {
     && comment.canEdit
     && comment.commentId
     && !editState.activeCommentId
+    && !editState.activeDeleteCommentId
+    && !isPanelBusy(options.panel)
+  );
+}
+
+function canStartCommentDelete(comment, options = {}) {
+  const editState = getPanelEditState(options.panel);
+  return Boolean(
+    options.authState === "authenticated"
+    && comment.canDelete
+    && comment.commentId
+    && !editState.activeCommentId
+    && !editState.activeDeleteCommentId
     && !isPanelBusy(options.panel)
   );
 }
@@ -693,7 +734,7 @@ function appendCommentEditForm(item, comment, rows, target, options = {}) {
 
     isSaving = true;
     setPanelEditState(options.panel, { isSaving: true });
-    setRenderedEditButtonsDisabled(options.panel, true);
+    setRenderedOperationButtonsDisabled(options.panel, true);
     form.setAttribute("aria-busy", "true");
     textarea.disabled = true;
     saveButton.disabled = true;
@@ -723,11 +764,105 @@ function appendCommentEditForm(item, comment, rows, target, options = {}) {
   item.append(form);
 }
 
+function appendCommentDeleteConfirm(preview, comment, rows, target, options = {}) {
+  const confirm = document.createElement("div");
+  confirm.className = "session-comment-delete-confirm";
+  confirm.setAttribute("role", "group");
+  confirm.setAttribute("aria-label", "参加希望コメント削除の確認");
+
+  const message = document.createElement("p");
+  message.className = "session-comment-delete-confirm-text";
+  message.textContent = COMMENT_DELETE_CONFIRM_TEXT;
+
+  const note = document.createElement("p");
+  note.className = "session-comment-delete-confirm-note";
+  note.textContent = COMMENT_DELETE_CONFIRM_NOTE;
+
+  const actions = document.createElement("div");
+  actions.className = "session-comment-delete-confirm-actions";
+
+  const deleteButton = document.createElement("button");
+  deleteButton.className = "session-application-button session-comment-button session-comment-delete-confirm-button";
+  deleteButton.type = "button";
+  deleteButton.textContent = "削除する";
+  deleteButton.dataset.sessionCommentDeleteConfirmAction = "true";
+
+  const cancelButton = document.createElement("button");
+  cancelButton.className = "session-application-button session-comment-button session-comment-delete-cancel";
+  cancelButton.type = "button";
+  cancelButton.textContent = "キャンセル";
+  cancelButton.dataset.sessionCommentDeleteConfirmAction = "true";
+
+  actions.append(deleteButton, cancelButton);
+
+  const status = document.createElement("p");
+  status.setAttribute("aria-live", "polite");
+  setInlineStatus(status, "");
+
+  let isDeleting = Boolean(getPanelEditState(options.panel).isDeleting);
+
+  const updateAvailability = () => {
+    deleteButton.disabled = isDeleting;
+    cancelButton.disabled = isDeleting;
+  };
+
+  cancelButton.addEventListener("click", () => {
+    if (isDeleting) return;
+    clearPanelDeleteMode(options.panel);
+    renderComments(target, rows, options);
+  });
+
+  deleteButton.addEventListener("click", async () => {
+    if (isDeleting) return;
+
+    const state = getPanelEditState(options.panel);
+    if (
+      options.authState !== "authenticated"
+      || !comment.canDelete
+      || !comment.commentId
+      || state.activeDeleteCommentId !== comment.commentId
+      || state.isPosting
+      || state.isSaving
+    ) {
+      setInlineStatus(status, COMMENT_DELETE_PERMISSION_MESSAGE, "is-error");
+      return;
+    }
+
+    isDeleting = true;
+    setPanelEditState(options.panel, { isDeleting: true });
+    setRenderedOperationButtonsDisabled(options.panel, true);
+    confirm.setAttribute("aria-busy", "true");
+    updateAvailability();
+    setInlineStatus(status, "削除中です。", "is-warn");
+
+    try {
+      await deleteApplicationComment(options.client, comment.commentId);
+      setInlineStatus(status, "削除しました。表示を更新しています。", "is-ok");
+      clearPanelDeleteMode(options.panel);
+      await refreshPanel(options.panel, options.sessionId, {
+        feedbackMessage: "参加希望コメントを削除しました。",
+        feedbackModifier: "is-ok"
+      });
+    } catch {
+      isDeleting = false;
+      setPanelEditState(options.panel, { isDeleting: false });
+      confirm.removeAttribute("aria-busy");
+      updateAvailability();
+      setInlineStatus(status, COMMENT_DELETE_ERROR_MESSAGE, "is-error");
+    }
+  });
+
+  updateAvailability();
+  confirm.append(message, note, actions, status);
+  preview.append(confirm);
+}
+
 function appendCommentOperationPreview(item, comment, rows, target, options = {}) {
   const showEdit = comment.canEdit;
   const showDelete = comment.canDelete;
   if (!showEdit && !showDelete) return;
 
+  const editState = getPanelEditState(options.panel);
   const preview = document.createElement("div");
   preview.className = "session-comment-operation-preview";
 
@@ -751,19 +886,23 @@ function appendCommentOperationPreview(item, comment, rows, target, options = {}
 
   if (showDelete) {
     const button = document.createElement("button");
-    button.className = "session-application-button session-comment-operation-button";
+    button.className = "session-application-button session-comment-operation-button session-comment-delete-button";
     button.type = "button";
-    button.disabled = true;
-    button.setAttribute("aria-label", "削除機能は次工程で実装予定です");
     button.textContent = "削除";
+    button.dataset.sessionCommentDeleteAction = "true";
+    button.disabled = !canStartCommentDelete(comment, options);
+    button.addEventListener("click", () => {
+      if (!canStartCommentDelete(comment, options)) return;
+      setPanelEditState(options.panel, { activeDeleteCommentId: comment.commentId, isDeleting: false });
+      renderComments(target, rows, options);
+    });
     buttons.append(button);
   }
 
   preview.append(buttons);
 
   const noteText = (() => {
-    if (showDelete) return COMMENT_DELETE_PENDING_MESSAGE;
-    if (showEdit && !comment.commentId) return "コメントを確認できませんでした。表示を更新してください。";
+    if ((showEdit || showDelete) && !comment.commentId) return "コメントを確認できませんでした。表示を更新してください。";
     return "";
   })();
 
@@ -772,6 +911,10 @@ function appendCommentOperationPreview(item, comment, rows, target, options = {}
     note.className = "session-comment-operation-note";
     note.textContent = noteText;
     preview.append(note);
+  }
+
+  if (showDelete && editState.activeDeleteCommentId === comment.commentId) {
+    appendCommentDeleteConfirm(preview, comment, rows, target, options);
   }
 
   item.append(preview);
