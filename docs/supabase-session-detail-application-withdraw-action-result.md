@@ -176,3 +176,21 @@ Codex側で確認する範囲:
 - `updates.json` は変更していない。
 - secret類、実Project URL、実key、email、内部IDの実値は記録していない。
 - `git add .`、commit、pushは行っていない。
+
+## 13. M-11D-6 再申請復帰確認
+
+ユーザー実ブラウザで、申請取り下げ後に参加希望コメントを投稿し直すと再申請扱いになることを確認済み。
+
+確認結果は `docs/supabase-session-detail-application-withdraw-reapply-result.md` に分離して記録した。
+
+要点:
+
+- 辞退後もコメントは残る。
+- 辞退後は申請中人数から除外される。
+- 辞退後はmypageの参加申請中から対象セッションが消える。
+- 再度コメント投稿すると、既存方針どおり「コメント投稿 = 参加申請」として扱われる。
+- `session_applications.status` は `canceled` から `pending` 相当に復帰する挙動として扱う。
+- コメントは増えるが、申請人数はユーザー単位で重複カウントされない。
+- 公開版でも確認済み。
+
+この追記工程で、フロント実装、SQL Editor実行、DB変更、`updates.json` 変更、secret類の記録、commit / pushは行っていない。

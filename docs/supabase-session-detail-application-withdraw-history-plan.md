@@ -495,3 +495,21 @@ M-11D-1時点ではSQL草案ファイルは作成しない。次工程M-11D-2で
 注意:
 
 - `docs/supabase/sql/012_session_application_cancel_my_rpc_draft.sql` のRPC作成SQLは適用済みのため、通常運用では同じ作成SQLをそのまま再実行しない。
+
+## 19. M-11D-6 再申請復帰確認追記
+
+2026-06-01に、ユーザー実ブラウザで辞退後の再申請復帰を確認した。詳細は `docs/supabase-session-detail-application-withdraw-reapply-result.md` に分離して記録した。
+
+確認済み:
+
+- 申請取り下げ後も、コメント本文は削除されず残る。
+- 申請取り下げ後、公開人数カウントの申請中人数から除外される。
+- 申請取り下げ後、mypageの参加申請中から対象セッションが消える。
+- 参加希望コメントを投稿し直すと、再申請扱いになる。
+- `create_application_comment` により、`session_applications.status` は `canceled` から `pending` 相当に復帰する挙動として扱う。
+- コメントは増えても、申請人数はユーザー単位のため重複カウントされない。
+- 公開版でも確認済み。
+
+これにより、M-11D本線では「辞退は別ボタン」「再申請は既存の参加希望コメント投稿」という方針を維持する。
+
+この追記工程で、フロント実装、SQL Editor実行、DB変更、`updates.json` 変更、secret類の記録、commit / pushは行っていない。
