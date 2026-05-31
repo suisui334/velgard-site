@@ -2389,10 +2389,33 @@ body[data-page="session-detail"] .session-application-note {
   color: var(--muted);
 }
 
+body[data-page="session-detail"] .session-comment-post-control {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
 body[data-page="session-detail"] .session-comment-form-mock {
   display: grid;
   gap: 10px;
   min-width: 0;
+}
+
+body[data-page="session-detail"] .session-comment-form {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-comment-login-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-comment-login-link {
+  min-height: 40px;
 }
 
 body[data-page="session-detail"] .session-comment-field {
@@ -2463,6 +2486,18 @@ body[data-page="session-detail"] .session-comment-state.is-error {
   border-color: rgba(135, 63, 53, 0.28);
   background: rgba(255, 246, 244, 0.72);
   color: var(--rust);
+}
+
+body[data-page="session-detail"] .session-comment-state.is-ok {
+  border-color: rgba(111, 143, 104, 0.26);
+  background: rgba(245, 250, 242, 0.74);
+  color: var(--herb);
+}
+
+body[data-page="session-detail"] .session-comment-state.is-warn {
+  border-color: rgba(185, 154, 82, 0.28);
+  background: rgba(255, 250, 235, 0.74);
+  color: #80682f;
 }
 
 body[data-page="session-detail"] .session-comment-count-grid {
@@ -2586,6 +2621,10 @@ body[data-page="session-detail"] .session-application-button {
   color: var(--muted);
   font-weight: 800;
   cursor: not-allowed;
+}
+
+body[data-page="session-detail"] .session-application-button:disabled {
+  opacity: 0.78;
 }
 
 body[data-page="session-detail"] .session-comment-button {

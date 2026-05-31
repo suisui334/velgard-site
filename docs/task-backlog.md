@@ -452,4 +452,5 @@
 - session-detail の締切時間表示は、`data/sessions.json` に `applicationDeadline` / `deadlineTime` 等の明示フィールドを追加する設計が必要。`startTime` / `endTime` は開催時刻であり、締切時間として流用しない。
 - セッション種別は自由タグではなく、将来 `data/sessions.json` に `sessionType` または `type` のような明示フィールドを追加して扱う。候補は `単発シナリオ`、`キャンペーン`、`特殊`、`その他`。`session-detail` / `calendar` / 一覧で表示し、calendar の種別フィルターへ展開する。
 - M-11B実装前調査・設計完了: `docs/supabase-session-detail-application-comment-post-plan.md` に、`create_application_comment(target_session_id text, comment_body text)` の正確な仕様、既存申請状態ごとの挙動、投稿フォーム差し込み位置、ログイン状態取得、本人申請状態取得、バリデーション、投稿後再取得、エラー処理、RLS smoke test更新案を整理済み。この工程では投稿UI実装、RPC実呼び出し、SQL Editor実行、DB変更は行っていない。
-- 次工程候補はM-11Bとして、ログイン済みPLの参加希望コメント投稿を `create_application_comment` で統合すること。自分の申請状態、編集・削除、GM操作は引き続き段階分割して扱う。
+- M-11B-1完了: `session-detail.html` の参加希望コメント欄に、ログイン状態取得、本人申請状態取得、未ログイン時のACCOUNT導線、ログイン済み時のdisabled投稿フォーム器、申請状態別案内を追加済み。`create_application_comment` は呼び出さず、投稿、編集、削除、GM操作、`close_session`、SQL実行、DB変更は扱っていない。実装結果は `docs/supabase-session-detail-application-comment-post-ui-result.md` に整理済み。
+- 次工程候補はM-11B-2として、ログイン済みPLの参加希望コメント投稿を `create_application_comment` で統合すること。投稿後再取得、編集・削除、GM操作は引き続き段階分割して扱う。

@@ -113,6 +113,7 @@ export function renderSessionSummary(session) {
 
 function renderSessionApplicationPanel(session) {
   const status = session?.status;
+  const visibility = session?.visibility;
   const statusClass = `is-${getSessionStatusClass(status)}`;
   const lead = (() => {
     if (status === "closed") return "このセッションは募集を締め切っています。参加希望コメントは読み取り専用で確認できます。";
@@ -123,11 +124,14 @@ function renderSessionApplicationPanel(session) {
   })();
 
   return `
-    <section class="session-application-panel session-comment-application-panel is-readonly ${escapeHtml(statusClass)}" data-session-application-panel data-session-id="${escapeHtml(session?.id || "")}" aria-labelledby="session-application-title">
+    <section class="session-application-panel session-comment-application-panel is-readonly ${escapeHtml(statusClass)}" data-session-application-panel data-session-id="${escapeHtml(session?.id || "")}" data-session-status="${escapeHtml(status || "")}" data-session-visibility="${escapeHtml(visibility || "")}" aria-labelledby="session-application-title">
       <div class="session-application-copy">
         <h3 id="session-application-title">参加希望コメント</h3>
         <p>${escapeHtml(lead)}</p>
         <p class="session-application-note" data-session-comment-auth-note>参加希望コメントの投稿にはログインが必要です。ACCOUNTからログインしてください。</p>
+      </div>
+      <div class="session-comment-post-control" data-session-comment-post-control aria-live="polite">
+        <p class="session-comment-state">投稿状態を確認しています</p>
       </div>
       <div class="session-comment-counts" data-session-comment-counts aria-live="polite">
         <p class="session-comment-state">読み込み中</p>

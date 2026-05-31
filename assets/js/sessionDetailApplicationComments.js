@@ -2,6 +2,8 @@ const SDK_SRC = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
 const SDK_LOAD_KEY = "__VELGARD_SUPABASE_SDK_LOAD";
 const COMMENT_RPC = "get_public_session_comments";
 const COUNT_RPC = "get_public_session_application_counts";
+const APPLICATION_SELECT_COLUMNS = "session_id,status,created_at,updated_at,canceled_at";
+const POST_ALLOWED_STATUSES = new Set(["recruiting", "tentative"]);
 
 const APPLICATION_STATUS_LABELS = Object.freeze({
   pending: "申請中",
@@ -9,6 +11,14 @@ const APPLICATION_STATUS_LABELS = Object.freeze({
   waitlisted: "申請中",
   rejected: "見送り",
   canceled: "取消済み"
+});
+
+const APPLICATION_STATUS_MESSAGES = Object.freeze({
+  pending: "参加申請中です。追加コメント投稿は次工程で実装予定です。",
+  accepted: "参加予定として承認済みです。追加コメント投稿は次工程で実装予定です。",
+  waitlisted: "申請中です。追加コメント投稿は次工程で実装予定です。",
+  rejected: "このセッションへの申請は現在行えません。",
+  canceled: "参加申請は取り消されています。再申請投稿は次工程で扱います。"
 });
 
 const SENSITIVE_FIELD_NAMES = new Set([
@@ -164,23 +174,157 @@ async function queryApplicationCounts(client, sessionId) {
   return rows[0] || null;
 }
 
-async function getAuthState(client) {
-  if (!client?.auth || typeof client.auth.getSession !== "function") return "unknown";
+async function getAuthSession(client) {
+  if (!client?.auth || typeof client.auth.getSession !== "function") {
+    return { state: "unknown", session: null };
+  }
 
   try {
     const { data, error } = await client.auth.getSession();
-    if (error) return "unknown";
-    return data?.session ? "authenticated" : "anonymous";
-  } catch (error) {
-    return "unknown";
+    if (error) return { state: "unknown", session: null };
+    return data?.session?.user?.id
+      ? { state: "authenticated", session: data.session }
+      : { state: "anonymous", session: null };
+  } catch {
+    return { state: "unknown", session: null };
   }
 }
 
 function renderAuthNote(target, authState) {
   if (!target) return;
-  target.textContent = authState === "authenticated"
-    ? "投稿機能は次工程で実装予定です。"
-    : "参加希望コメントの投稿にはログインが必要です。ACCOUNTからログインしてください。";
+  if (authState === "authenticated") {
+    target.textContent = "ログイン状態を確認しました。送信機能は次工程で実装予定です。";
+    return;
+  }
+  if (authState === "unknown") {
+    target.textContent = "ログイン状態を確認できませんでした。投稿機能は現在利用できません。";
+    return;
+  }
+  target.textContent = "参加希望コメントの投稿にはログインが必要です。ACCOUNTからログインしてください。";
+}
+
+async function queryOwnApplication(client, sessionId, authSession) {
+  const userId = String(authSession?.user?.id || "").trim();
+  if (!userId) return null;
+
+  const { data, error } = await client
+    .from("session_applications")
+    .select(APPLICATION_SELECT_COLUMNS)
+    .eq("session_id", sessionId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw new Error("own-application-query-failed");
+  assertNoSensitiveFields(data);
+  return data || null;
+}
+
+function getSessionMeta(panel) {
+  const status = String(panel?.dataset?.sessionStatus || "").trim().toLowerCase();
+  const visibility = String(panel?.dataset?.sessionVisibility || "").trim().toLowerCase();
+  return {
+    status,
+    visibility,
+    canApply: visibility === "public" && POST_ALLOWED_STATUSES.has(status)
+  };
+}
+
+function createStateMessage(message, modifier = "") {
+  const paragraph = document.createElement("p");
+  paragraph.className = `session-comment-state${modifier ? ` ${modifier}` : ""}`;
+  paragraph.textContent = message;
+  return paragraph;
+}
+
+function appendLoginAction(target) {
+  const actions = document.createElement("div");
+  actions.className = "session-comment-login-actions";
+
+  const link = document.createElement("a");
+  link.className = "button session-comment-login-link";
+  link.href = "mypage.html";
+  link.textContent = "ACCOUNTへ";
+
+  actions.append(link);
+  target.append(actions);
+}
+
+function appendDisabledCommentForm(target) {
+  const form = document.createElement("form");
+  form.className = "session-comment-form";
+  form.noValidate = true;
+  form.addEventListener("submit", (event) => event.preventDefault());
+
+  const field = document.createElement("label");
+  field.className = "session-comment-field";
+
+  const labelText = document.createElement("span");
+  labelText.textContent = "参加希望コメント";
+
+  const textarea = document.createElement("textarea");
+  textarea.className = "session-comment-textarea";
+  textarea.name = "application-comment";
+  textarea.rows = 4;
+  textarea.disabled = true;
+  textarea.placeholder = "送信機能は次工程で実装予定です。";
+
+  field.append(labelText, textarea);
+
+  const button = document.createElement("button");
+  button.className = "session-application-button session-comment-button";
+  button.type = "button";
+  button.disabled = true;
+  button.textContent = "送信機能は次工程で実装予定";
+
+  form.append(field, button);
+  target.append(form);
+}
+
+function getOwnApplicationMessage(ownApplication) {
+  const status = String(ownApplication?.status || "").trim().toLowerCase();
+  if (!status) return "参加希望コメントを投稿できます。送信機能は次工程で実装予定です。";
+  return APPLICATION_STATUS_MESSAGES[status] || "申請状態を確認しました。送信機能は次工程で実装予定です。";
+}
+
+function shouldShowDisabledForm(ownApplication) {
+  const status = String(ownApplication?.status || "").trim().toLowerCase();
+  return status !== "rejected";
+}
+
+function renderPostControl(target, options = {}) {
+  if (!target) return;
+  const authState = options.authState || "unknown";
+  const sessionMeta = options.sessionMeta || {};
+  target.replaceChildren();
+
+  if (!sessionMeta.canApply) {
+    target.append(createStateMessage("このセッションは現在申請できません。参加希望コメントは読み取り専用です。", "is-warn"));
+    return;
+  }
+
+  if (authState === "anonymous") {
+    target.append(createStateMessage("参加希望コメントの投稿にはログインが必要です。ACCOUNTからログインしてください。", "is-warn"));
+    appendLoginAction(target);
+    return;
+  }
+
+  if (authState !== "authenticated") {
+    target.append(createStateMessage("ログイン状態を確認できませんでした。時間をおいて再読み込みしてください。", "is-error"));
+    return;
+  }
+
+  if (options.ownApplicationError) {
+    target.append(createStateMessage("申請状態を確認できませんでした。時間をおいて再読み込みしてください。", "is-error"));
+    return;
+  }
+
+  const message = getOwnApplicationMessage(options.ownApplication);
+  const status = String(options.ownApplication?.status || "").trim().toLowerCase();
+  target.append(createStateMessage(message, status === "rejected" ? "is-warn" : "is-ok"));
+
+  if (shouldShowDisabledForm(options.ownApplication)) {
+    appendDisabledCommentForm(target);
+  }
 }
 
 function renderCounts(target, row) {
@@ -291,10 +435,13 @@ async function refreshPanel(panel, sessionId) {
   const countsTarget = panel.querySelector("[data-session-comment-counts]");
   const commentsTarget = panel.querySelector("[data-session-comment-list]");
   const authNote = panel.querySelector("[data-session-comment-auth-note]");
+  const postTarget = panel.querySelector("[data-session-comment-post-control]");
+  const sessionMeta = getSessionMeta(panel);
 
   if (!sessionId) {
     setState(countsTarget, "申請人数の取得に失敗しました", "is-error");
     setState(commentsTarget, "参加希望コメントを取得できませんでした", "is-error");
+    setState(postTarget, "投稿状態を確認できませんでした", "is-error");
     renderAuthNote(authNote, "unknown");
     return;
   }
@@ -303,6 +450,7 @@ async function refreshPanel(panel, sessionId) {
   if (!hasConfig(config)) {
     setState(countsTarget, "申請人数の取得に失敗しました", "is-error");
     setState(commentsTarget, "参加希望コメントを取得できませんでした", "is-error");
+    setState(postTarget, "投稿状態を確認できませんでした", "is-error");
     renderAuthNote(authNote, "unknown");
     return;
   }
@@ -313,7 +461,7 @@ async function refreshPanel(panel, sessionId) {
     const [commentsResult, countsResult, authResult] = await Promise.allSettled([
       queryPublicComments(client, sessionId),
       queryApplicationCounts(client, sessionId),
-      getAuthState(client)
+      getAuthSession(client)
     ]);
 
     if (commentsResult.status === "fulfilled") {
@@ -328,10 +476,29 @@ async function refreshPanel(panel, sessionId) {
       setState(countsTarget, "申請人数の取得に失敗しました", "is-error");
     }
 
-    renderAuthNote(authNote, authResult.status === "fulfilled" ? authResult.value : "unknown");
-  } catch (error) {
+    const authContext = authResult.status === "fulfilled" ? authResult.value : { state: "unknown", session: null };
+    let ownApplication = null;
+    let ownApplicationError = false;
+
+    if (authContext.state === "authenticated") {
+      try {
+        ownApplication = await queryOwnApplication(client, sessionId, authContext.session);
+      } catch {
+        ownApplicationError = true;
+      }
+    }
+
+    renderAuthNote(authNote, authContext.state);
+    renderPostControl(postTarget, {
+      authState: authContext.state,
+      ownApplication,
+      ownApplicationError,
+      sessionMeta
+    });
+  } catch {
     setState(countsTarget, "申請人数の取得に失敗しました", "is-error");
     setState(commentsTarget, "参加希望コメントを取得できませんでした", "is-error");
+    setState(postTarget, "投稿状態を確認できませんでした", "is-error");
     renderAuthNote(authNote, "unknown");
   }
 }
