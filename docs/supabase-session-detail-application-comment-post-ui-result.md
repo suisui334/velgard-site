@@ -118,6 +118,6 @@ session-detail.html?id=session-2026-06-08-railway-incident
 
 ## 10. 次工程
 
-M-11B-2で、textareaの入力検証、二重押し防止、`create_application_comment` 呼び出し、短い成功 / 失敗表示を追加する。
+M-11B-2で、textareaの入力検証、二重押し防止、`create_application_comment` 呼び出し、短い成功 / 失敗表示、投稿成功後の再取得を追加する。
 
-M-11B-3で、投稿成功後の公開コメント一覧、公開カウント、本人申請状態の再取得を追加する。
+M-11B-2の実装結果は `docs/supabase-session-detail-application-comment-post-result.md` に分離する。

@@ -2,7 +2,9 @@ const SDK_SRC = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
 const SDK_LOAD_KEY = "__VELGARD_SUPABASE_SDK_LOAD";
 const COMMENT_RPC = "get_public_session_comments";
 const COUNT_RPC = "get_public_session_application_counts";
+const POST_RPC = "create_application_comment";
 const APPLICATION_SELECT_COLUMNS = "session_id,status,created_at,updated_at,canceled_at";
+const COMMENT_MAX_LENGTH = 4000;
 const POST_ALLOWED_STATUSES = new Set(["recruiting", "tentative"]);
 
 const APPLICATION_STATUS_LABELS = Object.freeze({
@@ -14,11 +16,11 @@ const APPLICATION_STATUS_LABELS = Object.freeze({
 });
 
 const APPLICATION_STATUS_MESSAGES = Object.freeze({
-  pending: "参加申請中です。追加コメント投稿は次工程で実装予定です。",
-  accepted: "参加予定として承認済みです。追加コメント投稿は次工程で実装予定です。",
-  waitlisted: "申請中です。追加コメント投稿は次工程で実装予定です。",
+  pending: "参加申請中です。追加コメントを送信できます。人数は重複して増えません。",
+  accepted: "参加予定として承認済みです。補足コメントを送信できます。",
+  waitlisted: "申請中です。追加コメントを送信できます。",
   rejected: "このセッションへの申請は現在行えません。",
-  canceled: "参加申請は取り消されています。再申請投稿は次工程で扱います。"
+  canceled: "参加申請は取り消されています。コメント送信で再申請として扱われます。"
 });
 
 const SENSITIVE_FIELD_NAMES = new Set([
@@ -174,6 +176,15 @@ async function queryApplicationCounts(client, sessionId) {
   return rows[0] || null;
 }
 
+async function createApplicationComment(client, sessionId, body) {
+  const { error } = await client.rpc(POST_RPC, {
+    target_session_id: sessionId,
+    comment_body: body
+  });
+
+  if (error) throw new Error("application-comment-post-failed");
+}
+
 async function getAuthSession(client) {
   if (!client?.auth || typeof client.auth.getSession !== "function") {
     return { state: "unknown", session: null };
@@ -193,7 +204,7 @@ async function getAuthSession(client) {
 function renderAuthNote(target, authState) {
   if (!target) return;
   if (authState === "authenticated") {
-    target.textContent = "ログイン状態を確認しました。送信機能は次工程で実装予定です。";
+    target.textContent = "参加希望コメントは公開申請欄に表示されます。個人情報や公開したくない内容は含めないでください。";
     return;
   }
   if (authState === "unknown") {
@@ -249,11 +260,52 @@ function appendLoginAction(target) {
   target.append(actions);
 }
 
-function appendDisabledCommentForm(target) {
+function getOwnApplicationStatus(ownApplication) {
+  return String(ownApplication?.status || "").trim().toLowerCase();
+}
+
+function getPostContextError(options = {}) {
+  if (!options.sessionId) return "対象のセッションを確認できませんでした。";
+  if (!options.sessionMeta?.canApply) return "募集状態が変更された可能性があります。ページを再読み込みしてください。";
+  if (options.authState !== "authenticated") return "投稿にはログインが必要です。";
+  if (getOwnApplicationStatus(options.ownApplication) === "rejected") return "このセッションへの申請は現在行えません。";
+  return "";
+}
+
+function validateCommentBody(value) {
+  const body = String(value || "").trim();
+  if (!body) {
+    return {
+      ok: false,
+      body,
+      message: "コメントを入力してください。"
+    };
+  }
+  if (body.length > COMMENT_MAX_LENGTH) {
+    return {
+      ok: false,
+      body,
+      message: "コメントは4000文字以内で入力してください。"
+    };
+  }
+  return {
+    ok: true,
+    body,
+    message: ""
+  };
+}
+
+function setInlineStatus(target, message, modifier = "") {
+  if (!target) return;
+  target.textContent = message || "";
+  target.className = `session-comment-state session-comment-post-status${modifier ? ` ${modifier}` : ""}`;
+  target.hidden = !message;
+}
+
+function appendCommentForm(target, options = {}) {
   const form = document.createElement("form");
   form.className = "session-comment-form";
   form.noValidate = true;
-  form.addEventListener("submit", (event) => event.preventDefault());
 
   const field = document.createElement("label");
   field.className = "session-comment-field";
@@ -265,30 +317,106 @@ function appendDisabledCommentForm(target) {
   textarea.className = "session-comment-textarea";
   textarea.name = "application-comment";
   textarea.rows = 4;
-  textarea.disabled = true;
-  textarea.placeholder = "送信機能は次工程で実装予定です。";
+  textarea.placeholder = "参加希望や連絡事項を入力してください。";
 
   field.append(labelText, textarea);
 
   const button = document.createElement("button");
   button.className = "session-application-button session-comment-button";
-  button.type = "button";
+  button.type = "submit";
   button.disabled = true;
-  button.textContent = "送信機能は次工程で実装予定";
+  button.textContent = "参加希望コメントを送信";
 
-  form.append(field, button);
+  const status = document.createElement("p");
+  status.setAttribute("aria-live", "polite");
+  setInlineStatus(status, "");
+
+  let isSubmitting = false;
+  const baseContextError = getPostContextError(options);
+
+  const updateAvailability = (showValidation = false) => {
+    const validation = validateCommentBody(textarea.value);
+    button.disabled = isSubmitting || Boolean(baseContextError) || !validation.ok;
+
+    if (baseContextError) {
+      setInlineStatus(status, baseContextError, "is-error");
+      return;
+    }
+
+    if (showValidation && textarea.value.length > 0 && !validation.ok) {
+      setInlineStatus(status, validation.message, "is-error");
+      return;
+    }
+
+    if (!isSubmitting) {
+      setInlineStatus(status, "");
+    }
+  };
+
+  textarea.addEventListener("input", () => updateAvailability(true));
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (isSubmitting) return;
+
+    const contextError = getPostContextError(options);
+    if (contextError) {
+      updateAvailability(false);
+      setInlineStatus(status, contextError, "is-error");
+      return;
+    }
+
+    const validation = validateCommentBody(textarea.value);
+    if (!validation.ok) {
+      updateAvailability(false);
+      setInlineStatus(status, validation.message, "is-error");
+      return;
+    }
+
+    isSubmitting = true;
+    form.setAttribute("aria-busy", "true");
+    textarea.disabled = true;
+    button.disabled = true;
+    setInlineStatus(status, "送信中です。", "is-warn");
+
+    try {
+      await createApplicationComment(options.client, options.sessionId, validation.body);
+      textarea.value = "";
+      setInlineStatus(status, "送信しました。表示を更新しています。", "is-ok");
+      await refreshPanel(options.panel, options.sessionId, {
+        feedbackMessage: "参加希望コメントを送信しました。",
+        feedbackModifier: "is-ok"
+      });
+    } catch {
+      isSubmitting = false;
+      form.removeAttribute("aria-busy");
+      textarea.disabled = false;
+      updateAvailability(false);
+      setInlineStatus(
+        status,
+        "参加希望コメントを送信できませんでした。募集状態が変更された可能性があります。ページを再読み込みしてください。",
+        "is-error"
+      );
+    }
+  });
+
+  if (baseContextError) {
+    textarea.disabled = true;
+  }
+
+  updateAvailability(false);
+  form.append(field, button, status);
   target.append(form);
 }
 
 function getOwnApplicationMessage(ownApplication) {
-  const status = String(ownApplication?.status || "").trim().toLowerCase();
-  if (!status) return "参加希望コメントを投稿できます。送信機能は次工程で実装予定です。";
-  return APPLICATION_STATUS_MESSAGES[status] || "申請状態を確認しました。送信機能は次工程で実装予定です。";
+  const status = getOwnApplicationStatus(ownApplication);
+  if (!status) return "参加希望コメントを投稿できます。";
+  return APPLICATION_STATUS_MESSAGES[status] || "申請状態を確認しました。参加希望コメントを送信できます。";
 }
 
-function shouldShowDisabledForm(ownApplication) {
-  const status = String(ownApplication?.status || "").trim().toLowerCase();
-  return status !== "rejected";
+function shouldShowCommentForm(ownApplication) {
+  return getOwnApplicationStatus(ownApplication) !== "rejected";
 }
 
 function renderPostControl(target, options = {}) {
@@ -319,11 +447,15 @@ function renderPostControl(target, options = {}) {
   }
 
   const message = getOwnApplicationMessage(options.ownApplication);
-  const status = String(options.ownApplication?.status || "").trim().toLowerCase();
+  const status = getOwnApplicationStatus(options.ownApplication);
   target.append(createStateMessage(message, status === "rejected" ? "is-warn" : "is-ok"));
 
-  if (shouldShowDisabledForm(options.ownApplication)) {
-    appendDisabledCommentForm(target);
+  if (options.feedbackMessage) {
+    target.append(createStateMessage(options.feedbackMessage, options.feedbackModifier || ""));
+  }
+
+  if (shouldShowCommentForm(options.ownApplication)) {
+    appendCommentForm(target, options);
   }
 }
 
@@ -431,7 +563,7 @@ function renderComments(target, rows) {
   target.append(list);
 }
 
-async function refreshPanel(panel, sessionId) {
+async function refreshPanel(panel, sessionId, options = {}) {
   const countsTarget = panel.querySelector("[data-session-comment-counts]");
   const commentsTarget = panel.querySelector("[data-session-comment-list]");
   const authNote = panel.querySelector("[data-session-comment-auth-note]");
@@ -490,10 +622,15 @@ async function refreshPanel(panel, sessionId) {
 
     renderAuthNote(authNote, authContext.state);
     renderPostControl(postTarget, {
+      client,
+      panel,
+      sessionId,
       authState: authContext.state,
       ownApplication,
       ownApplicationError,
-      sessionMeta
+      sessionMeta,
+      feedbackMessage: options.feedbackMessage || "",
+      feedbackModifier: options.feedbackModifier || ""
     });
   } catch {
     setState(countsTarget, "申請人数の取得に失敗しました", "is-error");

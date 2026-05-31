@@ -2623,6 +2623,17 @@ body[data-page="session-detail"] .session-application-button {
   cursor: not-allowed;
 }
 
+body[data-page="session-detail"] .session-application-button:not(:disabled) {
+  border-color: rgba(92, 117, 72, 0.42);
+  background: var(--herb);
+  color: #fffdfa;
+  cursor: pointer;
+}
+
+body[data-page="session-detail"] .session-application-button:not(:disabled):hover {
+  filter: brightness(0.96);
+}
+
 body[data-page="session-detail"] .session-application-button:disabled {
   opacity: 0.78;
 }

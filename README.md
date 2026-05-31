@@ -86,6 +86,7 @@ py -m http.server 4173 -d velgard-site
   - `docs/supabase-session-detail-application-comments-integration-plan.md`: Supabase M-11 session-detail 参加希望コメント統合前 調査・設計
   - `docs/supabase-session-detail-application-comments-read-result.md`: Supabase M-11A session-detail 参加希望コメント読み取り表示 実装結果
   - `docs/supabase-session-detail-application-comment-post-ui-result.md`: Supabase M-11B-1 session-detail 投稿フォーム表示制御 実装結果
+  - `docs/supabase-session-detail-application-comment-post-result.md`: Supabase M-11B-2 session-detail 参加希望コメント投稿RPC 実装結果
   - `docs/supabase-rls-test-matrix.md`: Supabase RLSテストケース表
   - `docs/supabase/sql/`: Supabase最小スキーマ、RLS/GRANT、RPCの実行候補SQL草案
 
@@ -1494,3 +1495,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - M-11Aとして、`session-detail.html` の参加希望コメント欄を読み取り専用表示へ更新した。`get_public_session_comments` と `get_public_session_application_counts` で公開コメント一覧と公開カウントを取得し、表示名、本文、申請状態、投稿/編集日時、申請中人数、承認済み人数を表示する。`参加希望人数` と `キャンセル待ち` はM-11Aの画面には表示しない。締切時間表示は `data/sessions.json` に `applicationDeadline` / `deadlineTime` 等の明示フィールドを追加する別工程で扱い、`startTime` / `endTime` は流用しない。投稿、編集、削除、GM操作、`close_session`、SQL実行、DB変更は行っていない。実装結果は `docs/supabase-session-detail-application-comments-read-result.md` に整理済み。
 - M-11A follow-upとして、`session-detail.html` の表示順を基本情報、概要、補足情報、参加希望コメントへ整理し、概要をカード状ブロック表示にした。`鉄道` / `調査` のような自由タグはsession-detailでは表示しない。将来のセッション種別は `sessionType` または `type` の明示フィールドで、候補を `単発シナリオ`、`キャンペーン`、`特殊`、`その他` として扱い、calendar の種別フィルターへ展開する方針。
 - M-11B-1として、`session-detail.html` の参加希望コメント欄にログイン状態取得、本人申請状態取得、未ログイン時のACCOUNT導線、ログイン済み時のdisabled投稿フォーム器、申請状態別案内を追加した。`create_application_comment` は呼び出さず、投稿、編集、削除、GM操作、`close_session`、SQL実行、DB変更は行っていない。実装結果は `docs/supabase-session-detail-application-comment-post-ui-result.md` に整理済み。
+- M-11B-2として、ログイン済みPLの参加希望コメント投稿を `create_application_comment` で統合した。投稿可能条件、空欄 / 4000文字超過バリデーション、送信中の二重押し防止、成功後の公開コメント一覧・公開カウント・本人申請状態再取得、短い安全なエラー表示を追加した。Codex側では投稿実行せず、SQL Editor実行、DB変更、編集・削除・GM操作、`close_session` は扱っていない。実装結果は `docs/supabase-session-detail-application-comment-post-result.md` に整理済み。
