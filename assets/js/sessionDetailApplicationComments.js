@@ -5,6 +5,7 @@ const COUNT_RPC = "get_public_session_application_counts";
 const POST_RPC = "create_application_comment";
 const UPDATE_RPC = "update_application_comment";
 const DELETE_RPC = "delete_application_comment_and_maybe_cancel";
+const WITHDRAW_RPC = "cancel_my_session_application";
 const APPLICATION_SELECT_COLUMNS = "session_id,status,created_at,updated_at,canceled_at";
 const COMMENT_MAX_LENGTH = 4000;
 const POST_ALLOWED_STATUSES = new Set(["recruiting", "tentative"]);
@@ -14,6 +15,8 @@ const COMMENT_DELETE_ERROR_MESSAGE = "コメントを削除できませんでし
 const COMMENT_DELETE_PERMISSION_MESSAGE = "権限がないか、コメントの状態が変更された可能性があります。";
 const COMMENT_DELETE_CONFIRM_TEXT = "この参加希望コメントを削除しますか？";
 const COMMENT_DELETE_CONFIRM_NOTE = "最後の有効コメントを削除した場合、参加申請が取り消されることがあります。";
+const APPLICATION_WITHDRAW_ERROR_MESSAGE = "参加申請を取り下げできませんでした。時間をおいて再度お試しください。";
+const APPLICATION_WITHDRAW_PERMISSION_MESSAGE = "申請状態が変更された可能性があります。ページを再読み込みしてください。";
 const WITHDRAW_ELIGIBLE_STATUSES = new Set(["pending", "waitlisted", "accepted"]);
 const panelEditStates = new WeakMap();
 const panelCommentRenderContexts = new WeakMap();
@@ -36,19 +39,19 @@ const APPLICATION_STATUS_MESSAGES = Object.freeze({
 
 const APPLICATION_WITHDRAW_UI_COPY = Object.freeze({
   pending: {
-    note: "参加申請を取り下げる機能は次工程で実装予定です。",
+    note: "参加申請を取り下げると、コメントは残したまま申請中人数から除外されます。",
     confirmTitle: "参加申請を取り下げますか？",
     confirmNote: "コメントは履歴として残りますが、申請中人数からは除外されます。"
   },
   waitlisted: {
-    note: "参加申請を取り下げる機能は次工程で実装予定です。",
+    note: "参加申請を取り下げると、コメントは残したまま申請中人数から除外されます。",
     confirmTitle: "参加申請を取り下げますか？",
     confirmNote: "コメントは履歴として残りますが、申請中人数からは除外されます。"
   },
   accepted: {
-    note: "参加を取り下げる場合は、GMへの連絡も推奨されます。取り下げ機能は次工程で実装予定です。",
+    note: "参加を取り下げる場合は、GMへの連絡も推奨されます。",
     confirmTitle: "承認済みの参加予定を取り下げますか？",
-    confirmNote: "参加予定から外れます。必要ならGMへコメントで事情を伝えてください。"
+    confirmNote: "コメントは履歴として残りますが、参加予定からは外れます。承認済みの参加予定を取り下げる場合は、GMへの連絡も推奨されます。"
   }
 });
 
@@ -248,6 +251,18 @@ async function deleteApplicationComment(client, commentId) {
   assertNoSensitiveFields(data);
 }
 
+async function cancelMySessionApplication(client, sessionId) {
+  const targetSessionId = String(sessionId || "").trim();
+  if (!targetSessionId) throw new Error("application-withdraw-session-missing");
+
+  const { data, error } = await client.rpc(WITHDRAW_RPC, {
+    target_session_id: targetSessionId
+  });
+
+  if (error) throw new Error("application-withdraw-failed");
+  assertNoSensitiveFields(data);
+}
+
 async function getAuthSession(client) {
   if (!client?.auth || typeof client.auth.getSession !== "function") {
     return { state: "unknown", session: null };
@@ -372,6 +387,7 @@ function getPanelEditState(panel) {
     isPosting: false,
     isSaving: false,
     isDeleting: false,
+    isWithdrawing: false,
     ...(panelEditStates.get(panel) || {})
   };
 }
@@ -400,7 +416,7 @@ function clearPanelDeleteMode(panel) {
 
 function isPanelBusy(panel) {
   const state = getPanelEditState(panel);
-  return Boolean(state.isPosting || state.isSaving || state.isDeleting);
+  return Boolean(state.isPosting || state.isSaving || state.isDeleting || state.isWithdrawing);
 }
 
 function setRenderedOperationButtonsDisabled(panel, disabled) {
@@ -409,6 +425,13 @@ function setRenderedOperationButtonsDisabled(panel, disabled) {
     "[data-session-comment-edit-action], [data-session-comment-delete-action], [data-session-comment-delete-confirm-action]"
   ).forEach((button) => {
     button.disabled = disabled;
+  });
+}
+
+function setRenderedPostFormControlsDisabled(panel, disabled) {
+  if (!panel) return;
+  panel.querySelectorAll(".session-comment-form textarea, .session-comment-form button").forEach((control) => {
+    control.disabled = disabled;
   });
 }
 
@@ -439,7 +462,7 @@ function appendCommentForm(target, options = {}) {
 
   const guidance = document.createElement("p");
   guidance.className = "session-comment-form-guidance";
-  guidance.textContent = "コメント投稿時点で参加申請として扱われます。複数コメントしても申請人数は重複してカウントされません。申請を辞退する場合は、自分が投稿したコメントをすべて削除するか、辞退する旨のコメントを残したうえで申請取り下げ操作を行ってください。申請取り下げの確定処理は次工程で実装予定です。";
+  guidance.textContent = "コメント投稿時点で参加申請として扱われます。複数コメントしても申請人数は重複してカウントされません。申請を辞退する場合は、自分が投稿したコメントをすべて削除するか、辞退する旨のコメントを残したうえで申請取り下げ操作を行ってください。";
 
   const button = document.createElement("button");
   button.className = "session-application-button session-comment-button";
@@ -456,7 +479,8 @@ function appendCommentForm(target, options = {}) {
 
   const updateAvailability = (showValidation = false) => {
     const validation = validateCommentBody(textarea.value);
-    button.disabled = isSubmitting || Boolean(baseContextError) || !validation.ok;
+    const busy = isPanelBusy(options.panel);
+    button.disabled = isSubmitting || busy || Boolean(baseContextError) || !validation.ok;
 
     if (baseContextError) {
       setInlineStatus(status, baseContextError, "is-error");
@@ -478,6 +502,11 @@ function appendCommentForm(target, options = {}) {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (isSubmitting) return;
+
+    if (isPanelBusy(options.panel)) {
+      setInlineStatus(status, "別の操作を処理中です。完了後にお試しください。", "is-warn");
+      return;
+    }
 
     const contextError = getPostContextError(options);
     if (contextError) {
@@ -548,11 +577,29 @@ function shouldShowWithdrawUi(ownApplication) {
   return WITHDRAW_ELIGIBLE_STATUSES.has(getOwnApplicationStatus(ownApplication));
 }
 
-function appendApplicationWithdrawUi(target, ownApplication) {
+function canStartApplicationWithdraw(options = {}) {
+  const state = getPanelEditState(options.panel);
+  return Boolean(
+    options.client
+    && typeof options.client.rpc === "function"
+    && options.authState === "authenticated"
+    && String(options.sessionId || "").trim()
+    && WITHDRAW_ELIGIBLE_STATUSES.has(getOwnApplicationStatus(options.ownApplication))
+    && !state.activeCommentId
+    && !state.activeDeleteCommentId
+    && !state.isPosting
+    && !state.isSaving
+    && !state.isDeleting
+    && !state.isWithdrawing
+  );
+}
+
+function appendApplicationWithdrawUi(target, ownApplication, options = {}) {
   const status = getOwnApplicationStatus(ownApplication);
   if (!shouldShowWithdrawUi(ownApplication)) return;
 
   const copy = APPLICATION_WITHDRAW_UI_COPY[status] || APPLICATION_WITHDRAW_UI_COPY.pending;
+  const withdrawOptions = { ...options, ownApplication };
   const container = document.createElement("div");
   container.className = `session-application-withdraw is-${status}`;
   container.setAttribute("role", "group");
@@ -582,9 +629,9 @@ function appendApplicationWithdrawUi(target, ownApplication) {
   confirmNote.className = "session-application-withdraw-confirm-note";
   confirmNote.textContent = copy.confirmNote;
 
-  const disabledNote = document.createElement("p");
-  disabledNote.className = "session-application-withdraw-disabled-note";
-  disabledNote.textContent = "この工程では取り下げは実行されません。確定操作は次工程で実装予定です。";
+  const inlineStatus = document.createElement("p");
+  inlineStatus.setAttribute("aria-live", "polite");
+  setInlineStatus(inlineStatus, "");
 
   const actions = document.createElement("div");
   actions.className = "session-application-withdraw-actions";
@@ -592,27 +639,85 @@ function appendApplicationWithdrawUi(target, ownApplication) {
   const confirmButton = document.createElement("button");
   confirmButton.className = "session-application-button session-comment-button session-application-withdraw-confirm-button";
   confirmButton.type = "button";
-  confirmButton.textContent = "取り下げる（次工程で実装予定）";
-  confirmButton.disabled = true;
+  confirmButton.textContent = "取り下げる";
 
   const cancelButton = document.createElement("button");
   cancelButton.className = "session-application-button session-comment-button session-application-withdraw-cancel";
   cancelButton.type = "button";
   cancelButton.textContent = "キャンセル";
 
+  let isWithdrawing = Boolean(getPanelEditState(options.panel).isWithdrawing);
+
+  const updateAvailability = () => {
+    const canStart = canStartApplicationWithdraw(withdrawOptions);
+    openButton.disabled = isWithdrawing || !canStart;
+    confirmButton.disabled = isWithdrawing || !canStart;
+    cancelButton.disabled = isWithdrawing;
+  };
+
   openButton.addEventListener("click", () => {
+    updateAvailability();
+    if (openButton.disabled) return;
     const willOpen = confirm.hidden;
     confirm.hidden = !willOpen;
     openButton.setAttribute("aria-expanded", String(willOpen));
+    setRenderedOperationButtonsDisabled(options.panel, willOpen);
+    if (!willOpen) {
+      setRenderedOperationButtonsDisabled(options.panel, isPanelBusy(options.panel));
+      setInlineStatus(inlineStatus, "");
+    }
   });
 
   cancelButton.addEventListener("click", () => {
+    if (isWithdrawing) return;
     confirm.hidden = true;
     openButton.setAttribute("aria-expanded", "false");
+    setRenderedOperationButtonsDisabled(options.panel, isPanelBusy(options.panel));
+    setInlineStatus(inlineStatus, "");
   });
 
+  confirmButton.addEventListener("click", async () => {
+    if (isWithdrawing) return;
+
+    if (!canStartApplicationWithdraw(withdrawOptions)) {
+      setInlineStatus(inlineStatus, APPLICATION_WITHDRAW_PERMISSION_MESSAGE, "is-error");
+      updateAvailability();
+      return;
+    }
+
+    isWithdrawing = true;
+    setPanelEditState(options.panel, { isWithdrawing: true });
+    setRenderedOperationButtonsDisabled(options.panel, true);
+    setRenderedPostFormControlsDisabled(options.panel, true);
+    confirm.setAttribute("aria-busy", "true");
+    updateAvailability();
+    setInlineStatus(inlineStatus, "取り下げ中です。", "is-warn");
+
+    try {
+      await cancelMySessionApplication(options.client, options.sessionId);
+      setInlineStatus(inlineStatus, "参加申請を取り下げました。表示を更新しています。", "is-ok");
+      setPanelEditState(options.panel, {
+        activeCommentId: "",
+        activeDeleteCommentId: "",
+        isWithdrawing: false
+      });
+      await refreshPanel(options.panel, options.sessionId, {
+        feedbackMessage: "参加申請を取り下げました。",
+        feedbackModifier: "is-ok"
+      });
+    } catch {
+      isWithdrawing = false;
+      setPanelEditState(options.panel, { isWithdrawing: false });
+      await refreshPanel(options.panel, options.sessionId, {
+        feedbackMessage: APPLICATION_WITHDRAW_ERROR_MESSAGE,
+        feedbackModifier: "is-error"
+      });
+    }
+  });
+
+  updateAvailability();
   actions.append(confirmButton, cancelButton);
-  confirm.append(title, confirmNote, disabledNote, actions);
+  confirm.append(title, confirmNote, actions, inlineStatus);
   container.append(note, openButton, confirm);
   target.append(container);
 }
@@ -648,7 +753,7 @@ function renderPostControl(target, options = {}) {
   const status = getOwnApplicationStatus(options.ownApplication);
   target.append(createStateMessage(message, status === "rejected" ? "is-warn" : "is-ok"));
 
-  appendApplicationWithdrawUi(target, options.ownApplication);
+  appendApplicationWithdrawUi(target, options.ownApplication, options);
 
   if (options.feedbackMessage) {
     target.append(createStateMessage(options.feedbackMessage, options.feedbackModifier || ""));
@@ -921,6 +1026,7 @@ function appendCommentDeleteConfirm(preview, comment, rows, target, options = {}
       || state.activeDeleteCommentId !== comment.commentId
       || state.isPosting
       || state.isSaving
+      || state.isWithdrawing
     ) {
       setInlineStatus(status, COMMENT_DELETE_PERMISSION_MESSAGE, "is-error");
       return;

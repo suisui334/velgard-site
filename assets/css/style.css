@@ -2781,7 +2781,8 @@ body[data-page="session-detail"] .session-application-button:not(:disabled):hove
 }
 
 body[data-page="session-detail"] .session-comment-delete-button:not(:disabled),
-body[data-page="session-detail"] .session-comment-delete-confirm-button:not(:disabled) {
+body[data-page="session-detail"] .session-comment-delete-confirm-button:not(:disabled),
+body[data-page="session-detail"] .session-application-withdraw-confirm-button:not(:disabled) {
   border-color: rgba(135, 63, 53, 0.42);
   background: var(--rust);
   color: #fffdfa;
