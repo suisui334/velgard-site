@@ -288,7 +288,7 @@ SQL草案は次に分離した。
 docs/supabase/sql/013_gm_session_application_history_rpc_draft.sql
 ```
 
-このSQL草案は実行していない。SQL Editor未実行、DB変更なし。
+このSQL草案は、M-11E-1時点では実行していない。SQL Editor未実行、DB変更なし。
 
 ## 14. M-11E-2 実行前レビュー追記
 
@@ -305,3 +305,33 @@ docs/supabase/sql/013_gm_session_application_history_rpc_draft.sql
 - SQL Editorのpost-apply確認ではGM履歴RPCを呼び出さず、カタログ情報で戻り値定義を確認する。GM / admin / PL / anonの挙動確認は、後続のAuth文脈クライアントまたはsmoke testで行う。
 
 このレビュー工程では、SQL Editor実行、DB変更、GM履歴RPC実行、本番フロント実装、`updates.json` 変更、secret類の記録、commit / pushは行っていない。
+
+## 15. M-11E-3 SQL適用結果追記
+
+2026-06-01に、ユーザーがSupabase SQL Editorで `get_gm_session_application_history(target_session_id text)` を作成した。適用結果は次に分離して記録した。
+
+```text
+docs/supabase-session-detail-application-history-gm-rpc-result.md
+```
+
+確認済み:
+
+- `is_admin()` と `is_session_gm(target_session_id text)` が存在する。
+- どちらも `security definer = true`、`search_path=""`。
+- 同名RPCは事前に存在しなかった。
+- RPC作成本体を実行し、成功した。
+- 関数定義は `get_gm_session_application_history(text)`、`security definer = true`、volatilityは `stable`。
+- 戻り値は `display_name` / `application_status` / `created_at` / `updated_at` / `canceled_at` / `comment_count` / `last_comment_at`。
+- grant確認では `authenticated EXECUTE` と `postgres EXECUTE` があり、`anon EXECUTE` はない。
+
+未実施:
+
+- GM/admin/PL/anon文脈でのRPC実行テスト。
+- rollback。
+- 本番フロント実装。
+- GM履歴UI実装。
+
+注意:
+
+- `docs/supabase/sql/013_gm_session_application_history_rpc_draft.sql` の作成SQLは適用済みのため、通常運用では同じ作成SQLをそのまま再実行しない。
+- このdocs記録工程でCodexはSQL Editor実行、DB変更、GM履歴RPC実行、本番フロント実装、`updates.json` 変更、secret類の記録、commit / pushを行っていない。

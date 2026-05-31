@@ -10,6 +10,14 @@
 --   This draft creates/replaces one read-only GM-facing RPC definition.
 -- ============================================================
 
+-- Applied result note:
+--   User applied this SQL in Supabase SQL Editor on 2026-06-01 after review.
+--   Do not rerun the create/replace section in normal operation. If replacement
+--   is needed, review the existing function definition, grants, return contract,
+--   impact scope, and rollback plan in a separate step.
+--   Result notes are recorded in:
+--     docs/supabase-session-detail-application-history-gm-rpc-result.md
+
 -- Purpose:
 --   Let the target session GM or an admin read a compact person-based
 --   application status history for one session without returning user_id,
