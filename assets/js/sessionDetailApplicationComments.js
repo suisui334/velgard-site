@@ -6,6 +6,7 @@ const POST_RPC = "create_application_comment";
 const APPLICATION_SELECT_COLUMNS = "session_id,status,created_at,updated_at,canceled_at";
 const COMMENT_MAX_LENGTH = 4000;
 const POST_ALLOWED_STATUSES = new Set(["recruiting", "tentative"]);
+const COMMENT_ACTION_PENDING_MESSAGE = "編集・削除機能は次工程で実装予定です。";
 
 const APPLICATION_STATUS_LABELS = Object.freeze({
   pending: "申請中",
@@ -115,6 +116,15 @@ function setState(target, message, modifier = "") {
 function toCount(value) {
   const number = Number(value);
   return Number.isFinite(number) && number > 0 ? number : 0;
+}
+
+function toBooleanFlag(value) {
+  return value === true;
+}
+
+function getCommentCreatedTime(comment) {
+  const time = Date.parse(comment?.createdAt || "");
+  return Number.isFinite(time) ? time : Number.NEGATIVE_INFINITY;
 }
 
 function getStatusLabel(status) {
@@ -489,17 +499,25 @@ function renderCounts(target, row) {
 }
 
 function normalizeComments(rows) {
-  return rows.map((row) => ({
-    displayName: redactSensitiveText(row?.display_name).trim() || "名前未設定",
-    body: redactSensitiveText(row?.body).trim() || "本文なし",
-    applicationStatus: String(row?.application_status || "").trim(),
-    createdAt: String(row?.created_at || "").trim(),
-    updatedAt: String(row?.updated_at || "").trim(),
-    editedAt: String(row?.edited_at || "").trim()
-  })).sort((a, b) => {
-    const aTime = Date.parse(a.createdAt) || 0;
-    const bTime = Date.parse(b.createdAt) || 0;
-    return aTime - bTime;
+  return rows.map((row) => {
+    const isOwn = toBooleanFlag(row?.is_own);
+    return {
+      commentId: String(row?.comment_id || "").trim(),
+      displayName: redactSensitiveText(row?.display_name).trim() || "名前未設定",
+      body: redactSensitiveText(row?.body).trim() || "本文なし",
+      applicationStatus: String(row?.application_status || "").trim(),
+      createdAt: String(row?.created_at || "").trim(),
+      updatedAt: String(row?.updated_at || "").trim(),
+      editedAt: String(row?.edited_at || "").trim(),
+      isOwn,
+      canEdit: isOwn && toBooleanFlag(row?.can_edit),
+      canDelete: isOwn && toBooleanFlag(row?.can_delete)
+    };
+  }).sort((a, b) => {
+    const aTime = getCommentCreatedTime(a);
+    const bTime = getCommentCreatedTime(b);
+    if (aTime === bTime) return 0;
+    return bTime > aTime ? 1 : -1;
   });
 }
 
@@ -512,6 +530,36 @@ function renderCommentMeta(comment) {
   if (editedAt) parts.push(`編集 ${editedAt}`);
   if (updatedAt && updatedAt !== createdAt) parts.push(`更新 ${updatedAt}`);
   return parts.join(" / ");
+}
+
+function appendCommentOperationPreview(item, comment) {
+  const operations = [];
+  if (comment.canEdit) operations.push("編集");
+  if (comment.canDelete) operations.push("削除");
+  if (!operations.length) return;
+
+  const preview = document.createElement("div");
+  preview.className = "session-comment-operation-preview";
+
+  const buttons = document.createElement("div");
+  buttons.className = "session-comment-operation-buttons";
+
+  for (const label of operations) {
+    const button = document.createElement("button");
+    button.className = "session-application-button session-comment-operation-button";
+    button.type = "button";
+    button.disabled = true;
+    button.setAttribute("aria-label", `${label}機能は次工程で実装予定です`);
+    button.textContent = label;
+    buttons.append(button);
+  }
+
+  const note = document.createElement("p");
+  note.className = "session-comment-operation-note";
+  note.textContent = COMMENT_ACTION_PENDING_MESSAGE;
+
+  preview.append(buttons, note);
+  item.append(preview);
 }
 
 function renderComments(target, rows) {
@@ -557,6 +605,7 @@ function renderComments(target, rows) {
       item.append(meta);
     }
 
+    appendCommentOperationPreview(item, comment);
     list.append(item);
   }
 

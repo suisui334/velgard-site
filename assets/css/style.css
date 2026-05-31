@@ -2610,6 +2610,34 @@ body[data-page="session-detail"] .session-comment-meta {
   line-height: 1.6;
 }
 
+body[data-page="session-detail"] .session-comment-operation-preview {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-comment-operation-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-comment-operation-button {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 0.78rem;
+}
+
+body[data-page="session-detail"] .session-comment-operation-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
 body[data-page="session-detail"] .session-application-button {
   justify-self: start;
   min-height: 42px;
