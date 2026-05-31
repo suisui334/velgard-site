@@ -2482,6 +2482,15 @@ body[data-page="session-detail"] .session-comment-field {
   font-weight: 800;
 }
 
+body[data-page="session-detail"] .session-comment-form-guidance {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
 body[data-page="session-detail"] .session-comment-select,
 body[data-page="session-detail"] .session-comment-textarea {
   width: 100%;

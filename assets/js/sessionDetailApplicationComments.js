@@ -437,6 +437,10 @@ function appendCommentForm(target, options = {}) {
 
   field.append(labelText, textarea);
 
+  const guidance = document.createElement("p");
+  guidance.className = "session-comment-form-guidance";
+  guidance.textContent = "コメント投稿時点で参加申請として扱われます。複数コメントしても申請人数は重複してカウントされません。申請を辞退する場合は、自分が投稿したコメントをすべて削除するか、辞退する旨のコメントを残したうえで申請取り下げ操作を行ってください。申請取り下げの確定処理は次工程で実装予定です。";
+
   const button = document.createElement("button");
   button.className = "session-application-button session-comment-button";
   button.type = "submit";
@@ -526,7 +530,7 @@ function appendCommentForm(target, options = {}) {
   }
 
   updateAvailability(false);
-  form.append(field, button, status);
+  form.append(field, guidance, button, status);
   target.append(form);
 }
 
