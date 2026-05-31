@@ -116,3 +116,4 @@ rollbackは未実行。
 
 M-11C-2では、まずボタン表示までに留め、`update_application_comment` / `delete_application_comment_and_maybe_cancel` の呼び出しは後続工程で扱う。
 
+2026-06-01追記: M-11C-2として、フロント側で本人flagを正規化し、自分のコメントだけにdisabledの編集 / 削除準備UIを表示する実装を追加済み。結果は `docs/supabase-session-detail-application-comment-edit-delete-ui-result.md` に記録した。編集 / 削除RPC呼び出しは引き続き後続工程で扱う。
