@@ -545,4 +545,9 @@
 ## M-14C public schema TRUNCATE権限整理結果
 - M-14C / 015 preflight中に、`public.sessions` だけでなくpublic schema内の複数テーブルで `anon` / `authenticated` に `TRUNCATE` 権限が見えていたため、ユーザーがSupabase SQL Editorで `TRUNCATE` だけをrevoke済み。実行結果は `Success. No rows returned`。
 - 確認クエリでは、public schema内で `anon` / `authenticated` に残る `TRUNCATE` 権限が `0 rows` になった。`SELECT` / `INSERT` / `UPDATE` / `DELETE` は今回触っていない。`postgres` などの管理者系ロール側の権限は対象外。
-- 結果は `docs/supabase-public-truncate-privilege-cleanup-result.md` に分離済み。`015_session_posting_rpc_draft.sql` のapplyはまだ未実行。このdocs記録工程でCodexはSQL Editor追加実行、DB変更、Edge Function deploy、Discord実送信、credential値の記録、`updates.json` 変更、commit / pushを行っていない。
+- 結果は `docs/supabase-public-truncate-privilege-cleanup-result.md` に分離済み。TRUNCATE権限整理時点では `015_session_posting_rpc_draft.sql` のapplyは未実行だった。このdocs記録工程でCodexはSQL Editor追加実行、DB変更、Edge Function deploy、Discord実送信、credential値の記録、`updates.json` 変更、commit / pushを行っていない。
+
+## M-14C 015 session posting RPC SQL適用結果
+- ユーザーがSupabase SQL Editorで `docs/supabase/sql/015_session_posting_rpc_draft.sql` のapply sectionを実行し、`Success. No rows returned` で通過済み。`public.sessions` に `session_type` / `application_deadline` / Discord同期メタデータ列が追加され、`application_deadline` は `timestamptz`、`session_type` は `text` / not null / default `'one-shot'`、`discord_sync_status` は `text` / not null / default `'not_requested'` と確認済み。
+- `sessions_session_type_check` / `sessions_discord_sync_status_check` / `sessions_discord_last_action_check` / `sessions_discord_sync_error_length_check`、`create_session_post(...)` の `security definer = true` / `volatile` / 戻り値 `session_id`・`discord_sync_status`・`created_at`、grantが `authenticated EXECUTE` と `postgres EXECUTE` のみで `anon EXECUTE` がないことを確認済み。
+- `create_session_post(...)` の実行テスト、Edge Function deploy、Discord実送信、フロント実装は未実施。結果は `docs/session-posting-rpc-apply-result.md` に分離済み。`015_session_posting_rpc_draft.sql` のapply sectionは適用済みのため、通常運用では同じapply sectionをそのまま再実行しない。このdocs記録工程でCodexはSQL Editor追加実行、DB変更、credential類の実値記録、`updates.json` 変更、commit / pushを行っていない。

@@ -34,7 +34,8 @@ Success. No rows returned
 
 ## 未実行・未変更
 
-- `015_session_posting_rpc_draft.sql` のapplyはまだ未実行。
+- TRUNCATE権限整理時点では、`015_session_posting_rpc_draft.sql` のapplyは未実行だった。
+- その後、M-14Cでユーザーが015 apply sectionを実行済み。結果は `docs/session-posting-rpc-apply-result.md` に記録した。
 - CodexはSQL Editorを追加実行していない。
 - CodexはDB変更を行っていない。
 - Edge Function deployは行っていない。

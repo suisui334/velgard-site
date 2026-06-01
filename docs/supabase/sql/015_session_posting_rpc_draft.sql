@@ -7,7 +7,9 @@
 -- - Discord同期状態をDB側に残し、Edge Functionが作成・編集・削除/非公開・再同期を扱える余地を作る。
 --
 -- 重要:
--- - このファイルは草案。SQL Editorではまだ実行しない。
+-- - M-14Cでapply sectionはユーザーがSQL Editorで適用済み。
+-- - 通常運用では同じapply sectionをそのまま再実行しない。
+-- - 追加修正が必要な場合は差分SQLとして別工程でレビューする。
 -- - Discord投稿credential、サーバー側credential類はこのSQLに書かない。
 -- - RPC戻り値に email、内部user id、Discord credential類を含めない。
 --
@@ -17,7 +19,12 @@
 -- - ユーザーがTRUNCATEだけをrevokeし、確認クエリで0件になったことを確認済み。
 -- - SELECT / INSERT / UPDATE / DELETE 権限は今回触っていない。
 -- - postgresなどの管理者系ロール側の権限は対象外。
--- - 015 applyはまだ未実行。
+--
+-- M-14C apply result:
+-- - ユーザーがapply sectionを実行し、Success. No rows returned で通過済み。
+-- - public.sessionsの追加列、check制約、create_session_post RPC、grantを確認済み。
+-- - create_session_post の実行テスト、Edge Function deploy、Discord実送信は未実施。
+-- - 適用結果は docs/session-posting-rpc-apply-result.md に記録済み。
 
 -- ============================================================
 -- 0. Preflight checks
