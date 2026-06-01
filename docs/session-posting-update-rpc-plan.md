@@ -314,6 +314,23 @@ preflightは引き続き `017_update_session_post_preflight_select_only.sql`、a
 
 M-14D-8fではAPPLY専用ファイル作成のみを行い、SQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、secret類の出力は行っていない。
 
+## M-14D-8g apply result
+
+ユーザーがSupabase SQL Editorで `docs/supabase/sql/017_update_session_post_apply_reviewed.sql` を適用した。
+`update_session_post` RPCは作成済みで、DB側の変更はRPC作成と権限設定のみ。テーブル構造変更、Discord実送信、Edge Function deployは行っていない。
+
+適用後確認結果:
+
+- `function_count = 1`
+- `all_security_definer = true`
+- signature: `update_session_post(text,text,text,text,text,text,text,integer,integer,text,text,text,text)`
+- `authenticated`: `expected_execute = true` / `actual_execute = true` / `ok = true`
+- `anon`: `expected_execute = false` / `actual_execute = false` / `ok = true`
+- `public`: `expected_execute = false` / `actual_execute = false` / `ok = true`
+
+M-14D-8gではCodex側のSQL Editor追加実行、DB追加変更、RPC再作成、GRANT/REVOKE再実行、Discord実送信、Edge Function deploy、secret類の出力、`updates.json` 変更は行っていない。
+次工程はM-14D-9として、フロントの「変更を保存」UI接続を行う。
+
 ## 停止条件
 
 - `public.sessions.id` がtextでない。

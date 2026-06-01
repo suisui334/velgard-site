@@ -400,3 +400,12 @@ SQL Editor貼り付け対象を明確にするため、APPLY専用ファイル `
 preflight専用SQLとは分離済みで、`017_update_session_post_rpc_draft.sql` は草案・レビュー記録として残す。
 今後SQL Editorで実行する場合は `017_update_session_post_apply_reviewed.sql` の全文のみを使い、draft全文は貼らない。
 M-14D-8fではSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、credential類の実値記録、`updates.json` 変更、commit / pushは行っていない。
+
+## 28. M-14D-8g update_session_post apply result
+
+ユーザーがSupabase SQL Editorで `docs/supabase/sql/017_update_session_post_apply_reviewed.sql` を適用し、`update_session_post` RPC作成と権限設定が完了した。
+適用後確認では `function_count = 1`、`all_security_definer = true`、signatureは `update_session_post(text,text,text,text,text,text,text,integer,integer,text,text,text,text)`。
+
+権限確認は、`authenticated` にEXECUTEあり、`anon` と `public` にEXECUTEなしで、いずれも期待値どおり `ok = true`。
+DB側の変更はRPC作成・権限設定のみで、テーブル構造変更はない。Discord実送信、Edge Function deploy、credential類の実値記録、`updates.json` 変更は行っていない。
+次工程はM-14D-9として、`session-post.html` の既存依頼書編集モードに「変更を保存」UIを接続し、`update_session_post` を呼ぶ。
