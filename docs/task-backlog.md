@@ -524,3 +524,9 @@
 - 表示は `session-detail.html` の基本情報と、`calendar.html` の選択日セッション一覧で行う。未設定時は `未定` と表示する。
 - M-13B内の追加調整として、`session-detail.html` の基本情報からGM固定表示を削除済み。`data/sessions.json` のGM情報とcalendar側のGM表示は維持する。
 - `startTime` / `endTime` は開催時刻として維持し、申請締切には流用しない。実装結果は `docs/session-application-deadline-field-result.md` に分離済み。この工程ではSQL Editor実行、DB変更、`updates.json` 変更、pushは行っていない。
+
+## M-14A セッション予定投稿＋Discord同期 全体設計
+- GM/adminがサイト上からセッション予定を投稿し、Discord専用投稿先へサーバー側で同期するための最小設計を `docs/session-posting-discord-sync-plan.md` に分離済み。
+- 投稿セッションの正本は、既存の参加申請・GM判定・GM連絡先RPCとの接続を優先して、既存 `public.sessions` を拡張して使う案を第一候補にした。M-13A/M-13Bで追加した `sessionType` / `applicationDeadline` に対応するDB列追加は将来SQL草案で扱う。
+- Discord Webhook URL / bot tokenはフロントやdocsへ置かず、Supabase Edge Function側のsecretとして管理する方針。Discord投稿先がチャンネル、フォーラム、既存スレッド、イベントのどれに近いかは実装前のユーザー確認事項として残す。
+- この工程ではフロント実装、SQL Editor実行、DB変更、Edge Function作成、Discord実投稿、`updates.json` 変更、commit / pushは行っていない。
