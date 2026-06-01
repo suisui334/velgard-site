@@ -78,7 +78,8 @@ GM認証文脈のSupabase clientで、日跨ぎ終了日時を含むhidden/draft
 
 hidden/draftは公開calendarに出ないため、`session-post.html` にGM/admin向けの `自分の依頼書` 一覧を追加した。
 一覧はログイン済みかつGM/admin判定が通った場合だけ表示し、未ログインまたは通常PLには表示しない。
-calendar側には `自分の依頼書` 導線を追加し、`session-post.html#my-sessions` へ遷移できるようにした。
+M-14D-6bでcalendar側の常設 `自分の依頼書` 導線は削除し、依頼書一覧は `session-post.html` 内へ集約した。
+calendarの日付セルにある `＋依頼書` 導線は維持し、`session-post.html?date=YYYY-MM-DD` へ遷移できる。
 
 一覧は認証済みSupabase clientで `public.sessions` を読み、RLSで見える範囲を表示する。
 表示する情報はタイトル、開催日時、終了日時、公開状態、募集状態、Discord同期状態、作成日時、詳細導線に限定する。

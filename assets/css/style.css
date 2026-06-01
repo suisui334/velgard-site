@@ -3527,14 +3527,6 @@ body[data-page="session-post"] .session-post-managed-meta dd {
   overflow-wrap: anywhere;
 }
 
-body[data-page="calendar"] .calendar-manage-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 14px;
-}
-
 .tools-section {
   display: grid;
   gap: 16px;
@@ -4335,8 +4327,7 @@ body.is-modal-open .back-to-top {
 
   body[data-page="session-post"] .session-post-submit-row .button,
   body[data-page="session-post"] .session-post-actions .button,
-  body[data-page="session-post"] .session-post-managed-head .button,
-  body[data-page="calendar"] .calendar-manage-actions .button {
+  body[data-page="session-post"] .session-post-managed-head .button {
     width: 100%;
     justify-content: center;
   }
