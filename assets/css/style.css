@@ -2534,6 +2534,8 @@ body[data-page="session-detail"] .session-comment-list {
 }
 
 body[data-page="session-detail"] .session-gm-history-control {
+  display: grid;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -2541,18 +2543,21 @@ body[data-page="session-detail"] .session-gm-history-control[hidden] {
   display: none;
 }
 
-body[data-page="session-detail"] .session-gm-history-details {
+body[data-page="session-detail"] .session-gm-history-details,
+body[data-page="session-detail"] .session-gm-contact-details {
   min-width: 0;
   border: 1px solid rgba(86, 96, 106, 0.18);
   border-radius: 8px;
   background: rgba(255, 255, 250, 0.66);
 }
 
-body[data-page="session-detail"] .session-gm-history-details[open] {
+body[data-page="session-detail"] .session-gm-history-details[open],
+body[data-page="session-detail"] .session-gm-contact-details[open] {
   background: rgba(250, 252, 247, 0.76);
 }
 
-body[data-page="session-detail"] .session-gm-history-summary {
+body[data-page="session-detail"] .session-gm-history-summary,
+body[data-page="session-detail"] .session-gm-contact-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2568,11 +2573,13 @@ body[data-page="session-detail"] .session-gm-history-summary {
   overflow-wrap: anywhere;
 }
 
-body[data-page="session-detail"] .session-gm-history-summary::-webkit-details-marker {
+body[data-page="session-detail"] .session-gm-history-summary::-webkit-details-marker,
+body[data-page="session-detail"] .session-gm-contact-summary::-webkit-details-marker {
   display: none;
 }
 
-body[data-page="session-detail"] .session-gm-history-summary::after {
+body[data-page="session-detail"] .session-gm-history-summary::after,
+body[data-page="session-detail"] .session-gm-contact-summary::after {
   content: "+";
   flex: 0 0 auto;
   display: inline-flex;
@@ -2587,18 +2594,21 @@ body[data-page="session-detail"] .session-gm-history-summary::after {
   line-height: 1;
 }
 
-body[data-page="session-detail"] .session-gm-history-details[open] .session-gm-history-summary::after {
+body[data-page="session-detail"] .session-gm-history-details[open] .session-gm-history-summary::after,
+body[data-page="session-detail"] .session-gm-contact-details[open] .session-gm-contact-summary::after {
   content: "-";
 }
 
-body[data-page="session-detail"] .session-gm-history-body {
+body[data-page="session-detail"] .session-gm-history-body,
+body[data-page="session-detail"] .session-gm-contact-body {
   display: grid;
   gap: 12px;
   min-width: 0;
   padding: 0 12px 12px;
 }
 
-body[data-page="session-detail"] .session-gm-history-state {
+body[data-page="session-detail"] .session-gm-history-state,
+body[data-page="session-detail"] .session-gm-contact-state {
   margin: 0;
 }
 
@@ -2747,6 +2757,63 @@ body[data-page="session-detail"] .session-gm-application-confirm-target {
   font-size: 0.78rem;
   font-weight: 800;
   line-height: 1.6;
+}
+
+body[data-page="session-detail"] .session-gm-contact-list {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+body[data-page="session-detail"] .session-gm-contact-item {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 8px 12px;
+  align-items: center;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(86, 96, 106, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 250, 0.7);
+}
+
+body[data-page="session-detail"] .session-gm-contact-name,
+body[data-page="session-detail"] .session-gm-contact-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-gm-contact-name {
+  color: var(--soot);
+  font-size: 0.9rem;
+}
+
+body[data-page="session-detail"] .session-gm-contact-value {
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+body[data-page="session-detail"] .session-gm-contact-value.is-missing {
+  color: var(--muted);
+}
+
+body[data-page="session-detail"] .session-gm-contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-gm-contact-copy-button {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 0.78rem;
 }
 
 body[data-page="session-detail"] .session-comment-state {
@@ -4019,6 +4086,10 @@ body.is-modal-open .back-to-top {
   }
 
   body[data-page="session-detail"] .calendar-session-modal-meta {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page="session-detail"] .session-gm-contact-item {
     grid-template-columns: 1fr;
   }
 

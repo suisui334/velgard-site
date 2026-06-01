@@ -506,3 +506,8 @@
 - バリデーションは空欄保存を未登録扱い、100文字超過拒否、改行拒否に限定し、Discord側の仕様変更に備えて数字限定や `@` 必須の厳密な正規表現は使わない。DOM反映は `textContent` と input value に限定し、HTMLとして扱わない。
 - 画面・console・docsへ出す情報は本人の `discord_handle` に限定する。email、`user_id`、token、key、secret、`discord_user_id`、`discord_name`、他人の `discord_handle` は出さない。実装結果は `docs/supabase-discord-id-mypage-ui-result.md` に分離済み。
 - M-12CではSQL Editor実行、DB変更、GM向け承認済み参加者Discord ID表示 / コピー導線、RLS smoke test追加、Discord ID実値入力、`updates.json` 変更、commit / pushは行っていない。次工程候補はM-12E GM向け承認済み参加者連絡先表示 / コピー、またはM-12F RLS smoke test強化。
+
+## Supabase M-12D GM向け承認済み参加者連絡先UI
+- M-12D GM向け連絡先UI実装完了: `session-detail.html` のGM/admin向け領域に `GM向け：承認済み参加者連絡先` 折りたたみを追加済み。既存のGM/admin判定に従い、未ログイン / 通常PL / 判定失敗時はUIを表示しない。
+- `get_gm_session_accepted_contacts(target_session_id text)` を呼び、`display_name` / `discord_handle` のみを扱う。未登録者は `未登録` と表示し、`連絡先一覧をコピー` で同じ形式の行区切りテキストをコピーできる。
+- email、`user_id`、`application_id`、`comment_id`、`discord_user_id`、`discord_name`、token、key、secret類は表示・コピー対象にしない。実装結果は `docs/supabase-discord-id-gm-contact-ui-result.md` に分離済み。この工程ではSQL Editor実行、DB変更、RLS smoke test追加、Discord ID実値入力、`updates.json` 変更、commit / pushは行っていない。

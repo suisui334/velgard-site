@@ -78,6 +78,7 @@ py -m http.server 4173 -d velgard-site
   - `docs/supabase-discord-id-contact-plan.md`: M-12A Discord ID登録 / GM向けコピー導線 調査・設計
   - `docs/supabase-discord-id-contact-sql-result.md`: M-12B Discord ID連絡先SQL適用結果
   - `docs/supabase-discord-id-mypage-ui-result.md`: M-12C mypage Discord ID登録UI 実装結果
+  - `docs/supabase-discord-id-gm-contact-ui-result.md`: M-12D GM向け承認済み参加者連絡先UI 実装結果
   - `docs/supabase-f1-readonly-prototype.md`: Supabase F-1 ローカル読み取り専用プロトタイプ手順
   - `docs/supabase-f2-public-session-read-plan.md`: Supabase F-2 公開セッション読み取りプロトタイプ設計
   - `docs/supabase-f2-session-mapping-prototype.md`: Supabase F-2 dev セッション表示マッピングプロトタイプ手順
@@ -1523,3 +1524,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - M-12Aとして、Discord ID相当の連絡先を安全に保存し、GM/adminが承認済み参加者だけ確認・コピーできるようにするための調査・設計を `docs/supabase-discord-id-contact-plan.md` に整理した。既存 `discord_user_id` / `discord_name` と分離して `profiles.discord_handle` を使う方針、`public_profiles` 非露出、本人用 / GM用RPC案、返却列を `display_name` / `discord_handle` に限定する方針を記録済み。
 - M-12Bとして、ユーザーがSQL Editorで適用したDiscord ID連絡先DB変更の結果を `docs/supabase-discord-id-contact-sql-result.md` に記録した。`profiles.discord_handle`、`profiles_discord_handle_check`、`get_my_profile_contact()`、`update_my_discord_id(new_discord_id text)`、`get_gm_session_accepted_contacts(target_session_id text)` を確認済み。CodexはSQL Editor実行、DB変更、Discord ID実値記録、`updates.json` 変更、commit / pushを行っていない。
 - M-12Cとして、`mypage.html` のログイン済みアカウント機能内に本人用Discord ID登録 / 編集UIを追加した。`get_my_profile_contact()` で現在値を取得し、`update_my_discord_id(new_discord_id text)` で保存する。空欄保存は未登録扱い、100文字超過と改行入りはフロントで拒否し、公開プロフィールには出さない。GM向けコピー導線、SQL Editor実行、DB変更、Discord ID実値入力、RLS smoke test追加、`updates.json` 変更は行っていない。実装結果は `docs/supabase-discord-id-mypage-ui-result.md` に整理済み。
+- M-12Dとして、`session-detail.html` のGM/admin向け領域に承認済み参加者Discord ID表示 / コピー導線を追加した。`get_gm_session_accepted_contacts(target_session_id text)` で `display_name` / `discord_handle` のみを取得し、未登録者は `未登録` と表示する。未ログイン / 通常PL / 判定失敗時はUI非表示。email、`user_id`、`application_id`、`comment_id`、`discord_user_id`、`discord_name`、token、key、secret類は表示・コピー対象にしない。SQL Editor実行、DB変更、RLS smoke test追加、Discord ID実値入力、`updates.json` 変更は行っていない。実装結果は `docs/supabase-discord-id-gm-contact-ui-result.md` に整理済み。
