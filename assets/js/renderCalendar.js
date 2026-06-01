@@ -1,4 +1,5 @@
 import { loadJson } from "./dataLoader.js";
+import { loadMergedSessions } from "./sessionData.js?v=20260601-session-post";
 import {
   escapeHtml,
   formatSessionApplicationDeadline,
@@ -15,7 +16,7 @@ import {
 } from "./sessionDisplay.js?v=20260601-application-deadline";
 
 const CONFIG_URL = "data/calendarConfig.json?v=20260529-calendar-cap-start";
-const SESSIONS_URL = "data/sessions.json?v=20260601-application-deadline";
+const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";
 const CALENDAR_SELECTED_DATE_KEY = "velgard.calendar.selectedDate";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -52,6 +53,10 @@ function sessionsForDate(sessionsByDate, isoDate) {
 function sessionDetailHref(session) {
   const id = String(session?.id || "").trim();
   return id ? `session-detail.html?id=${encodeURIComponent(id)}` : "session-detail.html";
+}
+
+function sessionPostHref(isoDate) {
+  return `session-post.html?date=${encodeURIComponent(isoDate)}`;
 }
 
 function isValidIsoDate(value) {
@@ -544,6 +549,7 @@ function renderMonthCalendar(year, month, selectedIso, todayIso, config, session
           ${result.levelCap.isStart ? `<span class="calendar-mini-tag calendar-cap-start-tag">${escapeHtml(result.levelCap.startLabel)}</span>` : ""}
         </span>
         ${renderSessionBadges(daySessions)}
+        <a class="calendar-session-post-link" href="${escapeHtml(sessionPostHref(isoDate))}">＋依頼書</a>
       `
       : `<span class="calendar-day-status">${escapeHtml(result.levelCap.label)}</span>`;
 
@@ -584,7 +590,7 @@ function renderError(message) {
 export async function renderCalendar(root) {
   const config = await loadJson(CONFIG_URL);
   let sessionsLoadError = false;
-  const sessionsData = await loadJson(SESSIONS_URL).catch((error) => {
+  const sessionsData = await loadMergedSessions(SESSIONS_URL).catch((error) => {
     console.warn(error);
     sessionsLoadError = true;
     return { sessions: [] };
@@ -693,7 +699,7 @@ export async function renderCalendar(root) {
   });
 
   monthView.addEventListener("click", (event) => {
-    if (event.target.closest(".calendar-session-row")) return;
+    if (event.target.closest(".calendar-session-row, .calendar-session-post-link")) return;
     const dayButton = event.target.closest("[data-calendar-date]");
     if (dayButton) {
       selectDate(dayButton.dataset.calendarDate, false);
@@ -722,7 +728,7 @@ export async function renderCalendar(root) {
   });
 
   monthView.addEventListener("keydown", (event) => {
-    if (event.target.closest(".calendar-session-row")) return;
+    if (event.target.closest(".calendar-session-row, .calendar-session-post-link")) return;
     if (event.key !== "Enter" && event.key !== " ") return;
     const dayButton = event.target.closest("[data-calendar-date]");
     if (!dayButton) return;

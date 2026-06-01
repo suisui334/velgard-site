@@ -10,12 +10,13 @@ import { renderSpotDetail } from "./renderSpotDetail.js?v=20260529-ui-polish";
 import { renderCharacters } from "./renderCharacters.js?v=20260529-ui-polish";
 import { renderScenarios } from "./renderScenarios.js?v=20260529-scenario-release-base";
 import { renderScenarioDetail } from "./renderScenarioDetail.js?v=20260529-scenario-release-base";
-import { renderSessionDetail as renderSessionScheduleDetail } from "./renderSessionDetail.js?v=20260601-application-deadline";
+import { renderSessionDetail as renderSessionScheduleDetail } from "./renderSessionDetail.js?v=20260601-session-post";
+import { renderSessionPost } from "./renderSessionPost.js?v=20260601-session-post";
 import { renderTerms } from "./renderTerms.js?v=20260526-term-anchor";
 import { renderGallery } from "./renderGallery.js?v=20260529-gallery-swipe";
 import { renderUpdates } from "./renderUpdates.js";
 import { renderTools } from "./renderTools.js?v=20260529-calendar-date-tools-history";
-import { renderCalendar } from "./renderCalendar.js?v=20260601-application-deadline";
+import { renderCalendar } from "./renderCalendar.js?v=20260601-session-post";
 import { renderMypage } from "./renderMypage.js?v=20260531-mypage-applications";
 
 const navItems = [
@@ -46,6 +47,7 @@ const renderers = {
   scenarios: renderScenarios,
   "scenario-detail": renderScenarioDetail,
   "session-detail": renderSessionScheduleDetail,
+  "session-post": renderSessionPost,
   terms: renderTerms,
   gallery: renderGallery,
   updates: renderUpdates,

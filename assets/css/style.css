@@ -1885,6 +1885,33 @@ body[data-page="calendar"] .calendar-session-badges {
   min-width: 0;
 }
 
+body[data-page="calendar"] .calendar-session-post-link {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border: 1px solid rgba(75, 63, 99, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 250, 0.78);
+  color: var(--deep);
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+body[data-page="calendar"] .calendar-session-post-link:hover,
+body[data-page="calendar"] .calendar-session-post-link:focus-visible {
+  border-color: rgba(75, 63, 99, 0.42);
+  background: rgba(247, 247, 243, 0.96);
+  box-shadow: 0 0 0 2px rgba(75, 63, 99, 0.12);
+  outline: none;
+}
+
 body[data-page="calendar"] .calendar-session-row {
   appearance: none;
   display: grid;
@@ -3289,6 +3316,152 @@ body[data-page="mypage"] .mypage-application-meta dd {
   overflow-wrap: anywhere;
 }
 
+body[data-page="session-post"] .session-post-section {
+  display: grid;
+  gap: 16px;
+  overflow: visible;
+  padding-top: 4px;
+}
+
+body[data-page="session-post"] .session-post-auth-panel,
+body[data-page="session-post"] .session-post-form-panel,
+body[data-page="session-post"] .session-post-result-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+body[data-page="session-post"] [hidden] {
+  display: none !important;
+}
+
+body[data-page="session-post"] .session-post-form-head {
+  display: grid;
+  gap: 4px;
+}
+
+body[data-page="session-post"] .session-post-form-head p {
+  color: var(--muted);
+}
+
+body[data-page="session-post"] .session-post-form {
+  display: grid;
+  gap: 14px;
+}
+
+body[data-page="session-post"] .session-post-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+body[data-page="session-post"] .session-post-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+body[data-page="session-post"] .session-post-field span {
+  font-size: 0.86rem;
+}
+
+body[data-page="session-post"] .session-post-field input,
+body[data-page="session-post"] .session-post-field select,
+body[data-page="session-post"] .session-post-field textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(86, 96, 106, 0.28);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.88);
+  color: var(--ink);
+  font: inherit;
+}
+
+body[data-page="session-post"] .session-post-field input,
+body[data-page="session-post"] .session-post-field select {
+  min-height: 42px;
+  padding: 8px 10px;
+}
+
+body[data-page="session-post"] .session-post-field textarea {
+  min-height: 132px;
+  padding: 10px;
+  resize: vertical;
+}
+
+body[data-page="session-post"] .session-post-field--wide {
+  grid-column: 1 / -1;
+}
+
+body[data-page="session-post"] .session-post-public-confirm {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+body[data-page="session-post"] .session-post-public-confirm input {
+  width: 18px;
+  height: 18px;
+  margin-top: 5px;
+}
+
+body[data-page="session-post"] .session-post-submit-row,
+body[data-page="session-post"] .session-post-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+body[data-page="session-post"] .session-post-state {
+  min-height: 1.35em;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+body[data-page="session-post"] .session-post-state.is-ok {
+  color: var(--herb);
+}
+
+body[data-page="session-post"] .session-post-state.is-error {
+  color: var(--rust);
+}
+
+body[data-page="session-post"] .session-post-result-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+body[data-page="session-post"] .session-post-result-list div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(86, 96, 106, 0.16);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.58);
+}
+
+body[data-page="session-post"] .session-post-result-list dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+body[data-page="session-post"] .session-post-result-list dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--ink);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
 .tools-section {
   display: grid;
   gap: 16px;
@@ -4063,6 +4236,29 @@ body.is-modal-open .back-to-top {
   }
 
   body[data-page="mypage"] .mypage-application-detail-link {
+    width: 100%;
+    justify-content: center;
+  }
+
+  body[data-page="session-post"] .session-post-auth-panel,
+  body[data-page="session-post"] .session-post-form-panel,
+  body[data-page="session-post"] .session-post-result-panel {
+    padding: 14px;
+  }
+
+  body[data-page="session-post"] .session-post-grid,
+  body[data-page="session-post"] .session-post-result-list {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page="session-post"] .session-post-submit-row,
+  body[data-page="session-post"] .session-post-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  body[data-page="session-post"] .session-post-submit-row .button,
+  body[data-page="session-post"] .session-post-actions .button {
     width: 100%;
     justify-content: center;
   }

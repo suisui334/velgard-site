@@ -556,3 +556,9 @@
 - `dev/run-create-session-post-test.mjs` は通常実行ではSKIPすることを確認済み。`RUN_CREATE_SESSION_POST_TEST=true` / `CREATE_SESSION_POST_CONFIRM=hidden-draft` / `CREATE_SESSION_POST_ACTOR=gm` で、GM認証文脈から `create_session_post(...)` を1回実行した。
 - 結果は `ok: true`、`discord_sync_status = skipped`、作成行は `status = draft` / `visibility = hidden` / `session_type = one-shot` / `application_deadline_present = true` / `discord_sync_status = skipped`。anonからpublic表示対象として見えないことも確認済み。
 - hidden draft test row は作成済みで削除していない。結果は `docs/session-posting-rpc-execution-test-result.md` に分離済み。SQL EditorでのRPC直接実行、Edge Function deploy、Discord実送信、DB構造変更、フロント実装、token / key / email / user_id全文 / credential類の実値記録、`updates.json` 変更、commit / pushは行っていない。`dev/run-create-session-post-test.mjs` はcommit対象候補。
+## M-14D-2 GM/admin依頼書投稿フォーム + Supabase sessions表示反映
+- `session-post.html` と `assets/js/renderSessionPost.js` を追加し、GM/adminが認証済みSupabase clientから `create_session_post(...)` を呼べる投稿フォームを実装した。初期値は `visibility = hidden` / `status = draft` / `sessionType = one-shot`。
+- `assets/js/sessionData.js` で `data/sessions.json` とSupabase `public.sessions` の公開表示対象をマージし、calendar / session-detail に接続した。同一IDは静的JSON側を優先し、Supabase側は `visibility = public` かつ `draft` / `canceled` / `cancelled` 以外を対象にする。
+- 追加修正として、ヘッダー圧迫回避のためグローバルメニューの `POST` を削除し、依頼書投稿導線をcalendarの日付セル内の `＋依頼書` へ寄せた。`session-post.html?date=YYYY-MM-DD` では開催日欄へ日付を初期入力する。
+- フォームの `依頼書本文` 欄と `参加条件` 欄は削除し、依頼書本文は `概要` 欄へ記載する運用にした。RPC送信時の `p_request_body` / `p_requirements` は `null` を送る。
+- Discord実送信は未実装で、投稿成功時は `discord_sync_status` 表示のみ。SQL Editor実行、DB構造変更、Edge Function deploy、Discord実送信、secret類の実値記録、`updates.json` 変更、commit / pushは行っていない。詳細は `docs/session-posting-form-result.md` に記録済み。

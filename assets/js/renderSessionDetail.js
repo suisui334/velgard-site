@@ -1,4 +1,5 @@
-import { getParams, loadJson } from "./dataLoader.js";
+import { getParams } from "./dataLoader.js";
+import { loadMergedSessions } from "./sessionData.js?v=20260601-session-post";
 import {
   escapeHtml,
   getSessionDisplayTitle,
@@ -6,7 +7,7 @@ import {
 } from "./sessionDisplay.js?v=20260601-application-deadline";
 import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260601-gm-contact-copy";
 
-const SESSIONS_URL = "data/sessions.json?v=20260601-application-deadline";
+const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -100,7 +101,7 @@ export async function renderSessionDetail(root) {
 
   let data;
   try {
-    data = await loadJson(SESSIONS_URL);
+    data = await loadMergedSessions(SESSIONS_URL);
   } catch (error) {
     root.innerHTML = renderShell("セッション予定を読み込めません", `
       <article class="article-box session-detail-card">
