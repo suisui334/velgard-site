@@ -442,7 +442,7 @@
 ## Supabase M-10 mypage 申請一覧・参加予定表示
 - `mypage.html` のログイン済みアカウント機能内に、本人の「参加申請中」「参加予定」表示を追加済み。`pending` / `waitlisted` は参加申請中、`accepted` は参加予定、`rejected` / `canceled` は今回非表示。
 - `session_applications` の本人行を `data/sessions.json` の公開セッションと `session_id` で突合し、タイトル、日付、開始時刻、GM表示名、セッション状態、申請ステータス、更新日時、公開詳細リンクを表示する。突合できない場合は内部IDを出さず「非公開または未同期のセッション」と表示する。
-- `closed` / `finished` / `canceled` / `cancelled` / `archived` の公開セッションは、`accepted` でも参加予定に出さない。email / user_id全文 / token / key / gmUserId / コメント本文 / 内部ID類は画面に出さない。
+- `closed` / `finished` / `canceled` / `archived` の公開セッションは、`accepted` でも参加予定に出さない。DB/RPC正本の中止状態は `canceled` に統一する。email / user_id全文 / token / key / gmUserId / コメント本文 / 内部ID類は画面に出さない。
 - RLS smoke testへM-10向けの読み取り観点を追加済み。M-10フロント実装時点ではSupabase SQL Editorを実行しておらず、公開版確認はユーザー実ブラウザ確認前だった。
 - M-10 follow-up完了: DB側の `sessions.id` / `session_applications.session_id` と `data/sessions.json` の `sessions[].id` を一致させた検証データで、mypage の詳細リンク表示・遷移を確認済み。対象は `session-2026-06-08-railway-incident`。公開版 mypage で「灰壁線異常調査」、`詳細を見る`、`session-detail.html?id=session-2026-06-08-railway-incident` への遷移を確認済み。
 - M-10 follow-up後の残タスク: 検証データのcleanup要否判断、`session-detail.html` 本番投稿統合前の設計確認、mypage申請一覧の履歴表示、GM操作統合。
@@ -558,7 +558,7 @@
 - hidden draft test row は作成済みで削除していない。結果は `docs/session-posting-rpc-execution-test-result.md` に分離済み。SQL EditorでのRPC直接実行、Edge Function deploy、Discord実送信、DB構造変更、フロント実装、token / key / email / user_id全文 / credential類の実値記録、`updates.json` 変更、commit / pushは行っていない。`dev/run-create-session-post-test.mjs` はcommit対象候補。
 ## M-14D-2 GM/admin依頼書投稿フォーム + Supabase sessions表示反映
 - `session-post.html` と `assets/js/renderSessionPost.js` を追加し、GM/adminが認証済みSupabase clientから `create_session_post(...)` を呼べる投稿フォームを実装した。初期値は `visibility = hidden` / `status = draft` / `sessionType = one-shot`。
-- `assets/js/sessionData.js` で `data/sessions.json` とSupabase `public.sessions` の公開表示対象をマージし、calendar / session-detail に接続した。同一IDは静的JSON側を優先し、Supabase側は `visibility = public` かつ `draft` / `canceled` / `cancelled` 以外を対象にする。
+- `assets/js/sessionData.js` で `data/sessions.json` とSupabase `public.sessions` の公開表示対象をマージし、calendar / session-detail に接続した。同一IDは静的JSON側を優先し、Supabase側は `visibility = public` かつ `draft` / `canceled` 以外を対象にする方針。
 - 追加修正として、ヘッダー圧迫回避のためグローバルメニューの `POST` を削除し、依頼書投稿導線をcalendarの日付セル内の `＋依頼書` へ寄せた。`session-post.html?date=YYYY-MM-DD` では開始日時欄へ日付を初期反映する。
 - フォームの `開催日` / `開始時刻` は `開始日時` に統合し、送信時に `p_session_date` / `p_start_time` へ分解する。`終了時刻` は `終了日時` に変更し、送信時は時刻部分だけを `p_end_time` として送る。日跨ぎ終了日時は現DB/RPCで永続化できないため投稿前バリデーションで止め、将来 `end_date` または `end_at` 追加工程で扱う。
 - `レベル帯` 欄は削除し、RPC送信時の `p_level_range` は `null` を送る。
@@ -621,3 +621,22 @@
 - UI接続では既存依頼書選択中に `変更を保存` を出し、保存時に `update_session_post` を呼ぶ。raw id / uuidはDOMへ出さず、JSメモリ上の選択レコードからRPCへ渡す。保存成功後はselect表示とJSメモリ上の選択レコードを最新値に更新する。
 - smoke test観点としてanon拒否、通常PL拒否、他GM拒否、対象GM成功、admin成功、invalid status/visibility拒否、min > max拒否、end_at <= start_at拒否、内部情報非露出、hidden/draftのpublic非表示維持、public/recruiting更新時のpending化を整理した。
 - この工程でCodexはSQL Editor実行、DB構造変更、RPC実行、Edge Function deploy、Discord実送信、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+
+## M-14D-8b update_session_post preflight準備
+- `docs/supabase/sql/017_update_session_post_rpc_draft.sql` のSQL Editor貼り付け範囲を整理し、非破壊確認の `SECTION 1: PREFLIGHT ONLY` と、実適用用の `SECTION 2: APPLY` を明確に分離した。
+- preflightはSELECTのみで、`public.sessions` 列一覧、`id` / `end_at` / `updated_at` / `discord_sync_*` 主要列型、`visibility` / `status` / `session_type` 関連制約、既存 `update_session_post` 有無、既存 `create_session_post` signature、GM/admin helper、anon/authenticated grant状況を確認する。
+- apply sectionにはpreflight結果レビュー前に実行しない注意コメントを追加した。M-14D-8bではSQL Editor実行、DB構造変更、RPC作成/置換、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+
+## M-14D-8c update_session_post preflight専用ファイル化
+- 固定行番号でpreflight範囲を抜き出す方式は、実適用SQLが混入したため破棄した。SQL Editor実行前に停止し、DB構造変更やRPC作成は行っていない。
+- SQL Editorへ貼る対象として、SELECT-only専用ファイル `docs/supabase/sql/017_update_session_post_preflight_select_only.sql` を作成した。以後preflightはこのファイル全文を使い、`017_update_session_post_rpc_draft.sql` 本体から行番号で抜き出さない。
+- 017本体には、固定行番号方式禁止、preflight専用ファイル使用、実適用section未実行を明記した。
+- M-14D-8cではSQL Editor実行、DB構造変更、RPC作成/置換、Discord実送信、Edge Function deploy、フロントUI接続、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+
+## M-14D-8d update_session_post preflight結果記録
+- ユーザーがSQL Editorで実行したのは `docs/supabase/sql/017_update_session_post_preflight_select_only.sql` のみ。`017_update_session_post_rpc_draft.sql` の実適用sectionは未実行で、CREATE FUNCTION / GRANT / REVOKE、DB構造変更、RPC作成は行っていない。
+- preflightで `public.sessions` の想定列はすべて存在し、`id = text`、`end_at` / `application_deadline` / `updated_at` / Discord同期日時列は `timestamp with time zone`、`gm_user_id = uuid`、`start_time` / `end_time = time without time zone` と確認できた。
+- 主要defaultは `session_type = 'one-shot'`、`status = 'recruiting'`、`visibility = 'public'`、`discord_sync_status = 'not_requested'`、`updated_at = now()`。許可値は `status = draft / tentative / recruiting / full / closed / finished / canceled`、`visibility = public / private / hidden`、`session_type = one-shot / campaign / special / other`、`discord_sync_status = not_requested / pending / posted / failed / skipped`、`discord_last_action = create / update / delete / close / resync`。
+- `update_session_post` は未存在。`create_session_post` は1本のみ存在し、`p_end_at` 対応済み、`security_definer = true`。`has_role(text)` / `is_admin()` / `is_session_gm(text)` は存在し、戻り値boolean、`security_definer = true`、stable。確認範囲ではauthenticatedにEXECUTEがあり、anon grantは出ていない。
+- SQL草案は `p_session_id text`、既存許可値、`security definer`、authenticated EXECUTE / anon不可の方針でpreflight結果と矛盾しない。DB/RPC草案では米国綴りの `canceled` に統一し、英国綴りは使わない。
+- M-14D-8dではSQL Editor追加実行、DB構造変更、RPC作成/置換、Discord実送信、Edge Function deploy、フロントUI接続、`updates.json` 変更、secret類の出力、commit / pushを行っていない。

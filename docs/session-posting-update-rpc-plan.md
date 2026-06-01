@@ -124,7 +124,7 @@ RPCは `security definer`、`set search_path = ''`、`authenticated` のみEXECU
 DB側RPCとしては `visibility` と `status` を受け取る。
 ただし、UI接続初期段階では現在フォームにある値だけを扱い、公開切替や募集終了専用操作は別工程で確認する。
 
-公開表示側は既存どおり `visibility = public` かつ `draft` / `canceled` / `cancelled` 以外を表示対象にする。
+DB/RPC草案では `visibility = public` かつ `draft` / `canceled` 以外を表示対象にする方針に寄せる。
 hidden / draft更新後もpublic calendarに出ないことをsmoke test観点に含める。
 
 `closed` / `finished` / `canceled` は既存表示ラベルに存在するが、今回のUIで積極的に切り替える操作はまだ作らない。
@@ -212,6 +212,74 @@ SQL Editor実行前に以下を確認する。
 - EXECUTE grant方針。
 - PostgREST RPCで同名overloadが曖昧化しないこと。
 - Discord同期メタデータ列の意味がEdge Function計画と一致していること。
+
+## M-14D-8b preflight section整理
+
+`docs/supabase/sql/017_update_session_post_rpc_draft.sql` に、SQL Editorで先に実行する範囲として `SECTION 1: PREFLIGHT ONLY` を明示した。
+SQL Editorへ貼る範囲は、ファイル内の以下のコメントで囲まれた部分だけ。
+
+```text
+-- SECTION 1: PREFLIGHT ONLY
+...
+-- END SECTION 1: PREFLIGHT ONLY
+```
+
+この範囲はSELECTのみで、`information_schema` / `pg_catalog` / `pg_proc` / `pg_namespace` / `information_schema.routine_privileges` の参照に限定する。
+preflightでは、`public.sessions` 列一覧、主要列型、関連check制約、既存 `update_session_post` の有無、既存 `create_session_post` signature、GM/admin判定helper、anon/authenticatedの既存grant状況を確認する。
+
+apply範囲は `SECTION 2: APPLY` として分離し、`DO NOT RUN UNTIL PREFLIGHT RESULT IS REVIEWED.` の注意コメントを追加した。
+M-14D-8bではSQL Editor実行、DB構造変更、RPC作成/置換、Discord実送信、Edge Function deploy、secret類の出力は行っていない。
+
+## M-14D-8c preflight専用ファイル化
+
+M-14D-8b後の確認で、固定行番号による抽出範囲に実適用SQLが混入したため、固定行番号方式は破棄する。
+SQL Editor実行前に停止し、DB構造変更やRPC作成は行っていない。
+
+以後、SQL Editorへ貼るpreflightは以下の専用ファイル全文とする。
+
+```text
+docs/supabase/sql/017_update_session_post_preflight_select_only.sql
+```
+
+この専用ファイルはSELECTのみで、`public.sessions` 列一覧、主要列型、関連制約、既存RPC、helper関数、anon/authenticated grant状況を確認する。
+`017_update_session_post_rpc_draft.sql` 本体には、固定行番号で抜き出さないこと、preflightには専用ファイルを使うことを明記した。
+
+M-14D-8cではSQL Editor実行、DB構造変更、RPC作成/置換、Discord実送信、Edge Function deploy、secret類の出力は行っていない。
+
+## M-14D-8d preflight結果記録
+
+ユーザーがSQL Editorで実行したのは、preflight専用ファイル `docs/supabase/sql/017_update_session_post_preflight_select_only.sql` のみ。
+`017_update_session_post_rpc_draft.sql` の実適用sectionは未実行で、DB構造変更、RPC作成、grant変更は行っていない。
+
+preflight結果:
+
+- `public.sessions` の想定列はすべて存在する。
+- `id` は `text`。
+- `end_at` / `application_deadline` / `updated_at` / `discord_sync_requested_at` / `discord_synced_at` は `timestamp with time zone`。
+- `gm_user_id` は `uuid`。
+- `date` は `date`、`start_time` / `end_time` は `time without time zone`。
+- `session_type` / `status` / `visibility` / `discord_sync_status` / `discord_sync_error` / `discord_message_id` / `discord_last_action` は `text`。
+- 主要defaultは `session_type = 'one-shot'`、`status = 'recruiting'`、`visibility = 'public'`、`discord_sync_status = 'not_requested'`、`updated_at = now()`。
+- `status` 許可値は `draft` / `tentative` / `recruiting` / `full` / `closed` / `finished` / `canceled`。
+- `visibility` 許可値は `public` / `private` / `hidden`。
+- `session_type` 許可値は `one-shot` / `campaign` / `special` / `other`。
+- `discord_sync_status` 許可値は `not_requested` / `pending` / `posted` / `failed` / `skipped`。
+- `discord_last_action` 許可値は `create` / `update` / `delete` / `close` / `resync`。
+- `create_session_post` は1本のみ存在し、`p_end_at` 対応済み、`security_definer = true`。
+- `update_session_post` は未存在。
+- `has_role(text)` / `is_admin()` / `is_session_gm(text)` は存在し、戻り値はboolean、`security_definer = true`、volatilityはstable。
+- `create_session_post` / `has_role` / `is_admin` / `is_session_gm` はauthenticatedにEXECUTEがあり、確認範囲ではanon grantは出ていない。
+
+整合点検結果:
+
+- SQL草案の `p_session_id text` は実DBの `sessions.id text` と一致する。
+- SQL草案の `status` / `visibility` / `session_type` 許可値はpreflight結果と一致する。
+- SQL草案の `discord_sync_status` は許可値内の `pending` / `skipped` のみを設定するため制約と矛盾しない。
+- SQL草案の `discord_last_action` は許可値内の `create` / `update` / `delete` / `close` のみを設定するため制約と矛盾しない。
+- DB/RPC草案では状態値を米国綴りの `canceled` に統一し、英国綴りは使わない。
+- SQL草案は `security definer`、`set search_path = ''`、authenticated EXECUTE、anon不可の方針で、既存 `create_session_post` と整合する。
+
+M-14D-8dではSQL Editor追加実行、DB構造変更、RPC作成/置換、Discord実送信、Edge Function deploy、secret類の出力は行っていない。
 
 ## 停止条件
 

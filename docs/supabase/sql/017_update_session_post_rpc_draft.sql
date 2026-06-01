@@ -13,10 +13,27 @@
 -- - そのため、この草案では p_session_id text を採用する。
 -- - p_min_players / p_max_players 案は、既存 create_session_post に合わせて
 --   p_player_min / p_player_max とする。
+--
+-- M-14D-8c note:
+-- - Do not copy this file by fixed line numbers.
+-- - SQL Editor preflight must use the dedicated select-only file instead:
+--   docs/supabase/sql/017_update_session_post_preflight_select_only.sql
+-- - Review this draft file only after the dedicated preflight result is checked.
 
 -- ============================================================
--- 0. Preflight checks
+-- SECTION 1: PREFLIGHT ONLY
+-- REFERENCE ONLY. DO NOT COPY BY LINE NUMBER.
 -- ============================================================
+
+-- SQL Editorでのpreflightは、この本体ファイルから行番号で抜き出さない。
+-- 専用ファイル docs/supabase/sql/017_update_session_post_preflight_select_only.sql
+-- の全文を貼る。
+-- このSECTION 1は本体草案内の参照用コピーとして残す。
+
+-- role確認。
+select
+  to_regrole('anon') as anon_role,
+  to_regrole('authenticated') as authenticated_role;
 
 -- helper functionが存在すること。
 select
@@ -24,10 +41,37 @@ select
   to_regprocedure('public.is_admin()') as is_admin_fn,
   to_regprocedure('public.is_session_gm(text)') as is_session_gm_fn;
 
+-- helper functionの定義属性確認。
+select
+  p.oid::regprocedure as signature,
+  pg_get_function_arguments(p.oid) as arguments,
+  pg_get_function_result(p.oid) as result_type,
+  p.prosecdef as security_definer,
+  p.provolatile as volatility
+from pg_proc p
+join pg_namespace n
+  on n.oid = p.pronamespace
+where n.nspname = 'public'
+  and p.proname in ('has_role', 'is_admin', 'is_session_gm')
+order by p.proname, p.oid::regprocedure::text;
+
+-- 既存 public.sessions の列一覧確認。
+select
+  column_name,
+  data_type,
+  udt_name,
+  is_nullable,
+  column_default
+from information_schema.columns
+where table_schema = 'public'
+  and table_name = 'sessions'
+order by ordinal_position;
+
 -- 既存 public.sessions の主要列確認。
 select
   column_name,
   data_type,
+  udt_name,
   is_nullable,
   column_default
 from information_schema.columns
@@ -64,7 +108,7 @@ select
   conname,
   pg_get_constraintdef(oid) as definition
 from pg_constraint
-where conrelid = 'public.sessions'::regclass
+where conrelid = to_regclass('public.sessions')
   and conname in (
     'sessions_session_type_check',
     'sessions_discord_sync_status_check',
@@ -99,6 +143,23 @@ where n.nspname = 'public'
   and p.proname = 'create_session_post'
 order by p.oid::regprocedure::text;
 
+-- 関連RPC/helperの既存grant確認。
+select
+  routine_name,
+  grantee,
+  privilege_type
+from information_schema.routine_privileges
+where routine_schema = 'public'
+  and routine_name in (
+    'has_role',
+    'is_admin',
+    'is_session_gm',
+    'create_session_post',
+    'update_session_post'
+  )
+  and grantee in ('anon', 'authenticated')
+order by routine_name, grantee, privilege_type;
+
 -- 停止条件:
 -- - public.sessions が存在しない。
 -- - public.sessions.id が text ではない。
@@ -111,7 +172,17 @@ order by p.oid::regprocedure::text;
 -- - Discord投稿更新方式が、pendingメタデータ方式ではなくEdge Function即時呼び出し方式に変わった。
 
 -- ============================================================
--- 1. update_session_post RPC draft
+-- END SECTION 1: PREFLIGHT ONLY
+-- ============================================================
+
+-- ============================================================
+-- SECTION 2: APPLY
+-- DO NOT RUN UNTIL PREFLIGHT RESULT IS REVIEWED.
+-- THIS SECTION CREATES/REPLACES RPC AND CHANGES GRANTS.
+-- ============================================================
+
+-- ============================================================
+-- 2-1. update_session_post RPC draft
 -- ============================================================
 
 create or replace function public.update_session_post(
@@ -422,7 +493,8 @@ grant execute on function public.update_session_post(
 ) to authenticated;
 
 -- ============================================================
--- 2. Post-apply checks
+-- SECTION 3: POST-APPLY CHECKS
+-- RUN ONLY AFTER SECTION 2 HAS BEEN REVIEWED AND APPLIED.
 -- ============================================================
 
 -- RPCの戻り値確認。実行はしない。
