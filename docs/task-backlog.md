@@ -647,3 +647,9 @@
 - Discord同期メタデータは実送信せず、許可値内の `pending` / `skipped` と `create` / `update` / `delete` / `close` で後続処理向けに更新する方針を確認した。
 - 権限草案は `revoke execute ... from public`、`revoke execute ... from anon`、`grant execute ... to authenticated` を明示する形へ補強した。危険語チェックのノイズを減らすため、SQL草案内のcredential注意コメントを中立表現へ修正した。
 - この工程ではSQL Editor実行、DB構造変更、RPC作成/置換、CREATE FUNCTION実行、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、フロントUI接続、`updates.json` 変更、credential類の実値出力、commit / pushを行っていない。
+
+## M-14D-8f update_session_post APPLY専用SQLファイル
+- SQL Editorで実行する対象を固定するため、APPLY専用ファイル `docs/supabase/sql/017_update_session_post_apply_reviewed.sql` を作成した。以後apply時はこのファイル全文のみを貼り、`017_update_session_post_rpc_draft.sql` の全文は貼らない。
+- APPLY専用ファイルには `create or replace function public.update_session_post(...)`、`security definer`、`set search_path = ''`、`revoke execute ... from public`、`revoke execute ... from anon`、`grant execute ... to authenticated`、実行後確認SELECTのみを入れた。preflight SELECT群、rollback草案、draft全文は含めない。
+- preflight専用SQL `017_update_session_post_preflight_select_only.sql` とAPPLY専用SQL `017_update_session_post_apply_reviewed.sql` を分離済み。draft本体にも、apply時は専用ファイルを使いdraft全文を貼らない注意を追記した。
+- M-14D-8fではSQL Editor実行、DB構造変更、RPC作成/置換、CREATE FUNCTION実行、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、フロントUI接続、`updates.json` 変更、credential類の実値出力、commit / pushを行っていない。

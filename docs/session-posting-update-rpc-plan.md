@@ -298,6 +298,22 @@ M-14D-8dではSQL Editor追加実行、DB構造変更、RPC作成/置換、Disco
 - 権限草案は `revoke execute ... from public`、`revoke execute ... from anon`、`grant execute ... to authenticated` を明示する形へ補強した。
 - 危険語チェックで注意コメント由来のノイズが出にくいよう、SQL草案内のcredential注意コメントを中立表現へ寄せた。
 
+## M-14D-8f apply専用SQLファイル
+
+SQL Editorで実行する対象を固定するため、レビュー済みAPPLY専用ファイルを作成した。
+
+```text
+docs/supabase/sql/017_update_session_post_apply_reviewed.sql
+```
+
+このファイルは `create or replace function public.update_session_post(...)`、`security definer`、`set search_path = ''`、`public` / `anon` からのEXECUTE取り外し、`authenticated` へのEXECUTE付与、実行後確認SELECTだけを含む。
+preflight SELECT群、rollback草案、draft全文は含めない。
+
+以後、SQL Editorで実行する場合は `017_update_session_post_apply_reviewed.sql` の全文のみを貼り、`017_update_session_post_rpc_draft.sql` の全文は貼らない。
+preflightは引き続き `017_update_session_post_preflight_select_only.sql`、applyは `017_update_session_post_apply_reviewed.sql` と分離する。
+
+M-14D-8fではAPPLY専用ファイル作成のみを行い、SQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、secret類の出力は行っていない。
+
 ## 停止条件
 
 - `public.sessions.id` がtextでない。

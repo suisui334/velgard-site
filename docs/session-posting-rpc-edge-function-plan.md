@@ -391,3 +391,12 @@ Discord同期メタデータはRPC内で実送信せず、`pending` / `skipped` 
 権限草案は、function作成後に `public` と `anon` からEXECUTEを明示的に外し、`authenticated` へEXECUTEを付与する形へ補強した。
 危険語チェックの誤検出を減らすため、SQL草案内のcredential注意コメントを中立表現へ修正した。
 この工程ではSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、credential類の実値記録、`updates.json` 変更、commit / pushは行っていない。
+
+## 27. M-14D-8f reviewed apply-only SQL
+
+SQL Editor貼り付け対象を明確にするため、APPLY専用ファイル `docs/supabase/sql/017_update_session_post_apply_reviewed.sql` を作成した。
+このファイルには、レビュー済みの `update_session_post` 関数作成/置換、`security definer`、`set search_path = ''`、`public` / `anon` からのEXECUTE取り外し、`authenticated` へのEXECUTE付与、実行後確認SELECTだけを入れている。
+
+preflight専用SQLとは分離済みで、`017_update_session_post_rpc_draft.sql` は草案・レビュー記録として残す。
+今後SQL Editorで実行する場合は `017_update_session_post_apply_reviewed.sql` の全文のみを使い、draft全文は貼らない。
+M-14D-8fではSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、credential類の実値記録、`updates.json` 変更、commit / pushは行っていない。

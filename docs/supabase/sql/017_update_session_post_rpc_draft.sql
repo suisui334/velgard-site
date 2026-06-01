@@ -19,6 +19,10 @@
 -- - SQL Editor preflight must use the dedicated select-only file instead:
 --   docs/supabase/sql/017_update_session_post_preflight_select_only.sql
 -- - Review this draft file only after the dedicated preflight result is checked.
+-- M-14D-8f note:
+-- - SQL Editor apply must use the dedicated reviewed file instead:
+--   docs/supabase/sql/017_update_session_post_apply_reviewed.sql
+-- - Do not paste this full draft file.
 
 -- ============================================================
 -- SECTION 1: PREFLIGHT ONLY
