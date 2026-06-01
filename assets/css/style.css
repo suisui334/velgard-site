@@ -2533,6 +2533,84 @@ body[data-page="session-detail"] .session-comment-list {
   min-width: 0;
 }
 
+body[data-page="session-detail"] .session-gm-history-control {
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-gm-history-control[hidden] {
+  display: none;
+}
+
+body[data-page="session-detail"] .session-gm-history-details {
+  min-width: 0;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 250, 0.66);
+}
+
+body[data-page="session-detail"] .session-gm-history-details[open] {
+  background: rgba(250, 252, 247, 0.76);
+}
+
+body[data-page="session-detail"] .session-gm-history-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  min-height: 42px;
+  padding: 9px 12px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 900;
+  line-height: 1.45;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-gm-history-summary::-webkit-details-marker {
+  display: none;
+}
+
+body[data-page="session-detail"] .session-gm-history-summary::after {
+  content: "+";
+  flex: 0 0 auto;
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1;
+}
+
+body[data-page="session-detail"] .session-gm-history-details[open] .session-gm-history-summary::after {
+  content: "-";
+}
+
+body[data-page="session-detail"] .session-gm-history-placeholder {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 12px 12px;
+}
+
+body[data-page="session-detail"] .session-gm-history-note {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(185, 154, 82, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 250, 235, 0.58);
+  color: #80682f;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
 body[data-page="session-detail"] .session-comment-state {
   margin: 0;
   padding: 10px 12px;

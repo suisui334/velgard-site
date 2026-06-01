@@ -6,6 +6,8 @@ const POST_RPC = "create_application_comment";
 const UPDATE_RPC = "update_application_comment";
 const DELETE_RPC = "delete_application_comment_and_maybe_cancel";
 const WITHDRAW_RPC = "cancel_my_session_application";
+const ADMIN_CHECK_RPC = "is_admin";
+const SESSION_GM_CHECK_RPC = "is_session_gm";
 const APPLICATION_SELECT_COLUMNS = "session_id,status,created_at,updated_at,canceled_at";
 const COMMENT_MAX_LENGTH = 4000;
 const POST_ALLOWED_STATUSES = new Set(["recruiting", "tentative"]);
@@ -261,6 +263,29 @@ async function cancelMySessionApplication(client, sessionId) {
 
   if (error) throw new Error("application-withdraw-failed");
   assertNoSensitiveFields(data);
+}
+
+async function queryBooleanRpc(client, rpcName, params) {
+  const result = params ? await client.rpc(rpcName, params) : await client.rpc(rpcName);
+  if (result.error) throw new Error("boolean-rpc-failed");
+  return result.data === true;
+}
+
+async function queryGmHistoryAccess(client, sessionId, authState) {
+  const targetSessionId = String(sessionId || "").trim();
+  if (authState !== "authenticated" || !targetSessionId) return false;
+
+  const [adminResult, gmResult] = await Promise.allSettled([
+    queryBooleanRpc(client, ADMIN_CHECK_RPC),
+    queryBooleanRpc(client, SESSION_GM_CHECK_RPC, {
+      target_session_id: targetSessionId
+    })
+  ]);
+
+  return Boolean(
+    (adminResult.status === "fulfilled" && adminResult.value)
+    || (gmResult.status === "fulfilled" && gmResult.value)
+  );
 }
 
 async function getAuthSession(client) {
@@ -793,6 +818,32 @@ function renderCounts(target, row) {
   target.append(list);
 }
 
+function renderGmHistoryControl(target, canView) {
+  if (!target) return;
+  target.replaceChildren();
+  target.hidden = !canView;
+
+  if (!canView) return;
+
+  const details = document.createElement("details");
+  details.className = "session-gm-history-details";
+
+  const summary = document.createElement("summary");
+  summary.className = "session-gm-history-summary";
+  summary.textContent = "GM向け：申請履歴を見る";
+
+  const body = document.createElement("div");
+  body.className = "session-gm-history-placeholder";
+
+  const note = document.createElement("p");
+  note.className = "session-gm-history-note";
+  note.textContent = "申請履歴の読み込みは次工程で実装予定です。";
+
+  body.append(note);
+  details.append(summary, body);
+  target.append(details);
+}
+
 function normalizeComments(rows) {
   return rows.map((row) => {
     const isOwn = toBooleanFlag(row?.is_own);
@@ -1191,12 +1242,14 @@ async function refreshPanel(panel, sessionId, options = {}) {
   const commentsTarget = panel.querySelector("[data-session-comment-list]");
   const authNote = panel.querySelector("[data-session-comment-auth-note]");
   const postTarget = panel.querySelector("[data-session-comment-post-control]");
+  const gmHistoryTarget = panel.querySelector("[data-session-gm-history-control]");
   const sessionMeta = getSessionMeta(panel);
 
   if (!sessionId) {
     setState(countsTarget, "申請人数の取得に失敗しました", "is-error");
     setState(commentsTarget, "参加希望コメントを取得できませんでした", "is-error");
     setState(postTarget, "投稿状態を確認できませんでした", "is-error");
+    renderGmHistoryControl(gmHistoryTarget, false);
     renderAuthNote(authNote, "unknown");
     return;
   }
@@ -1206,6 +1259,7 @@ async function refreshPanel(panel, sessionId, options = {}) {
     setState(countsTarget, "申請人数の取得に失敗しました", "is-error");
     setState(commentsTarget, "参加希望コメントを取得できませんでした", "is-error");
     setState(postTarget, "投稿状態を確認できませんでした", "is-error");
+    renderGmHistoryControl(gmHistoryTarget, false);
     renderAuthNote(authNote, "unknown");
     return;
   }
@@ -1228,16 +1282,28 @@ async function refreshPanel(panel, sessionId, options = {}) {
     const authContext = authResult.status === "fulfilled" ? authResult.value : { state: "unknown", session: null };
     let ownApplication = null;
     let ownApplicationError = false;
+    let canViewGmHistory = false;
 
     if (authContext.state === "authenticated") {
-      try {
-        ownApplication = await queryOwnApplication(client, sessionId, authContext.session);
-      } catch {
+      const [ownApplicationResult, gmHistoryAccessResult] = await Promise.allSettled([
+        queryOwnApplication(client, sessionId, authContext.session),
+        queryGmHistoryAccess(client, sessionId, authContext.state)
+      ]);
+
+      if (ownApplicationResult.status === "fulfilled") {
+        ownApplication = ownApplicationResult.value;
+      } else {
         ownApplicationError = true;
+      }
+
+      if (gmHistoryAccessResult.status === "fulfilled") {
+        canViewGmHistory = gmHistoryAccessResult.value;
       }
     }
 
     renderAuthNote(authNote, authContext.state);
+    renderGmHistoryControl(gmHistoryTarget, canViewGmHistory);
+
     if (commentsResult.status === "fulfilled") {
       renderComments(commentsTarget, commentsResult.value, {
         client,
@@ -1264,6 +1330,7 @@ async function refreshPanel(panel, sessionId, options = {}) {
     setState(countsTarget, "申請人数の取得に失敗しました", "is-error");
     setState(commentsTarget, "参加希望コメントを取得できませんでした", "is-error");
     setState(postTarget, "投稿状態を確認できませんでした", "is-error");
+    renderGmHistoryControl(gmHistoryTarget, false);
     renderAuthNote(authNote, "unknown");
   }
 }

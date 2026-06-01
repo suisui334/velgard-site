@@ -97,6 +97,7 @@ py -m http.server 4173 -d velgard-site
   - `docs/supabase-session-detail-application-withdraw-ui-plan.md`: Supabase M-11D-3 本人申請辞退UI 実装前確認・設計
   - `docs/supabase-session-detail-application-withdraw-ui-result.md`: Supabase M-11D-4 本人申請辞退UI 状態表示 実装結果
   - `docs/supabase-session-detail-application-withdraw-action-result.md`: Supabase M-11D-5 本人申請辞退RPC接続 実装結果
+  - `docs/supabase-session-detail-application-history-gm-ui-placeholder-result.md`: Supabase M-11E-5 GM向け申請履歴UI器 実装結果
   - `docs/supabase-rls-test-matrix.md`: Supabase RLSテストケース表
   - `docs/supabase/sql/`: Supabase最小スキーマ、RLS/GRANT、RPCの実行候補SQL草案
 
@@ -1512,3 +1513,4 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - M-11C-4として、ログイン済みPL本人の参加希望コメント削除UIを `delete_application_comment_and_maybe_cancel` に接続した。`can_delete === true` かつログイン済み、内部 `comment_id` あり、投稿中 / 保存中 / 削除中でない場合だけ削除ボタンを有効化し、対象カード内で確認UIを挟んでからRPCを呼ぶ。成功後に公開コメント一覧・公開カウント・本人申請状態を再取得する。GM操作、SQL Editor実行、DB変更、Codex側での削除確定実行、`updates.json` 変更は行っていない。実装結果は `docs/supabase-session-detail-application-comment-delete-result.md` に整理済み。
 - M-11D-4として、`session-detail.html` の参加希望コメント欄に本人申請辞退UIの状態表示だけを追加した。本人申請状態メッセージ直下、投稿フォーム直上に取り下げUI器を置き、`pending` / `waitlisted` / `accepted` で確認UIを開けるが、確定ボタンはdisabledで次工程予定表示にしている。`canceled` は取り下げ済み案内と再申請用投稿フォーム表示、`rejected` は申請不可案内を維持する。申請辞退RPC呼び出し、実際の辞退、SQL Editor実行、DB変更、GM履歴UI、`updates.json` 変更は行っていない。実装結果は `docs/supabase-session-detail-application-withdraw-ui-result.md` に整理済み。
 - M-11D-5として、本人申請辞退UIを `cancel_my_session_application(target_session_id text)` に接続した。ログイン済みかつ本人申請状態が `pending` / `waitlisted` / `accepted` で、投稿中 / 保存中 / 削除中 / 取り下げ中やコメント編集中でない場合だけ確定できる。取り下げ中は確定 / キャンセル / 投稿フォーム / 編集 / 削除操作を抑止し、成功後は公開コメント一覧・公開カウント・本人申請状態を再取得する。Codex側では取り下げ確定を実行せず、SQL Editor実行、DB構造変更、GM履歴UI、`updates.json` 変更は行っていない。実装結果は `docs/supabase-session-detail-application-withdraw-action-result.md` に整理済み。
+- M-11E-5として、`session-detail.html` の参加希望コメント欄にGM/adminだけが見られる申請履歴折りたたみUIの器を追加した。ログイン済みユーザーに限り `is_admin()` または `is_session_gm(sessionId)` がtrueなら、コメント一覧直下に閉じた状態の `GM向け：申請履歴を見る` を表示し、開いた中身は次工程予定のプレースホルダー文言だけにしている。`get_gm_session_application_history`、`set_application_status`、`close_session` は呼び出さず、実データ、内部ID、email、token、key、secret類、Discord IDは表示しない。実装結果は `docs/supabase-session-detail-application-history-gm-ui-placeholder-result.md` に整理済み。

@@ -139,6 +139,7 @@ function renderSessionApplicationPanel(session) {
       <div class="session-comment-list" data-session-comment-list aria-live="polite">
         <p class="session-comment-state">読み込み中</p>
       </div>
+      <div class="session-gm-history-control" data-session-gm-history-control hidden></div>
       <p class="session-comment-count-note">※人数はコメント件数ではなく、申請者単位で表示しています。</p>
     </section>
   `;

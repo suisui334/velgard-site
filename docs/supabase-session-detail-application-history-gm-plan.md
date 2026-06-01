@@ -256,14 +256,14 @@ GM履歴UIでの表示名:
 | M-11E-1 | GM向け申請履歴RPC / UI 調査・設計 | なし |
 | M-11E-2 | GM向け申請履歴RPC SQL草案 | 草案のみ |
 | M-11E-3 | SQL適用・結果記録 | あり。ユーザー側SQL Editor工程 |
-| M-11E-4 | session-detail GM履歴折りたたみUI 状態表示 | なし |
-| M-11E-5 | GM履歴RPC接続 | RPC呼び出しあり。Codex側では実データ変更なし |
-| M-11E-6 | RLS smoke test強化 | テストのみ |
+| M-11E-4 | GM履歴RPC RLS smoke test強化 | テストのみ |
+| M-11E-5 | session-detail GM履歴折りたたみUI 状態表示 | なし |
+| M-11E-6 | GM履歴RPC接続 | RPC呼び出しあり。Codex側では実データ変更なし |
 
 補足案:
 
-- M-11E-4では、最初にGM判定UI器と閉じた状態だけを作る。
-- M-11E-5で、開いた時だけRPCを呼ぶ。
+- M-11E-5では、最初にGM判定UI器と閉じた状態だけを作る。
+- M-11E-6で、開いた時だけRPCを呼ぶ。
 - GM承認 / 却下ボタンはM-11Eには混ぜず、M-11F以降に分ける。
 - 完全な状態遷移監査ログが必要になった場合は、M-12以降で `session_application_events` を別設計にする。
 
@@ -335,3 +335,21 @@ docs/supabase-session-detail-application-history-gm-rpc-result.md
 
 - `docs/supabase/sql/013_gm_session_application_history_rpc_draft.sql` の作成SQLは適用済みのため、通常運用では同じ作成SQLをそのまま再実行しない。
 - このdocs記録工程でCodexはSQL Editor実行、DB変更、GM履歴RPC実行、本番フロント実装、`updates.json` 変更、secret類の記録、commit / pushを行っていない。
+
+## 16. M-11E-5 UI器実装追記
+
+2026-06-01に、`session-detail.html` の参加希望コメント欄へGM/admin向け申請履歴折りたたみUIの器を追加した。実装結果は次に分離した。
+
+```text
+docs/supabase-session-detail-application-history-gm-ui-placeholder-result.md
+```
+
+実装したこと:
+
+- `assets/js/sessionDisplay.js` にGM履歴UIの差し込み先を追加した。
+- `assets/js/sessionDetailApplicationComments.js` で、ログイン済みユーザーだけ `is_admin()` と `is_session_gm(sessionId)` を確認するようにした。
+- GM/adminの場合だけ `GM向け：申請履歴を見る` の折りたたみUIを表示する。
+- 初期状態は閉じ、開いた中身は `申請履歴の読み込みは次工程で実装予定です。` のプレースホルダーだけにした。
+- 通常PL / 未ログイン / ログイン状態不明 / 判定失敗時は表示しない。
+
+この工程では、`get_gm_session_application_history` 呼び出し、実データ表示、GM承認 / 却下、Discord IDコピー、SQL Editor実行、DB変更、`updates.json` 変更、secret類の記録、commit / pushは行っていない。
