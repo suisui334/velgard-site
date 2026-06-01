@@ -40,6 +40,37 @@ const SESSION = {
   otherGm: "rls-test-other-gm-recruiting"
 };
 
+const GM_HISTORY_ALLOWED_KEYS = new Set([
+  "display_name",
+  "application_status",
+  "created_at",
+  "updated_at",
+  "canceled_at",
+  "comment_count",
+  "last_comment_at"
+]);
+
+const GM_HISTORY_FORBIDDEN_KEYS = [
+  "user_id",
+  "email",
+  "application_id",
+  "comment_id",
+  "discord_id",
+  "discord_user_id",
+  "discord_name",
+  "role",
+  "token",
+  "access_token",
+  "refresh_token",
+  "jwt",
+  "key",
+  "secret",
+  "gmUserId",
+  "discordUserId"
+];
+
+const GM_HISTORY_ALLOWED_STATUSES = new Set(["pending", "accepted", "rejected", "waitlisted", "canceled"]);
+
 const RUN_DESTRUCTIVE_TESTS = process.env.RUN_DESTRUCTIVE_TESTS === "true";
 const SENSITIVE_ENV = [...REQUIRED_ENV, ...FORBIDDEN_ENV];
 const sensitiveValues = SENSITIVE_ENV.map((name) => process.env[name]).filter(
@@ -109,6 +140,33 @@ function assertNoSensitiveColumns(rowOrRows, context) {
         `${context} exposed ${forbiddenKey}`
       );
     }
+  }
+}
+
+function assertGmHistoryRows(rowOrRows, context) {
+  assert(Array.isArray(rowOrRows), `${context} did not return an array`);
+
+  for (const row of rowOrRows.filter(Boolean)) {
+    const rowKeys = Object.keys(row);
+
+    for (const expectedKey of GM_HISTORY_ALLOWED_KEYS) {
+      assert(Object.prototype.hasOwnProperty.call(row, expectedKey), `${context} missing ${expectedKey}`);
+    }
+
+    for (const key of rowKeys) {
+      assert(GM_HISTORY_ALLOWED_KEYS.has(key), `${context} exposed unexpected column ${key}`);
+    }
+
+    for (const forbiddenKey of GM_HISTORY_FORBIDDEN_KEYS) {
+      assert(!Object.prototype.hasOwnProperty.call(row, forbiddenKey), `${context} exposed ${forbiddenKey}`);
+    }
+
+    assert(typeof row.display_name === "string", `${context} display_name was not a string`);
+    assert(
+      GM_HISTORY_ALLOWED_STATUSES.has(row.application_status),
+      `${context} returned unexpected application_status ${row.application_status}`
+    );
+    assert(Number.isInteger(row.comment_count), `${context} comment_count was not an integer`);
   }
 }
 
@@ -204,6 +262,15 @@ async function getPublicComments(client, sessionId) {
   );
 }
 
+async function getGmSessionApplicationHistory(client, sessionId) {
+  return expectOk(
+    client.rpc("get_gm_session_application_history", {
+      target_session_id: sessionId
+    }),
+    `get GM session application history for ${sessionId}`
+  );
+}
+
 async function updateApplicationComment(client, commentId, body) {
   return expectOk(
     client.rpc("update_application_comment", {
@@ -266,6 +333,8 @@ async function main() {
   let f6OwnerDeletedCommentId;
   let f6OwnerDeleteResult;
   let playerBRecruitingApplicationId;
+  let gmAHistoryRows;
+  let adminHistoryRows;
 
   await runTest("AUTH-001", "anon can read public sessions only", async () => {
     const data = await expectOk(
@@ -309,6 +378,15 @@ async function main() {
     );
   });
 
+  await runTest("M11E-HIST-001", "anon cannot call GM session application history RPC", async () => {
+    await expectError(
+      anon.rpc("get_gm_session_application_history", {
+        target_session_id: SESSION.recruiting
+      }),
+      "anon get_gm_session_application_history"
+    );
+  });
+
   await runTest("M10-APP-001", "anon cannot read session_applications rows", async () => {
     const { data, error } = await anon
       .from("session_applications")
@@ -340,6 +418,15 @@ async function main() {
         `unexpected player A application status after duplicate comment test: ${application.status}`
       );
     }
+  });
+
+  await runTest("M11E-HIST-002", "player A cannot read GM session application history", async () => {
+    await expectError(
+      playerA.rpc("get_gm_session_application_history", {
+        target_session_id: SESSION.recruiting
+      }),
+      "player A get_gm_session_application_history"
+    );
   });
 
   await runTest("AUTH-007", "player A can apply to tentative", async () => {
@@ -561,6 +648,12 @@ async function main() {
     );
   });
 
+  await runTest("M11E-HIST-003", "gm A can read own session application history", async () => {
+    gmAHistoryRows = await getGmSessionApplicationHistory(gmA, SESSION.recruiting);
+    assert(gmAHistoryRows.length >= 1, "gm A history RPC returned no rows for own session");
+    assertGmHistoryRows(gmAHistoryRows, "gm A history RPC");
+  });
+
   await runTest("F6-EDIT-003", "gm A can update own session application comment", async () => {
     f6GmEditableCommentId = await createApplicationComment(
       playerB,
@@ -615,6 +708,15 @@ async function main() {
         target_session_id: SESSION.otherGm
       }),
       "gm A close gm B session"
+    );
+  });
+
+  await runTest("M11E-HIST-004", "gm A cannot read gm B session application history", async () => {
+    await expectError(
+      gmA.rpc("get_gm_session_application_history", {
+        target_session_id: SESSION.otherGm
+      }),
+      "gm A get_gm_session_application_history for gm B session"
     );
   });
 
@@ -786,6 +888,43 @@ async function main() {
       "admin applications select"
     );
   });
+
+  await runTest("M11E-HIST-005", "admin can read GM session application history", async () => {
+    adminHistoryRows = await getGmSessionApplicationHistory(admin, SESSION.recruiting);
+    assert(adminHistoryRows.length >= 1, "admin history RPC returned no rows for recruiting session");
+    assertGmHistoryRows(adminHistoryRows, "admin history RPC");
+  });
+
+  await runTest("M11E-HIST-006", "GM history rows do not expose internal fields", async () => {
+    assert(Array.isArray(gmAHistoryRows), "gm A history rows were not available");
+    assert(Array.isArray(adminHistoryRows), "admin history rows were not available");
+    assertGmHistoryRows(gmAHistoryRows, "gm A history shape check");
+    assertGmHistoryRows(adminHistoryRows, "admin history shape check");
+  });
+
+  await runTest("M11E-HIST-007", "GM history includes current application status rows", async () => {
+    assert(Array.isArray(gmAHistoryRows), "gm A history rows were not available");
+    assert(
+      gmAHistoryRows.some((row) => row.application_status === "accepted"),
+      "gm A history did not include the accepted application status set earlier in the smoke test"
+    );
+  });
+
+  await skipTest(
+    "M11E-HIST-008",
+    "canceled and rejected application history rows",
+    "Fixture gap: dedicated canceled/rejected session_applications rows are not available in the reusable seed."
+  );
+  await skipTest(
+    "M11E-HIST-009",
+    "deleted comments do not break GM history",
+    "Fixture gap: dedicated deleted-comment history fixture requires future seed or destructive setup."
+  );
+  await skipTest(
+    "M11E-HIST-010",
+    "comment_count counts active comments only",
+    "Fixture gap: dedicated mixed active/deleted comment fixture is not available in the reusable seed."
+  );
 
   await runTest("AUTH-020", "public RPCs do not leak private counts or sensitive comment/profile fields", async () => {
     const privateCounts = await expectOk(

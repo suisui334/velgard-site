@@ -224,3 +224,26 @@ M-11E-4以降へ進む前に、少なくとも次を確認する。
 3. smoke testでGM/admin/PL/anon境界を確認してから、`session-detail.html` のGM履歴UI状態表示へ進む。
 
 このdocs作成工程では、RPC実行、SQL Editor実行、DB変更、本番フロント実装、`updates.json` 変更、secret類の記録、commit / pushは行っていない。
+
+## 11. M-11E-4 smoke test実装追記
+
+2026-06-01に、この計画をもとに `scripts/supabase-rls-smoke-test.mjs` へGM履歴RPCのAuth文脈確認を追加した。
+
+実装した観点:
+
+- `M11E-HIST-001`: anonのRPC実行不可。
+- `M11E-HIST-002`: 通常PLの履歴取得不可。
+- `M11E-HIST-003`: 対象GMの履歴取得可。
+- `M11E-HIST-004`: 他GMセッション履歴の取得不可。
+- `M11E-HIST-005`: adminの履歴取得可。
+- `M11E-HIST-006`: 返却列の内部情報非露出チェック。
+- `M11E-HIST-007`: smoke test内で更新した現在status行の確認。
+- `M11E-HIST-008` から `M11E-HIST-010`: `canceled` / `rejected` / deletedコメント / `comment_count` active-onlyはfixture不足としてSKIP。
+
+実装結果は次に分離した。
+
+```text
+docs/supabase-session-detail-application-history-gm-smoke-test-result.md
+```
+
+このM-11E-4工程では、DB接続を伴う smoke test 本体実行、SQL Editor実行、DB変更、GM履歴RPC手動実行、本番フロント実装、`updates.json` 変更、secret類の記録、commit / pushは行っていない。構文確認として `node --check scripts/supabase-rls-smoke-test.mjs` のみ実行し、成功した。

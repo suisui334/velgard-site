@@ -141,3 +141,22 @@ sessions.id
 - または、`session-detail.html` のGM履歴UI状態表示を設計する。
 
 いずれの場合も、secret類、実Project URL/key、email、実内部ID、tokenは記録しない。
+
+## 11. M-11E-4 smoke test足場
+
+2026-06-01に、GM/admin/PL/anon文脈での挙動確認を行うための足場を `scripts/supabase-rls-smoke-test.mjs` へ追加した。
+
+追加範囲:
+
+- anon / 通常PL / 対象GM / 他GM / admin のAuth文脈テスト。
+- GM履歴RPCの返却列が契約7列に収まることのチェック。
+- `user_id`、email、`application_id`、`comment_id`、Discord ID、role、token、key、secret類が返却行に含まれないことのチェック。
+- `canceled` / `rejected` / deletedコメント / `comment_count` active-onlyの確認はfixture不足としてSKIP。
+
+結果記録:
+
+```text
+docs/supabase-session-detail-application-history-gm-smoke-test-result.md
+```
+
+この追記工程では、GM履歴RPCの手動実行、DB接続を伴う smoke test 本体実行、SQL Editor実行、DB変更、本番フロント実装、`updates.json` 変更、secret類の記録、commit / pushは行っていない。
