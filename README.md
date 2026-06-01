@@ -99,6 +99,7 @@ py -m http.server 4173 -d velgard-site
   - `docs/supabase-session-detail-application-withdraw-action-result.md`: Supabase M-11D-5 本人申請辞退RPC接続 実装結果
   - `docs/supabase-session-detail-application-history-gm-ui-placeholder-result.md`: Supabase M-11E-5 GM向け申請履歴UI器 実装結果
   - `docs/supabase-session-detail-application-history-gm-ui-result.md`: Supabase M-11E-6 GM向け申請履歴RPC接続 実装結果
+  - `docs/supabase-session-detail-application-gm-approve-reject-result.md`: Supabase M-11F GM承認 / 却下UI 実装結果
   - `docs/supabase-rls-test-matrix.md`: Supabase RLSテストケース表
   - `docs/supabase/sql/`: Supabase最小スキーマ、RLS/GRANT、RPCの実行候補SQL草案
 

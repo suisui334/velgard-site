@@ -373,3 +373,23 @@ docs/supabase-session-detail-application-history-gm-ui-result.md
 - email、`user_id`、`application_id`、`comment_id`、Discord ID、token、key、secret類、`gmUserId` は画面やconsoleに出さない。
 
 この工程では、SQL Editor実行、DB変更、GM承認 / 却下、GMコメント編集 / 削除、Discord IDコピー、`close_session` 呼び出し、`updates.json` 変更、secret類の記録、commit / pushは行っていない。
+
+## 18. M-11F GM承認 / 却下UI実装追記
+
+2026-06-01に、GM/admin向け申請履歴折りたたみUIへ承認 / 却下操作を追加した。実装結果は次に分離した。
+
+```text
+docs/supabase-session-detail-application-gm-approve-reject-result.md
+```
+
+実装したこと:
+
+- `pending` / `waitlisted` の申請だけに `承認` / `却下` を表示する。
+- `accepted` / `canceled` / `rejected` には操作を出さない。
+- 操作前に確認UIを出し、確認後に `set_application_status(target_application_id uuid, new_status text)` を呼ぶ。
+- 対象申請の内部IDは、GM/admin判定済みの文脈で `session_applications` をRLS越しに読み、JS内部変数としてだけ扱う。
+- display_nameだけで対象申請を特定せず、内部申請行と公開コメントRPCの `comment_id` をJS内で突き合わせる。
+- 成功後はGM履歴、公開コメント一覧、申請中 / 承認済みカウント、本人申請状態を再取得する。
+- 対象を安全に確認できない場合は操作ボタンを出さない。
+
+この工程では、SQL Editor実行、DB変更、Codex側での承認 / 却下確定、GMコメント編集 / 削除、Discord IDコピー、`close_session` 呼び出し、`updates.json` 変更、secret類の記録、commit / pushは行っていない。

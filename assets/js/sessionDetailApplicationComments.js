@@ -7,9 +7,11 @@ const UPDATE_RPC = "update_application_comment";
 const DELETE_RPC = "delete_application_comment_and_maybe_cancel";
 const WITHDRAW_RPC = "cancel_my_session_application";
 const GM_HISTORY_RPC = "get_gm_session_application_history";
+const SET_APPLICATION_STATUS_RPC = "set_application_status";
 const ADMIN_CHECK_RPC = "is_admin";
 const SESSION_GM_CHECK_RPC = "is_session_gm";
 const APPLICATION_SELECT_COLUMNS = "session_id,status,created_at,updated_at,canceled_at";
+const GM_APPLICATION_SELECT_COLUMNS = "id,session_id,status,comment_id,created_at,updated_at";
 const COMMENT_MAX_LENGTH = 4000;
 const POST_ALLOWED_STATUSES = new Set(["recruiting", "tentative"]);
 const COMMENT_UPDATE_ERROR_MESSAGE = "コメントを保存できませんでした。時間をおいて再度お試しください。";
@@ -20,7 +22,11 @@ const COMMENT_DELETE_CONFIRM_TEXT = "この参加希望コメントを削除し�
 const COMMENT_DELETE_CONFIRM_NOTE = "最後の有効コメントを削除した場合、参加申請が取り消されることがあります。";
 const APPLICATION_WITHDRAW_ERROR_MESSAGE = "参加申請を取り下げできませんでした。時間をおいて再度お試しください。";
 const APPLICATION_WITHDRAW_PERMISSION_MESSAGE = "申請状態が変更された可能性があります。ページを再読み込みしてください。";
+const GM_APPLICATION_STATUS_ERROR_MESSAGE = "申請状況を更新できませんでした。状態が変更された可能性があります。";
+const GM_APPLICATION_STATUS_PERMISSION_MESSAGE = "権限がないか、申請状態が変更された可能性があります。";
 const WITHDRAW_ELIGIBLE_STATUSES = new Set(["pending", "waitlisted", "accepted"]);
+const GM_ACTION_ALLOWED_STATUSES = new Set(["pending", "waitlisted"]);
+const GM_ACTION_TARGET_STATUSES = new Set(["accepted", "rejected"]);
 const panelEditStates = new WeakMap();
 const panelCommentRenderContexts = new WeakMap();
 
@@ -57,6 +63,44 @@ const GM_HISTORY_GROUP_LABELS = Object.freeze({
 });
 
 const GM_HISTORY_GROUP_ORDER = ["pending", "accepted", "canceled", "rejected", "unknown"];
+
+const GM_APPLICATION_INTERNAL_FIELD_NAMES = new Set([
+  "id",
+  "session_id",
+  "status",
+  "comment_id",
+  "created_at",
+  "updated_at"
+]);
+
+const GM_HISTORY_FIELD_NAMES = new Set([
+  "display_name",
+  "application_status",
+  "created_at",
+  "updated_at",
+  "canceled_at",
+  "comment_count",
+  "last_comment_at"
+]);
+
+const GM_APPLICATION_STATUS_ACTION_COPY = Object.freeze({
+  accepted: {
+    label: "承認",
+    confirmTitle: "この申請を承認しますか？",
+    confirmButton: "承認する",
+    progress: "承認処理中です。",
+    success: "申請状況を更新しました。",
+    feedback: "申請を承認しました。"
+  },
+  rejected: {
+    label: "却下",
+    confirmTitle: "この申請を却下しますか？",
+    confirmButton: "却下する",
+    progress: "却下処理中です。",
+    success: "申請状況を更新しました。",
+    feedback: "申請を却下しました。"
+  }
+});
 
 const APPLICATION_WITHDRAW_UI_COPY = Object.freeze({
   pending: {
@@ -227,6 +271,30 @@ function assertNoSensitiveFields(rows) {
   }
 }
 
+function assertOnlyGmApplicationInternalFields(rows) {
+  const list = Array.isArray(rows) ? rows : rows ? [rows] : [];
+  for (const row of list) {
+    if (!row || typeof row !== "object") continue;
+    for (const key of Object.keys(row)) {
+      if (!GM_APPLICATION_INTERNAL_FIELD_NAMES.has(String(key).toLowerCase())) {
+        throw new Error("gm-application-field-returned");
+      }
+    }
+  }
+}
+
+function assertOnlyGmHistoryFields(rows) {
+  const list = Array.isArray(rows) ? rows : rows ? [rows] : [];
+  for (const row of list) {
+    if (!row || typeof row !== "object") continue;
+    for (const key of Object.keys(row)) {
+      if (!GM_HISTORY_FIELD_NAMES.has(String(key).toLowerCase())) {
+        throw new Error("gm-history-field-returned");
+      }
+    }
+  }
+}
+
 async function queryPublicComments(client, sessionId) {
   const { data, error } = await client.rpc(COMMENT_RPC, {
     target_session_id: sessionId
@@ -295,6 +363,38 @@ async function cancelMySessionApplication(client, sessionId) {
   assertNoSensitiveFields(data);
 }
 
+async function queryGmSessionApplications(client, sessionId) {
+  const targetSessionId = String(sessionId || "").trim();
+  if (!targetSessionId) throw new Error("gm-applications-session-missing");
+
+  const { data, error } = await client
+    .from("session_applications")
+    .select(GM_APPLICATION_SELECT_COLUMNS)
+    .eq("session_id", targetSessionId)
+    .in("status", Array.from(GM_ACTION_ALLOWED_STATUSES))
+    .order("created_at", { ascending: true });
+
+  if (error) throw new Error("gm-applications-query-failed");
+  const rows = Array.isArray(data) ? data : [];
+  assertOnlyGmApplicationInternalFields(rows);
+  return rows;
+}
+
+async function setGmApplicationStatus(client, applicationId, newStatus) {
+  const targetApplicationId = String(applicationId || "").trim();
+  const targetStatus = String(newStatus || "").trim().toLowerCase();
+  if (!targetApplicationId) throw new Error("gm-application-target-missing");
+  if (!GM_ACTION_TARGET_STATUSES.has(targetStatus)) throw new Error("gm-application-status-invalid");
+
+  const { data, error } = await client.rpc(SET_APPLICATION_STATUS_RPC, {
+    target_application_id: targetApplicationId,
+    new_status: targetStatus
+  });
+
+  if (error) throw new Error("gm-application-status-update-failed");
+  assertNoSensitiveFields(data);
+}
+
 async function queryGmSessionApplicationHistory(client, sessionId) {
   const targetSessionId = String(sessionId || "").trim();
   if (!targetSessionId) throw new Error("gm-history-session-missing");
@@ -305,7 +405,7 @@ async function queryGmSessionApplicationHistory(client, sessionId) {
 
   if (error) throw new Error("gm-history-rpc-failed");
   const rows = Array.isArray(data) ? data : [];
-  assertNoSensitiveFields(rows);
+  assertOnlyGmHistoryFields(rows);
   return rows;
 }
 
@@ -453,10 +553,13 @@ function getPanelEditState(panel) {
   return {
     activeCommentId: "",
     activeDeleteCommentId: "",
+    activeGmApplicationId: "",
+    activeGmApplicationStatus: "",
     isPosting: false,
     isSaving: false,
     isDeleting: false,
     isWithdrawing: false,
+    isSettingGmApplicationStatus: false,
     ...(panelEditStates.get(panel) || {})
   };
 }
@@ -483,15 +586,35 @@ function clearPanelDeleteMode(panel) {
   });
 }
 
+function clearGmApplicationStatusMode(panel) {
+  setPanelEditState(panel, {
+    activeGmApplicationId: "",
+    activeGmApplicationStatus: "",
+    isSettingGmApplicationStatus: false
+  });
+}
+
 function isPanelBusy(panel) {
   const state = getPanelEditState(panel);
-  return Boolean(state.isPosting || state.isSaving || state.isDeleting || state.isWithdrawing);
+  return Boolean(
+    state.isPosting
+    || state.isSaving
+    || state.isDeleting
+    || state.isWithdrawing
+    || state.isSettingGmApplicationStatus
+  );
 }
 
 function setRenderedOperationButtonsDisabled(panel, disabled) {
   if (!panel) return;
   panel.querySelectorAll(
-    "[data-session-comment-edit-action], [data-session-comment-delete-action], [data-session-comment-delete-confirm-action]"
+    [
+      "[data-session-comment-edit-action]",
+      "[data-session-comment-delete-action]",
+      "[data-session-comment-delete-confirm-action]",
+      "[data-session-gm-application-action]",
+      "[data-session-gm-application-confirm-action]"
+    ].join(", ")
   ).forEach((button) => {
     button.disabled = disabled;
   });
@@ -898,6 +1021,43 @@ function normalizeGmHistoryRows(rows) {
   });
 }
 
+function normalizeGmApplicationActionRows(rows, publicCommentRows) {
+  const commentsById = new Map();
+  for (const comment of normalizeComments(Array.isArray(publicCommentRows) ? publicCommentRows : [])) {
+    if (comment.commentId) commentsById.set(comment.commentId, comment);
+  }
+
+  const actionRows = [];
+  let skippedUnsafeCount = 0;
+
+  for (const row of rows) {
+    const applicationId = String(row?.id || "").trim();
+    const applicationStatus = String(row?.status || "").trim().toLowerCase();
+    const commentId = String(row?.comment_id || "").trim();
+    const comment = commentId ? commentsById.get(commentId) : null;
+    const displayName = comment?.displayName || "";
+
+    if (!applicationId || !GM_ACTION_ALLOWED_STATUSES.has(applicationStatus)) continue;
+    if (!displayName) {
+      skippedUnsafeCount += 1;
+      continue;
+    }
+
+    actionRows.push({
+      applicationId,
+      displayName,
+      applicationStatus,
+      groupKey: getGmHistoryGroupKey(applicationStatus),
+      statusLabel: getGmHistoryStatusLabel(applicationStatus),
+      createdAt: String(row?.created_at || "").trim(),
+      updatedAt: String(row?.updated_at || "").trim()
+    });
+  }
+
+  actionRows.sort((a, b) => getGmHistoryActivityTime(b) - getGmHistoryActivityTime(a));
+  return { actionRows, skippedUnsafeCount };
+}
+
 function appendGmHistoryMetaRow(target, label, value) {
   const text = String(value || "").trim();
   if (!text) return;
@@ -942,14 +1102,246 @@ function createGmHistoryItem(row) {
   return item;
 }
 
-function renderGmHistoryRows(target, rows) {
+function getGmApplicationStatusCopy(newStatus) {
+  return GM_APPLICATION_STATUS_ACTION_COPY[newStatus] || GM_APPLICATION_STATUS_ACTION_COPY.accepted;
+}
+
+function canUseGmApplicationStatusAction(row, options = {}, newStatus = "") {
+  return Boolean(
+    options.client
+    && typeof options.client.rpc === "function"
+    && options.authState === "authenticated"
+    && String(options.sessionId || "").trim()
+    && row?.applicationId
+    && GM_ACTION_ALLOWED_STATUSES.has(row.applicationStatus)
+    && GM_ACTION_TARGET_STATUSES.has(newStatus)
+  );
+}
+
+function canOpenGmApplicationStatusConfirm(row, options = {}, newStatus = "") {
+  const state = getPanelEditState(options.panel);
+  return Boolean(
+    canUseGmApplicationStatusAction(row, options, newStatus)
+    && !state.activeCommentId
+    && !state.activeDeleteCommentId
+    && !state.activeGmApplicationId
+    && !state.isPosting
+    && !state.isSaving
+    && !state.isDeleting
+    && !state.isWithdrawing
+    && !state.isSettingGmApplicationStatus
+  );
+}
+
+function canConfirmGmApplicationStatus(row, options = {}, newStatus = "") {
+  const state = getPanelEditState(options.panel);
+  return Boolean(
+    canUseGmApplicationStatusAction(row, options, newStatus)
+    && state.activeGmApplicationId === row.applicationId
+    && state.activeGmApplicationStatus === newStatus
+    && !state.isPosting
+    && !state.isSaving
+    && !state.isDeleting
+    && !state.isWithdrawing
+    && !state.isSettingGmApplicationStatus
+  );
+}
+
+function appendGmApplicationStatusConfirm(item, row, target, historyRows, options = {}, newStatus = "") {
+  const copy = getGmApplicationStatusCopy(newStatus);
+  const confirm = document.createElement("div");
+  confirm.className = `session-gm-application-confirm is-${newStatus}`;
+  confirm.setAttribute("role", "group");
+  confirm.setAttribute("aria-label", `${copy.label}確認`);
+
+  const title = document.createElement("p");
+  title.className = "session-gm-application-confirm-title";
+  title.textContent = copy.confirmTitle;
+
+  const targetName = document.createElement("p");
+  targetName.className = "session-gm-application-confirm-target";
+  targetName.textContent = row.displayName;
+
+  const actions = document.createElement("div");
+  actions.className = "session-gm-application-confirm-actions";
+
+  const confirmButton = document.createElement("button");
+  confirmButton.className = `session-application-button session-comment-button session-gm-application-confirm-button is-${newStatus}`;
+  confirmButton.type = "button";
+  confirmButton.textContent = copy.confirmButton;
+  confirmButton.dataset.sessionGmApplicationConfirmAction = "true";
+
+  const cancelButton = document.createElement("button");
+  cancelButton.className = "session-application-button session-comment-button session-gm-application-cancel";
+  cancelButton.type = "button";
+  cancelButton.textContent = "キャンセル";
+  cancelButton.dataset.sessionGmApplicationConfirmAction = "true";
+
+  actions.append(confirmButton, cancelButton);
+
+  const status = document.createElement("p");
+  status.setAttribute("aria-live", "polite");
+  setInlineStatus(status, "");
+
+  let isUpdating = Boolean(getPanelEditState(options.panel).isSettingGmApplicationStatus);
+
+  const updateAvailability = () => {
+    const canConfirm = canConfirmGmApplicationStatus(row, options, newStatus);
+    confirmButton.disabled = isUpdating || !canConfirm;
+    cancelButton.disabled = isUpdating;
+  };
+
+  cancelButton.addEventListener("click", () => {
+    if (isUpdating) return;
+    clearGmApplicationStatusMode(options.panel);
+    renderGmHistoryRows(target, historyRows, options);
+  });
+
+  confirmButton.addEventListener("click", async () => {
+    if (isUpdating) return;
+
+    if (!canConfirmGmApplicationStatus(row, options, newStatus)) {
+      setInlineStatus(status, GM_APPLICATION_STATUS_PERMISSION_MESSAGE, "is-error");
+      updateAvailability();
+      return;
+    }
+
+    isUpdating = true;
+    setPanelEditState(options.panel, { isSettingGmApplicationStatus: true });
+    setRenderedOperationButtonsDisabled(options.panel, true);
+    setRenderedPostFormControlsDisabled(options.panel, true);
+    confirm.setAttribute("aria-busy", "true");
+    updateAvailability();
+    setInlineStatus(status, copy.progress, "is-warn");
+
+    try {
+      await setGmApplicationStatus(options.client, row.applicationId, newStatus);
+      setInlineStatus(status, `${copy.success}表示を更新しています。`, "is-ok");
+      clearGmApplicationStatusMode(options.panel);
+      await refreshPanel(options.panel, options.sessionId, {
+        openGmHistory: true,
+        gmFeedbackMessage: copy.feedback,
+        gmFeedbackModifier: "is-ok"
+      });
+    } catch {
+      clearGmApplicationStatusMode(options.panel);
+      await refreshPanel(options.panel, options.sessionId, {
+        openGmHistory: true,
+        gmFeedbackMessage: GM_APPLICATION_STATUS_ERROR_MESSAGE,
+        gmFeedbackModifier: "is-error"
+      });
+    }
+  });
+
+  updateAvailability();
+  confirm.append(title, targetName, actions, status);
+  item.append(confirm);
+}
+
+function createGmApplicationActionItem(row, target, historyRows, options = {}) {
+  const item = document.createElement("li");
+  item.className = `session-gm-application-action-item is-${row.groupKey}`;
+
+  const header = document.createElement("div");
+  header.className = "session-gm-history-item-head";
+
+  const name = document.createElement("strong");
+  name.className = "session-gm-history-name";
+  name.textContent = row.displayName;
+
+  const status = document.createElement("span");
+  status.className = `session-comment-status-badge session-gm-history-status is-${row.groupKey}`;
+  status.textContent = row.statusLabel;
+
+  header.append(name, status);
+
+  const meta = document.createElement("dl");
+  meta.className = "session-gm-history-meta";
+  appendGmHistoryMetaRow(meta, "申請", formatDateTime(row.createdAt));
+  appendGmHistoryMetaRow(meta, "更新", formatDateTime(row.updatedAt));
+
+  const actions = document.createElement("div");
+  actions.className = "session-gm-application-actions";
+
+  for (const targetStatus of GM_ACTION_TARGET_STATUSES) {
+    const copy = getGmApplicationStatusCopy(targetStatus);
+    const button = document.createElement("button");
+    button.className = `session-application-button session-comment-button session-gm-application-action-button is-${targetStatus}`;
+    button.type = "button";
+    button.textContent = copy.label;
+    button.dataset.sessionGmApplicationAction = "true";
+    button.disabled = !canOpenGmApplicationStatusConfirm(row, options, targetStatus);
+    button.addEventListener("click", () => {
+      if (!canOpenGmApplicationStatusConfirm(row, options, targetStatus)) return;
+      setPanelEditState(options.panel, {
+        activeGmApplicationId: row.applicationId,
+        activeGmApplicationStatus: targetStatus,
+        isSettingGmApplicationStatus: false
+      });
+      renderGmHistoryRows(target, historyRows, options);
+    });
+    actions.append(button);
+  }
+
+  item.append(header, meta, actions);
+
+  const editState = getPanelEditState(options.panel);
+  if (editState.activeGmApplicationId === row.applicationId) {
+    appendGmApplicationStatusConfirm(item, row, target, historyRows, options, editState.activeGmApplicationStatus);
+  }
+
+  return item;
+}
+
+function appendGmApplicationActionsSection(fragment, target, historyRows, options = {}) {
+  const actionRows = Array.isArray(options.gmApplicationActions?.actionRows)
+    ? options.gmApplicationActions.actionRows
+    : [];
+  const skippedUnsafeCount = Number(options.gmApplicationActions?.skippedUnsafeCount || 0);
+  const operationLoadFailed = Boolean(options.gmApplicationActionsLoadFailed);
+
+  const section = document.createElement("section");
+  section.className = "session-gm-history-group session-gm-application-action-group";
+
+  const title = document.createElement("h4");
+  title.className = "session-gm-history-group-title";
+  title.textContent = "申請中の操作";
+
+  section.append(title);
+
+  if (operationLoadFailed) {
+    section.append(createStateMessage("承認 / 却下操作を準備できませんでした。", "is-error"));
+    fragment.append(section);
+    return;
+  }
+
+  if (actionRows.length) {
+    const list = document.createElement("ul");
+    list.className = "session-gm-history-list session-gm-application-action-list";
+    for (const row of actionRows) {
+      list.append(createGmApplicationActionItem(row, target, historyRows, options));
+    }
+    section.append(list);
+    fragment.append(section);
+    return;
+  }
+
+  const message = skippedUnsafeCount > 0
+    ? "対象を安全に確認できない申請があるため、操作ボタンを表示していません。"
+    : "承認 / 却下できる申請はありません。";
+  section.append(createStateMessage(message, skippedUnsafeCount > 0 ? "is-warn" : "is-empty"));
+  fragment.append(section);
+}
+
+function renderGmHistoryRows(target, rows, options = {}) {
   if (!target) return;
   const historyRows = normalizeGmHistoryRows(rows);
   target.replaceChildren();
 
-  if (!historyRows.length) {
-    setGmHistoryState(target, "申請履歴はまだありません。", "is-empty");
-    return;
+  if (options.gmFeedbackMessage) {
+    const feedback = createStateMessage(options.gmFeedbackMessage, options.gmFeedbackModifier || "");
+    feedback.classList.add("session-gm-history-state");
+    target.append(feedback);
   }
 
   const groupedRows = new Map();
@@ -960,6 +1352,16 @@ function renderGmHistoryRows(target, rows) {
   }
 
   const fragment = document.createDocumentFragment();
+  appendGmApplicationActionsSection(fragment, target, rows, options);
+
+  if (!historyRows.length) {
+    const empty = createStateMessage("申請履歴はまだありません。", "is-empty");
+    empty.classList.add("session-gm-history-state");
+    fragment.append(empty);
+    target.append(fragment);
+    return;
+  }
+
   for (const groupKey of GM_HISTORY_GROUP_ORDER) {
     const group = groupedRows.get(groupKey);
     if (!group?.length) continue;
@@ -1004,25 +1406,50 @@ function renderGmHistoryControl(target, canView, options = {}) {
   let hasLoaded = false;
   let isLoading = false;
 
-  details.addEventListener("toggle", async () => {
+  const loadGmHistory = async () => {
     if (!details.open || hasLoaded || isLoading) return;
 
     isLoading = true;
     setGmHistoryState(body, "申請履歴を読み込んでいます。", "is-warn");
 
     try {
-      const rows = await queryGmSessionApplicationHistory(options.client, options.sessionId);
-      renderGmHistoryRows(body, rows);
+      const [historyResult, applicationsResult] = await Promise.allSettled([
+        queryGmSessionApplicationHistory(options.client, options.sessionId),
+        queryGmSessionApplications(options.client, options.sessionId)
+      ]);
+
+      if (historyResult.status !== "fulfilled") {
+        throw new Error("gm-history-rpc-failed");
+      }
+
+      const gmApplicationActions = applicationsResult.status === "fulfilled"
+        ? normalizeGmApplicationActionRows(applicationsResult.value, options.publicCommentRows)
+        : { actionRows: [], skippedUnsafeCount: 0 };
+
+      renderGmHistoryRows(body, historyResult.value, {
+        ...options,
+        gmApplicationActions,
+        gmApplicationActionsLoadFailed: applicationsResult.status !== "fulfilled"
+      });
       hasLoaded = true;
     } catch {
       setGmHistoryState(body, "申請履歴を取得できませんでした。", "is-error");
     } finally {
       isLoading = false;
     }
+  };
+
+  details.addEventListener("toggle", () => {
+    void loadGmHistory();
   });
 
   details.append(summary, body);
   target.append(details);
+
+  if (options.openOnLoad) {
+    details.open = true;
+    void loadGmHistory();
+  }
 }
 
 function normalizeComments(rows) {
@@ -1485,7 +1912,13 @@ async function refreshPanel(panel, sessionId, options = {}) {
     renderAuthNote(authNote, authContext.state);
     renderGmHistoryControl(gmHistoryTarget, canViewGmHistory, {
       client,
-      sessionId
+      panel,
+      sessionId,
+      authState: authContext.state,
+      publicCommentRows: commentsResult.status === "fulfilled" ? commentsResult.value : [],
+      openOnLoad: options.openGmHistory === true,
+      gmFeedbackMessage: options.gmFeedbackMessage || "",
+      gmFeedbackModifier: options.gmFeedbackModifier || ""
     });
 
     if (commentsResult.status === "fulfilled") {

@@ -1,0 +1,117 @@
+# Supabase M-11F GM承認 / 却下UI 実装結果
+
+作業日: 2026-06-01
+
+## 1. 最初に確認したこと
+
+- `git status --short` は空。
+- 最新コミットは `5f7cb20 Add GM session application history view`。
+
+## 2. 確認したRPC仕様
+
+既存RPC:
+
+```text
+set_application_status(target_application_id uuid, new_status text)
+```
+
+確認したこと:
+
+- 呼び出し引数は `target_application_id` / `new_status`。
+- 許容statusは `pending` / `accepted` / `rejected` / `waitlisted` / `canceled`。
+- 今回のUIから渡すstatusは `accepted` / `rejected` のみ。
+- `target_application_id` が必要。
+- 既存の `is_session_gm(target_session_id text)` がadminも許可するため、GM/admin境界で実行できる。
+- 通常PLはsmoke test上 `set_application_status` を実行できない確認がある。
+
+## 3. 実装したこと
+
+- `session-detail.html` のGM/admin向け申請履歴折りたたみ内に、`申請中の操作` セクションを追加した。
+- `pending` / `waitlisted` の申請だけに `承認` / `却下` ボタンを出す。
+- `accepted` / `canceled` / `rejected` には操作ボタンを出さない。
+- 操作前にインライン確認UIを出し、確認後だけ `set_application_status` を呼ぶ。
+- 成功後はGM履歴、公開コメント一覧、申請中 / 承認済みカウント、本人申請状態を再取得する。
+- 取得失敗または対象表示名を安全に確認できない場合は、操作ボタンを出さない。
+
+## 4. 内部IDの扱い
+
+`set_application_status` には対象申請の内部IDが必要なため、GM/admin判定済みの画面だけで `session_applications` をRLS越しに内部取得する。
+
+内部処理だけで扱う列:
+
+```text
+id
+session_id
+status
+comment_id
+created_at
+updated_at
+```
+
+これらの実値は画面テキスト、DOM属性、console、docs、READMEへ出さない。対象者表示は公開コメントRPCの `comment_id` と内部申請行の `comment_id` をJS内で突き合わせ、display_nameだけを画面に出す。display_nameだけで対象申請を特定していない。
+
+## 5. 変更ファイル
+
+```text
+assets/js/sessionDetailApplicationComments.js
+assets/css/style.css
+session-detail.html
+assets/js/main.js
+assets/js/renderSessionDetail.js
+README.md
+docs/task-backlog.md
+docs/supabase-session-detail-application-history-gm-plan.md
+docs/supabase-session-detail-application-gm-approve-reject-result.md
+```
+
+## 6. 触っていないもの
+
+```text
+SQL Editor
+DB構造
+updates.json
+close_session
+Discord IDコピー
+GMコメント編集 / 削除
+commit / push
+```
+
+Codex側では、実データに対する承認 / 却下の確定操作は押していない。
+
+## 7. 検証結果
+
+成功:
+
+```powershell
+Get-ChildItem data -Filter *.json | ForEach-Object { python -m json.tool $_.FullName > $null; if ($LASTEXITCODE -ne 0) { Write-Host "JSON NG:" $_.FullName } }
+Get-ChildItem assets/js -Filter *.js | ForEach-Object { node --check $_.FullName }
+Get-ChildItem dev -Filter *.js | ForEach-Object { node --check $_.FullName }
+node --check scripts/supabase-rls-smoke-test.mjs
+```
+
+ローカルブラウザ確認:
+
+```text
+http://127.0.0.1:4174/session-detail.html?id=session-2026-06-08-railway-incident
+```
+
+- セッション詳細ページが表示される。
+- 未ログイン状態ではGM履歴UIは非表示。
+- console errorなし。
+- 内部IDらしきUUID文字列は本文表示に出ていない。
+
+未実行:
+
+- Supabase SQL Editor。
+- DB変更。
+- 実ユーザー環境での承認 / 却下確定。
+
+## 8. ユーザー実ブラウザ確認が必要なこと
+
+- GM/adminで申請履歴を開くと、`pending` / `waitlisted` にだけ `承認` / `却下` が出ること。
+- `accepted` / `canceled` / `rejected` に操作ボタンが出ないこと。
+- 確認UIが表示され、キャンセルできること。
+- 実際に承認した後、申請中人数が減り、承認済み人数が増えること。
+- 履歴status、公開コメント一覧、mypage側の参加予定表示が更新されること。
+- 通常PL / 未ログインではGM履歴UIと操作UIが出ないこと。
+- 内部ID、email、token、key、secret類が画面やconsoleに出ないこと。
