@@ -31,7 +31,9 @@
 
 ## 3. 既存DB/RPC調査結果
 
-`profiles` には既に `discord_user_id text` と `discord_name text` がある。`discord_user_id` は `^[0-9]{17,20}$` 制約つきで、Discordの数値snowflake ID用途に近い。今回の要件はPLが入力する連絡用のDiscord ID/handleで、厳しすぎる形式制限を避ける方針のため、`discord_user_id` をそのまま使うと要件に合わない。
+`profiles` には既に `discord_user_id text` と `discord_name text` がある。`discord_user_id` は `^[0-9]{17,20}$` 制約つきで、Discordの数値snowflake ID用途に近い。`discord_name` は既存互換・旧仕様寄りの列として扱い、今回のGM向け連絡先コピー導線では返却・更新対象にしない。
+
+今回の要件はPLが入力する連絡用の現代Discord ID/handleで、厳しすぎる形式制限を避ける方針のため、既存 `discord_user_id` / `discord_name` をそのまま使うと要件や将来の役割分離に合わない。
 
 `public_profiles` は `id` / `display_name` のみを公開している。Discord ID相当の値は含まれていないため、この方針を維持する。
 
@@ -50,7 +52,7 @@ GM向け申請履歴は `get_gm_session_application_history(target_session_id te
 - `discord_handle` は「連絡先として入力されたDiscord上の識別子」であり、数値IDとは限らないことを列名で表せる。
 - `public_profiles` に追加せず、privateな `profiles` 本体だけに保持できる。
 
-UIや画面文言は利用者に伝わりやすい「Discord ID」のままでよい。DB列名は `discord_handle`、RPC戻り値の表示用列は `discord_id` として、既存要望の語彙と内部の意味を分ける。
+UIや画面文言は利用者に伝わりやすい「Discord ID」のままでよい。DB列名とRPC戻り値列は `discord_handle` に統一し、既存 `discord_user_id` や `discord_name`、曖昧な `discord_id` 返却名と混同しないようにする。
 
 ## 5. 公開範囲方針
 
@@ -120,7 +122,7 @@ update_my_discord_id(new_discord_id text)
 
 ```text
 display_name text
-discord_id text
+discord_handle text
 ```
 
 GM/admin用:
@@ -133,7 +135,7 @@ get_gm_session_accepted_contacts(target_session_id text)
 
 ```text
 display_name text
-discord_id text
+discord_handle text
 ```
 
 返さないもの:
@@ -144,12 +146,16 @@ email
 application_id
 comment_id
 role
+discord_user_id
+discord_name
 token
 key
 secret類
 ```
 
-`update_my_discord_id` の引数は `new_discord_id` とする。`returns table (..., discord_id text)` のOUT列名と入力引数名の衝突を避けるためで、既存 `update_display_name(new_display_name text)` とも近い。
+`discord_user_id` / `discord_name` は既存互換・旧仕様寄りの列として扱い、今回のGMコピー導線では返さない。`discord_id` という返却aliasも、既存数値IDとの混同を避けるため採用しない。
+
+`update_my_discord_id` の引数は `new_discord_id` とする。UI文言の「Discord ID」に寄せつつ、戻り値は `discord_handle` として保存列の意味に揃える。既存 `update_display_name(new_display_name text)` と近い入力引数名にし、OUT列名との衝突も避ける。
 
 GM/admin用RPCは `authenticated` のみ実行可能にし、内部で `is_admin()` または `is_session_gm(target_session_id)` を確認する。返却対象は `session_applications.status = 'accepted'` の参加者だけに絞る。
 
@@ -169,7 +175,8 @@ GM/admin用RPCは `authenticated` のみ実行可能にし、内部で `is_admin
 - 他GMは読めない。
 - adminは読める。
 - pending / waitlisted / canceled / rejected はGMコピー対象外。
-- 返却列に `user_id`、email、`application_id`、`comment_id`、role、token、key、secret類がない。
+- 連絡先RPCの返却列は `display_name` / `discord_handle` のみ。
+- 返却列に `user_id`、email、`application_id`、`comment_id`、role、`discord_user_id`、`discord_name`、token、key、secret類がない。
 - エラー整形結果に生の内部IDやsecret類が混ざらない。
 
 ## 10. SQL草案
@@ -187,6 +194,7 @@ docs/supabase/sql/014_discord_id_profile_contact_draft.sql
 - 本人取得RPC `get_my_profile_contact()`。
 - 本人更新RPC `update_my_discord_id(new_discord_id text)`。
 - GM/admin向け承認済み参加者連絡先取得RPC `get_gm_session_accepted_contacts(target_session_id text)`。
+- 戻り値を `display_name` / `discord_handle` に限定し、既存 `discord_user_id` / `discord_name` や曖昧な `discord_id` aliasを返さない方針。
 - `grant` / `revoke`。
 - preflight。
 - post-apply確認。

@@ -485,5 +485,11 @@
 
 ## Supabase M-12A Discord ID登録 / GMコピー導線 調査・設計
 - `docs/supabase-discord-id-contact-plan.md` に、Discord ID相当の連絡先を安全に保存し、GM/adminが承認済み参加者だけ確認・コピーできるようにするための調査結果と設計を整理済み。既存 `profiles.discord_user_id` は17〜20桁数字制約つきで、今回の柔軟な連絡先入力には厳しすぎるため、新規非公開列 `profiles.discord_handle` を推奨する。`public_profiles` は `id` / `display_name` のみを維持し、Discord IDを公開viewや公開コメントRPCへ含めない。
-- SQL草案として `docs/supabase/sql/014_discord_id_profile_contact_draft.sql` を追加済み。`profiles.discord_handle`、本人取得RPC `get_my_profile_contact()`、本人更新RPC `update_my_discord_id(new_discord_id text)`、GM/admin向け承認済み参加者連絡先RPC `get_gm_session_accepted_contacts(target_session_id text)`、grant / revoke、preflight、post-apply、rollback、停止条件を含める。返却列は `display_name` / `discord_id` に限定し、`user_id`、email、`application_id`、`comment_id`、role、token、key、secret類は返さない。
+- SQL草案として `docs/supabase/sql/014_discord_id_profile_contact_draft.sql` を追加済み。`profiles.discord_handle`、本人取得RPC `get_my_profile_contact()`、本人更新RPC `update_my_discord_id(new_discord_id text)`、GM/admin向け承認済み参加者連絡先RPC `get_gm_session_accepted_contacts(target_session_id text)`、grant / revoke、preflight、post-apply、rollback、停止条件を含める。返却列は `display_name` / `discord_handle` に限定し、`user_id`、email、`application_id`、`comment_id`、role、`discord_user_id`、`discord_name`、token、key、secret類は返さない。
 - M-12AではSQL Editor実行、DB変更、本番フロント実装、Discord ID実値の記録、GM向けコピー機能実装、`updates.json` 変更、commit / pushは行っていない。次工程候補はM-12B SQL草案レビュー、M-12C SQL適用 / 結果記録、M-12D mypage登録UI、M-12E GM向け承認済み参加者連絡先表示 / コピー、M-12F RLS smoke test強化。
+
+## Supabase M-12B Discord ID連絡先SQL草案 実行前レビュー
+- `docs/supabase/sql/014_discord_id_profile_contact_draft.sql` は、`profiles.discord_handle` をPL本人入力の現代Discord ID/handle用の非公開列として追加し、本人RPCとGM/admin向け承認済み参加者連絡先RPCに限定して使う方針でレビューした。
+- M-12Bレビューで、既存 `profiles.discord_user_id` / `profiles.discord_name` は既存互換・旧仕様寄りの列として扱い、今回のGMコピー導線では返却・更新対象にしない方針を補強した。返却列は `display_name` / `discord_handle` に統一し、曖昧な `discord_id` aliasも採用しない。
+- `public_profiles`、公開コメントRPC、anon、通常PL全体へ `discord_handle` を出さない方針を維持する。M-12FのRLS smoke test強化では、公開系RPC/viewが `discord_handle` / `discord_user_id` / `discord_name` を返さない確認と、連絡先RPCが許可文脈でのみ `display_name` / `discord_handle` を返す確認を追加する。
+- M-12BではSQL Editor実行、DB変更、本番フロント実装、Discord ID実値の記録、GM向けコピーUI実装、`updates.json` 変更、commit / pushは行っていない。

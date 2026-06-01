@@ -1,9 +1,9 @@
 -- ============================================================
--- Velgard Supabase M-12A
+-- Velgard Supabase M-12B reviewed draft
 -- 014_discord_id_profile_contact_draft.sql
 --
 -- DRAFT ONLY:
---   Do not run this SQL until the M-12A design is reviewed.
+--   Do not run this SQL until the M-12B execution review is complete.
 --   Do not paste Project URL, API keys, service role keys, DB passwords,
 --   direct connection strings, JWT secrets, tokens, real emails, real user IDs,
 --   real application IDs, real comment IDs, or real Discord IDs here.
@@ -16,11 +16,13 @@
 --   values for one session.
 --
 -- Naming:
---   Store the value in profiles.discord_handle, not profiles.discord_user_id.
---   The existing discord_user_id column is constrained to a numeric snowflake,
---   while this feature needs a flexible player-entered contact value. UI text
---   may still say "Discord ID"; the DB column name documents that the stored
---   value is a contact handle/string, not necessarily a numeric user id.
+--   Store the value in profiles.discord_handle, not profiles.discord_user_id
+--   or profiles.discord_name. The existing discord_user_id column is constrained
+--   to a numeric snowflake, and discord_name is treated as an existing
+--   compatibility / legacy-oriented column. This feature needs a flexible
+--   player-entered contact value. UI text may still say "Discord ID"; the DB
+--   column and RPC return name document that the stored value is a contact
+--   handle/string, not necessarily a numeric user id.
 --
 -- Adopted RPC names:
 --   get_my_profile_contact()
@@ -29,10 +31,11 @@
 --
 -- Return columns:
 --   display_name text
---   discord_id text
+--   discord_handle text
 --
 -- Values intentionally not returned:
---   user_id, email, application_id, comment_id, role, tokens, keys, secrets.
+--   user_id, email, application_id, comment_id, role, discord_user_id,
+--   discord_name, discord_id aliases, tokens, keys, secrets.
 
 -- ============================================================
 -- 0. Preflight checks
@@ -140,9 +143,13 @@ order by p.proname, p.oid::regprocedure::text;
 -- Stop before applying if:
 --   - public_profiles exposes any Discord/contact column,
 --   - profiles.discord_handle already exists with a different reviewed purpose,
+--   - profiles.discord_id exists and creates ambiguity with the reviewed
+--     discord_handle plan,
 --   - the team decides to reuse discord_name instead of adding discord_handle,
 --   - is_admin() or is_session_gm(text) is missing or unexpected,
 --   - session_applications.status does not include accepted,
+--   - any of the three contact RPC names already exists with a different
+--     reviewed contract,
 --   - broad direct grants expose profiles contact fields to anon or normal PLs,
 --   - review requires real IDs, emails, keys, tokens, secrets, or Discord IDs
 --     in docs or chat.
@@ -182,7 +189,7 @@ comment on column public.profiles.discord_handle is
 create or replace function public.get_my_profile_contact()
 returns table (
   display_name text,
-  discord_id text
+  discord_handle text
 )
 language plpgsql
 security definer
@@ -197,7 +204,7 @@ begin
   return query
   select
     coalesce(nullif(trim(p.display_name), ''), '名前未設定')::text as display_name,
-    p.discord_handle::text as discord_id
+    p.discord_handle::text as discord_handle
   from public.profiles as p
   where p.id = auth.uid();
 
@@ -205,7 +212,7 @@ begin
     return query
     select
       '名前未設定'::text as display_name,
-      null::text as discord_id;
+      null::text as discord_handle;
   end if;
 end;
 $$;
@@ -215,7 +222,7 @@ create or replace function public.update_my_discord_id(
 )
 returns table (
   display_name text,
-  discord_id text
+  discord_handle text
 )
 language plpgsql
 security definer
@@ -260,7 +267,7 @@ begin
   where p.id = auth.uid()
   returning
     coalesce(nullif(trim(p.display_name), ''), '名前未設定')::text as display_name,
-    p.discord_handle::text as discord_id;
+    p.discord_handle::text as discord_handle;
 end;
 $$;
 
@@ -269,7 +276,7 @@ create or replace function public.get_gm_session_accepted_contacts(
 )
 returns table (
   display_name text,
-  discord_id text
+  discord_handle text
 )
 language plpgsql
 security definer
@@ -300,7 +307,7 @@ begin
   return query
   select
     coalesce(nullif(trim(p.display_name), ''), '名前未設定')::text as display_name,
-    p.discord_handle::text as discord_id
+    p.discord_handle::text as discord_handle
   from public.session_applications as sa
   join public.profiles as p
     on p.id = sa.user_id
@@ -431,19 +438,21 @@ from public.profiles;
 
 -- Manual / smoke-test behavior checks to run only with reviewed auth-context clients:
 --   - anon cannot execute any of the three contact RPCs.
---   - normal PL can read only their own display_name / discord_id via get_my_profile_contact().
+--   - normal PL can read only their own display_name / discord_handle via get_my_profile_contact().
 --   - normal PL can update only their own Discord contact via update_my_discord_id().
 --   - blank input is stored as null / unregistered.
 --   - input longer than 100 characters is rejected.
 --   - line breaks are rejected.
 --   - normal PL cannot read other participants' contacts.
---   - target session GM can read accepted participants' display_name / discord_id only.
+--   - target session GM can read accepted participants' display_name / discord_handle only.
 --   - other GM cannot read contacts for a session they do not own.
 --   - admin can read accepted participants' contacts.
 --   - pending / waitlisted / canceled / rejected participants are not returned by
 --     get_gm_session_accepted_contacts().
+--   - returned rows include only display_name and discord_handle.
 --   - returned rows do not include user_id, email, application_id, comment_id,
---     roles, tokens, keys, or secrets.
+--     roles, discord_user_id, discord_name, discord_id aliases, tokens, keys,
+--     or secrets.
 
 -- ============================================================
 -- 3. Rollback draft
