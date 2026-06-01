@@ -71,3 +71,61 @@ node --check scripts/supabase-rls-smoke-test.mjs
 ## 5. 秘密情報の扱い
 
 この工程では、secret、key、token、email、`user_id` 全文、`application_id` 実値、`comment_id` 実値を出力・記録していない。
+
+## 6. 通常smoke test実行結果
+
+2026-06-01に、ユーザーが通常のRLS smoke testを実行し、M-11F GM承認 / 却下追加分を含めて確認した。
+
+実行コマンド:
+
+```powershell
+node scripts/supabase-rls-smoke-test.mjs
+```
+
+`RUN_DESTRUCTIVE_TESTS` は使用していない。
+
+結果:
+
+```text
+Supabase RLS smoke test summary
+PASS: 45
+FAIL: 0
+SKIP: 15
+```
+
+GM承認 / 却下関連のPASS:
+
+```text
+M11F-APPROVE-001 anon cannot set application status
+M11F-APPROVE-002 normal player cannot set application status
+M11F-APPROVE-003 other GM cannot set application status for another GM session
+M11F-APPROVE-006 invalid application status is rejected
+M11F-APPROVE-007 application status RPC errors do not expose raw internal identifiers
+```
+
+確認できたこと:
+
+- anonは申請状態を変更できない。
+- 通常PLは申請状態を変更できない。
+- 他GMは別GMセッションの申請状態を変更できない。
+- 不正statusは拒否される。
+- 関連エラーに内部ID、email、token、key類は露出していない。
+
+GM承認 / 却下関連のSKIP:
+
+```text
+M11F-APPROVE-004 target GM can set own session application status if safe fixture exists
+M11F-APPROVE-005 admin can set application status if safe fixture exists
+```
+
+SKIP理由:
+
+```text
+専用の状態リセットfixtureがなく、通常実行で再利用fixtureの application status を変更すると検証データを壊す可能性があるため。
+```
+
+成功系は将来、専用fixtureまたは `RUN_DESTRUCTIVE_TESTS` 条件つきで扱う。
+
+この実行結果により、GM承認 / 却下まわりの権限拒否、invalid status拒否、内部情報非露出は次工程へ進める状態とする。
+
+このdocs記録工程では、SQL Editor実行、DB変更、フロント実装、`RUN_DESTRUCTIVE_TESTS` 使用、`updates.json` 変更、secret類の記録、commit / pushは行っていない。

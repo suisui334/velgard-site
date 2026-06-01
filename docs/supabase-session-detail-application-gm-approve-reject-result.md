@@ -161,3 +161,21 @@ docs/supabase-session-detail-application-gm-approve-reject-smoke-test-result.md
 - 関連エラー整形結果に生の内部IDやsecret類が混ざらない。
 
 成功系のGM/admin状態変更は、再利用fixtureを壊す可能性があるため、M-11F追加分ではSKIPにした。DB接続を伴う smoke test 本体実行、`RUN_DESTRUCTIVE_TESTS=true` 実行、SQL Editor実行、DB変更は行っていない。`node --check scripts/supabase-rls-smoke-test.mjs` は成功。
+
+## 11. M-11F smoke test通常実行結果
+
+2026-06-01に、ユーザーが通常のRLS smoke testを実行し、GM承認 / 却下追加分を含めて確認した。
+
+実行結果:
+
+```text
+PASS: 45
+FAIL: 0
+SKIP: 15
+```
+
+`RUN_DESTRUCTIVE_TESTS` は使用していない。
+
+GM承認 / 却下関連では、anon / 通常PL / 他GMの状態変更拒否、不正status拒否、関連エラーの内部情報非露出がPASSした。対象GM / adminの成功系は、専用の状態リセットfixtureがなく、通常実行で再利用fixtureの application status を変更すると検証データを壊す可能性があるためSKIPした。
+
+成功系は将来、専用fixtureまたは `RUN_DESTRUCTIVE_TESTS` 条件つきで扱う。詳細は `docs/supabase-session-detail-application-gm-approve-reject-smoke-test-result.md` に記録した。
