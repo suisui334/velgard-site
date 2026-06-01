@@ -202,9 +202,35 @@ docs/supabase/sql/014_discord_id_profile_contact_draft.sql
 - 停止条件。
 - SQL Editor未実行とsecret実値禁止の注意。
 
-このSQL草案は実行していない。
+M-12A時点では、このSQL草案は実行していない。
 
-## 11. 実装段階案
+## 11. M-12B SQL適用結果
+
+ユーザーがSupabase SQL Editorで `014_discord_id_profile_contact_draft.sql` のapply sectionを実行し、Discord ID連絡先用DB変更を適用済み。Codexはこの結果記録工程でSQL Editor実行、DB変更、本番フロント実装、Discord ID実値の記録、`updates.json` 変更、commit / pushを行っていない。
+
+適用結果:
+
+```text
+profiles.discord_handle text
+profiles_discord_handle_check
+get_my_profile_contact()
+update_my_discord_id(new_discord_id text)
+get_gm_session_accepted_contacts(target_session_id text)
+```
+
+`public_profiles` は `id` / `display_name` のみで、`discord_handle` / `discord_name` / `discord_user_id` は公開viewに出ていない。
+
+3RPCはいずれも `security definer = true`、`search_path = ""`、返却列は `display_name text` / `discord_handle text`。grantは `authenticated EXECUTE` と `postgres EXECUTE` を確認済みで、`anon EXECUTE` はない。`postgres EXECUTE` はownerまたは管理者側の表示として扱う。
+
+制約 `profiles_discord_handle_check` は、`discord_handle is null` 許可、100文字以下、改行禁止を確認済み。確認された制約定義は以下。
+
+```text
+CHECK (((discord_handle IS NULL) OR ((char_length(discord_handle) <= 100) AND (discord_handle !~ '[\r\n]'::text))))
+```
+
+rollbackは未実行。本人RPC / GM用RPCの実ログイン文脈テストはまだ未実施。SQL適用結果の詳細は `docs/supabase-discord-id-contact-sql-result.md` に記録した。
+
+## 12. 実装段階案
 
 推奨段階:
 
@@ -220,7 +246,7 @@ M-12G: 既存 discord_user_id / discord_name の扱い整理
 
 `M-12G` は任意だが、既存 `discord_user_id` / `discord_name` の意味を将来混同しないため、DB適用後に別工程で整理すると安全。
 
-## 12. まだやらないこと
+## 13. まだやらないこと
 
 - SQL Editor実行。
 - DB変更。

@@ -10,6 +10,19 @@
 --   This draft adds a private player contact column and narrow RPCs.
 -- ============================================================
 
+-- Applied result note:
+--   User applied the reviewed apply section in Supabase SQL Editor on
+--   2026-06-01. Do not rerun the apply section in normal operation. If a
+--   replacement is needed, review the current column, constraint, function
+--   definitions, grants, existing data, and rollback plan in a separate step.
+--   Result notes are recorded in:
+--     docs/supabase-discord-id-contact-sql-result.md
+--
+--   Confirmed applied constraint name:
+--     profiles_discord_handle_check
+--   Confirmed applied RPC return columns:
+--     display_name text, discord_handle text
+
 -- Purpose:
 --   Let a signed-in player save their own Discord contact value, and let the
 --   target session GM or an admin read only accepted participants' contact

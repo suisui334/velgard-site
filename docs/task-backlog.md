@@ -493,3 +493,10 @@
 - M-12Bレビューで、既存 `profiles.discord_user_id` / `profiles.discord_name` は既存互換・旧仕様寄りの列として扱い、今回のGMコピー導線では返却・更新対象にしない方針を補強した。返却列は `display_name` / `discord_handle` に統一し、曖昧な `discord_id` aliasも採用しない。
 - `public_profiles`、公開コメントRPC、anon、通常PL全体へ `discord_handle` を出さない方針を維持する。M-12FのRLS smoke test強化では、公開系RPC/viewが `discord_handle` / `discord_user_id` / `discord_name` を返さない確認と、連絡先RPCが許可文脈でのみ `display_name` / `discord_handle` を返す確認を追加する。
 - M-12BではSQL Editor実行、DB変更、本番フロント実装、Discord ID実値の記録、GM向けコピーUI実装、`updates.json` 変更、commit / pushは行っていない。
+
+## Supabase M-12B Discord ID連絡先SQL適用結果
+- ユーザーがSupabase SQL Editorで `docs/supabase/sql/014_discord_id_profile_contact_draft.sql` のapply sectionを実行済み。適用結果は `docs/supabase-discord-id-contact-sql-result.md` に分離して記録済み。
+- DB側では `profiles.discord_handle text`、`profiles_discord_handle_check`、`get_my_profile_contact()`、`update_my_discord_id(new_discord_id text)`、`get_gm_session_accepted_contacts(target_session_id text)` を確認済み。`public_profiles` は `id` / `display_name` のみで、`discord_handle` / `discord_name` / `discord_user_id` は出ていない。
+- 3RPCはいずれも `security definer = true`、`search_path = ""`、返却列は `display_name` / `discord_handle`。grantは `authenticated EXECUTE` と `postgres EXECUTE` を確認済みで、`anon EXECUTE` はない。`postgres EXECUTE` はownerまたは管理者側の表示として扱う。
+- `profiles_discord_handle_check` はnull許可、100文字以下、改行禁止の制約。rollback、本人RPC / GM用RPCの実ログイン文脈テスト、RLS smoke test追加、本番フロント実装は未実施。同じapply sectionは通常運用で再実行しない。このdocs記録工程でCodexはSQL Editor実行、DB変更、Discord ID実値の記録、secret類の記録、`updates.json` 変更、commit / pushを行っていない。
+- 次工程候補は、SQL適用結果commit後に `mypage.html` のDiscord ID登録UI、または連絡先RPCのRLS smoke test追加へ進むこと。
