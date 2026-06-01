@@ -192,3 +192,13 @@ ID重複防止:
 - credential値の記録。
 - `updates.json` 変更。
 - commit / push。
+
+## 12. M-14C preflight follow-up
+
+M-14C / 015 preflight中に、`public.sessions` だけでなくpublic schema内の複数テーブルで `anon` / `authenticated` に `TRUNCATE` 権限が見えていた。
+
+ユーザーがSupabase SQL Editorで `TRUNCATE` だけをrevoke済み。`SELECT` / `INSERT` / `UPDATE` / `DELETE` は今回触っていない。確認クエリでは `anon` / `authenticated` の `TRUNCATE` 権限が0件になった。
+
+`postgres` などの管理者系ロール側の権限は対象外。`015_session_posting_rpc_draft.sql` のapplyはまだ未実行。
+
+詳細は `docs/supabase-public-truncate-privilege-cleanup-result.md` に記録済み。

@@ -541,3 +541,8 @@
 - `015_session_posting_rpc_draft.sql` を既存 `public.sessions`、RLS、申請/コメントRPC、`data/sessions.json` の `sessionType` / `applicationDeadline` と突き合わせてレビュー済み。`sessions.id` はtextのまま維持し、GM本人投稿の `gm_user_id` は `auth.uid()` 固定、戻り値は `session_id` / `discord_sync_status` / `created_at` のみに限定する方針。
 - 実行前修正として、`draft` のpublic保存を拒否し、`draft` / `private` / `hidden` はDiscord即時同期対象外として `discord_sync_status = skipped` にする草案へ調整済み。公開かつ `tentative` / `recruiting` のみ `pending` としてEdge Function同期対象にする。
 - admin代理投稿、public draft運用、非公開投稿のDiscord同期が必要になった場合は、SQL適用前に停止して方針確認する。このレビュー工程ではSQL Editor実行、DB変更、Edge Function deploy、Discord実送信、`updates.json` 変更、commit / pushは行っていない。Discord投稿credential値は記録していない。
+
+## M-14C public schema TRUNCATE権限整理結果
+- M-14C / 015 preflight中に、`public.sessions` だけでなくpublic schema内の複数テーブルで `anon` / `authenticated` に `TRUNCATE` 権限が見えていたため、ユーザーがSupabase SQL Editorで `TRUNCATE` だけをrevoke済み。実行結果は `Success. No rows returned`。
+- 確認クエリでは、public schema内で `anon` / `authenticated` に残る `TRUNCATE` 権限が `0 rows` になった。`SELECT` / `INSERT` / `UPDATE` / `DELETE` は今回触っていない。`postgres` などの管理者系ロール側の権限は対象外。
+- 結果は `docs/supabase-public-truncate-privilege-cleanup-result.md` に分離済み。`015_session_posting_rpc_draft.sql` のapplyはまだ未実行。このdocs記録工程でCodexはSQL Editor追加実行、DB変更、Edge Function deploy、Discord実送信、credential値の記録、`updates.json` 変更、commit / pushを行っていない。

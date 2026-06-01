@@ -10,6 +10,14 @@
 -- - このファイルは草案。SQL Editorではまだ実行しない。
 -- - Discord投稿credential、サーバー側credential類はこのSQLに書かない。
 -- - RPC戻り値に email、内部user id、Discord credential類を含めない。
+--
+-- M-14C preflight follow-up:
+-- - public.sessions だけでなくpublic schema内の複数テーブルで、anon / authenticated に
+--   TRUNCATE 権限が見えていた。
+-- - ユーザーがTRUNCATEだけをrevokeし、確認クエリで0件になったことを確認済み。
+-- - SELECT / INSERT / UPDATE / DELETE 権限は今回触っていない。
+-- - postgresなどの管理者系ロール側の権限は対象外。
+-- - 015 applyはまだ未実行。
 
 -- ============================================================
 -- 0. Preflight checks
