@@ -70,6 +70,13 @@ const GM_HISTORY_FORBIDDEN_KEYS = [
 ];
 
 const GM_HISTORY_ALLOWED_STATUSES = new Set(["pending", "accepted", "rejected", "waitlisted", "canceled"]);
+const RAW_SENSITIVE_TEXT_PATTERNS = [
+  /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i,
+  /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i,
+  /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/,
+  /https:\/\/[a-z0-9.-]+\.supabase\.co/i,
+  /\b[A-Za-z0-9_-]{80,}\b/
+];
 
 const RUN_DESTRUCTIVE_TESTS = process.env.RUN_DESTRUCTIVE_TESTS === "true";
 const SENSITIVE_ENV = [...REQUIRED_ENV, ...FORBIDDEN_ENV];
@@ -168,6 +175,18 @@ function assertGmHistoryRows(rowOrRows, context) {
     );
     assert(Number.isInteger(row.comment_count), `${context} comment_count was not an integer`);
   }
+}
+
+function assertNoRawSensitiveText(value, context) {
+  const text = sanitizeText(value);
+  for (const pattern of RAW_SENSITIVE_TEXT_PATTERNS) {
+    assert(!pattern.test(text), `${context} exposed raw sensitive text`);
+  }
+}
+
+function assertFormattedErrorIncludes(error, expectedText, context) {
+  const text = formatSupabaseError(error).toLowerCase();
+  assert(text.includes(expectedText.toLowerCase()), `${context} did not include the expected error marker`);
 }
 
 function createSupabaseClient() {
@@ -271,6 +290,16 @@ async function getGmSessionApplicationHistory(client, sessionId) {
   );
 }
 
+async function expectApplicationStatusError(client, applicationId, newStatus, label) {
+  return expectError(
+    client.rpc("set_application_status", {
+      target_application_id: requireId(applicationId, label),
+      new_status: newStatus
+    }),
+    label
+  );
+}
+
 async function updateApplicationComment(client, commentId, body) {
   return expectOk(
     client.rpc("update_application_comment", {
@@ -335,6 +364,10 @@ async function main() {
   let playerBRecruitingApplicationId;
   let gmAHistoryRows;
   let adminHistoryRows;
+  let m11fAnonStatusError;
+  let m11fPlayerStatusError;
+  let m11fOtherGmStatusError;
+  let m11fInvalidStatusError;
 
   await runTest("AUTH-001", "anon can read public sessions only", async () => {
     const data = await expectOk(
@@ -420,6 +453,15 @@ async function main() {
     }
   });
 
+  await runTest("M11F-APPROVE-001", "anon cannot set application status", async () => {
+    m11fAnonStatusError = await expectApplicationStatusError(
+      anon,
+      playerARecruitingApplicationId,
+      "accepted",
+      "anon M11F set application status"
+    );
+  });
+
   await runTest("M11E-HIST-002", "player A cannot read GM session application history", async () => {
     await expectError(
       playerA.rpc("get_gm_session_application_history", {
@@ -471,6 +513,25 @@ async function main() {
       }),
       "player A close_session"
     );
+  });
+
+  await runTest("M11F-APPROVE-002", "normal player cannot set application status", async () => {
+    m11fPlayerStatusError = await expectApplicationStatusError(
+      playerA,
+      playerARecruitingApplicationId,
+      "accepted",
+      "player M11F set application status"
+    );
+  });
+
+  await runTest("M11F-APPROVE-006", "invalid application status is rejected", async () => {
+    m11fInvalidStatusError = await expectApplicationStatusError(
+      playerA,
+      playerARecruitingApplicationId,
+      "approved",
+      "M11F invalid application status"
+    );
+    assertFormattedErrorIncludes(m11fInvalidStatusError, "invalid application status", "M11F invalid status error");
   });
 
   await runTest("AUTH-011", "player A can create an application on another GM public session", async () => {
@@ -648,6 +709,12 @@ async function main() {
     );
   });
 
+  await skipTest(
+    "M11F-APPROVE-004",
+    "target GM can set own session application status if safe fixture exists",
+    "No disposable status-reset fixture is available; avoid adding another normal-run status mutation to reusable smoke data."
+  );
+
   await runTest("M11E-HIST-003", "gm A can read own session application history", async () => {
     gmAHistoryRows = await getGmSessionApplicationHistory(gmA, SESSION.recruiting);
     assert(gmAHistoryRows.length >= 1, "gm A history RPC returned no rows for own session");
@@ -708,6 +775,15 @@ async function main() {
         target_session_id: SESSION.otherGm
       }),
       "gm A close gm B session"
+    );
+  });
+
+  await runTest("M11F-APPROVE-003", "other GM cannot set application status for another GM session", async () => {
+    m11fOtherGmStatusError = await expectApplicationStatusError(
+      gmA,
+      otherGmApplicationId,
+      "accepted",
+      "other GM M11F set application status"
     );
   });
 
@@ -889,6 +965,12 @@ async function main() {
     );
   });
 
+  await skipTest(
+    "M11F-APPROVE-005",
+    "admin can set application status if safe fixture exists",
+    "No disposable status-reset fixture is available; admin success would change reusable application status."
+  );
+
   await runTest("M11E-HIST-005", "admin can read GM session application history", async () => {
     adminHistoryRows = await getGmSessionApplicationHistory(admin, SESSION.recruiting);
     assert(adminHistoryRows.length >= 1, "admin history RPC returned no rows for recruiting session");
@@ -908,6 +990,17 @@ async function main() {
       gmAHistoryRows.some((row) => row.application_status === "accepted"),
       "gm A history did not include the accepted application status set earlier in the smoke test"
     );
+  });
+
+  await runTest("M11F-APPROVE-007", "application status RPC errors do not expose raw internal identifiers", async () => {
+    const statusErrorText = [
+      m11fAnonStatusError,
+      m11fPlayerStatusError,
+      m11fOtherGmStatusError,
+      m11fInvalidStatusError
+    ].map(formatSupabaseError).join("\n");
+
+    assertNoRawSensitiveText(statusErrorText, "M11F application status RPC error text");
   });
 
   await skipTest(

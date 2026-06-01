@@ -141,3 +141,23 @@ http://127.0.0.1:4174/session-detail.html?id=session-2026-06-08-railway-incident
 - 履歴status、公開コメント一覧、mypage側の参加予定表示が更新されること。
 - 通常PL / 未ログインではGM履歴UIと操作UIが出ないこと。
 - 内部ID、email、token、key、secret類が画面やconsoleに出ないこと。
+
+## 10. M-11F smoke test追加結果
+
+2026-06-01に、GM承認 / 却下UIで使う `set_application_status(target_application_id uuid, new_status text)` まわりの smoke test観点を追加した。
+
+追加結果:
+
+```text
+docs/supabase-session-detail-application-gm-approve-reject-smoke-test-result.md
+```
+
+追加した主な観点:
+
+- anonは状態変更できない。
+- 通常PLは状態変更できない。
+- 他GMは別GMセッション申請を状態変更できない。
+- 不正statusは拒否される。
+- 関連エラー整形結果に生の内部IDやsecret類が混ざらない。
+
+成功系のGM/admin状態変更は、再利用fixtureを壊す可能性があるため、M-11F追加分ではSKIPにした。DB接続を伴う smoke test 本体実行、`RUN_DESTRUCTIVE_TESTS=true` 実行、SQL Editor実行、DB変更は行っていない。`node --check scripts/supabase-rls-smoke-test.mjs` は成功。
