@@ -6,9 +6,11 @@ import {
 } from "./supabaseBrowserClient.js?v=20260601-session-post";
 
 const ERROR_MESSAGE = "依頼書を投稿できませんでした。権限または入力内容を確認してください。";
+const CROSS_DAY_END_MESSAGE = "日付をまたぐ終了日時は、現在の投稿フォームではまだ保存できません。";
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_TIME_PATTERN = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})$/;
 
-function renderShell(initialDate = "") {
+function renderShell(initialStartAt = "") {
   return `
     <header class="page-title">
       <div class="eyebrow">Session Post</div>
@@ -32,9 +34,8 @@ function renderShell(initialDate = "") {
         <form class="session-post-form" data-session-post-form>
           <div class="session-post-grid">
             ${renderTextField("タイトル", "p_title", "text", { required: true, maxlength: 120 })}
-            ${renderTextField("開催日", "p_session_date", "date", { required: true, value: initialDate })}
-            ${renderTextField("開始時刻", "p_start_time", "text", { placeholder: "21:00" })}
-            ${renderTextField("終了時刻", "p_end_time", "text", { placeholder: "24:00" })}
+            ${renderTextField("開始日時", "p_start_at", "datetime-local", { required: true, value: initialStartAt })}
+            ${renderTextField("終了日時", "p_end_at", "datetime-local")}
             ${renderTextField("申請締切", "p_application_deadline", "datetime-local")}
             ${renderSelectField("種別", "p_session_type", [
               ["one-shot", "単発シナリオ"],
@@ -42,7 +43,6 @@ function renderShell(initialDate = "") {
               ["special", "特殊"],
               ["other", "その他"]
             ], "one-shot")}
-            ${renderTextField("レベル帯", "p_level_range", "text", { maxlength: 80 })}
             ${renderTextField("募集人数 min", "p_player_min", "number", { min: 0 })}
             ${renderTextField("募集人数 max", "p_player_max", "number", { min: 0 })}
             ${renderSelectField("公開状態", "p_visibility", [
@@ -140,10 +140,21 @@ function toDeadlineValue(value) {
   return text ? text.replace("T", " ") : null;
 }
 
-function getInitialSessionDate() {
+function parseDateTimeLocal(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return null;
+  const match = text.match(DATE_TIME_PATTERN);
+  if (!match) throw new Error("invalid-date-time");
+  return {
+    date: match[1],
+    time: match[2]
+  };
+}
+
+function getInitialStartAt() {
   const params = new URLSearchParams(window.location.search);
   const date = String(params.get("date") || "").trim();
-  return ISO_DATE_PATTERN.test(date) ? date : "";
+  return ISO_DATE_PATTERN.test(date) ? `${date}T21:00` : "";
 }
 
 function buildPayload(form) {
@@ -153,14 +164,23 @@ function buildPayload(form) {
     throw new Error("invalid-player-count");
   }
 
+  const startAt = parseDateTimeLocal(getValue(form, "p_start_at"));
+  const endAt = parseDateTimeLocal(getValue(form, "p_end_at"));
+  if (!startAt) {
+    throw new Error("invalid-date-time");
+  }
+  if (endAt && endAt.date !== startAt.date) {
+    throw new Error("cross-day-end");
+  }
+
   return {
     p_title: getValue(form, "p_title"),
-    p_session_date: getValue(form, "p_session_date"),
-    p_start_time: nullableText(getValue(form, "p_start_time")),
-    p_end_time: nullableText(getValue(form, "p_end_time")),
+    p_session_date: startAt.date,
+    p_start_time: startAt.time,
+    p_end_time: endAt ? endAt.time : null,
     p_application_deadline: toDeadlineValue(getValue(form, "p_application_deadline")),
     p_session_type: getValue(form, "p_session_type"),
-    p_level_range: nullableText(getValue(form, "p_level_range")),
+    p_level_range: null,
     p_player_min: playerMin,
     p_player_max: playerMax,
     p_summary: nullableText(getValue(form, "p_summary")),
@@ -230,8 +250,8 @@ async function initializeForm(root, client) {
       setState(state, "作成しました。", "is-ok");
       renderResult(resultList, result);
       resultPanel.hidden = false;
-    } catch {
-      setState(state, ERROR_MESSAGE, "is-error");
+    } catch (error) {
+      setState(state, error?.message === "cross-day-end" ? CROSS_DAY_END_MESSAGE : ERROR_MESSAGE, "is-error");
     } finally {
       submit.disabled = false;
     }
@@ -239,7 +259,7 @@ async function initializeForm(root, client) {
 }
 
 export async function renderSessionPost(root) {
-  root.innerHTML = renderShell(getInitialSessionDate());
+  root.innerHTML = renderShell(getInitialStartAt());
   const authState = root.querySelector("[data-session-post-auth-state]");
   const config = getSupabaseRuntimeConfig();
   if (!hasSupabaseRuntimeConfig(config)) {

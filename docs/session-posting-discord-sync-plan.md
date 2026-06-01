@@ -250,6 +250,9 @@ GM: {gmName}
 {publicSessionDetailUrl}
 ```
 
+日跨ぎ終了日時の正式対応後は、Discord本文の終了日時は `end_at` / `endAt` を優先して生成する。
+`end_at` がない既存データでは、従来どおり `date + endTime` 相当を使う。
+
 本文に入れないもの:
 
 - email
