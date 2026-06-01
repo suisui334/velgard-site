@@ -55,11 +55,30 @@ Success. No rows returned
 
 ## 未実施
 
-- `create_session_post(...)` の実行テストは未実施。
+- M-14D-1で、GM文脈のhidden draft最小実行テストは実施済み。
+- public募集作成テスト、通常PL/anon拒否テスト、admin文脈テストは未実施。
 - Edge Function deployは未実施。
 - Discord実送信は未実施。
 - フロント実装は未実施。
 - credential類の実値は記録していない。
+
+## M-14D-1 hidden draft実行テスト
+
+`dev/run-create-session-post-test.mjs` を使い、GM認証文脈で `create_session_post(...)` を1回実行した。SQL Editorでの直接実行ではなく、Supabase client経由。
+
+確認結果:
+
+- 通常実行ではSKIP。
+- `RUN_CREATE_SESSION_POST_TEST=true` / `CREATE_SESSION_POST_CONFIRM=hidden-draft` / `CREATE_SESSION_POST_ACTOR=gm` で実行。
+- `discord_sync_status` は `skipped`。
+- 作成行は `status = draft` / `visibility = hidden` / `session_type = one-shot`。
+- `application_deadline` は存在する。
+- anonからpublic表示対象としては見えない。
+- hidden draft test row は削除していない。
+- Discord実送信なし。
+- token / key / email / user_id全文 / credential類の実値は記録していない。
+
+詳細は `docs/session-posting-rpc-execution-test-result.md`。
 
 ## 運用注意
 
