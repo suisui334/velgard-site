@@ -3325,8 +3325,7 @@ body[data-page="session-post"] .session-post-section {
 
 body[data-page="session-post"] .session-post-auth-panel,
 body[data-page="session-post"] .session-post-form-panel,
-body[data-page="session-post"] .session-post-result-panel,
-body[data-page="session-post"] .session-post-manage-panel {
+body[data-page="session-post"] .session-post-result-panel {
   display: grid;
   gap: 14px;
   padding: 18px;
@@ -3345,9 +3344,30 @@ body[data-page="session-post"] .session-post-form-head p {
   color: var(--muted);
 }
 
+body[data-page="session-post"] .session-post-mode-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+body[data-page="session-post"] .session-post-mode-row h2 {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 body[data-page="session-post"] .session-post-form {
   display: grid;
   gap: 14px;
+}
+
+body[data-page="session-post"] .session-post-form-panel.is-editing .session-post-form {
+  padding: 12px;
+  border: 1px solid rgba(60, 113, 95, 0.26);
+  border-radius: 6px;
+  background: rgba(241, 250, 245, 0.34);
 }
 
 body[data-page="session-post"] .session-post-grid {
@@ -3463,62 +3483,152 @@ body[data-page="session-post"] .session-post-result-list dd {
   overflow-wrap: anywhere;
 }
 
-body[data-page="session-post"] .session-post-manage-list {
+body[data-page="session-post"] .session-post-manage-panel {
   display: grid;
-  gap: 12px;
-}
-
-body[data-page="session-post"] .session-post-managed-item {
-  display: grid;
+  grid-column: 2;
   gap: 10px;
+  align-self: start;
   min-width: 0;
-  padding: 12px;
+  max-height: 340px;
+  padding: 10px;
   border: 1px solid rgba(86, 96, 106, 0.16);
   border-radius: 6px;
-  background: rgba(255, 255, 250, 0.58);
+  background: rgba(255, 255, 250, 0.62);
 }
 
-body[data-page="session-post"] .session-post-managed-item.is-selected {
+body[data-page="session-post"] .session-post-manage-panel .session-post-form-head {
+  gap: 2px;
+}
+
+body[data-page="session-post"] .session-post-manage-panel .session-post-form-head h2 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+body[data-page="session-post"] .session-post-manage-layout {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+body[data-page="session-post"] .session-post-manage-list {
+  display: grid;
+  gap: 6px;
+  max-height: 180px;
+  min-width: 0;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+body[data-page="session-post"] .session-post-managed-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid rgba(86, 96, 106, 0.16);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.62);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+body[data-page="session-post"] .session-post-managed-row:hover,
+body[data-page="session-post"] .session-post-managed-row:focus-visible {
   border-color: rgba(60, 113, 95, 0.46);
-  background: rgba(241, 250, 245, 0.78);
+  background: rgba(247, 252, 249, 0.9);
+  outline: none;
 }
 
-body[data-page="session-post"] .session-post-managed-head {
+body[data-page="session-post"] .session-post-managed-row.is-selected {
+  border-color: rgba(60, 113, 95, 0.62);
+  background: rgba(241, 250, 245, 0.88);
+  box-shadow: inset 3px 0 0 rgba(60, 113, 95, 0.72);
+}
+
+body[data-page="session-post"] .session-post-managed-row-badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  justify-content: space-between;
+  gap: 4px;
+  align-self: start;
 }
 
-body[data-page="session-post"] .session-post-managed-head h3 {
+body[data-page="session-post"] .session-post-managed-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: rgba(86, 96, 106, 0.1);
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+body[data-page="session-post"] .session-post-managed-badge.is-status {
+  background: rgba(68, 107, 82, 0.14);
+  color: var(--herb);
+}
+
+body[data-page="session-post"] .session-post-managed-badge.is-visibility {
+  background: rgba(157, 76, 57, 0.12);
+  color: var(--rust);
+}
+
+body[data-page="session-post"] .session-post-managed-row-title,
+body[data-page="session-post"] .session-post-managed-row-date {
   min-width: 0;
-  margin: 0;
-  font-size: 1.04rem;
   overflow-wrap: anywhere;
 }
 
-body[data-page="session-post"] .session-post-managed-meta {
+body[data-page="session-post"] .session-post-managed-row-title {
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+body[data-page="session-post"] .session-post-managed-row-date {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+body[data-page="session-post"] .session-post-manage-detail {
+  min-width: 0;
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.46);
+}
+
+body[data-page="session-post"] .session-post-managed-detail-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: 1fr;
+  gap: 6px;
   margin: 0;
 }
 
-body[data-page="session-post"] .session-post-managed-meta div {
+body[data-page="session-post"] .session-post-managed-detail-list div {
   min-width: 0;
-  padding: 9px;
+  padding: 7px;
   border-radius: 6px;
   background: rgba(255, 255, 250, 0.54);
 }
 
-body[data-page="session-post"] .session-post-managed-meta dt {
+body[data-page="session-post"] .session-post-managed-detail-list .session-post-managed-detail-row--wide {
+  grid-column: 1 / -1;
+}
+
+body[data-page="session-post"] .session-post-managed-detail-list dt {
   color: var(--muted);
   font-size: 0.76rem;
   font-weight: 800;
 }
 
-body[data-page="session-post"] .session-post-managed-meta dd {
+body[data-page="session-post"] .session-post-managed-detail-list dd {
   min-width: 0;
   margin: 0;
   color: var(--ink);
@@ -4314,20 +4424,33 @@ body.is-modal-open .back-to-top {
 
   body[data-page="session-post"] .session-post-grid,
   body[data-page="session-post"] .session-post-result-list,
-  body[data-page="session-post"] .session-post-managed-meta {
+  body[data-page="session-post"] .session-post-manage-layout,
+  body[data-page="session-post"] .session-post-managed-detail-list {
     grid-template-columns: 1fr;
+  }
+
+  body[data-page="session-post"] .session-post-manage-panel {
+    grid-column: 1;
+  }
+
+  body[data-page="session-post"] .session-post-managed-row {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page="session-post"] .session-post-managed-row-date {
+    grid-column: 1;
   }
 
   body[data-page="session-post"] .session-post-submit-row,
   body[data-page="session-post"] .session-post-actions,
-  body[data-page="session-post"] .session-post-managed-head {
+  body[data-page="session-post"] .session-post-mode-row {
     align-items: stretch;
     flex-direction: column;
   }
 
   body[data-page="session-post"] .session-post-submit-row .button,
   body[data-page="session-post"] .session-post-actions .button,
-  body[data-page="session-post"] .session-post-managed-head .button {
+  body[data-page="session-post"] .session-post-mode-row .button {
     width: 100%;
     justify-content: center;
   }

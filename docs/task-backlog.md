@@ -591,3 +591,10 @@
 - 一覧は認証済みSupabase clientで `public.sessions` をSELECTし、RLSで見える範囲を表示する。取得・表示する情報はタイトル、開催日時、終了日時、公開状態、募集状態、Discord同期状態、作成日時、詳細導線に限定し、`gm_user_id`、email、user_id全文、token、key、secret、Discord credential類は取得・表示しない。
 - M-14D-6bでcalendar側の常設 `自分の依頼書` 導線は削除し、依頼書一覧は `session-post.html` 内へ集約した。calendarの日付セルにある `＋依頼書` 導線は維持し、`session-post.html?date=YYYY-MM-DD` へ遷移できる。`詳細を見る` は `session-post.html?id=SESSION_ID#my-sessions` へ向けるが、下書き詳細表示、編集、削除、公開切替は次工程。
 - Discord実送信、Edge Function deploy、public/recruiting投稿、テンプレート保存は実施していない。テンプレート保存はM-15系で扱う。詳細は `docs/session-posting-manage-list-result.md` に記録済み。
+
+## M-14D-7 依頼書一覧のコンパクト選択式化
+- `session-post.html` の `自分の依頼書` 一覧を、フォーム下部の長いカード列や右外側の独立パネルではなく、フォーム内の `公開状態` 欄の直下に収まるコンパクトな管理ボックスへ変更した。一覧には募集状態バッジ、公開状態バッジ、タイトル、開催日時から終了日時だけを表示する。概要や長文本文は一覧に出さない。
+- 行を選ぶと同ページのメインフォームへタイトル、開始日時、終了日時、申請締切、種別、募集人数min/max、公開状態、募集状態、概要を反映し、`編集中: 依頼書タイトル` の編集モードへ切り替える。フォーム内管理ボックスの詳細表示は公開状態、募集状態、Discord同期状態、作成日時、更新日時に限定する。
+- 編集モード中は作成ボタンをdisabledにし、Enter submitでも `create_session_post(...)` を呼ばないため、誤って重複新規作成されない。`新規依頼書を書く` ボタンで選択解除、フォーム初期化、URLの `id` 除去を行い、新規作成モードへ戻れる。保存更新、公開切替、削除、募集終了、Discord実送信は未実装で次工程。
+- `gm_user_id`、email、user_id全文、gmUserId、token、key、secret、Discord credential、Webhook URL、bot token、service_roleは画面・console・docsへ出さない。詳細は `docs/session-posting-manage-detail-result.md` に記録済み。
+- この工程でCodexはSQL Editor実行、DB構造変更、Edge Function deploy、Discord実送信、`updates.json` 変更、commit / pushを行っていない。

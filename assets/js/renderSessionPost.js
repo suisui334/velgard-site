@@ -1,6 +1,7 @@
 import {
   escapeHtml,
-  getSessionStatusLabel
+  getSessionStatusLabel,
+  getSessionTypeLabel
 } from "./sessionDisplay.js?v=20260601-session-post";
 import {
   createSupabaseBrowserClient,
@@ -19,16 +20,30 @@ const MANAGE_SESSION_SELECT = [
   "start_time",
   "end_time",
   "end_at",
+  "application_deadline",
+  "session_type",
+  "player_min",
+  "player_max",
+  "summary",
   "visibility",
   "status",
   "discord_sync_status",
-  "created_at"
+  "created_at",
+  "updated_at"
 ].join(",");
 const VISIBILITY_LABELS = {
   hidden: "非公開",
   private: "限定",
   public: "公開"
 };
+const DISCORD_SYNC_STATUS_LABELS = {
+  not_requested: "未要求",
+  skipped: "同期対象外",
+  pending: "同期待ち",
+  posted: "同期済み",
+  failed: "同期失敗"
+};
+const EDIT_STATUS_MESSAGE = "編集保存は次工程で実装予定です。新規作成する場合は「新規依頼書を書く」を押してください。";
 
 function renderShell(initialStartAt = "") {
   return `
@@ -48,8 +63,11 @@ function renderShell(initialStartAt = "") {
       </article>
       <article class="article-box session-post-form-panel" data-session-post-form-panel hidden>
         <div class="session-post-form-head">
-          <h2>依頼書</h2>
-          <p>初期値は非公開の下書きです。</p>
+          <div class="session-post-mode-row">
+            <h2 data-session-post-mode-title>依頼書</h2>
+            <button class="button small" type="button" data-session-post-new hidden>新規依頼書を書く</button>
+          </div>
+          <p data-session-post-mode-note>初期値は非公開の下書きです。</p>
         </div>
         <form class="session-post-form" data-session-post-form>
           <div class="session-post-grid">
@@ -70,6 +88,18 @@ function renderShell(initialStartAt = "") {
               ["private", "限定"],
               ["public", "公開"]
             ], "hidden")}
+          <aside class="session-post-manage-panel" id="my-sessions" data-session-post-manage-panel hidden>
+            <div class="session-post-form-head">
+              <h2>自分の依頼書</h2>
+              <p class="session-post-state" data-session-post-manage-state aria-live="polite">読み込み中</p>
+            </div>
+            <div class="session-post-manage-layout">
+              <div class="session-post-manage-list" data-session-post-manage-list></div>
+              <div class="session-post-manage-detail" data-session-post-manage-detail>
+                <p class="session-post-state">タイトルを選ぶとフォームに反映します。</p>
+              </div>
+            </div>
+          </aside>
             ${renderSelectField("募集状態", "p_status", [
               ["draft", "下書き"],
               ["tentative", "仮予定"],
@@ -90,13 +120,6 @@ function renderShell(initialStartAt = "") {
       <article class="article-box session-post-result-panel" data-session-post-result-panel hidden>
         <h2>作成結果</h2>
         <dl class="session-post-result-list" data-session-post-result></dl>
-      </article>
-      <article class="article-box session-post-manage-panel" id="my-sessions" data-session-post-manage-panel hidden>
-        <div class="session-post-form-head">
-          <h2>自分の依頼書</h2>
-          <p class="session-post-state" data-session-post-manage-state aria-live="polite">読み込み中</p>
-        </div>
-        <div class="session-post-manage-list" data-session-post-manage-list></div>
       </article>
     </section>
   `;
@@ -196,6 +219,11 @@ function formatJapanDateTime(value) {
   return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`;
 }
 
+function toDateTimeLocalInput(value) {
+  const formatted = formatJapanDateTime(value);
+  return formatted ? formatted.replace(" ", "T") : "";
+}
+
 function toDeadlineValue(value) {
   const text = String(value ?? "").trim();
   return text ? text.replace("T", " ") : null;
@@ -288,11 +316,35 @@ function renderResult(target, result) {
   `;
 }
 
+function formatPlayerCountLabel(playerMin, playerMax) {
+  const min = Number.isFinite(playerMin) ? playerMin : null;
+  const max = Number.isFinite(playerMax) ? playerMax : null;
+  if (min !== null && max !== null) return `${min}〜${max}名`;
+  if (max !== null) return `最大${max}名`;
+  if (min !== null) return `最低${min}名`;
+  return "未設定";
+}
+
+function toNumberOrNull(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return null;
+  const number = Number(text);
+  return Number.isFinite(number) ? number : null;
+}
+
 function normalizeManagedSession(row) {
   const date = String(row?.date ?? "").trim();
   const startTime = normalizeTime(row?.start_time);
   const endTime = normalizeTime(row?.end_time);
   const endAt = formatJapanDateTime(row?.end_at);
+  const applicationDeadline = formatJapanDateTime(row?.application_deadline);
+  const playerMin = toNumberOrNull(row?.player_min);
+  const playerMax = toNumberOrNull(row?.player_max);
+  const visibility = String(row?.visibility ?? "").trim();
+  const status = String(row?.status ?? "").trim();
+  const sessionType = String(row?.session_type ?? "").trim();
+  const startLabel = date && startTime ? `${date} ${startTime}` : date || "未定";
+  const endLabel = endAt || (endTime && date ? `${date} ${endTime}` : endTime || "未定");
   return {
     id: String(row?.id ?? "").trim(),
     title: String(row?.title ?? "").trim() || "無題の依頼書",
@@ -300,62 +352,195 @@ function normalizeManagedSession(row) {
     startTime,
     endTime,
     endAt,
-    endLabel: endAt || (endTime && date ? `${date} ${endTime}` : endTime || "未定"),
-    visibility: String(row?.visibility ?? "").trim(),
-    status: String(row?.status ?? "").trim(),
-    discordSyncStatus: String(row?.discord_sync_status ?? "").trim() || "未設定",
-    createdAt: formatJapanDateTime(row?.created_at) || "未定"
+    startLabel,
+    endLabel,
+    scheduleLabel: `${startLabel} - ${endLabel}`,
+    applicationDeadline: applicationDeadline || "未設定",
+    sessionType,
+    sessionTypeLabel: getSessionTypeLabel(sessionType),
+    playerMin,
+    playerMax,
+    playerCountLabel: formatPlayerCountLabel(playerMin, playerMax),
+    summary: String(row?.summary ?? "").trim(),
+    visibility,
+    visibilityLabel: VISIBILITY_LABELS[visibility] || "未設定",
+    status,
+    statusLabel: getSessionStatusLabel(status),
+    discordSyncStatus: String(row?.discord_sync_status ?? "").trim(),
+    discordSyncStatusLabel: DISCORD_SYNC_STATUS_LABELS[String(row?.discord_sync_status ?? "").trim()] || "未設定",
+    createdAt: formatJapanDateTime(row?.created_at) || "未定",
+    updatedAt: formatJapanDateTime(row?.updated_at) || "未定",
+    startInputValue: date && startTime ? `${date}T${startTime}` : "",
+    endInputValue: toDateTimeLocalInput(row?.end_at) || (date && endTime ? `${date}T${endTime}` : ""),
+    applicationDeadlineInputValue: toDateTimeLocalInput(row?.application_deadline)
   };
 }
 
-function managedSessionDetailHref(session) {
-  const id = String(session?.id || "").trim();
-  return id ? `session-post.html?id=${encodeURIComponent(id)}#my-sessions` : "session-post.html#my-sessions";
+function renderManagedSessionBadge(label, modifier) {
+  return `<span class="session-post-managed-badge ${escapeHtml(modifier)}">${escapeHtml(label)}</span>`;
 }
 
-function renderManagedSession(session, selectedSessionId) {
-  const selectedClass = selectedSessionId && selectedSessionId === session.id ? " is-selected" : "";
+function renderManagedSessionRow(session, index, selectedIndex) {
+  const selectedClass = selectedIndex === index ? " is-selected" : "";
   return `
-    <article class="session-post-managed-item${selectedClass}">
-      <div class="session-post-managed-head">
-        <h3>${escapeHtml(session.title)}</h3>
-        <a class="button small" href="${escapeHtml(managedSessionDetailHref(session))}">詳細を見る</a>
-      </div>
-      <dl class="session-post-managed-meta">
-        <div>
-          <dt>開催日時</dt>
-          <dd>${escapeHtml(session.date && session.startTime ? `${session.date} ${session.startTime}` : session.date || "未定")}</dd>
-        </div>
-        <div>
-          <dt>終了日時</dt>
-          <dd>${escapeHtml(session.endLabel)}</dd>
-        </div>
-        <div>
-          <dt>公開状態</dt>
-          <dd>${escapeHtml(VISIBILITY_LABELS[session.visibility] || "未設定")}</dd>
-        </div>
-        <div>
-          <dt>募集状態</dt>
-          <dd>${escapeHtml(getSessionStatusLabel(session.status))}</dd>
-        </div>
-        <div>
-          <dt>Discord同期状態</dt>
-          <dd>${escapeHtml(session.discordSyncStatus)}</dd>
-        </div>
-        <div>
-          <dt>作成日時</dt>
-          <dd>${escapeHtml(session.createdAt)}</dd>
-        </div>
-      </dl>
-    </article>
+    <button class="session-post-managed-row${selectedClass}" type="button" data-managed-session-index="${Number(index)}" aria-pressed="${selectedIndex === index ? "true" : "false"}">
+      <span class="session-post-managed-row-badges">
+        ${renderManagedSessionBadge(session.statusLabel, "is-status")}
+        ${renderManagedSessionBadge(session.visibilityLabel, "is-visibility")}
+      </span>
+      <span class="session-post-managed-row-title">${escapeHtml(session.title)}</span>
+      <span class="session-post-managed-row-date">${escapeHtml(session.scheduleLabel)}</span>
+    </button>
   `;
 }
 
+function renderManagedSessionDetailRow(label, value, options = {}) {
+  const text = String(value ?? "").trim() || "未設定";
+  return `
+    <div${options.wide ? ` class="session-post-managed-detail-row--wide"` : ""}>
+      <dt>${escapeHtml(label)}</dt>
+      <dd>${escapeHtml(text)}</dd>
+    </div>
+  `;
+}
+
+function renderManagedSessionDetail(session) {
+  if (!session) {
+    return `<p class="session-post-state">タイトルを選ぶとフォームに反映します。</p>`;
+  }
+
+  return `
+    <dl class="session-post-managed-detail-list">
+        ${renderManagedSessionDetailRow("公開状態", session.visibilityLabel)}
+        ${renderManagedSessionDetailRow("募集状態", session.statusLabel)}
+        ${renderManagedSessionDetailRow("Discord同期状態", session.discordSyncStatusLabel)}
+        ${renderManagedSessionDetailRow("作成日時", session.createdAt)}
+        ${renderManagedSessionDetailRow("更新日時", session.updatedAt)}
+    </dl>
+  `;
+}
+
+function getFormControl(form, name) {
+  return form?.elements?.namedItem(name) || null;
+}
+
+function setFormValue(form, name, value) {
+  const control = getFormControl(form, name);
+  if (!control || !("value" in control)) return;
+  control.value = String(value ?? "");
+}
+
+function removeTemporaryOptions(select) {
+  if (!select?.options) return;
+  Array.from(select.options).forEach((option) => {
+    if (option.dataset.temporary === "true") option.remove();
+  });
+}
+
+function setSelectValue(form, name, value, fallbackValue, labelResolver = null) {
+  const select = getFormControl(form, name);
+  if (!select || !select.options) return;
+  const text = String(value ?? "").trim();
+  removeTemporaryOptions(select);
+  if (text && !Array.from(select.options).some((option) => option.value === text)) {
+    const option = document.createElement("option");
+    option.value = text;
+    option.textContent = typeof labelResolver === "function" ? labelResolver(text) : text;
+    option.dataset.temporary = "true";
+    select.append(option);
+  }
+  select.value = text || fallbackValue;
+}
+
+function fillFormFromManagedSession(form, session) {
+  setFormValue(form, "p_title", session.title);
+  setFormValue(form, "p_start_at", session.startInputValue);
+  setFormValue(form, "p_end_at", session.endInputValue);
+  setFormValue(form, "p_application_deadline", session.applicationDeadlineInputValue);
+  setFormValue(form, "p_player_min", Number.isFinite(session.playerMin) ? String(session.playerMin) : "");
+  setFormValue(form, "p_player_max", Number.isFinite(session.playerMax) ? String(session.playerMax) : "");
+  setFormValue(form, "p_summary", session.summary);
+  setSelectValue(form, "p_session_type", session.sessionType, "one-shot", getSessionTypeLabel);
+  setSelectValue(form, "p_visibility", session.visibility, "hidden", (value) => VISIBILITY_LABELS[value] || value);
+  setSelectValue(form, "p_status", session.status, "draft", getSessionStatusLabel);
+  const publicConfirm = getFormControl(form, "public_confirm");
+  if (publicConfirm && "checked" in publicConfirm) publicConfirm.checked = false;
+}
+
+function resetFormForNewSession(form) {
+  form.reset();
+  ["p_session_type", "p_visibility", "p_status"].forEach((name) => removeTemporaryOptions(getFormControl(form, name)));
+  setFormValue(form, "p_title", "");
+  setFormValue(form, "p_start_at", "");
+  setFormValue(form, "p_end_at", "");
+  setFormValue(form, "p_application_deadline", "");
+  setFormValue(form, "p_player_min", "");
+  setFormValue(form, "p_player_max", "");
+  setFormValue(form, "p_summary", "");
+  setSelectValue(form, "p_session_type", "one-shot", "one-shot", getSessionTypeLabel);
+  setSelectValue(form, "p_visibility", "hidden", "hidden", (value) => VISIBILITY_LABELS[value] || value);
+  setSelectValue(form, "p_status", "draft", "draft", getSessionStatusLabel);
+  const publicConfirm = getFormControl(form, "public_confirm");
+  if (publicConfirm && "checked" in publicConfirm) publicConfirm.checked = false;
+}
+
+function replaceSelectedSessionId(sessionId = "") {
+  const url = new URL(window.location.href);
+  const id = String(sessionId || "").trim();
+  if (id) {
+    url.searchParams.set("id", id);
+  } else {
+    url.searchParams.delete("id");
+  }
+  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+}
+
+function enterEditMode(elements, session) {
+  elements.currentSession = session;
+  fillFormFromManagedSession(elements.form, session);
+  elements.formPanel.classList.add("is-editing");
+  elements.form.classList.add("is-editing");
+  elements.modeTitle.textContent = `編集中: ${session.title}`;
+  elements.modeNote.textContent = "下書き確認 / 編集。保存更新は次工程で実装予定です。";
+  elements.newButton.hidden = false;
+  elements.submit.disabled = true;
+  elements.submit.textContent = "編集保存は次工程";
+  elements.resultPanel.hidden = true;
+  setState(elements.formState, EDIT_STATUS_MESSAGE);
+  replaceSelectedSessionId(session.id);
+}
+
+function enterNewMode(elements, options = {}) {
+  elements.currentSession = null;
+  if (options.clearForm) resetFormForNewSession(elements.form);
+  elements.formPanel.classList.remove("is-editing");
+  elements.form.classList.remove("is-editing");
+  elements.modeTitle.textContent = "依頼書";
+  elements.modeNote.textContent = "初期値は非公開の下書きです。";
+  elements.newButton.hidden = true;
+  elements.submit.disabled = false;
+  elements.submit.textContent = "作成する";
+  if (options.clearResult) elements.resultPanel.hidden = true;
+  if (options.clearForm) setState(elements.formState, "");
+  replaceSelectedSessionId("");
+}
+
+function selectManagedSession(elements, sessions, selectedIndex, options = {}) {
+  const { list, detail } = elements;
+  list.innerHTML = sessions.map((session, index) => renderManagedSessionRow(session, index, selectedIndex)).join("");
+  const session = sessions[selectedIndex] || null;
+  detail.innerHTML = renderManagedSessionDetail(session);
+  if (options.applyToForm && session) {
+    enterEditMode(elements, session);
+  }
+}
+
 async function loadManagedSessions(client, elements) {
-  const { panel, list, state } = elements;
+  const { panel, list, detail, state } = elements;
   panel.hidden = false;
   setState(state, "読み込み中");
   list.innerHTML = "";
+  detail.innerHTML = `<p class="session-post-state">タイトルを選ぶとフォームに反映します。</p>`;
 
   const { data, error } = await client
     .from("sessions")
@@ -371,12 +556,28 @@ async function loadManagedSessions(client, elements) {
   const sessions = Array.isArray(data) ? data.map(normalizeManagedSession) : [];
   if (!sessions.length) {
     setState(state, "自分の依頼書はまだありません。");
+    detail.innerHTML = "";
     return;
   }
 
   setState(state, `${sessions.length}件`);
   const selectedSessionId = readSelectedSessionId();
-  list.innerHTML = sessions.map((session) => renderManagedSession(session, selectedSessionId)).join("");
+  const selectedIndex = sessions.findIndex((session) => selectedSessionId && session.id === selectedSessionId);
+  if (selectedSessionId && selectedIndex < 0) {
+    replaceSelectedSessionId("");
+  }
+  selectManagedSession(elements, sessions, selectedIndex, { applyToForm: selectedIndex >= 0 });
+  list.onclick = (event) => {
+    const button = event.target.closest("[data-managed-session-index]");
+    if (!button) return;
+    const index = Number(button.getAttribute("data-managed-session-index"));
+    if (!Number.isInteger(index) || !sessions[index]) return;
+    selectManagedSession(elements, sessions, index, { applyToForm: true });
+  };
+  elements.newButton.onclick = () => {
+    selectManagedSession(elements, sessions, -1);
+    enterNewMode(elements, { clearForm: true, clearResult: true });
+  };
 }
 
 async function initializeForm(root, client) {
@@ -387,8 +588,18 @@ async function initializeForm(root, client) {
   const resultPanel = root.querySelector("[data-session-post-result-panel]");
   const resultList = root.querySelector("[data-session-post-result]");
   const manageElements = {
+    currentSession: null,
+    formPanel,
+    form,
+    submit,
+    formState: state,
+    resultPanel,
+    modeTitle: root.querySelector("[data-session-post-mode-title]"),
+    modeNote: root.querySelector("[data-session-post-mode-note]"),
+    newButton: root.querySelector("[data-session-post-new]"),
     panel: root.querySelector("[data-session-post-manage-panel]"),
     list: root.querySelector("[data-session-post-manage-list]"),
+    detail: root.querySelector("[data-session-post-manage-detail]"),
     state: root.querySelector("[data-session-post-manage-state]")
   };
 
@@ -396,6 +607,10 @@ async function initializeForm(root, client) {
   await loadManagedSessions(client, manageElements);
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (manageElements.currentSession) {
+      setState(state, EDIT_STATUS_MESSAGE);
+      return;
+    }
     resultPanel.hidden = true;
     setState(state, "送信しています。");
     submit.disabled = true;

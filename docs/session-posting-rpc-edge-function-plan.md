@@ -302,3 +302,18 @@ calendarの日付セルにある `＋依頼書` 導線は維持し、`session-po
 `詳細を見る` は `session-post.html?id=SESSION_ID#my-sessions` へ向ける。
 今回は一覧表示のみで、下書き詳細表示、編集、削除、公開切替は次工程。
 Discord実送信、Edge Function deploy、public/recruiting投稿は実施しない。
+
+## 20. M-14D-7 manage detail UI
+
+`session-post.html` の `自分の依頼書` 一覧を、フォーム下部の長いカード列や右外側の独立パネルではなく、フォーム内の `公開状態` 欄の直下に収まるコンパクトな管理ボックスへ変更した。
+一覧には募集状態バッジ、公開状態バッジ、タイトル、開催日時から終了日時だけを表示する。
+
+選択した依頼書は同ページのメインフォームへ値を反映し、`編集中: 依頼書タイトル` の編集モードへ切り替える。
+編集モード中は作成ボタンをdisabledにし、Enter submitでも `create_session_post(...)` を呼ばない。
+`新規依頼書を書く` ボタンで選択解除、フォーム初期化、URLの `id` 除去を行い、新規作成モードへ戻れる。
+フォーム内管理ボックスの詳細表示は、公開状態、募集状態、Discord同期状態、作成日時、更新日時に限定する。
+
+保存更新・公開切替・削除・募集終了は未実装。
+
+次工程候補は `update_session_post` RPC草案、下書き編集保存、公開切替。
+この工程ではSQL Editor実行、DB構造変更、Edge Function deploy、Discord実送信、credential類の実値記録、`updates.json` 変更、commit / pushは行っていない。
