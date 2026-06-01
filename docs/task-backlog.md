@@ -640,3 +640,10 @@
 - `update_session_post` は未存在。`create_session_post` は1本のみ存在し、`p_end_at` 対応済み、`security_definer = true`。`has_role(text)` / `is_admin()` / `is_session_gm(text)` は存在し、戻り値boolean、`security_definer = true`、stable。確認範囲ではauthenticatedにEXECUTEがあり、anon grantは出ていない。
 - SQL草案は `p_session_id text`、既存許可値、`security definer`、authenticated EXECUTE / anon不可の方針でpreflight結果と矛盾しない。DB/RPC草案では米国綴りの `canceled` に統一し、英国綴りは使わない。
 - M-14D-8dではSQL Editor追加実行、DB構造変更、RPC作成/置換、Discord実送信、Edge Function deploy、フロントUI接続、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+
+## M-14D-8e update_session_post APPLY sectionレビュー
+- `docs/supabase/sql/017_update_session_post_rpc_draft.sql` の `SECTION 2: APPLY` をSQL Editor実行前に最終レビューした。RPC名、`p_session_id text`、`p_player_min` / `p_player_max`、戻り値限定、`security definer`、`set search_path = ''` はpreflight結果と整合する。
+- GM/admin制御は、未ログイン拒否、対象session未存在拒否、admin許可、対象GM許可、通常PL/他GM拒否の方針で確認した。入力値は既存constraint許可値に合わせ、`status` は `canceled` に統一している。
+- Discord同期メタデータは実送信せず、許可値内の `pending` / `skipped` と `create` / `update` / `delete` / `close` で後続処理向けに更新する方針を確認した。
+- 権限草案は `revoke execute ... from public`、`revoke execute ... from anon`、`grant execute ... to authenticated` を明示する形へ補強した。危険語チェックのノイズを減らすため、SQL草案内のcredential注意コメントを中立表現へ修正した。
+- この工程ではSQL Editor実行、DB構造変更、RPC作成/置換、CREATE FUNCTION実行、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、フロントUI接続、`updates.json` 変更、credential類の実値出力、commit / pushを行っていない。

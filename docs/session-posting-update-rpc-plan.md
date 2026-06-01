@@ -281,6 +281,23 @@ preflight結果:
 
 M-14D-8dではSQL Editor追加実行、DB構造変更、RPC作成/置換、Discord実送信、Edge Function deploy、secret類の出力は行っていない。
 
+## M-14D-8e apply section review
+
+`docs/supabase/sql/017_update_session_post_rpc_draft.sql` の `SECTION 2: APPLY` をSQL Editor実行前レビューとして点検した。
+この工程ではSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE実行、Discord実送信、Edge Function deployは行っていない。
+
+レビュー結果:
+
+- RPC名は `public.update_session_post`、`p_session_id text`、人数引数は `p_player_min` / `p_player_max` で、preflight結果の `public.sessions.id = text` と既存 `create_session_post` 方針に合っている。
+- 戻り値は `session_id` / `discord_sync_status` / `discord_last_action` / `updated_at` に限定し、内部user情報やcredential類を返さない。
+- `security definer` と `set search_path = ''` を維持し、未ログイン拒否、対象session未存在拒否、admin許可、対象GM許可、通常PL/他GM拒否の方針を確認した。
+- `session_type` / `visibility` / `status` はpreflightで確認した許可値と一致し、`canceled` は米国綴りに統一している。
+- `public + draft`、`player_min > player_max`、`end_at <= start_at`、同日終了時刻逆転、長すぎるsummaryを拒否する方針を確認した。
+- Discord同期メタデータは許可値内の `pending` / `skipped` と `create` / `update` / `delete` / `close` に整理され、実送信は行わない。
+- `updated_at`、`discord_sync_status`、`discord_last_action`、`discord_sync_requested_at`、`discord_sync_error` を更新対象として確認した。
+- 権限草案は `revoke execute ... from public`、`revoke execute ... from anon`、`grant execute ... to authenticated` を明示する形へ補強した。
+- 危険語チェックで注意コメント由来のノイズが出にくいよう、SQL草案内のcredential注意コメントを中立表現へ寄せた。
+
 ## 停止条件
 
 - `public.sessions.id` がtextでない。

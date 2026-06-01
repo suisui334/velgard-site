@@ -4,7 +4,7 @@
 -- DRAFT ONLY:
 -- - SQL Editorではまだ実行しない。
 -- - DB構造変更、RPC作成/置換、Edge Function deploy、Discord実送信は行わない。
--- - Discord credential、Webhook URL、bot token、service_role key、secret類は書かない。
+-- - External credential values or connection values must not be written here.
 -- - RPC戻り値に email、user_id全文、gm_user_id、Discord credential類を含めない。
 --
 -- 設計上の重要差分:
@@ -460,7 +460,7 @@ comment on function public.update_session_post(
 ) is 'GM/admin用セッション依頼書更新RPC草案。p_session_idはpublic.sessions.idに合わせてtext。戻り値に内部user id、email、Discord credential類を含めない。';
 
 -- Functions are not protected by RLS. Keep execution grants explicit.
-revoke all on function public.update_session_post(
+revoke execute on function public.update_session_post(
   text,
   text,
   text,
@@ -475,6 +475,22 @@ revoke all on function public.update_session_post(
   text,
   text
 ) from public;
+
+revoke execute on function public.update_session_post(
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  integer,
+  integer,
+  text,
+  text,
+  text,
+  text
+) from anon;
 
 grant execute on function public.update_session_post(
   text,
@@ -543,7 +559,7 @@ order by grantee, privilege_type;
 -- - invalid visibility拒否。
 -- - min > max拒否。
 -- - end_at <= start_at拒否。
--- - raw id / email / token / key / secret類が戻り値やエラー整形に出ない。
+-- - raw id / email / internal credential values do not appear in results or errors.
 -- - hidden/draft更新後もpublic calendarに出ない。
 -- - public/recruiting更新時にdiscord_sync_statusがpending化し、message_id有無でcreate/updateが分かれる。
 
@@ -553,9 +569,12 @@ order by grantee, privilege_type;
 
 -- rollbackが必要な場合の草案。適用前に必ず実データ影響を確認すること。
 --
--- revoke all on function public.update_session_post(
+-- revoke execute on function public.update_session_post(
 --   text, text, text, text, text, text, text, integer, integer, text, text, text, text
 -- ) from public;
+-- revoke execute on function public.update_session_post(
+--   text, text, text, text, text, text, text, integer, integer, text, text, text, text
+-- ) from anon;
 -- drop function if exists public.update_session_post(
 --   text, text, text, text, text, text, text, integer, integer, text, text, text, text
 -- );
