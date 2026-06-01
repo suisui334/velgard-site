@@ -528,5 +528,11 @@
 ## M-14A セッション予定投稿＋Discord同期 全体設計
 - GM/adminがサイト上からセッション予定を投稿し、Discord専用投稿先へサーバー側で同期するための最小設計を `docs/session-posting-discord-sync-plan.md` に分離済み。
 - 投稿セッションの正本は、既存の参加申請・GM判定・GM連絡先RPCとの接続を優先して、既存 `public.sessions` を拡張して使う案を第一候補にした。M-13A/M-13Bで追加した `sessionType` / `applicationDeadline` に対応するDB列追加は将来SQL草案で扱う。
-- Discord Webhook URL / bot tokenはフロントやdocsへ置かず、Supabase Edge Function側のsecretとして管理する方針。Discord投稿先がチャンネル、フォーラム、既存スレッド、イベントのどれに近いかは実装前のユーザー確認事項として残す。
+- Discord投稿credentialはフロントやdocsへ置かず、Supabase Edge Function側だけで管理する方針。Discord投稿先がチャンネル、フォーラム、既存スレッド、イベントのどれに近いかは実装前のユーザー確認事項として残す。
 - この工程ではフロント実装、SQL Editor実行、DB変更、Edge Function作成、Discord実投稿、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14B 依頼書投稿DB/RPC + Discord同期Edge Function草案
+- `docs/supabase/sql/015_session_posting_rpc_draft.sql` に、既存 `public.sessions` の拡張、`create_session_post` RPC、grant / revoke、preflight、post-apply、rollback草案を追加済み。`session_type`、`application_deadline`、Discord同期状態、`discord_message_id` / `discord_channel_id` / `discord_thread_id` / `discord_last_action` などのメタデータ案を含めた。
+- `docs/supabase/functions/session-post-discord-sync-draft.md` に、Edge Functionが `action = create / update / delete / close / resync` を扱う草案を追加済み。Discord同期は新規投稿だけでなく、編集、募集終了、削除/非公開、失敗後再同期までを対象にする。
+- `docs/session-posting-rpc-edge-function-plan.md` に、投稿RPC、Edge Function、Discord側の編集/通知/削除方針、`data/sessions.json` とSupabase `sessions` の併用・マージ方針、テンプレート保存の後続化を整理済み。
+- この工程ではSQL Editor実行、DB変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。Discord投稿credential値は記録していない。

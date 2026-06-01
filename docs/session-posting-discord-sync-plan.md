@@ -6,7 +6,7 @@ GM/adminがサイト上からセッション予定、つまり依頼書を投稿
 
 投稿された依頼書はサイト上のセッション予定として保存し、Discordの専用投稿先にもサーバー側から同期する。GitHub Pages上のフロントだけでは `data/sessions.json` を更新できないため、投稿セッションの正本はSupabaseへ寄せる。
 
-この工程では調査と最小設計のみを行う。フロント実装、SQL Editor実行、DB変更、Discord送信、secret類の記録は行わない。
+この工程では調査と最小設計のみを行う。フロント実装、SQL Editor実行、DB変更、Discord送信、credential値の記録は行わない。
 
 ## 2. 現在のセッション表示構造
 
@@ -73,9 +73,13 @@ GM/adminがサイト上からセッション予定、つまり依頼書を投稿
 | `application_deadline timestamptz` | `applicationDeadline` | Japan timeで表示する。DBには時区付きで保存する案 |
 | `request_body text` または既存 `detail` | `detail` / `body` | 依頼書本文。既存 `detail` を使うなら列追加不要 |
 | `discord_sync_status text` | 画面には原則出さない | `not_required` / `pending` / `posted` / `failed` など |
+| `discord_last_action text` | 画面には原則出さない | `create` / `update` / `delete` / `close` / `resync` |
+| `discord_message_id text` | 画面には原則出さない | 既存投稿の編集・削除・再同期に使う |
+| `discord_channel_id text` | 画面には原則出さない | 投稿先識別子 |
+| `discord_thread_id text` | 画面には原則出さない | フォーラム/スレッド運用時の識別子 |
 | `discord_synced_at timestamptz` | 画面には原則出さない | 同期完了日時 |
 
-Discord投稿メタデータは、`sessions` に直接持たせるより、将来の再送・編集・削除同期に備えて別テーブル案を優先する。
+Discord投稿メタデータは、初期は `sessions` に直列で持てる。ただし、将来の再送、編集、削除/非公開化、複数投稿先、同期履歴監査まで考えるなら別テーブル案を優先する。
 
 別テーブル案:
 
@@ -97,7 +101,7 @@ session_discord_posts
 - `created_at`
 - `updated_at`
 
-このテーブルにもWebhook URLやbot tokenは保存しない。保存するのは投稿結果の識別子と状態だけ。
+このテーブルにもDiscord投稿credentialは保存しない。保存するのは投稿結果の識別子と状態だけ。
 
 ## 5. 投稿フィールド案
 
@@ -134,7 +138,7 @@ session_discord_posts
 
 ## 6. Discord同期案
 
-Webhook URLやbot tokenはフロントへ置かない。GitHub Pagesに置いた値は公開値になるため、Discord投稿権限を第三者に渡すことになる。
+Discord投稿credentialはフロントへ置かない。GitHub Pagesに置いた値は公開値になるため、Discord投稿権限を第三者に渡すことになる。
 
 推奨構成:
 
@@ -147,16 +151,28 @@ Edge FunctionがログインユーザーとGM/admin権限を確認
 ↓
 DBへ public.sessions 行を保存
 ↓
-Edge Functionがサーバー側secretでDiscordへ投稿
+Edge Functionがサーバー側credentialでDiscordへ投稿
 ↓
 投稿結果を session_discord_posts 等へ記録
 ```
 
 Edge Functionを推奨する理由:
 
-- Discord Webhook URL / bot tokenをSupabase側secretとして閉じ込められる。
+- Discord投稿credentialをSupabase側の管理領域に閉じ込められる。
 - 投稿権限チェック、DB保存、Discord送信、失敗時の記録をサーバー側で一貫して扱える。
 - フロントは公開可能なSupabase anon keyだけでよく、Discord権限を持たない。
+
+同期対象は新規作成だけに限定しない。依頼書のライフサイクルに合わせて以下を扱う。
+
+| 操作 | DB側 | Discord側 |
+| --- | --- | --- |
+| 作成 | `sessions` 新規保存 | 専用投稿先へ新規投稿 |
+| 編集 | `sessions` 既存行更新 | 既存投稿を編集、または更新通知を追記 |
+| 削除/非公開 | 物理削除より `visibility = hidden` 等を優先 | 投稿削除、または「削除済み」表示へ編集 |
+| 募集終了 | `status = closed` 等へ更新 | 「募集終了」表示へ編集、または終了通知を追記 |
+| 再同期 | 既存行を再取得 | 失敗後に再送/再編集 |
+
+Edge Functionは `action = create / update / delete / close / resync` を受け取る1 endpoint案を第一候補にする。関数を分ける場合も、同じ権限確認・Discord本文生成・失敗記録ロジックを共有する。
 
 DB保存とDiscord投稿の扱い:
 
@@ -166,6 +182,32 @@ DB保存とDiscord投稿の扱い:
 - Discord投稿成功時は `posted` とし、message id / post url等を保存する。
 
 DB保存とDiscord投稿を完全な1トランザクションにはできない。外部API呼び出しを含むため、失敗記録と再試行設計を前提にする。
+
+## 6.1 Discord側の反映方式
+
+A. 既存メッセージを編集する:
+
+- 利点: 最新の依頼書情報を1投稿に集約できる。
+- 懸念: 変更履歴がDiscord上で追いにくい場合がある。
+- 初期推奨: 編集時の第一候補。
+
+B. 変更通知を追記投稿する:
+
+- 利点: 変更履歴が残る。
+- 懸念: 投稿が増えて流れやすい。
+- 初期推奨: 重要変更時、または既存投稿編集不可の場合の代替。
+
+C. 削除時はDiscordメッセージも削除する:
+
+- 利点: Discord側から依頼書を消せる。
+- 懸念: 監査性が落ち、参照文脈が消える。
+- 初期推奨: 原則非推奨。運用希望が明確な場合だけ選択。
+
+D. 削除時は「募集終了 / 削除済み」に編集する:
+
+- 利点: 監査性とリンク文脈を残せる。
+- 懸念: 痕跡は残る。
+- 初期推奨: 削除/非公開/close時の第一候補。
 
 ## 7. Discord投稿先の確認事項
 
@@ -212,10 +254,9 @@ GM: {gmName}
 - `user_id` 全文
 - internal `application_id`
 - internal `comment_id`
-- Discord Webhook URL
-- bot token
-- Supabase service_role key
-- secret類
+- Discord投稿credential
+- サーバー側credential
+- credential値
 - 承認済み参加者のDiscord ID
 
 ## 9. 投稿権限
@@ -255,12 +296,18 @@ GM: {gmName}
 ## 11. 実装段階案
 
 1. M-14B: DB/RPC/Edge Function詳細設計とSQL草案作成。
-2. M-14C: `sessions` 追加列と `session_discord_posts` 草案レビュー。
-3. M-14D: Edge Function草案。secretはSupabase側環境変数で管理する。
+2. M-14C: `sessions` 追加列、Discord同期メタデータ、必要なら `session_discord_posts` 草案レビュー。
+3. M-14D: Edge Function草案。`create` / `update` / `delete` / `close` / `resync` を扱う。
 4. M-14E: GM/admin投稿フォームUI。未ログイン/通常PLには非表示。
 5. M-14F: 投稿後にcalendar/session-detailへSupabase保存セッションを表示する読み取り統合。
-6. M-14G: Discord投稿失敗時の再同期UI。
+6. M-14G: 編集・削除/非公開・募集終了・Discord再同期UI。
 7. M-15系: 依頼書テンプレート保存。
+
+M-14Bで追加した具体草案:
+
+- `docs/session-posting-rpc-edge-function-plan.md`
+- `docs/supabase/sql/015_session_posting_rpc_draft.sql`
+- `docs/supabase/functions/session-post-discord-sync-draft.md`
 
 ## 12. まだやらないこと
 
@@ -268,7 +315,7 @@ GM: {gmName}
 - SQL Editor実行。
 - DB変更。
 - Edge Function作成。
-- Discord Webhook URL / bot token / secret類の記録。
+- Discord投稿credential値の記録。
 - Discord実投稿。
 - `updates.json` 変更。
 - commit / push。
