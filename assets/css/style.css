@@ -2591,24 +2591,103 @@ body[data-page="session-detail"] .session-gm-history-details[open] .session-gm-h
   content: "-";
 }
 
-body[data-page="session-detail"] .session-gm-history-placeholder {
+body[data-page="session-detail"] .session-gm-history-body {
   display: grid;
-  gap: 8px;
+  gap: 12px;
   min-width: 0;
   padding: 0 12px 12px;
 }
 
-body[data-page="session-detail"] .session-gm-history-note {
+body[data-page="session-detail"] .session-gm-history-state {
   margin: 0;
-  padding: 10px 12px;
-  border: 1px solid rgba(185, 154, 82, 0.24);
-  border-radius: 8px;
-  background: rgba(255, 250, 235, 0.58);
-  color: #80682f;
+}
+
+body[data-page="session-detail"] .session-gm-history-group {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-gm-history-group-title {
+  margin: 0;
+  color: var(--soot);
   font-size: 0.82rem;
-  font-weight: 800;
-  line-height: 1.65;
+  font-weight: 900;
+  line-height: 1.45;
   overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-gm-history-list {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+body[data-page="session-detail"] .session-gm-history-item {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(86, 96, 106, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 250, 0.7);
+}
+
+body[data-page="session-detail"] .session-gm-history-item-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-gm-history-name {
+  min-width: 0;
+  color: var(--soot);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-gm-history-status {
+  flex: 0 0 auto;
+}
+
+body[data-page="session-detail"] .session-gm-history-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 7px 12px;
+  min-width: 0;
+  margin: 0;
+}
+
+body[data-page="session-detail"] .session-gm-history-meta div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-gm-history-meta dt,
+body[data-page="session-detail"] .session-gm-history-meta dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-gm-history-meta dt {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+body[data-page="session-detail"] .session-gm-history-meta dd {
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.45;
 }
 
 body[data-page="session-detail"] .session-comment-state {

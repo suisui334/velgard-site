@@ -114,3 +114,7 @@ gmUserId
 次工程で、GM/admin向け折りたたみUIを開いた時に `get_gm_session_application_history(target_session_id text)` を接続し、返却契約7列だけを使って履歴一覧を表示する。
 
 GM承認 / 却下、Discord IDコピー、完全な状態遷移監査ログは別工程で扱う。
+
+## 10. follow-up
+
+2026-06-01のM-11E-6で、上記のGM履歴RPC接続は `docs/supabase-session-detail-application-history-gm-ui-result.md` に分離して実装結果を記録した。

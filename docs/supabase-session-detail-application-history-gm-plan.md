@@ -353,3 +353,23 @@ docs/supabase-session-detail-application-history-gm-ui-placeholder-result.md
 - 通常PL / 未ログイン / ログイン状態不明 / 判定失敗時は表示しない。
 
 この工程では、`get_gm_session_application_history` 呼び出し、実データ表示、GM承認 / 却下、Discord IDコピー、SQL Editor実行、DB変更、`updates.json` 変更、secret類の記録、commit / pushは行っていない。
+
+## 17. M-11E-6 RPC接続実装追記
+
+2026-06-01に、GM/admin向け申請履歴折りたたみUIを `get_gm_session_application_history(target_session_id text)` に接続した。実装結果は次に分離した。
+
+```text
+docs/supabase-session-detail-application-history-gm-ui-result.md
+```
+
+実装したこと:
+
+- 既存の `is_admin()` / `is_session_gm(sessionId)` 判定を維持し、GM/adminだけに申請履歴UIを表示する。
+- 折りたたみを開いた初回だけ `get_gm_session_application_history` を呼び出す。
+- 取得成功後は同じ描画内では再オープンしても再取得しない。
+- loading / empty / error を表示する。
+- `display_name` / `application_status` / `created_at` / `updated_at` / `canceled_at` / `comment_count` / `last_comment_at` だけを画面表示に使う。
+- `pending` / `waitlisted` は `申請中`、`accepted` は `承認済み`、`canceled` は `辞退 / 取消`、`rejected` は `却下` として表示する。
+- email、`user_id`、`application_id`、`comment_id`、Discord ID、token、key、secret類、`gmUserId` は画面やconsoleに出さない。
+
+この工程では、SQL Editor実行、DB変更、GM承認 / 却下、GMコメント編集 / 削除、Discord IDコピー、`close_session` 呼び出し、`updates.json` 変更、secret類の記録、commit / pushは行っていない。

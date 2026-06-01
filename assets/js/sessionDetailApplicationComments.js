@@ -6,6 +6,7 @@ const POST_RPC = "create_application_comment";
 const UPDATE_RPC = "update_application_comment";
 const DELETE_RPC = "delete_application_comment_and_maybe_cancel";
 const WITHDRAW_RPC = "cancel_my_session_application";
+const GM_HISTORY_RPC = "get_gm_session_application_history";
 const ADMIN_CHECK_RPC = "is_admin";
 const SESSION_GM_CHECK_RPC = "is_session_gm";
 const APPLICATION_SELECT_COLUMNS = "session_id,status,created_at,updated_at,canceled_at";
@@ -38,6 +39,24 @@ const APPLICATION_STATUS_MESSAGES = Object.freeze({
   rejected: "このセッションへの申請は現在行えません。",
   canceled: "このセッションへの参加申請は取り下げ済みです。再申請する場合は、参加希望コメントを投稿してください。"
 });
+
+const GM_HISTORY_STATUS_LABELS = Object.freeze({
+  pending: "申請中",
+  waitlisted: "申請中",
+  accepted: "承認済み",
+  canceled: "辞退 / 取消",
+  rejected: "却下"
+});
+
+const GM_HISTORY_GROUP_LABELS = Object.freeze({
+  pending: "申請中",
+  accepted: "承認済み",
+  canceled: "辞退 / 取消",
+  rejected: "却下",
+  unknown: "その他"
+});
+
+const GM_HISTORY_GROUP_ORDER = ["pending", "accepted", "canceled", "rejected", "unknown"];
 
 const APPLICATION_WITHDRAW_UI_COPY = Object.freeze({
   pending: {
@@ -170,6 +189,17 @@ function getStatusClass(status) {
   return Object.prototype.hasOwnProperty.call(APPLICATION_STATUS_LABELS, key) ? key : "unknown";
 }
 
+function getGmHistoryGroupKey(status) {
+  const key = String(status || "").trim().toLowerCase();
+  if (key === "pending" || key === "waitlisted") return "pending";
+  return Object.prototype.hasOwnProperty.call(GM_HISTORY_GROUP_LABELS, key) ? key : "unknown";
+}
+
+function getGmHistoryStatusLabel(status) {
+  const key = String(status || "").trim().toLowerCase();
+  return GM_HISTORY_STATUS_LABELS[key] || GM_HISTORY_GROUP_LABELS.unknown;
+}
+
 function formatDateTime(value) {
   const text = String(value || "").trim();
   if (!text) return "";
@@ -263,6 +293,20 @@ async function cancelMySessionApplication(client, sessionId) {
 
   if (error) throw new Error("application-withdraw-failed");
   assertNoSensitiveFields(data);
+}
+
+async function queryGmSessionApplicationHistory(client, sessionId) {
+  const targetSessionId = String(sessionId || "").trim();
+  if (!targetSessionId) throw new Error("gm-history-session-missing");
+
+  const { data, error } = await client.rpc(GM_HISTORY_RPC, {
+    target_session_id: targetSessionId
+  });
+
+  if (error) throw new Error("gm-history-rpc-failed");
+  const rows = Array.isArray(data) ? data : [];
+  assertNoSensitiveFields(rows);
+  return rows;
 }
 
 async function queryBooleanRpc(client, rpcName, params) {
@@ -818,7 +862,129 @@ function renderCounts(target, row) {
   target.append(list);
 }
 
-function renderGmHistoryControl(target, canView) {
+function setGmHistoryState(target, message, modifier = "") {
+  if (!target) return;
+  target.replaceChildren();
+  const paragraph = createStateMessage(message, modifier);
+  paragraph.classList.add("session-gm-history-state");
+  target.append(paragraph);
+}
+
+function getGmHistoryActivityTime(row) {
+  const updatedAt = Date.parse(row?.updatedAt || "");
+  if (Number.isFinite(updatedAt)) return updatedAt;
+  const createdAt = Date.parse(row?.createdAt || "");
+  return Number.isFinite(createdAt) ? createdAt : Number.NEGATIVE_INFINITY;
+}
+
+function normalizeGmHistoryRows(rows) {
+  return rows.map((row) => {
+    const applicationStatus = String(row?.application_status || "").trim().toLowerCase();
+    return {
+      displayName: redactSensitiveText(row?.display_name).trim() || "名前未設定",
+      applicationStatus,
+      groupKey: getGmHistoryGroupKey(applicationStatus),
+      statusLabel: getGmHistoryStatusLabel(applicationStatus),
+      createdAt: String(row?.created_at || "").trim(),
+      updatedAt: String(row?.updated_at || "").trim(),
+      canceledAt: String(row?.canceled_at || "").trim(),
+      commentCount: toCount(row?.comment_count),
+      lastCommentAt: String(row?.last_comment_at || "").trim()
+    };
+  }).sort((a, b) => {
+    const groupDiff = GM_HISTORY_GROUP_ORDER.indexOf(a.groupKey) - GM_HISTORY_GROUP_ORDER.indexOf(b.groupKey);
+    if (groupDiff !== 0) return groupDiff;
+    return getGmHistoryActivityTime(b) - getGmHistoryActivityTime(a);
+  });
+}
+
+function appendGmHistoryMetaRow(target, label, value) {
+  const text = String(value || "").trim();
+  if (!text) return;
+
+  const item = document.createElement("div");
+  const term = document.createElement("dt");
+  const description = document.createElement("dd");
+
+  term.textContent = label;
+  description.textContent = text;
+  item.append(term, description);
+  target.append(item);
+}
+
+function createGmHistoryItem(row) {
+  const item = document.createElement("li");
+  item.className = `session-gm-history-item is-${row.groupKey}`;
+
+  const header = document.createElement("div");
+  header.className = "session-gm-history-item-head";
+
+  const name = document.createElement("strong");
+  name.className = "session-gm-history-name";
+  name.textContent = row.displayName;
+
+  const status = document.createElement("span");
+  status.className = `session-comment-status-badge session-gm-history-status is-${row.groupKey}`;
+  status.textContent = row.statusLabel;
+
+  header.append(name, status);
+
+  const meta = document.createElement("dl");
+  meta.className = "session-gm-history-meta";
+
+  appendGmHistoryMetaRow(meta, "申請", formatDateTime(row.createdAt));
+  appendGmHistoryMetaRow(meta, "更新", formatDateTime(row.updatedAt));
+  appendGmHistoryMetaRow(meta, "辞退 / 取消", formatDateTime(row.canceledAt));
+  appendGmHistoryMetaRow(meta, "有効コメント", `${row.commentCount}件`);
+  appendGmHistoryMetaRow(meta, "最終コメント", formatDateTime(row.lastCommentAt));
+
+  item.append(header, meta);
+  return item;
+}
+
+function renderGmHistoryRows(target, rows) {
+  if (!target) return;
+  const historyRows = normalizeGmHistoryRows(rows);
+  target.replaceChildren();
+
+  if (!historyRows.length) {
+    setGmHistoryState(target, "申請履歴はまだありません。", "is-empty");
+    return;
+  }
+
+  const groupedRows = new Map();
+  for (const row of historyRows) {
+    const group = groupedRows.get(row.groupKey) || [];
+    group.push(row);
+    groupedRows.set(row.groupKey, group);
+  }
+
+  const fragment = document.createDocumentFragment();
+  for (const groupKey of GM_HISTORY_GROUP_ORDER) {
+    const group = groupedRows.get(groupKey);
+    if (!group?.length) continue;
+
+    const section = document.createElement("section");
+    section.className = `session-gm-history-group is-${groupKey}`;
+
+    const title = document.createElement("h4");
+    title.className = "session-gm-history-group-title";
+    title.textContent = GM_HISTORY_GROUP_LABELS[groupKey];
+
+    const list = document.createElement("ul");
+    list.className = "session-gm-history-list";
+    for (const row of group) {
+      list.append(createGmHistoryItem(row));
+    }
+
+    section.append(title, list);
+    fragment.append(section);
+  }
+
+  target.append(fragment);
+}
+
+function renderGmHistoryControl(target, canView, options = {}) {
   if (!target) return;
   target.replaceChildren();
   target.hidden = !canView;
@@ -833,13 +999,28 @@ function renderGmHistoryControl(target, canView) {
   summary.textContent = "GM向け：申請履歴を見る";
 
   const body = document.createElement("div");
-  body.className = "session-gm-history-placeholder";
+  body.className = "session-gm-history-body";
 
-  const note = document.createElement("p");
-  note.className = "session-gm-history-note";
-  note.textContent = "申請履歴の読み込みは次工程で実装予定です。";
+  let hasLoaded = false;
+  let isLoading = false;
 
-  body.append(note);
+  details.addEventListener("toggle", async () => {
+    if (!details.open || hasLoaded || isLoading) return;
+
+    isLoading = true;
+    setGmHistoryState(body, "申請履歴を読み込んでいます。", "is-warn");
+
+    try {
+      const rows = await queryGmSessionApplicationHistory(options.client, options.sessionId);
+      renderGmHistoryRows(body, rows);
+      hasLoaded = true;
+    } catch {
+      setGmHistoryState(body, "申請履歴を取得できませんでした。", "is-error");
+    } finally {
+      isLoading = false;
+    }
+  });
+
   details.append(summary, body);
   target.append(details);
 }
@@ -1302,7 +1483,10 @@ async function refreshPanel(panel, sessionId, options = {}) {
     }
 
     renderAuthNote(authNote, authContext.state);
-    renderGmHistoryControl(gmHistoryTarget, canViewGmHistory);
+    renderGmHistoryControl(gmHistoryTarget, canViewGmHistory, {
+      client,
+      sessionId
+    });
 
     if (commentsResult.status === "fulfilled") {
       renderComments(commentsTarget, commentsResult.value, {
