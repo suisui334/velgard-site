@@ -1,6 +1,12 @@
 -- 016_session_posting_end_at_draft.sql
 -- M-14D-3 依頼書投稿フォーム 日跨ぎ終了日時正式対応 SQL/RPC差分草案
 --
+-- M-14D-4 apply result:
+-- - ユーザーがSupabase SQL Editorでapply sectionを実行し、Success. No rows returnedで通過済み。
+-- - public.sessions.end_at timestamptz が追加済み。
+-- - create_session_post はp_end_at対応版に差し替え済みで、関数は1本だけ。
+-- - 通常運用では同じapply sectionをそのまま再実行しない。
+--
 -- 目的:
 -- - 015_session_posting_rpc_draft.sql は適用済みのため、同じapply sectionは再実行しない。
 -- - 日跨ぎ終了日時を保存できるよう public.sessions.end_at timestamptz を追加する。
@@ -10,7 +16,7 @@
 -- - RPC戻り値は session_id / discord_sync_status / created_at のまま維持する。
 --
 -- 実行前注意:
--- - このファイルは草案。SQL Editorではまだ実行しない。
+-- - このファイルのapply sectionは適用済み。SQL Editorで通常再実行しない。
 -- - 実DB適用前にpreflight結果、既存関数定義、既存grant、PostgREST RPC挙動を確認する。
 -- - p_end_at対応後は、フロント側の日跨ぎ終了日時バリデーションを解除してよい。
 

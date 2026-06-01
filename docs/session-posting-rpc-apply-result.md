@@ -83,3 +83,14 @@ Success. No rows returned
 ## 運用注意
 
 `015_session_posting_rpc_draft.sql` のapply sectionは適用済みのため、通常運用では同じapply sectionをそのまま再実行しない。追加修正が必要な場合は、差分SQLとして別工程でレビューする。
+
+## M-14D-4 016 end_at apply result
+
+ユーザーが `docs/supabase/sql/016_session_posting_end_at_draft.sql` のapply sectionをSupabase SQL Editorで実行し、`Success. No rows returned` で通過済み。
+`public.sessions.end_at timestamptz` が追加され、`create_session_post(...)` は `p_end_at` 対応版に差し替わった。
+旧signatureをdropしてから新signatureを作成したため、`create_session_post` は1本だけ。
+grantは `authenticated EXECUTE` と `postgres EXECUTE` のみで、`anon EXECUTE` はない。
+
+関数定義は `security definer = true`、`volatile`、`search_path` 固定あり、戻り値は `session_id` / `discord_sync_status` / `created_at` のみ。
+`016_session_posting_end_at_draft.sql` も適用済みのため、通常運用では同じapply sectionをそのまま再実行しない。
+詳細は `docs/session-posting-end-at-apply-result.md`。

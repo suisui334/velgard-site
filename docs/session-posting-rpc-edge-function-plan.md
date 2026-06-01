@@ -257,3 +257,17 @@ SQL/RPC適用後、フロントは `終了日時` から `p_end_at` を送信し
 Discord本文生成も `end_at` を優先し、日跨ぎ終了日時を正しく表示する。
 
 この草案作成ではSQL Editor実行、DB変更、Edge Function deploy、Discord実送信、credential類の実値記録、`updates.json` 変更、commit / pushは行っていない。
+
+## 17. M-14D-4 end_at apply result
+
+ユーザーが `docs/supabase/sql/016_session_posting_end_at_draft.sql` のapply sectionをSupabase SQL Editorで実行し、`Success. No rows returned` で通過済み。
+apply前は `public.sessions.end_at` 未作成、`create_session_post` は1本のみ、`p_end_at` 引数なしだった。
+apply後は `public.sessions.end_at timestamptz` が追加され、`create_session_post(...)` は `p_end_at` 対応版へ差し替わった。
+
+旧signatureを明示dropしてから新signatureを作成したため、`create_session_post` は1本だけであることを確認済み。
+grantは `authenticated EXECUTE` と `postgres EXECUTE` のみで、`anon EXECUTE` はない。
+関数定義は `security definer = true`、`volatile`、`search_path` 固定あり、戻り値は `session_id` / `discord_sync_status` / `created_at` のみ。
+
+`016_session_posting_end_at_draft.sql` は適用済みのため、通常運用では同じapply sectionをそのまま再実行しない。
+日跨ぎhidden/draft投稿テスト、フォーム側の日跨ぎ許可切替、Edge Function deploy、Discord実送信はまだ未実施。
+詳細は `docs/session-posting-end-at-apply-result.md` に記録済み。

@@ -48,8 +48,11 @@ public + recruiting / tentative の実投稿は、運用確認後に実施する
 日跨ぎ終了日時の正式対応は、015再実行ではなく差分SQL `docs/supabase/sql/016_session_posting_end_at_draft.sql` で扱う。
 第一候補は `public.sessions.end_at timestamptz` を追加し、`create_session_post(...)` の末尾に `p_end_at text default null` を追加する案。
 
-SQL/RPC適用までは、現在の投稿フォームで日跨ぎ終了日時を投稿前に止める暫定挙動を維持する。
-SQL/RPC適用後は `終了日時` から `p_end_at` を送信し、日跨ぎ投稿を許可する方針。
+M-14D-4で `016_session_posting_end_at_draft.sql` のapply sectionは適用済み。
+`public.sessions.end_at timestamptz` が追加され、`create_session_post(...)` は `p_end_at` 対応版に差し替わった。
+ただし、日跨ぎhidden/draft投稿テストとフォーム側の日跨ぎ許可切替はまだ未実施または未確認。
+フォーム側を切り替えるまでは、現在の投稿フォームで日跨ぎ終了日時を投稿前に止める暫定挙動を維持する。
+切り替え後は `終了日時` から `p_end_at` を送信し、日跨ぎ投稿を許可する方針。
 表示側とDiscord本文は `end_at` / `endAt` があれば終了日時として優先し、なければ従来の `date + end_time` / `endTime` を使う。
 
 ## 未実施・安全確認

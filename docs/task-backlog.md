@@ -570,3 +570,10 @@
 - 正式対応の第一候補として `public.sessions.end_at timestamptz` を追加し、`create_session_post(...)` の末尾に `p_end_at text default null` を追加する差分SQL草案 `docs/supabase/sql/016_session_posting_end_at_draft.sql` を作成した。015は適用済みのため、同じapply sectionを通常運用で再実行しない。
 - SQL/RPC適用後は、フォームの `終了日時` から `p_end_at` を送信し、日跨ぎ終了日時の投稿前ブロックを解除する。表示側は `end_at` / `endAt` を優先し、なければ従来の `date + end_time` / `endTime` にフォールバックする。Discord本文も `end_at` 優先にする。
 - 草案と方針は `docs/session-posting-end-at-plan.md` に分離済み。この工程ではSQL Editor実行、DB変更、Edge Function deploy、Discord実送信、secret類の実値記録、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14D-4 016 end_at SQL適用結果
+- ユーザーがSupabase SQL Editorで `docs/supabase/sql/016_session_posting_end_at_draft.sql` のapply sectionを実行し、`Success. No rows returned` で通過済み。apply前は `sessions.end_at` 未作成、`create_session_post` は1本のみ、`p_end_at` 引数なしだった。
+- apply後は `public.sessions.end_at timestamptz` が追加され、`create_session_post(...)` は `p_end_at` 対応版へ差し替え済み。旧signatureをdropしてから新signatureを作成したため、関数は1本だけであることを確認済み。
+- grantは `authenticated EXECUTE` と `postgres EXECUTE` のみで、`anon EXECUTE` はなし。関数定義は `security definer = true`、`volatile`、`search_path` 固定あり、戻り値は `session_id` / `discord_sync_status` / `created_at` のみ。
+- `016_session_posting_end_at_draft.sql` は適用済みのため、通常運用では同じapply sectionをそのまま再実行しない。日跨ぎhidden/draft投稿テスト、フォーム側の日跨ぎ許可切替、Edge Function deploy、Discord実送信はまだ未実施。詳細は `docs/session-posting-end-at-apply-result.md` に記録済み。
+- このdocs記録工程でCodexはSQL Editor追加実行、DB変更、フロント実装、Edge Function deploy、Discord実送信、secret類の実値記録、`updates.json` 変更、commit / pushを行っていない。
