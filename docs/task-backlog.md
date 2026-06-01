@@ -592,9 +592,22 @@
 - M-14D-6bでcalendar側の常設 `自分の依頼書` 導線は削除し、依頼書一覧は `session-post.html` 内へ集約した。calendarの日付セルにある `＋依頼書` 導線は維持し、`session-post.html?date=YYYY-MM-DD` へ遷移できる。`詳細を見る` は `session-post.html?id=SESSION_ID#my-sessions` へ向けるが、下書き詳細表示、編集、削除、公開切替は次工程。
 - Discord実送信、Edge Function deploy、public/recruiting投稿、テンプレート保存は実施していない。テンプレート保存はM-15系で扱う。詳細は `docs/session-posting-manage-list-result.md` に記録済み。
 
-## M-14D-7 依頼書一覧のコンパクト選択式化
-- `session-post.html` の `自分の依頼書` 一覧を、フォーム下部の長いカード列や右外側の独立パネルではなく、フォーム内の `公開状態` 欄の直下に収まるコンパクトな管理ボックスへ変更した。一覧には募集状態バッジ、公開状態バッジ、タイトル、開催日時から終了日時だけを表示する。概要や長文本文は一覧に出さない。
-- 行を選ぶと同ページのメインフォームへタイトル、開始日時、終了日時、申請締切、種別、募集人数min/max、公開状態、募集状態、概要を反映し、`編集中: 依頼書タイトル` の編集モードへ切り替える。フォーム内管理ボックスの詳細表示は公開状態、募集状態、Discord同期状態、作成日時、更新日時に限定する。
-- 編集モード中は作成ボタンをdisabledにし、Enter submitでも `create_session_post(...)` を呼ばないため、誤って重複新規作成されない。`新規依頼書を書く` ボタンで選択解除、フォーム初期化、URLの `id` 除去を行い、新規作成モードへ戻れる。保存更新、公開切替、削除、募集終了、Discord実送信は未実装で次工程。
-- `gm_user_id`、email、user_id全文、gmUserId、token、key、secret、Discord credential、Webhook URL、bot token、service_roleは画面・console・docsへ出さない。詳細は `docs/session-posting-manage-detail-result.md` に記録済み。
-- この工程でCodexはSQL Editor実行、DB構造変更、Edge Function deploy、Discord実送信、`updates.json` 変更、commit / pushを行っていない。
+## M-14D-7b 自分の依頼書select化
+- `session-post.html` の `自分の依頼書` は、カード一覧形式やスクロール付き一覧パネルを不採用にし、フォーム内の `公開状態` 欄の下段、`募集状態` の右隣付近にあるselect形式へ変更した。先頭項目は `新規依頼書を書く`、既存依頼書は `【募集状態・公開状態】YYYY/MM/DD HH:mm タイトル` の短い選択肢として表示する。
+- select option の value にはSupabase row id / uuidを入れず、`manage-0`、`manage-1` のようなローカルキーだけを使う。対象レコードはJSメモリ上の配列から取得する。
+- 既存依頼書を選ぶと、タイトル、開始日時、終了日時、申請締切、種別、募集人数min/max、公開状態、募集状態、概要をメインフォームへ即時反映する。巨大な `編集中: 依頼書タイトル` 見出しは削除し、ページ見出しは通常どおり `依頼書` のままにする。
+- 編集モード中は作成ボタンをdisabledにし、Enter submitでも `create_session_post(...)` を呼ばないため、誤って重複新規作成されない。selectの `新規依頼書を書く` で選択解除、フォーム初期化、URLの `id` 除去を行い、新規作成モードへ戻れる。保存更新、公開切替、削除、募集終了、Discord実送信は未実装で次工程。
+- `gm_user_id`、email、user_id全文、gmUserId、token、key、secret、Discord credential、Webhook URL、bot token、service_role、Supabase row id / uuidは画面・console・docsへ出さない。詳細は `docs/session-posting-manage-detail-result.md` に記録済み。
+- この工程でCodexはSQL Editor実行、DB構造変更、RPC変更、Edge Function deploy、Discord実送信、`updates.json` 変更、commit / pushを行っていない。
+
+## M-14D-7c 依頼書フォーム下部レイアウト調整
+- M-14D-7bのselect化後、`自分の依頼書` selectにより `募集状態` と `概要` が下へ押し下げられ、左カラムに大きな空白が出る状態があった。M-14D-7cではselectを通常フォーム項目として扱い、`募集状態` の右隣付近に収めた。
+- フォーム下部は `募集人数 max` / `公開状態`、`募集状態` / `自分の依頼書`、その下に全幅の `概要` となる。カード一覧形式、スクロール付き一覧パネル、大型パネル余白は復活させない。
+- 機能はM-14D-7bのまま維持し、選択時のフォーム反映、`manage-0` 形式のローカルキー、編集モード中の作成ボタンdisabled、新規作成モードへの復帰、`p_end_at` / `end_at` 日跨ぎ対応は継続する。
+- この工程でCodexはSQL Editor実行、DB構造変更、RPC変更、Edge Function deploy、Discord実送信、secret類の出力、`updates.json` 変更、commit / pushを行っていない。
+
+## M-14D-7d 依頼書フォーム下部グリッド最終調整
+- M-14D-7dで依頼書フォーム下部のグリッド整列を再修正し、PC幅では `募集人数 max` / `公開状態`、`募集状態` / `自分の依頼書（N件）`、その下に全幅の `概要` となるようにした。
+- `自分の依頼書` は専用パネルではなく通常フォーム項目として扱う方針に統一し、`募集状態` とラベル上端・select上端が揃うようにした。
+- 件数はラベルへ集約し、select下に単独で出ていた件数表示は削除した。カード一覧形式、スクロール付き一覧パネル、巨大な編集中見出しは復活させない。
+- この工程でCodexはSQL Editor実行、DB構造変更、RPC変更、Edge Function deploy、Discord実送信、secret類の出力、`updates.json` 変更、commit / pushを行っていない。

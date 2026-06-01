@@ -43,7 +43,7 @@ const DISCORD_SYNC_STATUS_LABELS = {
   posted: "同期済み",
   failed: "同期失敗"
 };
-const EDIT_STATUS_MESSAGE = "編集保存は次工程で実装予定です。新規作成する場合は「新規依頼書を書く」を押してください。";
+const EDIT_STATUS_MESSAGE = "編集保存は次工程です。新規作成する場合は「新規依頼書を書く」を選んでください。";
 
 function renderShell(initialStartAt = "") {
   return `
@@ -65,7 +65,6 @@ function renderShell(initialStartAt = "") {
         <div class="session-post-form-head">
           <div class="session-post-mode-row">
             <h2 data-session-post-mode-title>依頼書</h2>
-            <button class="button small" type="button" data-session-post-new hidden>新規依頼書を書く</button>
           </div>
           <p data-session-post-mode-note>初期値は非公開の下書きです。</p>
         </div>
@@ -88,25 +87,20 @@ function renderShell(initialStartAt = "") {
               ["private", "限定"],
               ["public", "公開"]
             ], "hidden")}
-          <aside class="session-post-manage-panel" id="my-sessions" data-session-post-manage-panel hidden>
-            <div class="session-post-form-head">
-              <h2>自分の依頼書</h2>
-              <p class="session-post-state" data-session-post-manage-state aria-live="polite">読み込み中</p>
-            </div>
-            <div class="session-post-manage-layout">
-              <div class="session-post-manage-list" data-session-post-manage-list></div>
-              <div class="session-post-manage-detail" data-session-post-manage-detail>
-                <p class="session-post-state">タイトルを選ぶとフォームに反映します。</p>
-              </div>
-            </div>
-          </aside>
             ${renderSelectField("募集状態", "p_status", [
               ["draft", "下書き"],
               ["tentative", "仮予定"],
               ["recruiting", "募集中"]
             ], "draft")}
+            <label class="session-post-field" id="my-sessions" data-session-post-manage-panel hidden>
+              <span data-session-post-manage-label>自分の依頼書</span>
+              <select data-session-post-manage-select disabled>
+                <option value="new">読み込み中</option>
+              </select>
+              <span data-session-post-manage-state aria-live="polite" hidden>読み込み中</span>
+            </label>
+            ${renderTextareaField("概要", "p_summary", 1000)}
           </div>
-          ${renderTextareaField("概要", "p_summary", 1000)}
           <label class="session-post-public-confirm">
             <input type="checkbox" name="public_confirm" value="yes">
             <span>公開状態で保存する場合に確認する</span>
@@ -306,8 +300,8 @@ async function hasPostingRole(client) {
 function renderResult(target, result) {
   target.innerHTML = `
     <div>
-      <dt>session_id</dt>
-      <dd>${escapeHtml(result.session_id || "")}</dd>
+      <dt>作成結果</dt>
+      <dd>依頼書を作成しました</dd>
     </div>
     <div>
       <dt>Discord同期状態</dt>
@@ -376,48 +370,16 @@ function normalizeManagedSession(row) {
   };
 }
 
-function renderManagedSessionBadge(label, modifier) {
-  return `<span class="session-post-managed-badge ${escapeHtml(modifier)}">${escapeHtml(label)}</span>`;
+function formatManagedOptionDate(session) {
+  const date = String(session?.date || "").trim();
+  const startTime = String(session?.startTime || "").trim();
+  if (date && startTime) return `${date.replaceAll("-", "/")} ${startTime}`;
+  if (date) return date.replaceAll("-", "/");
+  return "日時未定";
 }
 
-function renderManagedSessionRow(session, index, selectedIndex) {
-  const selectedClass = selectedIndex === index ? " is-selected" : "";
-  return `
-    <button class="session-post-managed-row${selectedClass}" type="button" data-managed-session-index="${Number(index)}" aria-pressed="${selectedIndex === index ? "true" : "false"}">
-      <span class="session-post-managed-row-badges">
-        ${renderManagedSessionBadge(session.statusLabel, "is-status")}
-        ${renderManagedSessionBadge(session.visibilityLabel, "is-visibility")}
-      </span>
-      <span class="session-post-managed-row-title">${escapeHtml(session.title)}</span>
-      <span class="session-post-managed-row-date">${escapeHtml(session.scheduleLabel)}</span>
-    </button>
-  `;
-}
-
-function renderManagedSessionDetailRow(label, value, options = {}) {
-  const text = String(value ?? "").trim() || "未設定";
-  return `
-    <div${options.wide ? ` class="session-post-managed-detail-row--wide"` : ""}>
-      <dt>${escapeHtml(label)}</dt>
-      <dd>${escapeHtml(text)}</dd>
-    </div>
-  `;
-}
-
-function renderManagedSessionDetail(session) {
-  if (!session) {
-    return `<p class="session-post-state">タイトルを選ぶとフォームに反映します。</p>`;
-  }
-
-  return `
-    <dl class="session-post-managed-detail-list">
-        ${renderManagedSessionDetailRow("公開状態", session.visibilityLabel)}
-        ${renderManagedSessionDetailRow("募集状態", session.statusLabel)}
-        ${renderManagedSessionDetailRow("Discord同期状態", session.discordSyncStatusLabel)}
-        ${renderManagedSessionDetailRow("作成日時", session.createdAt)}
-        ${renderManagedSessionDetailRow("更新日時", session.updatedAt)}
-    </dl>
-  `;
+function renderManagedSessionOption(session, index) {
+  return `<option value="manage-${Number(index)}">${escapeHtml(`【${session.statusLabel}・${session.visibilityLabel}】${formatManagedOptionDate(session)} ${session.title}`)}</option>`;
 }
 
 function getFormControl(form, name) {
@@ -500,14 +462,14 @@ function enterEditMode(elements, session) {
   fillFormFromManagedSession(elements.form, session);
   elements.formPanel.classList.add("is-editing");
   elements.form.classList.add("is-editing");
-  elements.modeTitle.textContent = `編集中: ${session.title}`;
-  elements.modeNote.textContent = "下書き確認 / 編集。保存更新は次工程で実装予定です。";
-  elements.newButton.hidden = false;
+  elements.modeTitle.textContent = "依頼書";
+  elements.modeNote.textContent = "初期値は非公開の下書きです。";
   elements.submit.disabled = true;
   elements.submit.textContent = "編集保存は次工程";
   elements.resultPanel.hidden = true;
   setState(elements.formState, EDIT_STATUS_MESSAGE);
-  replaceSelectedSessionId(session.id);
+  setState(elements.manageState, "保存更新は次工程です。");
+  replaceSelectedSessionId("");
 }
 
 function enterNewMode(elements, options = {}) {
@@ -517,30 +479,38 @@ function enterNewMode(elements, options = {}) {
   elements.form.classList.remove("is-editing");
   elements.modeTitle.textContent = "依頼書";
   elements.modeNote.textContent = "初期値は非公開の下書きです。";
-  elements.newButton.hidden = true;
   elements.submit.disabled = false;
   elements.submit.textContent = "作成する";
   if (options.clearResult) elements.resultPanel.hidden = true;
   if (options.clearForm) setState(elements.formState, "");
+  setState(elements.manageState, "");
   replaceSelectedSessionId("");
 }
 
+function setManageSelectOptions(elements, sessions) {
+  const countLabel = sessions.length ? `自分の依頼書（${sessions.length}件）` : "自分の依頼書";
+  elements.manageLabel.textContent = countLabel;
+  elements.select.innerHTML = [
+    `<option value="new">新規依頼書を書く</option>`,
+    ...sessions.map((session, index) => renderManagedSessionOption(session, index))
+  ].join("");
+  elements.select.disabled = false;
+}
+
 function selectManagedSession(elements, sessions, selectedIndex, options = {}) {
-  const { list, detail } = elements;
-  list.innerHTML = sessions.map((session, index) => renderManagedSessionRow(session, index, selectedIndex)).join("");
   const session = sessions[selectedIndex] || null;
-  detail.innerHTML = renderManagedSessionDetail(session);
+  elements.select.value = session ? `manage-${selectedIndex}` : "new";
   if (options.applyToForm && session) {
     enterEditMode(elements, session);
   }
 }
 
 async function loadManagedSessions(client, elements) {
-  const { panel, list, detail, state } = elements;
+  const { panel, select, state } = elements;
   panel.hidden = false;
-  setState(state, "読み込み中");
-  list.innerHTML = "";
-  detail.innerHTML = `<p class="session-post-state">タイトルを選ぶとフォームに反映します。</p>`;
+  setState(state, "");
+  select.disabled = true;
+  select.innerHTML = `<option value="new">読み込み中</option>`;
 
   const { data, error } = await client
     .from("sessions")
@@ -554,29 +524,35 @@ async function loadManagedSessions(client, elements) {
   }
 
   const sessions = Array.isArray(data) ? data.map(normalizeManagedSession) : [];
+  elements.managedSessions = sessions;
+  setManageSelectOptions(elements, sessions);
+
   if (!sessions.length) {
-    setState(state, "自分の依頼書はまだありません。");
-    detail.innerHTML = "";
+    setState(state, "");
+    select.value = "new";
     return;
   }
 
-  setState(state, `${sessions.length}件`);
+  setState(state, "");
   const selectedSessionId = readSelectedSessionId();
   const selectedIndex = sessions.findIndex((session) => selectedSessionId && session.id === selectedSessionId);
   if (selectedSessionId && selectedIndex < 0) {
     replaceSelectedSessionId("");
   }
   selectManagedSession(elements, sessions, selectedIndex, { applyToForm: selectedIndex >= 0 });
-  list.onclick = (event) => {
-    const button = event.target.closest("[data-managed-session-index]");
-    if (!button) return;
-    const index = Number(button.getAttribute("data-managed-session-index"));
-    if (!Number.isInteger(index) || !sessions[index]) return;
+  select.onchange = () => {
+    if (select.value === "new") {
+      enterNewMode(elements, { clearForm: true, clearResult: true });
+      return;
+    }
+    const match = String(select.value || "").match(/^manage-(\d+)$/);
+    const index = match ? Number(match[1]) : -1;
+    if (!Number.isInteger(index) || !sessions[index]) {
+      select.value = "new";
+      enterNewMode(elements, { clearForm: true, clearResult: true });
+      return;
+    }
     selectManagedSession(elements, sessions, index, { applyToForm: true });
-  };
-  elements.newButton.onclick = () => {
-    selectManagedSession(elements, sessions, -1);
-    enterNewMode(elements, { clearForm: true, clearResult: true });
   };
 }
 
@@ -589,6 +565,7 @@ async function initializeForm(root, client) {
   const resultList = root.querySelector("[data-session-post-result]");
   const manageElements = {
     currentSession: null,
+    managedSessions: [],
     formPanel,
     form,
     submit,
@@ -596,10 +573,10 @@ async function initializeForm(root, client) {
     resultPanel,
     modeTitle: root.querySelector("[data-session-post-mode-title]"),
     modeNote: root.querySelector("[data-session-post-mode-note]"),
-    newButton: root.querySelector("[data-session-post-new]"),
     panel: root.querySelector("[data-session-post-manage-panel]"),
-    list: root.querySelector("[data-session-post-manage-list]"),
-    detail: root.querySelector("[data-session-post-manage-detail]"),
+    select: root.querySelector("[data-session-post-manage-select]"),
+    manageLabel: root.querySelector("[data-session-post-manage-label]"),
+    manageState: root.querySelector("[data-session-post-manage-state]"),
     state: root.querySelector("[data-session-post-manage-state]")
   };
 
