@@ -8,6 +8,13 @@ const SESSION_STATUSES = {
   canceled: "中止"
 };
 
+const SESSION_TYPES = {
+  "one-shot": "単発シナリオ",
+  campaign: "キャンペーン",
+  special: "特殊",
+  other: "その他"
+};
+
 export function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
@@ -24,6 +31,11 @@ export function getSessionStatusLabel(status) {
 
 export function getSessionStatusClass(status) {
   return Object.prototype.hasOwnProperty.call(SESSION_STATUSES, status) ? status : "unknown";
+}
+
+export function getSessionTypeLabel(sessionType) {
+  const normalized = String(sessionType || "").trim();
+  return Object.prototype.hasOwnProperty.call(SESSION_TYPES, normalized) ? SESSION_TYPES[normalized] : SESSION_TYPES.other;
 }
 
 export function isClosedSession(session) {
@@ -153,6 +165,7 @@ export function renderSessionDetailContent(session, options = {}) {
   const playerCount = formatPlayerCount(session, { includeMinimum: options.includeMinimumPlayers });
   const basicRows = [
     renderSessionDetailRow("開催日", session?.date ? formatDate(session.date) : ""),
+    renderSessionDetailRow("種別", getSessionTypeLabel(session?.sessionType)),
     renderSessionDetailRow("開催時刻", formatSessionTime(session)),
     renderSessionDetailRow("GM", session?.gmName),
     renderSessionDetailRow("レベル帯", session?.levelRange),

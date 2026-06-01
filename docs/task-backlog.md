@@ -55,6 +55,7 @@
 - 詳細モーダルのフッター重なり・黒い領域隠れは修正済み。
 - カレンダー拡張 Phase 1-C として、`assets/js/sessionDisplay.js` にセッション表示・詳細表示の整形ロジックを共通化済み。
 - カレンダー拡張 Phase 1-D として、セッション詳細表示の表示順をPL向けに整理済み。M-11A follow-up後は、session-detailでは基本情報、概要、補足情報、参加希望コメントの順で表示し、自由タグは表示しない。
+- M-13Aとして、`data/sessions.json` に固定分類 `sessionType` を追加済み。既存7件は `one-shot` とし、`session-detail.html` と `calendar.html` の選択日セッション一覧に `単発シナリオ` と表示する。
 - PL向け詳細では関連スポットID、シナリオID、公開範囲を表示せず、補足情報は状態と更新日時中心に整理済み。
 - `updatedAt` は日付＋時刻表示に対応済み。日付のみの場合も表示が壊れない。
 - カレンダー拡張 Phase 1-E として、`session-detail.html?id=<session.id>` のセッション詳細ページを追加済み。
@@ -450,7 +451,7 @@
 - M-11A完了: `session-detail.html` の参加希望コメント欄を読み取り専用表示へ更新済み。`get_public_session_comments` と `get_public_session_application_counts` を使い、公開コメント一覧と `申請中` / `承認済み` の公開カウントを表示する。`参加希望人数` と `キャンセル待ち` はM-11Aの画面には表示しない。投稿、編集、削除、GM承認・却下、DB変更、cleanup、`close_session` は扱っていない。実装結果は `docs/supabase-session-detail-application-comments-read-result.md` に整理済み。
 - M-11A follow-upとして、`session-detail.html` の表示順を基本情報、概要、補足情報、参加希望コメントへ整理し、概要をカード状ブロック表示にした。自由タグはsession-detailでは表示しない。
 - session-detail の締切時間表示は、`data/sessions.json` に `applicationDeadline` / `deadlineTime` 等の明示フィールドを追加する設計が必要。`startTime` / `endTime` は開催時刻であり、締切時間として流用しない。
-- セッション種別は自由タグではなく、将来 `data/sessions.json` に `sessionType` または `type` のような明示フィールドを追加して扱う。候補は `単発シナリオ`、`キャンペーン`、`特殊`、`その他`。`session-detail` / `calendar` / 一覧で表示し、calendar の種別フィルターへ展開する。
+- セッション種別は自由タグではなく、`data/sessions.json` の `sessionType` 明示フィールドで扱う。候補は `単発シナリオ`、`キャンペーン`、`特殊`、`その他`。M-13Aで既存7件へ `one-shot` を追加し、`session-detail` / `calendar` の一覧表示に反映済み。calendar の種別フィルターは将来拡張で扱う。
 - M-11B実装前調査・設計完了: `docs/supabase-session-detail-application-comment-post-plan.md` に、`create_application_comment(target_session_id text, comment_body text)` の正確な仕様、既存申請状態ごとの挙動、投稿フォーム差し込み位置、ログイン状態取得、本人申請状態取得、バリデーション、投稿後再取得、エラー処理、RLS smoke test更新案を整理済み。この工程では投稿UI実装、RPC実呼び出し、SQL Editor実行、DB変更は行っていない。
 - M-11B-1完了: `session-detail.html` の参加希望コメント欄に、ログイン状態取得、本人申請状態取得、未ログイン時のACCOUNT導線、ログイン済み時のdisabled投稿フォーム器、申請状態別案内を追加済み。`create_application_comment` は呼び出さず、投稿、編集、削除、GM操作、`close_session`、SQL実行、DB変更は扱っていない。実装結果は `docs/supabase-session-detail-application-comment-post-ui-result.md` に整理済み。
 - M-11B-2完了: ログイン済みPLの参加希望コメント投稿を `create_application_comment` で統合済み。空欄 / 4000文字超過バリデーション、送信中の二重押し防止、成功後の公開コメント一覧・公開カウント・本人申請状態再取得、短い安全な成功 / 失敗表示を追加した。Codex側では投稿実行、SQL Editor実行、DB変更、編集・削除・GM操作、`close_session` は扱っていない。実装結果は `docs/supabase-session-detail-application-comment-post-result.md` に整理済み。
@@ -511,3 +512,8 @@
 - M-12D GM向け連絡先UI実装完了: `session-detail.html` のGM/admin向け領域に `GM向け：承認済み参加者連絡先` 折りたたみを追加済み。既存のGM/admin判定に従い、未ログイン / 通常PL / 判定失敗時はUIを表示しない。
 - `get_gm_session_accepted_contacts(target_session_id text)` を呼び、`display_name` / `discord_handle` のみを扱う。未登録者は `未登録` と表示し、`連絡先一覧をコピー` で同じ形式の行区切りテキストをコピーできる。
 - email、`user_id`、`application_id`、`comment_id`、`discord_user_id`、`discord_name`、token、key、secret類は表示・コピー対象にしない。実装結果は `docs/supabase-discord-id-gm-contact-ui-result.md` に分離済み。この工程ではSQL Editor実行、DB変更、RLS smoke test追加、Discord ID実値入力、`updates.json` 変更、commit / pushは行っていない。
+
+## M-13A sessionType分類フィールド
+- `data/sessions.json` の各セッションに `sessionType` を追加済み。既存7件は `one-shot` とし、表示名は `単発シナリオ`。
+- 表示は `session-detail.html` の基本情報と、`calendar.html` の選択日セッション一覧で行う。自由タグは分類に使わず、session-detailで自由タグを表示しない方針も維持する。
+- 実装結果は `docs/session-type-field-result.md` に分離済み。この工程ではSQL Editor実行、DB変更、`updates.json` 変更、commit / pushは行っていない。

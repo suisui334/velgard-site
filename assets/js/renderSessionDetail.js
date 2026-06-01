@@ -3,10 +3,10 @@ import {
   escapeHtml,
   getSessionDisplayTitle,
   renderSessionDetailContent
-} from "./sessionDisplay.js?v=20260601-gm-history-rpc";
+} from "./sessionDisplay.js?v=20260601-session-type";
 import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260601-gm-contact-copy";
 
-const SESSIONS_URL = "data/sessions.json?v=20260531-session-comment-post-rpc";
+const SESSIONS_URL = "data/sessions.json?v=20260601-session-type";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
