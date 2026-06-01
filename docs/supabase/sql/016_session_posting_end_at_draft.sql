@@ -5,6 +5,7 @@
 -- - 015_session_posting_rpc_draft.sql は適用済みのため、同じapply sectionは再実行しない。
 -- - 日跨ぎ終了日時を保存できるよう public.sessions.end_at timestamptz を追加する。
 -- - create_session_post RPCへ末尾引数 p_end_at text default null を追加する。
+-- - PostgreSQLでは引数追加が別signatureになるため、旧signatureを明示dropしてから新signatureを作る。
 -- - Discord credential、service role key、Webhook URL、token類はこのSQLに書かない。
 -- - RPC戻り値は session_id / discord_sync_status / created_at のまま維持する。
 --
@@ -51,10 +52,20 @@ where n.nspname = 'public'
   and p.proname = 'create_session_post'
 order by p.oid::regprocedure::text;
 
+-- 実行前はcreate_session_postが1本だけ存在し、p_end_atなしの旧signatureであることを確認する。
+select
+  count(*) as create_session_post_function_count
+from pg_proc p
+join pg_namespace n
+  on n.oid = p.pronamespace
+where n.nspname = 'public'
+  and p.proname = 'create_session_post';
+
 -- 停止条件:
 -- - public.sessions が存在しない。
 -- - 015の追加列や create_session_post が未適用。
--- - create_session_post に想定外の複数overloadがある。
+-- - 実行前の create_session_post が1本ではない。
+-- - create_session_post に p_end_at 付きsignatureが既に存在する。
 -- - sessions.date / start_time / end_time の型が想定と異なる。
 -- - end_at という別目的の列が既に存在する。
 -- - 既存フロントが旧RPC署名を前提にしていて、同時更新できない。
@@ -81,26 +92,10 @@ comment on column public.sessions.end_at is
 -- 2. create_session_post RPC replacement draft
 -- ============================================================
 
--- PostgREST RPCのoverload曖昧化を避けるため、旧署名をrevoke/dropしてから
--- 末尾に p_end_at text default null を追加した署名を作る。
+-- PostgREST RPCのoverload曖昧化を避けるため、旧signatureを明示dropしてから
+-- 末尾に p_end_at text default null を追加した新signatureを作る。
 -- 既存引数順は維持し、p_end_atだけ末尾に追加する。
-
-revoke all on function public.create_session_post(
-  text,
-  text,
-  text,
-  text,
-  text,
-  text,
-  text,
-  integer,
-  integer,
-  text,
-  text,
-  text,
-  text,
-  text
-) from public;
+-- revoke / grant / comment は、新signature作成後に新signatureへだけ行う。
 
 drop function if exists public.create_session_post(
   text,
@@ -474,6 +469,14 @@ where n.nspname = 'public'
 order by p.oid::regprocedure::text;
 
 select
+  count(*) as create_session_post_function_count
+from pg_proc p
+join pg_namespace n
+  on n.oid = p.pronamespace
+where n.nspname = 'public'
+  and p.proname = 'create_session_post';
+
+select
   grantee,
   privilege_type
 from information_schema.routine_privileges
@@ -483,7 +486,9 @@ order by grantee, privilege_type;
 
 -- 期待:
 -- - public.sessions.end_at が timestamptz。
+-- - create_session_post_function_count が1。
 -- - create_session_post は p_end_at text default null を末尾に持つ。
+-- - p_end_atなしの旧signatureは残っていない。
 -- - 戻り値は session_id / discord_sync_status / created_at のみ。
 -- - authenticated に EXECUTE がある。
 -- - anon には EXECUTE がない。
@@ -511,6 +516,8 @@ order by grantee, privilege_type;
 -- ============================================================
 
 -- rollbackが必要な場合の草案。適用前に必ず実データ影響を確認すること。
+-- 新signatureをdropし、必要なら015時点の旧signatureをレビュー済み定義から復元する。
+-- 旧signatureと新signatureを同時に残さないこと。
 --
 -- revoke all on function public.create_session_post(
 --   text, text, text, text, text, text, text, integer, integer, text, text, text, text, text, text
