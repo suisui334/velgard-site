@@ -80,6 +80,21 @@ PC幅では `募集人数 max` / `公開状態`、`募集状態` / `自分の依
 件数はラベルの `自分の依頼書（N件）` に集約し、select下の単独件数表示は削除した。
 SQL Editor実行、DB構造変更、Discord実送信、secret類の出力は行っていない。
 
+## M-14D-8 update_session_post計画
+
+下書き依頼書の編集保存に向け、`update_session_post` RPC草案とUI接続計画を分離して作成した。
+
+- SQL草案: `docs/supabase/sql/017_update_session_post_rpc_draft.sql`
+- 設計docs: `docs/session-posting-update-rpc-plan.md`
+
+既存 `public.sessions.id` はtextで、`public.is_session_gm(text)` もtext前提のため、RPC草案の対象IDは `p_session_id text` とする。
+selectのoption valueは引き続き `manage-0` 形式のローカルキーだけを使い、保存時の実IDはJSメモリ上の選択レコードからRPCへ渡す計画。
+
+UI接続時は、既存依頼書選択中に `変更を保存` を出し、保存成功後にselectラベルとJSメモリ上の選択レコードを最新値へ更新する。
+新規依頼書を書く選択時は従来どおり `create_session_post` モードへ戻す。
+
+この工程ではSQL Editor実行、DB構造変更、RPC作成/置換、UI接続実装、Discord実送信、Edge Function deploy、secret類の出力は行っていない。
+
 ## 未実装
 
 - 編集保存

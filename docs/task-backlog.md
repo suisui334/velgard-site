@@ -611,3 +611,13 @@
 - `自分の依頼書` は専用パネルではなく通常フォーム項目として扱う方針に統一し、`募集状態` とラベル上端・select上端が揃うようにした。
 - 件数はラベルへ集約し、select下に単独で出ていた件数表示は削除した。カード一覧形式、スクロール付き一覧パネル、巨大な編集中見出しは復活させない。
 - この工程でCodexはSQL Editor実行、DB構造変更、RPC変更、Edge Function deploy、Discord実送信、secret類の出力、`updates.json` 変更、commit / pushを行っていない。
+
+## M-14D-8 update_session_post RPC / UI接続計画
+- 下書き依頼書の編集保存へ進むため、SQL草案 `docs/supabase/sql/017_update_session_post_rpc_draft.sql` と設計docs `docs/session-posting-update-rpc-plan.md` を作成した。今回はSQL Editor実行、DB構造変更、RPC作成/置換、フロントUI接続実装は行っていない。
+- 既存 `public.sessions.id` と `public.is_session_gm(text)` がtext前提のため、引き継ぎ案の `p_session_id uuid` は採用せず、草案では `p_session_id text` とした。人数引数も既存 `create_session_post` に合わせて `p_player_min` / `p_player_max` とする。
+- 権限方針は `authenticated` のみEXECUTE、anon不可、GMは自分の依頼書のみ、adminは管理者権限で更新可。通常PLと他GMは拒否する。
+- バリデーションはtitle/date/start必須、`end_at <= start_at` 拒否、許可済み `session_type` / `visibility` / `status`、public draft拒否、人数範囲、summary長を確認する方針。
+- Discord同期メタデータは、public活動中ならpending化し、既存 `discord_message_id` の有無で `update` / `create` を分ける。hidden/draftで既存Discord投稿がなければskipped、既存投稿がある非公開化・下書き化・中止化は後続Edge Function向けにpending delete相当とする案。
+- UI接続では既存依頼書選択中に `変更を保存` を出し、保存時に `update_session_post` を呼ぶ。raw id / uuidはDOMへ出さず、JSメモリ上の選択レコードからRPCへ渡す。保存成功後はselect表示とJSメモリ上の選択レコードを最新値に更新する。
+- smoke test観点としてanon拒否、通常PL拒否、他GM拒否、対象GM成功、admin成功、invalid status/visibility拒否、min > max拒否、end_at <= start_at拒否、内部情報非露出、hidden/draftのpublic非表示維持、public/recruiting更新時のpending化を整理した。
+- この工程でCodexはSQL Editor実行、DB構造変更、RPC実行、Edge Function deploy、Discord実送信、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
