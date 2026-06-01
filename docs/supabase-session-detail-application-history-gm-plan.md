@@ -393,3 +393,26 @@ docs/supabase-session-detail-application-gm-approve-reject-result.md
 - 対象を安全に確認できない場合は操作ボタンを出さない。
 
 この工程では、SQL Editor実行、DB変更、Codex側での承認 / 却下確定、GMコメント編集 / 削除、Discord IDコピー、`close_session` 呼び出し、`updates.json` 変更、secret類の記録、commit / pushは行っていない。
+
+## 19. M-11F ユーザー実ブラウザ確認結果追記
+
+2026-06-01に、ユーザー実ブラウザでGM承認 / 却下UIの動作確認が完了した。記録先は次の通り。
+
+```text
+docs/supabase-session-detail-application-gm-approve-reject-result.md
+```
+
+確認済み:
+
+- adminで申請を承認できる。
+- 承認後、PL側mypageの `参加予定` に対象セッションが表示される。
+- 承認後、PL側mypageの `参加申請中` から対象セッションが消える。
+- `session-detail.html` の本人申請状態が承認済み / 参加予定扱いになる。
+- 申請中人数が減り、承認済み人数が増える。
+- GM履歴で対象者が承認済みになる。
+- 承認済みの行には `承認` / `却下` ボタンが出ない。
+- 却下した場合、画面上では `見送り` と表示される。
+- email、`user_id`、token、key、`gmUserId`、`comment_id`、`application_id` は画面に出ていない。
+- console errorなし。
+
+この確認結果のdocs記録工程では、SQL Editor実行、DB変更、フロント実装、`updates.json` 変更、secret類の記録、commit / pushは行っていない。

@@ -5,7 +5,8 @@
 ## 1. 最初に確認したこと
 
 - `git status --short` は空。
-- 最新コミットは `5f7cb20 Add GM session application history view`。
+- 実装開始時の最新コミットは `5f7cb20 Add GM session application history view`。
+- 実ブラウザ確認結果のdocs記録時点の最新コミットは `58a529d Add GM session application approve reject actions`。
 
 ## 2. 確認したRPC仕様
 
@@ -104,9 +105,34 @@ http://127.0.0.1:4174/session-detail.html?id=session-2026-06-08-railway-incident
 
 - Supabase SQL Editor。
 - DB変更。
-- 実ユーザー環境での承認 / 却下確定。
+- Codex側での承認 / 却下確定。
 
-## 8. ユーザー実ブラウザ確認が必要なこと
+## 8. ユーザー実ブラウザ確認結果
+
+2026-06-01に、ユーザー実ブラウザでGM承認 / 却下UIの動作確認が完了した。
+
+承認確認:
+
+- adminで申請を承認できる。
+- 承認後、PL側mypageの `参加予定` に対象セッションが表示される。
+- 承認後、PL側mypageの `参加申請中` から対象セッションが消える。
+- `session-detail.html` の本人申請状態が承認済み / 参加予定扱いになる。
+- 申請中人数が減り、承認済み人数が増える。
+- GM履歴で対象者が承認済みになる。
+- 承認済みの行には `承認` / `却下` ボタンが出ない。
+
+却下表示確認:
+
+- 却下した場合、画面上では `見送り` と表示される。
+
+内部情報非表示確認:
+
+- email、`user_id`、token、key、`gmUserId`、`comment_id`、`application_id` は画面に出ていない。
+- console errorなし。
+
+この確認結果の記録では、Supabase SQL Editor実行、DB変更、フロント実装、`updates.json` 変更、secret類の記録、commit / pushは行っていない。
+
+## 9. 今後の確認メモ
 
 - GM/adminで申請履歴を開くと、`pending` / `waitlisted` にだけ `承認` / `却下` が出ること。
 - `accepted` / `canceled` / `rejected` に操作ボタンが出ないこと。
