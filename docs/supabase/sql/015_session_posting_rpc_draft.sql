@@ -55,6 +55,9 @@ order by ordinal_position;
 -- - public.sessions が存在しない。
 -- - 既存列の型が想定と違う。
 -- - 既存データに session_type / discord_sync_status の制約候補へ反する値がある。
+-- - admin代理投稿で任意GMを指定する要件がある。初期案では gm_user_id は auth.uid() 固定。
+-- - draftをpublicで保存したい要件がある。初期案ではdraftの公開保存を拒否する。
+-- - 非公開/下書き保存もDiscordへ即時同期したい要件がある。初期案では同期対象外にする。
 
 -- ============================================================
 -- 1. public.sessions extension draft
@@ -181,6 +184,8 @@ declare
   v_gm_name text;
   v_session_id text;
   v_created_at timestamptz;
+  v_discord_sync_status text;
+  v_discord_last_action text;
   v_start_text text;
   v_end_text text;
   v_deadline_text text;
@@ -258,6 +263,17 @@ begin
   end if;
   if v_status not in ('draft', 'tentative', 'recruiting') then
     raise exception 'invalid_initial_status' using errcode = '22023';
+  end if;
+  if v_status = 'draft' and v_visibility = 'public' then
+    raise exception 'draft_must_not_be_public' using errcode = '22023';
+  end if;
+
+  if v_visibility = 'public' and v_status in ('tentative', 'recruiting') then
+    v_discord_sync_status := 'pending';
+    v_discord_last_action := 'create';
+  else
+    v_discord_sync_status := 'skipped';
+    v_discord_last_action := null;
   end if;
 
   if p_player_min is not null and p_player_min < 0 then
@@ -357,15 +373,15 @@ begin
     v_detail,
     v_requirements,
     v_visibility,
-    'pending',
-    'create',
-    now()
+    v_discord_sync_status,
+    v_discord_last_action,
+    case when v_discord_sync_status = 'pending' then now() else null end
   )
   returning public.sessions.created_at
     into v_created_at;
 
   session_id := v_session_id;
-  discord_sync_status := 'pending';
+  discord_sync_status := v_discord_sync_status;
   created_at := v_created_at;
   return next;
 end;
@@ -478,6 +494,8 @@ order by grantee, privilege_type;
 -- - 戻り値は session_id / discord_sync_status / created_at のみ。
 
 -- Edge Functionによる同期メタデータ更新の想定:
+-- - create対象: visibility='public' かつ status in ('tentative', 'recruiting') のみ。
+-- - draft / private / hidden は discord_sync_status='skipped' とし、Discordへ即時同期しない。
 -- - create成功: discord_sync_status='posted', discord_last_action='create',
 --   discord_message_id / discord_channel_id / discord_thread_id / discord_post_url / discord_synced_at を保存。
 -- - update成功: 既存Discord投稿を編集または更新通知投稿し、discord_last_action='update' を保存。

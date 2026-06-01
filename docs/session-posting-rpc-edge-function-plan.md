@@ -45,6 +45,8 @@ M-14Aの全体設計を、次工程でレビュー・適用候補にできる粒
 
 Discord同期メタデータにはDiscord投稿credentialやサーバー側credential値を保存しない。
 
+公開かつ `tentative` / `recruiting` の新規投稿だけを初期同期対象にする。`draft`、`private`、`hidden` は `discord_sync_status = skipped` とし、Discordへ即時同期しない。`draft` を `public` で保存する要件が出た場合は、公開範囲とRLS/一覧表示の扱いを再レビューしてから許可する。
+
 ## 4. 投稿RPC案
 
 SQL草案:
@@ -73,6 +75,8 @@ create_session_post
 - サーバー側credential値
 
 `update_session_post`、`delete_or_close_session_post` は、Edge Function側actionとして先に設計し、DB RPCとして切り出すかは次工程で判断する。
+
+初期案ではGM本人投稿の `gm_user_id` は `auth.uid()` 固定。admin代理投稿やGM差し替えは未確定事項として残し、実装前に別途確認する。
 
 ## 5. Edge Function案
 

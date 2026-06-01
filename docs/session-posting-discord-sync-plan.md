@@ -72,7 +72,7 @@ GM/adminがサイト上からセッション予定、つまり依頼書を投稿
 | `session_type text` | `sessionType` | check制約で `one-shot` / `campaign` / `special` / `other` |
 | `application_deadline timestamptz` | `applicationDeadline` | Japan timeで表示する。DBには時区付きで保存する案 |
 | `request_body text` または既存 `detail` | `detail` / `body` | 依頼書本文。既存 `detail` を使うなら列追加不要 |
-| `discord_sync_status text` | 画面には原則出さない | `not_required` / `pending` / `posted` / `failed` など |
+| `discord_sync_status text` | 画面には原則出さない | `not_requested` / `pending` / `posted` / `failed` / `skipped` |
 | `discord_last_action text` | 画面には原則出さない | `create` / `update` / `delete` / `close` / `resync` |
 | `discord_message_id text` | 画面には原則出さない | 既存投稿の編集・削除・再同期に使う |
 | `discord_channel_id text` | 画面には原則出さない | 投稿先識別子 |
@@ -80,6 +80,8 @@ GM/adminがサイト上からセッション予定、つまり依頼書を投稿
 | `discord_synced_at timestamptz` | 画面には原則出さない | 同期完了日時 |
 
 Discord投稿メタデータは、初期は `sessions` に直列で持てる。ただし、将来の再送、編集、削除/非公開化、複数投稿先、同期履歴監査まで考えるなら別テーブル案を優先する。
+
+初期同期対象は `visibility = "public"` かつ `status` が `tentative` / `recruiting` の投稿に限定する。`draft`、`private`、`hidden` はDB保存だけ行い、Discord同期状態は `skipped` として扱う。`draft` をpublic保存したい場合は、RLSと一覧表示の露出範囲を再確認してから方針を変える。
 
 別テーブル案:
 
