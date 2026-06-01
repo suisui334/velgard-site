@@ -75,6 +75,9 @@ py -m http.server 4173 -d velgard-site
   - `docs/supabase-mypage-applications-id-aligned-test-data-result.md`: M-10 ID整合検証データ投入結果
   - `docs/supabase-mypage-login-logout-plan.md`: M-6 マイページログイン / ログアウト最小実装計画書
   - `docs/supabase-mypage-signup-plan.md`: M-7 マイページ一般サインアップ実装計画書
+  - `docs/supabase-discord-id-contact-plan.md`: M-12A Discord ID登録 / GM向けコピー導線 調査・設計
+  - `docs/supabase-discord-id-contact-sql-result.md`: M-12B Discord ID連絡先SQL適用結果
+  - `docs/supabase-discord-id-mypage-ui-result.md`: M-12C mypage Discord ID登録UI 実装結果
   - `docs/supabase-f1-readonly-prototype.md`: Supabase F-1 ローカル読み取り専用プロトタイプ手順
   - `docs/supabase-f2-public-session-read-plan.md`: Supabase F-2 公開セッション読み取りプロトタイプ設計
   - `docs/supabase-f2-session-mapping-prototype.md`: Supabase F-2 dev セッション表示マッピングプロトタイプ手順
@@ -1517,3 +1520,6 @@ faviconは `assets/images/common/favicon-32.png` / `assets/images/common/favicon
 - M-11D-5として、本人申請辞退UIを `cancel_my_session_application(target_session_id text)` に接続した。ログイン済みかつ本人申請状態が `pending` / `waitlisted` / `accepted` で、投稿中 / 保存中 / 削除中 / 取り下げ中やコメント編集中でない場合だけ確定できる。取り下げ中は確定 / キャンセル / 投稿フォーム / 編集 / 削除操作を抑止し、成功後は公開コメント一覧・公開カウント・本人申請状態を再取得する。Codex側では取り下げ確定を実行せず、SQL Editor実行、DB構造変更、GM履歴UI、`updates.json` 変更は行っていない。実装結果は `docs/supabase-session-detail-application-withdraw-action-result.md` に整理済み。
 - M-11E-5として、`session-detail.html` の参加希望コメント欄にGM/adminだけが見られる申請履歴折りたたみUIの器を追加した。ログイン済みユーザーに限り `is_admin()` または `is_session_gm(sessionId)` がtrueなら、コメント一覧直下に閉じた状態の `GM向け：申請履歴を見る` を表示し、開いた中身は次工程予定のプレースホルダー文言だけにしている。`get_gm_session_application_history`、`set_application_status`、`close_session` は呼び出さず、実データ、内部ID、email、token、key、secret類、Discord IDは表示しない。実装結果は `docs/supabase-session-detail-application-history-gm-ui-placeholder-result.md` に整理済み。
 - M-11E-6として、GM/admin向け申請履歴折りたたみUIを `get_gm_session_application_history(target_session_id text)` に接続した。折りたたみを開いた初回だけRPCを呼び、`display_name` / `application_status` / `created_at` / `updated_at` / `canceled_at` / `comment_count` / `last_comment_at` をloading / empty / error付きで表示する。通常PL / 未ログインではUIを表示せず、GM承認 / 却下、GMコメント編集 / 削除、Discord IDコピー、`close_session`、SQL Editor実行、DB変更、`updates.json` 変更は行っていない。実装結果は `docs/supabase-session-detail-application-history-gm-ui-result.md` に整理済み。
+- M-12Aとして、Discord ID相当の連絡先を安全に保存し、GM/adminが承認済み参加者だけ確認・コピーできるようにするための調査・設計を `docs/supabase-discord-id-contact-plan.md` に整理した。既存 `discord_user_id` / `discord_name` と分離して `profiles.discord_handle` を使う方針、`public_profiles` 非露出、本人用 / GM用RPC案、返却列を `display_name` / `discord_handle` に限定する方針を記録済み。
+- M-12Bとして、ユーザーがSQL Editorで適用したDiscord ID連絡先DB変更の結果を `docs/supabase-discord-id-contact-sql-result.md` に記録した。`profiles.discord_handle`、`profiles_discord_handle_check`、`get_my_profile_contact()`、`update_my_discord_id(new_discord_id text)`、`get_gm_session_accepted_contacts(target_session_id text)` を確認済み。CodexはSQL Editor実行、DB変更、Discord ID実値記録、`updates.json` 変更、commit / pushを行っていない。
+- M-12Cとして、`mypage.html` のログイン済みアカウント機能内に本人用Discord ID登録 / 編集UIを追加した。`get_my_profile_contact()` で現在値を取得し、`update_my_discord_id(new_discord_id text)` で保存する。空欄保存は未登録扱い、100文字超過と改行入りはフロントで拒否し、公開プロフィールには出さない。GM向けコピー導線、SQL Editor実行、DB変更、Discord ID実値入力、RLS smoke test追加、`updates.json` 変更は行っていない。実装結果は `docs/supabase-discord-id-mypage-ui-result.md` に整理済み。

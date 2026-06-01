@@ -5,6 +5,7 @@
   const SDK_LOAD_KEY = "__VELGARD_SUPABASE_SDK_LOAD";
   const MIN_PASSWORD_LENGTH = 8;
   const DISPLAY_NAME_MAX_LENGTH = 40;
+  const DISCORD_ID_MAX_LENGTH = 100;
   const SESSIONS_DATA_URL = "data/sessions.json?v=20260531-mypage-applications";
   const APPLICATION_SELECT_COLUMNS = "session_id,status,comment_id,created_at,updated_at,canceled_at";
   const APPLICATION_STATUSES = ["pending", "waitlisted", "accepted"];
@@ -439,6 +440,18 @@
     return Array.from(value).length;
   }
 
+  function normalizeDiscordId(value) {
+    return String(value || "").trim();
+  }
+
+  function countDiscordIdCharacters(value) {
+    return Array.from(value).length;
+  }
+
+  function hasLineBreak(value) {
+    return /[\r\n]/.test(String(value || ""));
+  }
+
   async function getActiveSession(client, knownSession) {
     if (knownSession && knownSession.user && knownSession.user.id) {
       return knownSession;
@@ -817,16 +830,221 @@
     }
   }
 
+  function createDiscordIdEditor(client, elements, session) {
+    const container = document.createElement("section");
+    container.className = "mypage-profile-panel";
+    container.dataset.mypageDiscordIdPanel = "";
+
+    const head = document.createElement("div");
+    head.className = "mypage-profile-panel-head";
+
+    const title = document.createElement("h3");
+    title.textContent = "Discord ID";
+
+    const description = document.createElement("p");
+    description.textContent = "GMが承認済み参加者へ連絡するために使用します。未登録でも参加申請は可能です。";
+
+    head.append(title, description);
+
+    const current = document.createElement("p");
+    current.className = "status";
+    current.dataset.mypageDiscordIdCurrent = "";
+
+    const currentLabel = document.createElement("span");
+    currentLabel.textContent = "Discord ID：";
+
+    const currentValue = document.createElement("strong");
+    currentValue.dataset.mypageDiscordIdCurrentValue = "";
+    currentValue.textContent = "読み込み中";
+
+    current.append(currentLabel, currentValue);
+
+    const form = document.createElement("form");
+    form.className = "calendar-form";
+    form.dataset.mypageDiscordIdForm = "";
+    form.noValidate = true;
+
+    const discordIdInput = document.createElement("input");
+    discordIdInput.type = "text";
+    discordIdInput.name = "discordId";
+    discordIdInput.autocomplete = "off";
+    discordIdInput.placeholder = "Discord IDを入力";
+
+    const submit = document.createElement("button");
+    submit.className = "button primary";
+    submit.type = "button";
+    submit.dataset.mypageDiscordIdSubmit = "";
+    submit.dataset.mypageFormSubmit = "";
+    submit.disabled = true;
+    submit.textContent = "保存";
+
+    form.append(
+      createInputField("Discord ID", discordIdInput),
+      submit
+    );
+
+    const note = document.createElement("p");
+    note.className = "mypage-profile-note";
+    note.textContent = "この情報は公開プロフィールには表示されません。";
+
+    const state = document.createElement("p");
+    state.className = "mypage-profile-state";
+    state.dataset.mypageDiscordIdState = "";
+    state.setAttribute("role", "status");
+    state.setAttribute("aria-live", "polite");
+    state.hidden = true;
+
+    const editor = {
+      container,
+      currentValue,
+      form,
+      input: discordIdInput,
+      state,
+      submit,
+      session,
+      inputDirty: false
+    };
+
+    discordIdInput.addEventListener("input", () => {
+      editor.inputDirty = true;
+    });
+
+    submit.addEventListener("click", (event) => {
+      handleDiscordIdSave(client, elements, editor, event);
+    });
+
+    form.addEventListener("submit", (event) => {
+      handleDiscordIdSave(client, elements, editor, event);
+    });
+
+    container.append(head, current, form, note, state);
+    return editor;
+  }
+
+  function setDiscordIdPanelState(editor, message, options = {}) {
+    editor.state.textContent = message || "";
+    editor.state.hidden = !message;
+    editor.state.classList.toggle("is-error", Boolean(options.error));
+  }
+
+  function setDiscordIdEditorState(editor, discordId, options = {}) {
+    const nextDiscordId = normalizeDiscordId(discordId);
+    editor.currentValue.textContent = nextDiscordId || "未登録";
+
+    if (!options.preserveDirtyInput || !editor.inputDirty) {
+      editor.input.value = nextDiscordId;
+      editor.inputDirty = false;
+    }
+
+    editor.input.disabled = false;
+    editor.input.readOnly = false;
+    editor.submit.disabled = false;
+  }
+
+  function setDiscordIdEditorError(editor, message = "読み込みできませんでした") {
+    editor.currentValue.textContent = "確認できませんでした";
+    editor.input.disabled = false;
+    editor.input.readOnly = false;
+    editor.submit.disabled = false;
+    setDiscordIdPanelState(editor, message, { error: true });
+  }
+
+  function showDiscordIdSaveFailure(editor, error) {
+    setDiscordIdPanelState(editor, "保存できませんでした", { error: true });
+
+    if (error) {
+      console.warn("discord_id update failed", {
+        code: error?.code || "unknown",
+        name: error?.name || "unknown",
+        status: error?.status || "unknown"
+      });
+    }
+  }
+
+  async function loadProfileContact(client, editor) {
+    setDiscordIdPanelState(editor, "読み込み中");
+
+    try {
+      const session = await getActiveSession(client, editor.session);
+      if (!session) {
+        setDiscordIdEditorError(editor);
+        return;
+      }
+
+      const { data, error } = await client.rpc("get_my_profile_contact");
+
+      if (error) {
+        setDiscordIdEditorError(editor);
+        return;
+      }
+
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row || !Object.prototype.hasOwnProperty.call(row, "discord_handle")) {
+        setDiscordIdEditorError(editor);
+        return;
+      }
+
+      setDiscordIdEditorState(editor, row.discord_handle, { preserveDirtyInput: true });
+      setDiscordIdPanelState(editor, "");
+    } catch (error) {
+      setDiscordIdEditorError(editor);
+    }
+  }
+
+  async function handleDiscordIdSave(client, elements, editor, event) {
+    event?.preventDefault?.();
+
+    const rawDiscordId = editor.input ? editor.input.value : "";
+    const nextDiscordId = normalizeDiscordId(rawDiscordId);
+
+    if (hasLineBreak(rawDiscordId)) {
+      setDiscordIdPanelState(editor, "改行は使えません。", { error: true });
+      return;
+    }
+
+    if (countDiscordIdCharacters(nextDiscordId) > DISCORD_ID_MAX_LENGTH) {
+      setDiscordIdPanelState(editor, "Discord IDは100文字以内で入力してください。", { error: true });
+      return;
+    }
+
+    try {
+      setMessage(elements, "");
+      setDiscordIdPanelState(editor, "保存中");
+      setFormBusy(editor.form, true, "保存中", "保存");
+      const { data, error } = await client.rpc("update_my_discord_id", {
+        new_discord_id: nextDiscordId
+      });
+
+      if (error) {
+        showDiscordIdSaveFailure(editor, error);
+        return;
+      }
+
+      const row = Array.isArray(data) ? data[0] : data;
+      const savedDiscordId = row && Object.prototype.hasOwnProperty.call(row, "discord_handle")
+        ? row.discord_handle
+        : nextDiscordId;
+      editor.inputDirty = false;
+      setDiscordIdEditorState(editor, savedDiscordId);
+      setDiscordIdPanelState(editor, "保存しました");
+    } catch (error) {
+      showDiscordIdSaveFailure(editor, error);
+    } finally {
+      if (editor.form.isConnected) setFormBusy(editor.form, false, "保存中", "保存");
+    }
+  }
+
   function renderAuthenticated(client, elements, message, session) {
     ensureAuthElements(elements);
     setStatus(
       elements,
       "ログイン済みです。",
-      "表示名と参加申請中・参加予定セッションを確認できます。"
+      "表示名、Discord ID、参加申請中・参加予定セッションを確認できます。"
     );
     clearContent(elements);
 
     const displayNameEditor = createDisplayNameEditor(client, elements, session);
+    const discordIdEditor = createDiscordIdEditor(client, elements, session);
     const applicationsPanel = createApplicationsPanel();
 
     const actions = document.createElement("div");
@@ -851,9 +1069,10 @@
     });
 
     actions.append(changePassword, logout);
-    elements.content.append(displayNameEditor.container, actions, applicationsPanel.container);
+    elements.content.append(displayNameEditor.container, discordIdEditor.container, actions, applicationsPanel.container);
     setMessage(elements, message || "");
     loadDisplayName(client, displayNameEditor);
+    loadProfileContact(client, discordIdEditor);
     loadApplications(client, applicationsPanel, session);
   }
 

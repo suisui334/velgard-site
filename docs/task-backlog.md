@@ -500,3 +500,9 @@
 - 3RPCはいずれも `security definer = true`、`search_path = ""`、返却列は `display_name` / `discord_handle`。grantは `authenticated EXECUTE` と `postgres EXECUTE` を確認済みで、`anon EXECUTE` はない。`postgres EXECUTE` はownerまたは管理者側の表示として扱う。
 - `profiles_discord_handle_check` はnull許可、100文字以下、改行禁止の制約。rollback、本人RPC / GM用RPCの実ログイン文脈テスト、RLS smoke test追加、本番フロント実装は未実施。同じapply sectionは通常運用で再実行しない。このdocs記録工程でCodexはSQL Editor実行、DB変更、Discord ID実値の記録、secret類の記録、`updates.json` 変更、commit / pushを行っていない。
 - 次工程候補は、SQL適用結果commit後に `mypage.html` のDiscord ID登録UI、または連絡先RPCのRLS smoke test追加へ進むこと。
+
+## Supabase M-12C mypage Discord ID登録UI
+- M-12C本人用UI実装完了: `mypage.html` のログイン済みアカウント機能内で、既存の表示名編集UIの直後に `Discord ID` 登録 / 編集パネルを追加済み。`get_my_profile_contact()` で現在値を取得し、`update_my_discord_id(new_discord_id text)` で保存する。未ログイン時は既存のログイン導線に従い、Discord ID欄は表示しない。
+- バリデーションは空欄保存を未登録扱い、100文字超過拒否、改行拒否に限定し、Discord側の仕様変更に備えて数字限定や `@` 必須の厳密な正規表現は使わない。DOM反映は `textContent` と input value に限定し、HTMLとして扱わない。
+- 画面・console・docsへ出す情報は本人の `discord_handle` に限定する。email、`user_id`、token、key、secret、`discord_user_id`、`discord_name`、他人の `discord_handle` は出さない。実装結果は `docs/supabase-discord-id-mypage-ui-result.md` に分離済み。
+- M-12CではSQL Editor実行、DB変更、GM向け承認済み参加者Discord ID表示 / コピー導線、RLS smoke test追加、Discord ID実値入力、`updates.json` 変更、commit / pushは行っていない。次工程候補はM-12E GM向け承認済み参加者連絡先表示 / コピー、またはM-12F RLS smoke test強化。

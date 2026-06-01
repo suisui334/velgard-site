@@ -246,7 +246,7 @@ M-12G: 既存 discord_user_id / discord_name の扱い整理
 
 `M-12G` は任意だが、既存 `discord_user_id` / `discord_name` の意味を将来混同しないため、DB適用後に別工程で整理すると安全。
 
-## 13. まだやらないこと
+## 13. M-12A時点でまだやらないこと
 
 - SQL Editor実行。
 - DB変更。
@@ -258,3 +258,13 @@ M-12G: 既存 discord_user_id / discord_name の扱い整理
 - `updates.json` 変更。
 - commit / push。
 - secret類や実IDの記録。
+
+## 14. M-12C mypage本人用UI実装結果
+
+M-12Cとして、`mypage.html` のログイン済みアカウント機能内に本人用のDiscord ID登録 / 編集UIを追加した。配置は既存の表示名編集UIの直後とし、GMが承認済み参加者へ連絡するために使うこと、未登録でも参加申請は可能であること、公開プロフィールには表示されないことを短く示す。
+
+フロントでは `get_my_profile_contact()` で現在値を取得し、`update_my_discord_id(new_discord_id text)` で保存する。空欄保存は未登録扱い、100文字超過と改行入りは保存前に止める。Discord側の仕様変更に備え、数字限定や `@` 必須などの厳密な正規表現は使わない。
+
+今回の本人UIでは本人の `discord_handle` のみを扱う。email、`user_id`、token、key、secret、`discord_user_id`、`discord_name`、他人の `discord_handle` は画面・console・docsへ出さない。
+
+M-12CではSQL Editor実行、DB変更、GM向けコピー導線、RLS smoke test追加、Discord ID実値入力、`updates.json` 変更、commit / pushは行っていない。詳細は `docs/supabase-discord-id-mypage-ui-result.md` に分離した。

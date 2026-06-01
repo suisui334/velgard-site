@@ -3064,9 +3064,53 @@ body[data-page="session-detail"] .calendar-session-modal-meta--supplement dd {
 
 body[data-page="mypage"] [data-mypage-auth-content],
 body[data-page="mypage"] [data-mypage-display-name-panel],
+body[data-page="mypage"] [data-mypage-discord-id-panel],
 body[data-page="mypage"] .mypage-applications {
   display: grid;
   gap: 16px;
+}
+
+body[data-page="mypage"] [data-mypage-discord-id-panel] {
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(86, 96, 106, 0.18);
+}
+
+body[data-page="mypage"] .mypage-profile-panel-head {
+  display: grid;
+  gap: 4px;
+}
+
+body[data-page="mypage"] .mypage-profile-panel-head h3,
+body[data-page="mypage"] .mypage-profile-panel-head p,
+body[data-page="mypage"] .mypage-profile-note,
+body[data-page="mypage"] .mypage-profile-state {
+  margin: 0;
+}
+
+body[data-page="mypage"] .mypage-profile-panel-head h3 {
+  color: var(--soot);
+  font-size: 1rem;
+}
+
+body[data-page="mypage"] .mypage-profile-panel-head p,
+body[data-page="mypage"] .mypage-profile-note {
+  color: var(--muted);
+}
+
+body[data-page="mypage"] .mypage-profile-note {
+  font-size: 0.88rem;
+}
+
+body[data-page="mypage"] .mypage-profile-state {
+  min-height: 1.3em;
+  color: var(--deep);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+body[data-page="mypage"] .mypage-profile-state.is-error {
+  color: var(--rust);
 }
 
 body[data-page="mypage"] .mypage-applications {

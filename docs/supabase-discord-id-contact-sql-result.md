@@ -143,3 +143,18 @@ SQL適用結果をcommitした後の次工程候補:
 - GM向け承認済み参加者連絡先表示 / コピー導線。
 
 このdocs記録工程ではcommit / pushは行っていない。
+
+## 11. M-12C mypage本人用UI実装結果
+
+M-12Cで `mypage.html` のログイン済みアカウント機能内に本人用Discord ID登録 / 編集UIを追加した。
+
+使用RPC:
+
+```text
+get_my_profile_contact()
+update_my_discord_id(new_discord_id text)
+```
+
+UI側では `discord_handle` を本人の現在値として表示し、空欄保存は未登録扱い、100文字超過と改行入りはフロントで保存前に止める。`public_profiles` には出さず、GM向けコピー導線も今回未実装のまま。
+
+このUI実装工程でCodexは、SQL Editor実行、DB変更、Discord ID実値入力、RLS smoke test追加、`updates.json` 変更、secret類の記録、commit / pushを行っていない。詳細は `docs/supabase-discord-id-mypage-ui-result.md` に記録した。
