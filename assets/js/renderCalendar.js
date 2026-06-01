@@ -1,6 +1,7 @@
 import { loadJson } from "./dataLoader.js";
 import {
   escapeHtml,
+  formatSessionApplicationDeadline,
   formatPlayerCount,
   formatSessionTime,
   getSessionDisplayTitle,
@@ -11,10 +12,10 @@ import {
   isClosedSession,
   renderSessionTags,
   shouldShowSessionState
-} from "./sessionDisplay.js?v=20260601-session-type";
+} from "./sessionDisplay.js?v=20260601-application-deadline";
 
 const CONFIG_URL = "data/calendarConfig.json?v=20260529-calendar-cap-start";
-const SESSIONS_URL = "data/sessions.json?v=20260601-session-type";
+const SESSIONS_URL = "data/sessions.json?v=20260601-application-deadline";
 const CALENDAR_SELECTED_DATE_KEY = "velgard.calendar.selectedDate";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -456,6 +457,10 @@ function renderSessionCard(session) {
         <div>
           <dt>種別</dt>
           <dd>${escapeHtml(getSessionTypeLabel(session.sessionType))}</dd>
+        </div>
+        <div>
+          <dt>申請締切</dt>
+          <dd>${escapeHtml(formatSessionApplicationDeadline(session))}</dd>
         </div>
         <div>
           <dt>GM</dt>

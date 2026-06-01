@@ -62,6 +62,10 @@ export function formatSessionTime(session) {
   return end || "時刻未定";
 }
 
+export function formatSessionApplicationDeadline(session) {
+  return String(session?.applicationDeadline || "").trim() || "未定";
+}
+
 export function formatPlayerCount(session, options = {}) {
   const count = Number.isFinite(Number(session?.playerCount)) ? Number(session.playerCount) : null;
   const max = Number.isFinite(Number(session?.playerMax)) ? Number(session.playerMax) : null;
@@ -167,7 +171,7 @@ export function renderSessionDetailContent(session, options = {}) {
     renderSessionDetailRow("開催日", session?.date ? formatDate(session.date) : ""),
     renderSessionDetailRow("種別", getSessionTypeLabel(session?.sessionType)),
     renderSessionDetailRow("開催時刻", formatSessionTime(session)),
-    renderSessionDetailRow("GM", session?.gmName),
+    renderSessionDetailRow("申請締切", formatSessionApplicationDeadline(session)),
     renderSessionDetailRow("レベル帯", session?.levelRange),
     renderSessionDetailRow("募集人数", playerCount)
   ].join("");
