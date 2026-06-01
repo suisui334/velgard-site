@@ -69,8 +69,17 @@ returns_created_at = true
 
 ## 未実施
 
-- 日跨ぎhidden/draft投稿テストは未実施。
-- フォーム側の日跨ぎ許可切替は未実装または未確認。
 - Edge Function deployは未実施。
 - Discord実送信は未実施。
 - secret、webhook URL、token、key、email、user_id全文は記録していない。
+
+## M-14D-5 フォーム追従
+
+フォーム側は `p_end_at` 送信へ切り替え済み。
+日跨ぎ終了日時の投稿前ブロックは解除し、終了日時が開始日時以下の場合は投稿前に拒否する。
+Supabase sessions表示側は `end_at` を `endAt` へ正規化し、`endAt` を終了日時として優先する。
+
+GM認証文脈のSupabase clientで、日跨ぎ終了日時を含むhidden/draft投稿を1回確認済み。
+結果は作成成功、`discord_sync_status = skipped`、作成行は `status = draft` / `visibility = hidden` / `session_type = one-shot`、`end_at` あり、anonからpublic表示対象として見えない。
+このhidden draft test rowは削除していない。
+public/recruiting投稿、Edge Function deploy、Discord実送信はこの工程では実施しない。

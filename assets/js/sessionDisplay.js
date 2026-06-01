@@ -56,6 +56,17 @@ export function shouldShowSessionState(session) {
 
 export function formatSessionTime(session) {
   const start = String(session?.startTime || "").trim();
+  const endAt = String(session?.endAt || "").trim();
+  if (endAt) {
+    const match = endAt.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})$/);
+    if (match) {
+      const end = session?.date === match[1] ? match[2] : `${match[1]} ${match[2]}`;
+      if (start) return `${start}〜${end}`;
+      return end;
+    }
+    if (start) return `${start}〜${endAt}`;
+    return endAt;
+  }
   const end = String(session?.endTime || "").trim();
   if (start && end) return `${start}〜${end}`;
   if (start) return `${start}〜`;

@@ -14,17 +14,18 @@ const ACTOR_ENV_MAP = {
 };
 
 const PAYLOAD = Object.freeze({
-  p_title: "M-14D hidden draft test",
+  p_title: "M-14D end_at hidden draft test",
   p_session_date: "2026-06-30",
-  p_start_time: "21:00",
-  p_end_time: "24:00",
+  p_start_time: "23:00",
+  p_end_time: "01:00",
+  p_end_at: "2026-07-01 01:00",
   p_application_deadline: "2026-06-29 23:59",
   p_session_type: "one-shot",
-  p_level_range: "3Lv",
+  p_level_range: null,
   p_player_min: 2,
   p_player_max: 5,
-  p_summary: "M-14D create_session_post hidden draft smoke test.",
-  p_request_body: "M-14D create_session_post hidden draft smoke test body.",
+  p_summary: "M-14D end_at hidden draft test.",
+  p_request_body: null,
   p_requirements: null,
   p_visibility: "hidden",
   p_status: "draft"
@@ -34,6 +35,7 @@ const EXPECTED_RETURN_KEYS = ["created_at", "discord_sync_status", "session_id"]
 const EXPECTED_ROW_KEYS = [
   "application_deadline",
   "discord_sync_status",
+  "end_at",
   "id",
   "session_type",
   "status",
@@ -143,7 +145,7 @@ async function run() {
 
   const { data: row, error: rowError } = await client
     .from("sessions")
-    .select("id,title,status,visibility,session_type,application_deadline,discord_sync_status")
+    .select("id,title,status,visibility,session_type,application_deadline,end_at,discord_sync_status")
     .eq("id", result.session_id)
     .single();
   assert(!rowError, `created row check failed: ${formatError(rowError)}`);
@@ -154,6 +156,7 @@ async function run() {
   assert(row.session_type === "one-shot", "created row session_type was not one-shot");
   assert(row.discord_sync_status === "skipped", "created row discord_sync_status was not skipped");
   assert(row.application_deadline, "created row application_deadline was empty");
+  assert(row.end_at, "created row end_at was empty");
 
   const anon = createSupabaseClient();
   const { data: publicRow, error: publicError } = await anon
@@ -175,6 +178,7 @@ async function run() {
       visibility: row.visibility,
       session_type: row.session_type,
       application_deadline_present: Boolean(row.application_deadline),
+      end_at_present: Boolean(row.end_at),
       discord_sync_status: row.discord_sync_status
     },
     public_visible_to_anon: false,

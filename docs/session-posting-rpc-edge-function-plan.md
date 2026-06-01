@@ -271,3 +271,20 @@ grantは `authenticated EXECUTE` と `postgres EXECUTE` のみで、`anon EXECUT
 `016_session_posting_end_at_draft.sql` は適用済みのため、通常運用では同じapply sectionをそのまま再実行しない。
 日跨ぎhidden/draft投稿テスト、フォーム側の日跨ぎ許可切替、Edge Function deploy、Discord実送信はまだ未実施。
 詳細は `docs/session-posting-end-at-apply-result.md` に記録済み。
+
+## 18. M-14D-5 posting form end_at support
+
+`session-post.html` の投稿フォームは、終了日時を `p_end_at` として `create_session_post(...)` へ送信する実装へ切り替えた。
+互換用に `p_end_time` も終了日時の時刻部分として送る。
+日跨ぎ終了日時の投稿前ブロックは解除し、終了日時が開始日時以下の場合だけ投稿前に拒否する。
+
+Supabase sessions読み込みは `end_at` を取得して `endAt` に正規化する。
+表示側は `endAt` があれば終了日時として優先し、なければ従来の `endTime` にフォールバックする。
+
+`レベル帯` 欄、`依頼書本文` 欄、`参加条件` 欄はフォームへ復活させていない。
+`p_level_range` / `p_request_body` / `p_requirements` は `null` を送る。
+Discord実送信は未実装のまま。public/recruiting投稿はユーザー確認なしでは実施しない。
+
+GM認証文脈のSupabase clientで、日跨ぎ終了日時を含むhidden/draft投稿を1回確認済み。
+`discord_sync_status = skipped`、作成行は `status = draft` / `visibility = hidden` / `session_type = one-shot`、`end_at` あり、anonからpublic表示対象として見えない。
+認証情報を画面やツール入力へ出さないため、ブラウザフォームでのGMログイン送信は行っていない。

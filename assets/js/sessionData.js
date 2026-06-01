@@ -60,6 +60,7 @@ function normalizeSupabaseSession(row) {
     date: normalizeText(row?.date),
     startTime: normalizeTime(row?.start_time),
     endTime: normalizeTime(row?.end_time),
+    endAt: formatJapanDateTime(row?.end_at),
     gmName: normalizeText(row?.gm_name) || "GM未設定",
     status: normalizeText(row?.status),
     sessionType: normalizeText(row?.session_type) || "other",
@@ -83,7 +84,7 @@ async function loadSupabasePublicSessions() {
 
   const { data, error } = await client
     .from("sessions")
-    .select("id,title,date,start_time,end_time,gm_name,status,session_type,application_deadline,level_range,player_min,player_max,summary,detail,requirements,visibility,updated_at")
+    .select("id,title,date,start_time,end_time,end_at,gm_name,status,session_type,application_deadline,level_range,player_min,player_max,summary,detail,requirements,visibility,updated_at")
     .eq("visibility", "public");
 
   if (error) {

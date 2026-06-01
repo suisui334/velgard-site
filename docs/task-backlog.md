@@ -577,3 +577,11 @@
 - grantは `authenticated EXECUTE` と `postgres EXECUTE` のみで、`anon EXECUTE` はなし。関数定義は `security definer = true`、`volatile`、`search_path` 固定あり、戻り値は `session_id` / `discord_sync_status` / `created_at` のみ。
 - `016_session_posting_end_at_draft.sql` は適用済みのため、通常運用では同じapply sectionをそのまま再実行しない。日跨ぎhidden/draft投稿テスト、フォーム側の日跨ぎ許可切替、Edge Function deploy、Discord実送信はまだ未実施。詳細は `docs/session-posting-end-at-apply-result.md` に記録済み。
 - このdocs記録工程でCodexはSQL Editor追加実行、DB変更、フロント実装、Edge Function deploy、Discord実送信、secret類の実値記録、`updates.json` 変更、commit / pushを行っていない。
+
+## M-14D-5 依頼書投稿フォーム end_at対応
+- `assets/js/renderSessionPost.js` を `p_end_at` 送信へ切り替えた。開始日時から `p_session_date` / `p_start_time`、終了日時から `p_end_at` と互換用 `p_end_time` を送る。
+- 日跨ぎ終了日時の投稿前ブロックは解除した。開始日時/終了日時は必須で、終了日時が開始日時以下の場合は `終了日時は開始日時より後にしてください。` として拒否する。
+- `レベル帯` 欄、`依頼書本文` 欄、`参加条件` 欄は復活させていない。RPC送信時の `p_level_range` / `p_request_body` / `p_requirements` は `null` のまま。
+- `assets/js/sessionData.js` でSupabase `end_at` を取得し `endAt` へ正規化する。`assets/js/sessionDisplay.js` では `endAt` があれば終了日時として優先し、なければ従来の `endTime` へフォールバックする。
+- GM認証文脈のSupabase clientで日跨ぎhidden/draft投稿を1回確認済み。作成成功、`discord_sync_status = skipped`、作成行は `draft` / `hidden` / `one-shot` / `end_at` あり、anonからpublic表示対象として見えない。hidden draft test rowは削除していない。
+- Discord実送信は未実装のまま。public/recruiting投稿はユーザー確認なしでは実施しない。この工程でCodexはSQL Editor実行、DB構造変更、Edge Function deploy、secret類の実値記録、`updates.json` 変更、commit / pushを行っていない。

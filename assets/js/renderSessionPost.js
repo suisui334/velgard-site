@@ -6,7 +6,7 @@ import {
 } from "./supabaseBrowserClient.js?v=20260601-session-post";
 
 const ERROR_MESSAGE = "依頼書を投稿できませんでした。権限または入力内容を確認してください。";
-const CROSS_DAY_END_MESSAGE = "日付をまたぐ終了日時は、現在の投稿フォームではまだ保存できません。";
+const END_BEFORE_START_MESSAGE = "終了日時は開始日時より後にしてください。";
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const DATE_TIME_PATTERN = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})$/;
 
@@ -35,7 +35,7 @@ function renderShell(initialStartAt = "") {
           <div class="session-post-grid">
             ${renderTextField("タイトル", "p_title", "text", { required: true, maxlength: 120 })}
             ${renderTextField("開始日時", "p_start_at", "datetime-local", { required: true, value: initialStartAt })}
-            ${renderTextField("終了日時", "p_end_at", "datetime-local")}
+            ${renderTextField("終了日時", "p_end_at", "datetime-local", { required: true })}
             ${renderTextField("申請締切", "p_application_deadline", "datetime-local")}
             ${renderSelectField("種別", "p_session_type", [
               ["one-shot", "単発シナリオ"],
@@ -140,6 +140,10 @@ function toDeadlineValue(value) {
   return text ? text.replace("T", " ") : null;
 }
 
+function toRpcDateTimeValue(value) {
+  return `${value.date} ${value.time}`;
+}
+
 function parseDateTimeLocal(value) {
   const text = String(value ?? "").trim();
   if (!text) return null;
@@ -167,17 +171,21 @@ function buildPayload(form) {
   const startAt = parseDateTimeLocal(getValue(form, "p_start_at"));
   const endAt = parseDateTimeLocal(getValue(form, "p_end_at"));
   if (!startAt) {
-    throw new Error("invalid-date-time");
+    throw new Error("missing-start-at");
   }
-  if (endAt && endAt.date !== startAt.date) {
-    throw new Error("cross-day-end");
+  if (!endAt) {
+    throw new Error("missing-end-at");
+  }
+  if (toRpcDateTimeValue(endAt) <= toRpcDateTimeValue(startAt)) {
+    throw new Error("end-before-start");
   }
 
   return {
     p_title: getValue(form, "p_title"),
     p_session_date: startAt.date,
     p_start_time: startAt.time,
-    p_end_time: endAt ? endAt.time : null,
+    p_end_time: endAt.time,
+    p_end_at: toRpcDateTimeValue(endAt),
     p_application_deadline: toDeadlineValue(getValue(form, "p_application_deadline")),
     p_session_type: getValue(form, "p_session_type"),
     p_level_range: null,
@@ -251,7 +259,7 @@ async function initializeForm(root, client) {
       renderResult(resultList, result);
       resultPanel.hidden = false;
     } catch (error) {
-      setState(state, error?.message === "cross-day-end" ? CROSS_DAY_END_MESSAGE : ERROR_MESSAGE, "is-error");
+      setState(state, error?.message === "end-before-start" ? END_BEFORE_START_MESSAGE : ERROR_MESSAGE, "is-error");
     } finally {
       submit.disabled = false;
     }
