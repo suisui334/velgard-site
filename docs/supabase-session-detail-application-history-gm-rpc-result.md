@@ -160,3 +160,25 @@ docs/supabase-session-detail-application-history-gm-smoke-test-result.md
 ```
 
 この追記工程では、GM履歴RPCの手動実行、DB接続を伴う smoke test 本体実行、SQL Editor実行、DB変更、本番フロント実装、`updates.json` 変更、secret類の記録、commit / pushは行っていない。
+
+## 12. M-11E-4 smoke test確認結果
+
+2026-06-01に、ユーザーが通常のRLS smoke testを実行し、GM履歴RPC追加分を確認した。`RUN_DESTRUCTIVE_TESTS` は使用していない。
+
+全体結果:
+
+```text
+PASS: 40
+FAIL: 0
+SKIP: 13
+```
+
+GM履歴RPC関連:
+
+- `M11E-HIST-001` から `M11E-HIST-007` はPASS。
+- anon / 通常PL / 他GMは拒否できている。
+- 対象GM / adminは取得できている。
+- 返却列の内部情報非露出チェックはPASS。
+- `M11E-HIST-008` から `M11E-HIST-010` は専用fixture不足でSKIP。
+
+`canceled` / `rejected` 履歴やdeletedコメント耐性、`comment_count` active-onlyの詳細確認は、将来fixture整備後に扱う。今回の通常smoke test結果では、GM履歴UI実装へ進める状態とする。
