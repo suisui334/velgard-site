@@ -585,3 +585,9 @@
 - `assets/js/sessionData.js` でSupabase `end_at` を取得し `endAt` へ正規化する。`assets/js/sessionDisplay.js` では `endAt` があれば終了日時として優先し、なければ従来の `endTime` へフォールバックする。
 - GM認証文脈のSupabase clientで日跨ぎhidden/draft投稿を1回確認済み。作成成功、`discord_sync_status = skipped`、作成行は `draft` / `hidden` / `one-shot` / `end_at` あり、anonからpublic表示対象として見えない。hidden draft test rowは削除していない。
 - Discord実送信は未実装のまま。public/recruiting投稿はユーザー確認なしでは実施しない。この工程でCodexはSQL Editor実行、DB構造変更、Edge Function deploy、secret類の実値記録、`updates.json` 変更、commit / pushを行っていない。
+
+## M-14D-6 GM/admin向け 自分の依頼書一覧
+- hidden/draftは公開calendarに出ないため、`session-post.html` にGM/admin向けの `自分の依頼書` 一覧を追加した。未ログインまたは通常PLには一覧を表示しない。
+- 一覧は認証済みSupabase clientで `public.sessions` をSELECTし、RLSで見える範囲を表示する。取得・表示する情報はタイトル、開催日時、終了日時、公開状態、募集状態、Discord同期状態、作成日時、詳細導線に限定し、`gm_user_id`、email、user_id全文、token、key、secret、Discord credential類は取得・表示しない。
+- calendar側に `自分の依頼書` 導線を追加し、`session-post.html#my-sessions` へ遷移できるようにした。`詳細を見る` は `session-post.html?id=SESSION_ID#my-sessions` へ向けるが、下書き詳細表示、編集、削除、公開切替は次工程。
+- Discord実送信、Edge Function deploy、public/recruiting投稿、テンプレート保存は実施していない。テンプレート保存はM-15系で扱う。詳細は `docs/session-posting-manage-list-result.md` に記録済み。

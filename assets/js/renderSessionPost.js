@@ -1,4 +1,7 @@
-import { escapeHtml } from "./sessionDisplay.js?v=20260601-session-post";
+import {
+  escapeHtml,
+  getSessionStatusLabel
+} from "./sessionDisplay.js?v=20260601-session-post";
 import {
   createSupabaseBrowserClient,
   getSupabaseRuntimeConfig,
@@ -9,6 +12,23 @@ const ERROR_MESSAGE = "依頼書を投稿できませんでした。権限また
 const END_BEFORE_START_MESSAGE = "終了日時は開始日時より後にしてください。";
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const DATE_TIME_PATTERN = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})$/;
+const MANAGE_SESSION_SELECT = [
+  "id",
+  "title",
+  "date",
+  "start_time",
+  "end_time",
+  "end_at",
+  "visibility",
+  "status",
+  "discord_sync_status",
+  "created_at"
+].join(",");
+const VISIBILITY_LABELS = {
+  hidden: "非公開",
+  private: "限定",
+  public: "公開"
+};
 
 function renderShell(initialStartAt = "") {
   return `
@@ -70,6 +90,13 @@ function renderShell(initialStartAt = "") {
       <article class="article-box session-post-result-panel" data-session-post-result-panel hidden>
         <h2>作成結果</h2>
         <dl class="session-post-result-list" data-session-post-result></dl>
+      </article>
+      <article class="article-box session-post-manage-panel" id="my-sessions" data-session-post-manage-panel hidden>
+        <div class="session-post-form-head">
+          <h2>自分の依頼書</h2>
+          <p class="session-post-state" data-session-post-manage-state aria-live="polite">読み込み中</p>
+        </div>
+        <div class="session-post-manage-list" data-session-post-manage-list></div>
       </article>
     </section>
   `;
@@ -135,6 +162,40 @@ function nullableInteger(value) {
   return Number.isInteger(number) ? number : NaN;
 }
 
+function normalizeTime(value) {
+  const text = String(value ?? "").trim();
+  const match = text.match(/^(\d{2}):(\d{2})/);
+  return match ? `${match[1]}:${match[2]}` : "";
+}
+
+function formatJapanDateTime(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+
+  const alreadyFormatted = text.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}):(\d{2})/);
+  if (alreadyFormatted && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(text)) {
+    return `${alreadyFormatted[1]} ${alreadyFormatted[2]}:${alreadyFormatted[3]}`;
+  }
+
+  const date = new Date(text);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const parts = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  }).formatToParts(date).reduce((acc, part) => {
+    acc[part.type] = part.value;
+    return acc;
+  }, {});
+
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`;
+}
+
 function toDeadlineValue(value) {
   const text = String(value ?? "").trim();
   return text ? text.replace("T", " ") : null;
@@ -159,6 +220,11 @@ function getInitialStartAt() {
   const params = new URLSearchParams(window.location.search);
   const date = String(params.get("date") || "").trim();
   return ISO_DATE_PATTERN.test(date) ? `${date}T21:00` : "";
+}
+
+function readSelectedSessionId() {
+  const params = new URLSearchParams(window.location.search);
+  return String(params.get("id") || "").trim();
 }
 
 function buildPayload(form) {
@@ -222,6 +288,97 @@ function renderResult(target, result) {
   `;
 }
 
+function normalizeManagedSession(row) {
+  const date = String(row?.date ?? "").trim();
+  const startTime = normalizeTime(row?.start_time);
+  const endTime = normalizeTime(row?.end_time);
+  const endAt = formatJapanDateTime(row?.end_at);
+  return {
+    id: String(row?.id ?? "").trim(),
+    title: String(row?.title ?? "").trim() || "無題の依頼書",
+    date,
+    startTime,
+    endTime,
+    endAt,
+    endLabel: endAt || (endTime && date ? `${date} ${endTime}` : endTime || "未定"),
+    visibility: String(row?.visibility ?? "").trim(),
+    status: String(row?.status ?? "").trim(),
+    discordSyncStatus: String(row?.discord_sync_status ?? "").trim() || "未設定",
+    createdAt: formatJapanDateTime(row?.created_at) || "未定"
+  };
+}
+
+function managedSessionDetailHref(session) {
+  const id = String(session?.id || "").trim();
+  return id ? `session-post.html?id=${encodeURIComponent(id)}#my-sessions` : "session-post.html#my-sessions";
+}
+
+function renderManagedSession(session, selectedSessionId) {
+  const selectedClass = selectedSessionId && selectedSessionId === session.id ? " is-selected" : "";
+  return `
+    <article class="session-post-managed-item${selectedClass}">
+      <div class="session-post-managed-head">
+        <h3>${escapeHtml(session.title)}</h3>
+        <a class="button small" href="${escapeHtml(managedSessionDetailHref(session))}">詳細を見る</a>
+      </div>
+      <dl class="session-post-managed-meta">
+        <div>
+          <dt>開催日時</dt>
+          <dd>${escapeHtml(session.date && session.startTime ? `${session.date} ${session.startTime}` : session.date || "未定")}</dd>
+        </div>
+        <div>
+          <dt>終了日時</dt>
+          <dd>${escapeHtml(session.endLabel)}</dd>
+        </div>
+        <div>
+          <dt>公開状態</dt>
+          <dd>${escapeHtml(VISIBILITY_LABELS[session.visibility] || "未設定")}</dd>
+        </div>
+        <div>
+          <dt>募集状態</dt>
+          <dd>${escapeHtml(getSessionStatusLabel(session.status))}</dd>
+        </div>
+        <div>
+          <dt>Discord同期状態</dt>
+          <dd>${escapeHtml(session.discordSyncStatus)}</dd>
+        </div>
+        <div>
+          <dt>作成日時</dt>
+          <dd>${escapeHtml(session.createdAt)}</dd>
+        </div>
+      </dl>
+    </article>
+  `;
+}
+
+async function loadManagedSessions(client, elements) {
+  const { panel, list, state } = elements;
+  panel.hidden = false;
+  setState(state, "読み込み中");
+  list.innerHTML = "";
+
+  const { data, error } = await client
+    .from("sessions")
+    .select(MANAGE_SESSION_SELECT)
+    .order("created_at", { ascending: false })
+    .limit(80);
+
+  if (error) {
+    setState(state, "依頼書一覧を取得できませんでした。", "is-error");
+    return;
+  }
+
+  const sessions = Array.isArray(data) ? data.map(normalizeManagedSession) : [];
+  if (!sessions.length) {
+    setState(state, "自分の依頼書はまだありません。");
+    return;
+  }
+
+  setState(state, `${sessions.length}件`);
+  const selectedSessionId = readSelectedSessionId();
+  list.innerHTML = sessions.map((session) => renderManagedSession(session, selectedSessionId)).join("");
+}
+
 async function initializeForm(root, client) {
   const formPanel = root.querySelector("[data-session-post-form-panel]");
   const form = root.querySelector("[data-session-post-form]");
@@ -229,8 +386,14 @@ async function initializeForm(root, client) {
   const state = root.querySelector("[data-session-post-state]");
   const resultPanel = root.querySelector("[data-session-post-result-panel]");
   const resultList = root.querySelector("[data-session-post-result]");
+  const manageElements = {
+    panel: root.querySelector("[data-session-post-manage-panel]"),
+    list: root.querySelector("[data-session-post-manage-list]"),
+    state: root.querySelector("[data-session-post-manage-state]")
+  };
 
   formPanel.hidden = false;
+  await loadManagedSessions(client, manageElements);
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     resultPanel.hidden = true;
@@ -258,6 +421,7 @@ async function initializeForm(root, client) {
       setState(state, "作成しました。", "is-ok");
       renderResult(resultList, result);
       resultPanel.hidden = false;
+      await loadManagedSessions(client, manageElements);
     } catch (error) {
       setState(state, error?.message === "end-before-start" ? END_BEFORE_START_MESSAGE : ERROR_MESSAGE, "is-error");
     } finally {

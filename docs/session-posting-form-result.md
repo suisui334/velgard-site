@@ -74,6 +74,20 @@ GM認証文脈のSupabase clientで、日跨ぎ終了日時を含むhidden/draft
 このhidden draft test rowは削除していない。
 認証情報を画面やツール入力へ出さないため、ブラウザフォームでのGMログイン送信は行っていない。
 
+## M-14D-6 自分の依頼書一覧
+
+hidden/draftは公開calendarに出ないため、`session-post.html` にGM/admin向けの `自分の依頼書` 一覧を追加した。
+一覧はログイン済みかつGM/admin判定が通った場合だけ表示し、未ログインまたは通常PLには表示しない。
+calendar側には `自分の依頼書` 導線を追加し、`session-post.html#my-sessions` へ遷移できるようにした。
+
+一覧は認証済みSupabase clientで `public.sessions` を読み、RLSで見える範囲を表示する。
+表示する情報はタイトル、開催日時、終了日時、公開状態、募集状態、Discord同期状態、作成日時、詳細導線に限定する。
+`gm_user_id`、email、user_id全文、token、key、secret、Discord credential類は取得・表示しない。
+
+`詳細を見る` は `session-post.html?id=SESSION_ID#my-sessions` へ向ける。
+今回は一覧表示までで、下書き詳細表示、編集、削除、公開切替は次工程。
+Discord実送信とpublic/recruiting投稿は実施しない。
+
 ## 未実施・安全確認
 
 - SQL Editorは実行していない。
