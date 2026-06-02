@@ -1,9 +1,6 @@
 import { loadJson } from "./dataLoader.js";
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js?v=20260601-session-post";
 
-const PUBLIC_SESSION_EXCLUDED_STATUSES = new Set(["draft", "canceled", "cancelled"]);
-const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-
 function normalizeText(value) {
   return String(value ?? "").trim();
 }
@@ -42,15 +39,15 @@ function formatJapanDateTime(value) {
   return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`;
 }
 
-function isPublicDisplaySession(session) {
-  const status = normalizeText(session?.status);
-  return Boolean(
-    session
-      && session.visibility === "public"
-      && !PUBLIC_SESSION_EXCLUDED_STATUSES.has(status)
-      && ISO_DATE_PATTERN.test(normalizeText(session.date))
-      && normalizeText(session.id)
-  );
+function hasSessionId(session) {
+  return Boolean(normalizeText(session?.id));
+}
+
+function normalizeStaticSession(session) {
+  return {
+    ...session,
+    source: "static"
+  };
 }
 
 function normalizeSupabaseSession(row) {
@@ -77,7 +74,7 @@ function normalizeSupabaseSession(row) {
   };
 }
 
-async function loadSupabasePublicSessions() {
+async function loadSupabaseSessions() {
   const client = await createSupabaseBrowserClient();
   if (!client) {
     return { sessions: [], loadError: false };
@@ -85,42 +82,43 @@ async function loadSupabasePublicSessions() {
 
   const { data, error } = await client
     .from("sessions")
-    .select("id,title,date,start_time,end_time,end_at,gm_name,status,session_type,application_deadline,level_range,player_min,player_max,summary,detail,requirements,visibility,updated_at")
-    .eq("visibility", "public");
+    .select("id,title,date,start_time,end_time,end_at,gm_name,status,session_type,application_deadline,level_range,player_min,player_max,summary,detail,requirements,visibility,updated_at");
 
   if (error) {
     return { sessions: [], loadError: true };
   }
 
   const sessions = Array.isArray(data)
-    ? data.map(normalizeSupabaseSession).filter(isPublicDisplaySession)
+    ? data.map(normalizeSupabaseSession).filter(hasSessionId)
     : [];
   return { sessions, loadError: false };
 }
 
 function mergeSessions(staticSessions, supabaseSessions) {
-  const merged = [];
-  const staticIds = new Set();
+  const mergedById = new Map();
+  const orderedIds = [];
 
-  for (const session of staticSessions) {
+  staticSessions.forEach((session, index) => {
     const id = normalizeText(session?.id);
-    if (id) staticIds.add(id);
-    merged.push(session);
-  }
+    const key = id || `static-fallback-${index}`;
+    if (!mergedById.has(key)) orderedIds.push(key);
+    mergedById.set(key, normalizeStaticSession(session));
+  });
 
   for (const session of supabaseSessions) {
-    if (!staticIds.has(normalizeText(session.id))) {
-      merged.push(session);
-    }
+    const id = normalizeText(session?.id);
+    if (!id) continue;
+    if (!mergedById.has(id)) orderedIds.push(id);
+    mergedById.set(id, session);
   }
 
-  return merged;
+  return orderedIds.map((id) => mergedById.get(id)).filter(Boolean);
 }
 
 export async function loadMergedSessions(staticSessionsUrl) {
   const staticData = await loadJson(staticSessionsUrl);
   const staticSessions = Array.isArray(staticData.sessions) ? staticData.sessions : [];
-  const supabaseResult = await loadSupabasePublicSessions().catch(() => ({
+  const supabaseResult = await loadSupabaseSessions().catch(() => ({
     sessions: [],
     loadError: true
   }));
