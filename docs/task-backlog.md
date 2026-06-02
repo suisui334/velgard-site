@@ -781,3 +781,10 @@
 - 初期実装ではmypageのデフォルトPCを参加申請時に自動採用し、後続で参加申請時PC選択へ拡張する。テンプレート出力では `pc_name_snapshot` を正とし、PC名未登録は `PC名未登録` と出す。
 - 後続候補は、M-15B SQL草案、M-15C SQL適用結果記録、M-15D mypage PC名登録UI、M-15E 参加申請へのPC名スナップショット接続、M-15F GM向け承認済み参加者情報のPC名対応、M-15G テンプレート変数置換UI。
 - この工程でCodexはSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE、フロントUI実装、テンプレート保存機能本体、PC名登録UI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、service_role key利用、secret類の出力、commit / pushを行っていない。
+
+## M-15B PC名登録・参加申請PC紐付けSQL草案
+- PC名登録用preflight SELECT-only SQL `docs/supabase/sql/019_player_characters_preflight_select_only.sql` を作成した。`profiles`、`session_applications`、既存 `player_characters`、`selected_character_id` / `pc_name_snapshot`、PC名関連RPC候補、helper関数、routine privileges、RLS policy候補を確認する。
+- PC名登録・参加申請PC紐付け用SQL草案 `docs/supabase/sql/019_player_characters_rpc_draft.sql` を作成した。`player_characters` テーブル、`session_applications.selected_character_id` / `pc_name_snapshot`、PC名管理RPC、参加申請時のdefault PC自動採用、テンプレート用 `get_gm_session_approved_template_data(target_session_id text)` 候補を含めた。
+- 設計docs `docs/player-character-registration-sql-plan.md` を追加し、player_charactersテーブル案、session_applications追加列案、RPC案、参加申請との紐付け方針、`{{approved_call_list}}` / `{{approved_pc_names}}` との関係、段階実装案を整理した。
+- 既存 `get_gm_session_accepted_contacts(target_session_id text)` は現行JSの返却列検査と結びついているため、M-15BではすぐPC名付きへ置換せず、テンプレート用別RPC候補を優先した。
+- 次工程候補はM-15Cとしてpreflight結果記録とSQL草案レビュー。今回CodexはSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE、フロントUI実装、PC名登録UI実装、参加申請UI変更、テンプレート保存機能実装、Discord実送信、Edge Function deploy、`updates.json` 変更、service_role key利用、secret類の出力、commit / pushを行っていない。

@@ -55,3 +55,11 @@ DB構造変更、SQL Editor実行、RPC作成 / 置換、GRANT / REVOKE、Discor
 テンプレート出力では `pc_name_snapshot` を優先する。これにより、mypageでPC名マスターを後から編集しても、そのセッションで承認済みになった参加PC名を固定しやすい。PC名が未登録の場合は、引き続き `PC名未登録` を出す。
 
 初期実装ではmypageのデフォルトPCを参加申請時に自動採用し、後続で申請時PC選択へ拡張する。SQL Editor実行、DB構造変更、RPC変更、フロントUI実装、テンプレート置換処理はM-15Aでは行わない。詳細は `docs/player-character-registration-plan.md` に整理した。
+
+## M-15B SQL草案との関係
+
+M-15Bでは、`player_characters` と `session_applications.pc_name_snapshot` のSQL草案を作成した。`{{approved_call_list}}` / `{{approved_pc_names}}` の取得元は、承認済み参加者の `display_name`、`discord_handle`、`pc_name_snapshot` とする。
+
+既存 `get_gm_session_accepted_contacts(target_session_id text)` は現在 `display_name` / `discord_handle` の返却列でフロント接続済みのため、M-15B草案ではテンプレート用の別RPC候補 `get_gm_session_approved_template_data(target_session_id text)` を置いた。後続でテンプレートUIだけ別RPCへ接続するか、既存連絡先RPCをPC名付きへ置換するかを選ぶ。
+
+M-15BではSQL Editor実行、DB構造変更、RPC変更、フロントUI実装、テンプレート変数置換処理は行わない。

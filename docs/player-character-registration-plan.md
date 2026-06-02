@@ -344,3 +344,23 @@ secret類
 - service_role key利用。
 - secret類の出力。
 - commit / push。
+
+## M-15B SQL草案作成
+
+M-15Bとして、PC名登録・参加申請PC紐付け用のSELECT-only preflight SQLと、まだ実行しないSQL草案を作成した。
+
+作成ファイル:
+
+```text
+docs/supabase/sql/019_player_characters_preflight_select_only.sql
+docs/supabase/sql/019_player_characters_rpc_draft.sql
+docs/player-character-registration-sql-plan.md
+```
+
+preflight専用SQLでは、`public.profiles`、`public.session_applications`、既存 `player_characters`、`selected_character_id` / `pc_name_snapshot`、PC名関連RPC候補、helper関数、routine privileges、RLS policy候補をSELECT-onlyで確認する。
+
+SQL草案では、`player_characters` テーブル、`session_applications.selected_character_id` / `pc_name_snapshot`、PC名管理RPC、既存 `create_application_comment` へのdefault PC自動採用、テンプレート用 `get_gm_session_approved_template_data(target_session_id text)` 候補を整理した。
+
+既存 `get_gm_session_accepted_contacts(target_session_id text)` は現在のフロント返却列チェックと結びついているため、M-15B草案ではすぐPC名付きへ置換せず、テンプレート用の別RPC候補を置く方針とした。
+
+この工程ではSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE、フロントUI実装、PC名登録UI実装、参加申請UI変更、テンプレート保存機能実装、Discord実送信、Edge Function deploy、`updates.json` 変更、service_role key利用、secret類の出力、commit / pushは行わない。

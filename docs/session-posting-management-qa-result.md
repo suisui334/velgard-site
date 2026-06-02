@@ -164,3 +164,15 @@ PC名保存方式は、`profiles.default_pc_name` 単独案、`player_characters
 テンプレート出力では、承認済み参加者の `display_name`、`discord_handle`、`pc_name_snapshot` を使う方針とした。`{{approved_call_list}}` は `<@DiscordユーザーID> 表示名 PC名` の1人1行、DiscordユーザーID未登録/形式不正は `登録されていません`、PC名未登録は `PC名未登録` を出す。`{{approved_pc_names}}` は承認済み参加者のPC名をまとめ、未登録は空欄にせず `PC名未登録` を含める。
 
 この工程ではSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE、フロントUI実装、テンプレート保存機能本体、PC名登録UI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行わない。
+
+## M-15B PC名登録SQL草案
+
+M-15Bとして、PC名登録・参加申請PC紐付け用のSQL草案とSELECT-only preflight専用SQLを作成した。
+
+作成したpreflight SQLは `docs/supabase/sql/019_player_characters_preflight_select_only.sql`。`public.profiles`、`public.session_applications`、既存 `player_characters`、既存 `selected_character_id` / `pc_name_snapshot`、PC名関連RPC候補、helper関数、routine privileges、RLS policy候補をcatalog上で確認する。preflightファイルはSELECT-onlyで、SQL Editorで実行してもschema/data/privilegesを変更しない前提。
+
+作成したSQL草案は `docs/supabase/sql/019_player_characters_rpc_draft.sql`。`player_characters` テーブル案、`session_applications.selected_character_id` / `pc_name_snapshot` 追加案、PC名管理RPC案、`create_application_comment` へのdefault PC自動採用案、`get_gm_session_approved_template_data(target_session_id text)` 候補を含めた。
+
+既存 `get_gm_session_accepted_contacts(target_session_id text)` は現在のフロント返却列チェックと結びついているため、M-15Bでは即置換せず、テンプレート用の別RPC候補を置いた。`{{approved_call_list}}` / `{{approved_pc_names}}` は承認済み参加者の `display_name`、`discord_handle`、`pc_name_snapshot` を使う方針。
+
+この工程ではSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE、フロントUI実装、PC名登録UI実装、参加申請UI変更、テンプレート保存機能実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行わない。
