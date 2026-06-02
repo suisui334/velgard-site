@@ -774,3 +774,10 @@
 - GM/admin文脈の人数表示は、RLSで許可された `session_applications` の `user_id` / `status` を内部取得し、GM本人を除外して `pending` / `waitlisted` / `accepted` を再集計する。公開カウントRPC自体は今回変更しない。
 - GM向け申請履歴と承認済み連絡先は、現行RPCが内部 `user_id` を返さないため、GM本人の表示名を使ったbest-effort除外とした。厳密化は後続でRPC側にGM本人除外条件を入れる候補。
 - adminコメントの扱い、GMコメント専用種別、既存DB上のGM本人申請/コメントcleanupは後続課題とする。この工程ではSQL Editor実行、DB構造変更、`comment_type` 列追加、RPC作成/置換、GRANT/REVOKE、既存データcleanup、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
+
+## M-15A PC名登録・テンプレート変数前提設計
+- PC名登録とテンプレート変数 `{{session_title}}` / `{{approved_call_list}}` / `{{approved_pc_names}}` の前提設計を実施した。新規docs `docs/player-character-registration-plan.md` を追加し、PC名保存方式、mypage登録方針、参加申請との紐付け、後続SQL/RPC候補、段階実装案を整理した。
+- PC名保存方式は `profiles.default_pc_name`、`player_characters`、`session_applications.pc_name_snapshot` を比較した。推奨は `player_characters` でPC名を管理し、`session_applications` に `selected_character_id` と `pc_name_snapshot` を持たせる複合案。
+- 初期実装ではmypageのデフォルトPCを参加申請時に自動採用し、後続で参加申請時PC選択へ拡張する。テンプレート出力では `pc_name_snapshot` を正とし、PC名未登録は `PC名未登録` と出す。
+- 後続候補は、M-15B SQL草案、M-15C SQL適用結果記録、M-15D mypage PC名登録UI、M-15E 参加申請へのPC名スナップショット接続、M-15F GM向け承認済み参加者情報のPC名対応、M-15G テンプレート変数置換UI。
+- この工程でCodexはSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE、フロントUI実装、テンプレート保存機能本体、PC名登録UI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、service_role key利用、secret類の出力、commit / pushを行っていない。

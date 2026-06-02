@@ -47,3 +47,11 @@ PC名が未登録の場合は、初期方針として `PC名未登録` を出す
 ## 今回やらないこと
 
 DB構造変更、SQL Editor実行、RPC作成 / 置換、GRANT / REVOKE、Discord実送信、Edge Function deploy、テンプレート保存テーブル作成、テンプレート生成UI、`{{approved_call_list}}` の実際の置換処理、テンプレート保存機能本体、PC名登録機能、mypage予定プルダウン化、`updates.json` 変更、service_role key利用は行わない。
+
+## M-15A PC名登録との接続方針
+
+`{{approved_call_list}}` と `{{approved_pc_names}}` には、承認済み参加者のセッション参加PC名が必要になる。M-15Aでは、PC名保存方式として `player_characters` テーブルでPC名を管理し、`session_applications` に `selected_character_id` と `pc_name_snapshot` を持たせる複合案を推奨する。
+
+テンプレート出力では `pc_name_snapshot` を優先する。これにより、mypageでPC名マスターを後から編集しても、そのセッションで承認済みになった参加PC名を固定しやすい。PC名が未登録の場合は、引き続き `PC名未登録` を出す。
+
+初期実装ではmypageのデフォルトPCを参加申請時に自動採用し、後続で申請時PC選択へ拡張する。SQL Editor実行、DB構造変更、RPC変更、フロントUI実装、テンプレート置換処理はM-15Aでは行わない。詳細は `docs/player-character-registration-plan.md` に整理した。
