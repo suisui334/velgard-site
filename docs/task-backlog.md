@@ -696,3 +696,9 @@
 - 成功時は `この依頼書を非公開・中止扱いにしました。` と表示し、詳細画面の公開状態/募集状態も `非公開` / `中止` に更新する。失敗時は `login_required`、`not_allowed`、`session_not_found` を日本語へ丸め、未知エラーは削除相当操作失敗として表示する。
 - `session-post.html` の募集状態selectに `closed` / `finished` / `canceled` を追加し、募集終了、開催終了、中止の補助文を整理した。既存の編集ボタン、`session-post.html?id=...` 復元、自分の依頼書select、admin管理対象select、変更保存、`draft + public` ガード、`p_end_at` / 日跨ぎ対応、hidden/draft の公開calendar非表示は維持する。
 - この工程でCodexはSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、物理削除、Discord実送信、Edge Function deploy、Discord resync UI、service_role key利用、フロントからのDB直UPDATE、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+
+## M-14D-13A 削除方針変更追記
+- M-14D-13A時点では soft delete = `visibility = hidden` / `status = canceled` としてQA確認済み。ただし運用方針として、削除ボタンは完全削除へ変更する。
+- `hidden` / `canceled` は「中止として残す」操作として扱う。完全削除は後続で `delete_session_post` RPC を新設して実装する。
+- `session-detail.html` だけでなく、`session-post.html` 編集画面にも削除ボタンを置く。削除前には確認ポップアップを出し、確認文には「中止として残したい場合は募集状態を中止にする」旨を含める。
+- この追記でCodexはSQL Editor実行、DB変更、RPC変更、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。

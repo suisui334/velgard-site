@@ -34,6 +34,16 @@ Codex側では未ログイン状態で以下を確認した。
 - ログイン済みGM/adminでの新規作成、編集保存、`session-post.html?id=...` 復元、soft delete OK実行、リロード後の `hidden` / `canceled` 維持はユーザー実ブラウザのテスト用依頼書で確認する。
 - admin管理対象が既存RLS/APIで十分に取得できない場合は、後続で管理用RPC追加が必要。M-14D-13AではRPC追加は行っていない。
 
+## Delete policy addendum
+
+M-14D-13A時点では soft delete = `visibility = hidden` / `status = canceled` としてQA確認済み。ただし運用方針として、削除ボタンは完全削除へ変更する。
+
+`hidden` / `canceled` は「中止として残す」操作として扱う。完全削除は後続で `delete_session_post` RPC を新設して実装し、`session-detail.html` だけでなく `session-post.html` の編集画面にも削除ボタンを置く。
+
+完全削除の実行前には確認ポップアップを出す。確認文には「中止として残したい場合は募集状態を中止にする」旨を入れ、完全削除と中止保存の違いを明示する。
+
+この追記時点では SQL Editor未実行、DB変更なし、RPC変更なし。
+
 ## Not done
 
 SQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE、Discord実送信、Edge Function deploy、Discord resync UI、テンプレート保存実装、PC名登録実装、mypage予定プルダウン実装、`updates.json` 変更、service_role key利用、フロントからのDB直UPDATE、commit / push は行っていない。
