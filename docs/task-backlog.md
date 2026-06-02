@@ -674,3 +674,11 @@
 - 保存成功メッセージは公開状態で出し分ける。非公開保存は従来どおり、公開保存は公開カレンダー反映とDiscord未実装を明示する。
 - 公開切替専用の大型UI、削除/募集終了専用UIは追加していない。既存のselect、フォーム反映、`変更を保存`、新規作成モード、raw id / uuid非表示方針は維持する。
 - この工程でCodexはSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+
+## M-14D-10.5 session-detail編集導線改善
+- `session-detail.html` の基本情報グリッド右下に編集 / 削除ボタン枠を追加した。PC幅では編集50% / 削除50%の横並びで、右下の空きエリアを使う。
+- 編集ボタンはSupabase由来の公開依頼書で、ログイン中ユーザーが `is_admin()` または `is_session_gm(target_session_id)` を満たす場合だけ有効化する。有効時は `session-post.html?id=<session_id>#my-sessions` へ遷移し、既存の自分の依頼書select復元へつなぐ。
+- 削除ボタンはdisabled配置のみ。DB削除、status変更、visibility変更、削除RPC呼び出しは行っていない。
+- 開催時刻は開始側にも年月日を出すよう修正し、`2026-06-08 21:00〜2026-06-09 09:47` のように表示できるようにした。
+- `session-post.html` 側は編集状態の補助文を明確化し、指定IDが自分の依頼書一覧にない場合もIDを表示せず短文エラーにする。select option valueは `manage-0` 形式だけを維持する。
+- この工程でCodexはSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、admin全件管理UI、削除/募集終了本実装、`updates.json` 変更、secret類の出力、commit / pushを行っていない。

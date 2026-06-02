@@ -357,6 +357,20 @@ M-14D-9ではSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE
 
 M-14D-10ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、公開切替専用の大型UI、`updates.json` 変更、secret類の出力は行っていない。
 
+## M-14D-10.5 session detail edit route
+
+`session-detail.html` から自分の依頼書を編集画面へ移動できるよう、基本情報グリッド右下に編集 / 削除ボタン枠を追加した。
+編集ボタンはSupabase由来の依頼書で、ログイン中のユーザーが `is_admin()` または `is_session_gm(target_session_id)` を満たす場合だけ有効化する。
+有効時は `session-post.html?id=<session_id>#my-sessions` へ遷移し、既存の `session-post.html?id=...` 復元処理で自分の依頼書selectとフォーム反映へつなぐ。
+
+削除ボタンはdisabled配置のみで、削除処理、status変更、visibility変更、RPC呼び出しは行わない。
+開催時刻は開始側にも年月日を表示し、日跨ぎ表示で開始日時が欠けないようにした。
+
+`session-post.html` 側は編集状態の補助文を明確化し、指定IDが自分の依頼書一覧にない場合もIDを出さず短文エラーにする。
+select option valueは引き続き `manage-0` 形式だけを使い、保存時の `p_session_id` はJSメモリ上の選択レコードから渡す。
+
+M-14D-10.5ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、admin全件管理UI、削除/募集終了本実装、`updates.json` 変更、secret類の出力は行っていない。
+
 ## 停止条件
 
 - `public.sessions.id` がtextでない。

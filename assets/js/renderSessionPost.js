@@ -2,7 +2,7 @@ import {
   escapeHtml,
   getSessionStatusLabel,
   getSessionTypeLabel
-} from "./sessionDisplay.js?v=20260601-session-post";
+} from "./sessionDisplay.js?v=20260602-session-edit-route";
 import {
   createSupabaseBrowserClient,
   getSupabaseRuntimeConfig,
@@ -517,10 +517,10 @@ function enterEditMode(elements, session) {
   elements.formPanel.classList.add("is-editing");
   elements.form.classList.add("is-editing");
   elements.modeTitle.textContent = "依頼書";
-  elements.modeNote.textContent = "初期値は非公開の下書きです。";
+  elements.modeNote.textContent = "選択中の依頼書を編集中です。内容を変更したら「変更を保存」を押してください。";
   setEditControls(elements, true);
   elements.resultPanel.hidden = true;
-  setState(elements.formState, "既存依頼書を編集中です。");
+  setState(elements.formState, "選択中の依頼書を編集中です。");
   setState(elements.manageState, "");
   updatePublicationHint(elements);
   replaceSelectedSessionId("");
@@ -721,6 +721,7 @@ async function loadManagedSessions(client, elements) {
   const selectedSessionId = readSelectedSessionId();
   const selectedIndex = sessions.findIndex((session) => selectedSessionId && session.id === selectedSessionId);
   if (selectedSessionId && selectedIndex < 0) {
+    setState(elements.formState, "指定された依頼書は自分の依頼書一覧に見つかりませんでした。", "is-error");
     replaceSelectedSessionId("");
   }
   selectManagedSession(elements, sessions, selectedIndex, { applyToForm: selectedIndex >= 0 });

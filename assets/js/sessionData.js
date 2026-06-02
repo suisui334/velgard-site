@@ -72,7 +72,8 @@ function normalizeSupabaseSession(row) {
     detail: normalizeText(row?.detail),
     requirements: normalizeText(row?.requirements),
     visibility: normalizeText(row?.visibility),
-    updatedAt: normalizeText(row?.updated_at)
+    updatedAt: normalizeText(row?.updated_at),
+    source: "supabase"
   };
 }
 

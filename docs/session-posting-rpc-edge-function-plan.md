@@ -435,3 +435,16 @@ DB側の変更はRPC作成・権限設定のみで、テーブル構造変更は
 非公開保存は従来どおり短い成功メッセージに留める。
 
 この工程ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、公開切替専用大型UI、削除/募集終了専用UI、`updates.json` 変更、credential類の実値記録、commit / pushは行っていない。
+
+## 31. M-14D-10.5 session-detail edit route
+
+`session-detail.html` の基本情報グリッド右下に、編集 / 削除ボタン枠を追加した。
+編集ボタンはSupabase由来の依頼書で、`is_admin()` または `is_session_gm(target_session_id)` が通る場合だけ有効化し、`session-post.html?id=<session_id>#my-sessions` へ遷移する。
+
+削除ボタンはdisabled配置のみで、削除処理、status変更、visibility変更、RPC呼び出しは行わない。
+開催時刻は開始側にも年月日を出し、日跨ぎ時に開始日時が欠けないようにした。
+
+`session-post.html?id=...` は既存の自分の依頼書select復元を使い、編集状態の補助文を明確化した。
+raw id / uuid、user_id、email、token、credential類はDOM、画面、consoleへ出さない方針を維持する。
+
+この工程ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、admin全件管理UI、削除/募集終了本実装、`updates.json` 変更、credential類の実値記録、commit / pushは行っていない。

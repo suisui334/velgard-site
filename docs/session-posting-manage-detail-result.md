@@ -128,6 +128,29 @@ raw id / uuid、user_id、email、token、key、secret類はDOM、画面、conso
 
 この工程ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
 
+## M-14D-10.5 session-detail編集導線
+
+`session-detail.html` の基本情報グリッド右下に、編集 / 削除ボタン枠を追加した。
+ボタンはPC幅で半々の横並びとし、`募集人数` の右側に収まる小さな管理セルとして扱う。
+
+編集ボタンはSupabase由来の公開依頼書だけを対象にする。
+ログイン済みユーザーについて `is_admin()` / `is_session_gm(target_session_id)` を確認し、編集可能な場合だけ有効化して `session-post.html?id=<session_id>#my-sessions` へ遷移する。
+静的JSON由来、未ログイン、権限なし、確認失敗時は編集ボタンをdisabledにし、短い理由を表示する。
+
+削除ボタンは配置のみでdisabledにした。
+titleと補助文上の扱いは「削除機能は次工程で実装予定」とし、DB削除、status変更、visibility変更、削除RPC呼び出しは行っていない。
+
+開催時刻は開始側にも年月日を出すよう修正した。
+例として `2026-06-08 21:00〜2026-06-09 09:47` のように、`end_at` がある日跨ぎ依頼書でも開始日時が欠けない。
+
+`session-post.html?id=...` からの復元は、既存の自分の依頼書select照合とフォーム反映を維持する。
+編集状態の補助文を `選択中の依頼書を編集中です。内容を変更したら「変更を保存」を押してください。` にし、指定IDが自分の依頼書一覧に見つからない場合もIDを表示せず短文エラーにする。
+
+raw id / uuid、user_id、email、token、key、secret類はDOM、画面、consoleへ出さない方針を維持する。
+session-detailから編集画面へ渡すのは、既存URLで使っている公開セッションIDの範囲に留める。
+
+この工程ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、admin全件管理UI、削除/募集終了本実装、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
+
 ## 未実装
 
 - 公開切替専用UI

@@ -54,13 +54,20 @@ export function shouldShowSessionState(session) {
   return ["tentative", "finished", "canceled"].includes(session?.status);
 }
 
-export function formatSessionTime(session) {
+function formatSessionStartDateTime(session) {
+  const date = String(session?.date || "").trim();
   const start = String(session?.startTime || "").trim();
+  if (date && start) return `${date} ${start}`;
+  return start || date;
+}
+
+export function formatSessionTime(session) {
+  const start = formatSessionStartDateTime(session);
   const endAt = String(session?.endAt || "").trim();
   if (endAt) {
     const match = endAt.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})$/);
     if (match) {
-      const end = session?.date === match[1] ? match[2] : `${match[1]} ${match[2]}`;
+      const end = `${match[1]} ${match[2]}`;
       if (start) return `${start}〜${end}`;
       return end;
     }
@@ -68,9 +75,10 @@ export function formatSessionTime(session) {
     return endAt;
   }
   const end = String(session?.endTime || "").trim();
-  if (start && end) return `${start}〜${end}`;
-  if (start) return `${start}〜`;
-  return end || "時刻未定";
+  const date = String(session?.date || "").trim();
+  const endLabel = date && end ? `${date} ${end}` : end;
+  if (start && endLabel) return `${start}〜${endLabel}`;
+  return start || endLabel || "時刻未定";
 }
 
 export function formatSessionApplicationDeadline(session) {
@@ -132,6 +140,26 @@ export function renderSessionDetailArrayRow(label, values) {
   return renderSessionDetailRow(label, text);
 }
 
+function renderSessionDetailManageRow(session, options = {}) {
+  if (!options.includeManageActions) return "";
+  const isSupabase = session?.source === "supabase";
+  const note = isSupabase
+    ? "編集権限を確認しています。"
+    : "この予定は静的データ由来のため、この画面では編集できません。";
+  return `
+    <div class="session-detail-manage-row" data-session-detail-manage-panel data-session-source="${escapeHtml(isSupabase ? "supabase" : "static")}">
+      <dt>管理</dt>
+      <dd>
+        <div class="session-detail-manage-buttons">
+          <button class="session-detail-manage-button session-detail-manage-edit" type="button" data-session-detail-edit disabled>編集</button>
+          <button class="session-detail-manage-button session-detail-manage-delete" type="button" data-session-detail-delete disabled title="削除機能は次工程で実装予定です">削除</button>
+        </div>
+        <p class="session-detail-manage-note" data-session-detail-manage-state>${escapeHtml(note)}</p>
+      </dd>
+    </div>
+  `;
+}
+
 export function renderSessionSummary(session) {
   return session?.summary
     ? `<section class="calendar-session-modal-block"><h3>概要</h3><p>${escapeHtml(session.summary)}</p></section>`
@@ -184,7 +212,8 @@ export function renderSessionDetailContent(session, options = {}) {
     renderSessionDetailRow("開催時刻", formatSessionTime(session)),
     renderSessionDetailRow("申請締切", formatSessionApplicationDeadline(session)),
     renderSessionDetailRow("レベル帯", session?.levelRange),
-    renderSessionDetailRow("募集人数", playerCount)
+    renderSessionDetailRow("募集人数", playerCount),
+    renderSessionDetailManageRow(session, options)
   ].join("");
   const detailBlocks = [
     session?.detail ? `<section class="calendar-session-modal-block"><h3>詳細</h3><p>${escapeHtml(session.detail)}</p></section>` : "",

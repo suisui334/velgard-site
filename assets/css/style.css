@@ -2356,6 +2356,70 @@ body[data-page="session-detail"] .calendar-session-modal-meta dd {
   overflow-wrap: anywhere;
 }
 
+body[data-page="session-detail"] .session-detail-manage-row dd {
+  display: grid;
+  gap: 6px;
+}
+
+body[data-page="session-detail"] .session-detail-manage-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+body[data-page="session-detail"] .session-detail-manage-button {
+  display: inline-flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 10px;
+  border: 1px solid rgba(60, 113, 95, 0.26);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.92);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 900;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+body[data-page="session-detail"] .session-detail-manage-button:not(:disabled):hover,
+body[data-page="session-detail"] .session-detail-manage-button:not(:disabled):focus-visible {
+  border-color: rgba(60, 113, 95, 0.44);
+  background: rgba(244, 250, 246, 0.98);
+  box-shadow: 0 0 0 2px rgba(60, 113, 95, 0.12);
+  outline: none;
+}
+
+body[data-page="session-detail"] .session-detail-manage-delete {
+  border-color: rgba(151, 89, 50, 0.24);
+  color: var(--rust);
+}
+
+body[data-page="session-detail"] .session-detail-manage-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.54;
+}
+
+body[data-page="session-detail"] .session-detail-manage-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+body[data-page="session-detail"] .session-detail-manage-note.is-ok {
+  color: var(--herb);
+}
+
+body[data-page="session-detail"] .session-detail-manage-note.is-error {
+  color: var(--rust);
+}
+
 body[data-page="session-detail"] .calendar-session-modal-block {
   display: grid;
   gap: 6px;

@@ -1,5 +1,5 @@
 import { loadJson } from "./dataLoader.js";
-import { loadMergedSessions } from "./sessionData.js?v=20260601-session-post";
+import { loadMergedSessions } from "./sessionData.js?v=20260602-session-edit-route";
 import {
   escapeHtml,
   formatSessionApplicationDeadline,
@@ -13,7 +13,7 @@ import {
   isClosedSession,
   renderSessionTags,
   shouldShowSessionState
-} from "./sessionDisplay.js?v=20260601-application-deadline";
+} from "./sessionDisplay.js?v=20260602-session-edit-route";
 
 const CONFIG_URL = "data/calendarConfig.json?v=20260529-calendar-cap-start";
 const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";

@@ -1,11 +1,12 @@
 import { getParams } from "./dataLoader.js";
-import { loadMergedSessions } from "./sessionData.js?v=20260601-session-post";
+import { loadMergedSessions } from "./sessionData.js?v=20260602-session-edit-route";
 import {
   escapeHtml,
   getSessionDisplayTitle,
   renderSessionDetailContent
-} from "./sessionDisplay.js?v=20260601-application-deadline";
+} from "./sessionDisplay.js?v=20260602-session-edit-route";
 import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260601-gm-contact-copy";
+import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js?v=20260601-session-post";
 
 const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
@@ -85,11 +86,99 @@ function renderSessionPage(session) {
         mode: "page",
         headingId: "session-detail-title",
         eyebrow: "Session Detail",
-        formatDate: formatRealDate
+        formatDate: formatRealDate,
+        includeManageActions: true
       })}
       ${renderBackLinks(session.date)}
     </article>
   `, { eyebrow: "Calendar" });
+}
+
+function isSupabaseSession(session) {
+  return session?.source === "supabase";
+}
+
+function setManageState(target, message, modifier = "") {
+  if (!target) return;
+  target.textContent = message;
+  target.className = `session-detail-manage-note${modifier ? ` ${modifier}` : ""}`;
+}
+
+function getSessionManageElements(root) {
+  const panel = root.querySelector("[data-session-detail-manage-panel]");
+  return {
+    panel,
+    editButton: panel?.querySelector("[data-session-detail-edit]") || null,
+    deleteButton: panel?.querySelector("[data-session-detail-delete]") || null,
+    state: panel?.querySelector("[data-session-detail-manage-state]") || null
+  };
+}
+
+async function hasSessionEditAccess(client, sessionId) {
+  const targetSessionId = String(sessionId || "").trim();
+  if (!targetSessionId) {
+    return { allowed: false, message: "編集対象の予定を確認できませんでした。" };
+  }
+
+  const { data, error } = await client.auth.getSession();
+  if (error) {
+    return { allowed: false, message: "ログイン状態を確認できませんでした。" };
+  }
+  if (!data?.session?.user?.id) {
+    return { allowed: false, message: "編集にはログインが必要です。" };
+  }
+
+  const [adminResult, gmResult] = await Promise.allSettled([
+    client.rpc("is_admin"),
+    client.rpc("is_session_gm", { target_session_id: targetSessionId })
+  ]);
+  const isAdmin = adminResult.status === "fulfilled" && !adminResult.value.error && adminResult.value.data === true;
+  const isSessionGm = gmResult.status === "fulfilled" && !gmResult.value.error && gmResult.value.data === true;
+  if (isAdmin || isSessionGm) {
+    return { allowed: true, message: "この依頼書を編集できます。" };
+  }
+
+  return { allowed: false, message: "この予定は編集できません。" };
+}
+
+async function initSessionDetailManageActions(root, session) {
+  const elements = getSessionManageElements(root);
+  if (!elements.panel) return;
+
+  if (elements.deleteButton) {
+    elements.deleteButton.disabled = true;
+    elements.deleteButton.title = "削除機能は次工程で実装予定です";
+  }
+
+  if (!isSupabaseSession(session)) {
+    if (elements.editButton) elements.editButton.disabled = true;
+    setManageState(elements.state, "この予定は静的データ由来のため、この画面では編集できません。");
+    return;
+  }
+
+  try {
+    const client = await createSupabaseBrowserClient();
+    if (!client) {
+      if (elements.editButton) elements.editButton.disabled = true;
+      setManageState(elements.state, "接続設定が未構成のため、編集できません。", "is-error");
+      return;
+    }
+
+    const access = await hasSessionEditAccess(client, session.id);
+    if (access.allowed && elements.editButton) {
+      elements.editButton.disabled = false;
+      elements.editButton.addEventListener("click", () => {
+        window.location.href = `session-post.html?id=${encodeURIComponent(session.id)}#my-sessions`;
+      });
+      setManageState(elements.state, access.message, "is-ok");
+      return;
+    }
+    if (elements.editButton) elements.editButton.disabled = true;
+    setManageState(elements.state, access.message);
+  } catch {
+    if (elements.editButton) elements.editButton.disabled = true;
+    setManageState(elements.state, "編集権限を確認できませんでした。", "is-error");
+  }
 }
 
 export async function renderSessionDetail(root) {
@@ -122,5 +211,6 @@ export async function renderSessionDetail(root) {
   }
 
   root.innerHTML = renderSessionPage(session);
+  initSessionDetailManageActions(root, session);
   initSessionDetailApplicationComments(root, { sessionId: session.id });
 }
