@@ -36,6 +36,7 @@ const MANAGE_SESSION_SELECT = [
   "visibility",
   "status",
   "discord_sync_status",
+  "gm_user_id",
   "created_at",
   "updated_at"
 ].join(",");
@@ -184,6 +185,9 @@ function setState(target, message, modifier = "") {
   if (!target) return;
   target.textContent = message;
   target.className = `session-post-state${modifier ? ` ${modifier}` : ""}`;
+  if (target.matches?.("[data-session-post-manage-state]")) {
+    target.hidden = !message;
+  }
 }
 
 function getValue(form, name) {
@@ -325,14 +329,18 @@ function buildUpdatePayload(form, session) {
   };
 }
 
-async function hasPostingRole(client) {
+async function getPostingAccess(client) {
   const [gmResult, adminResult] = await Promise.all([
     client.rpc("has_role", { role_name: "gm" }),
     client.rpc("is_admin")
   ]);
   const isGm = !gmResult.error && Boolean(gmResult.data);
   const isAdmin = !adminResult.error && Boolean(adminResult.data);
-  return isGm || isAdmin;
+  return {
+    canPost: isGm || isAdmin,
+    isAdmin,
+    isGm
+  };
 }
 
 function renderResult(target, result) {
@@ -364,7 +372,7 @@ function toNumberOrNull(value) {
   return Number.isFinite(number) ? number : null;
 }
 
-function normalizeManagedSession(row) {
+function normalizeManagedSession(row, options = {}) {
   const date = String(row?.date ?? "").trim();
   const startTime = normalizeTime(row?.start_time);
   const endTime = normalizeTime(row?.end_time);
@@ -398,6 +406,7 @@ function normalizeManagedSession(row) {
     visibilityLabel: VISIBILITY_LABELS[visibility] || "未設定",
     status,
     statusLabel: getSessionStatusLabel(status),
+    manageScope: options.manageScope === "admin" ? "admin" : "own",
     discordSyncStatus: String(row?.discord_sync_status ?? "").trim(),
     discordSyncStatusLabel: DISCORD_SYNC_STATUS_LABELS[String(row?.discord_sync_status ?? "").trim()] || "未設定",
     createdAt: formatJapanDateTime(row?.created_at) || "未定",
@@ -417,7 +426,8 @@ function formatManagedOptionDate(session) {
 }
 
 function renderManagedSessionOption(session, index) {
-  return `<option value="manage-${Number(index)}">${escapeHtml(`【${session.statusLabel}・${session.visibilityLabel}】${formatManagedOptionDate(session)} ${session.title}`)}</option>`;
+  const scopeLabel = session.manageScope === "admin" ? "管理" : "自分";
+  return `<option value="manage-${Number(index)}">${escapeHtml(`【${scopeLabel}】${formatManagedOptionDate(session)} ${session.title}（${session.statusLabel}・${session.visibilityLabel}）`)}</option>`;
 }
 
 function getManagedSessionIndex(elements, session) {
@@ -672,13 +682,28 @@ async function saveManagedSession(client, elements) {
 }
 
 function setManageSelectOptions(elements, sessions) {
-  const countLabel = sessions.length ? `自分の依頼書（${sessions.length}件）` : "自分の依頼書";
+  const baseLabel = elements.access?.isAdmin ? "管理対象の依頼書" : "自分の依頼書";
+  const countLabel = sessions.length ? `${baseLabel}（${sessions.length}件）` : baseLabel;
   elements.manageLabel.textContent = countLabel;
   elements.select.innerHTML = [
     `<option value="new">新規依頼書を書く</option>`,
     ...sessions.map((session, index) => renderManagedSessionOption(session, index))
   ].join("");
   elements.select.disabled = false;
+}
+
+function normalizeManageSessions(rows, access) {
+  const currentUserId = String(access?.userId || "").trim();
+  const isAdmin = Boolean(access?.isAdmin);
+  return rows.reduce((sessions, row) => {
+    const ownerUserId = String(row?.gm_user_id || "").trim();
+    const isOwn = Boolean(currentUserId && ownerUserId && currentUserId === ownerUserId);
+    if (!isAdmin && !isOwn) return sessions;
+    sessions.push(normalizeManagedSession(row, {
+      manageScope: isOwn ? "own" : "admin"
+    }));
+    return sessions;
+  }, []);
 }
 
 function selectManagedSession(elements, sessions, selectedIndex, options = {}) {
@@ -703,16 +728,26 @@ async function loadManagedSessions(client, elements) {
     .limit(80);
 
   if (error) {
-    setState(state, "依頼書一覧を取得できませんでした。", "is-error");
+    const message = elements.access?.isAdmin
+      ? "管理対象の依頼書を取得できませんでした。管理用RPCの追加が必要です。"
+      : "依頼書一覧を取得できませんでした。";
+    setState(state, message, "is-error");
     return;
   }
 
-  const sessions = Array.isArray(data) ? data.map(normalizeManagedSession) : [];
+  const sessions = Array.isArray(data) ? normalizeManageSessions(data, elements.access) : [];
   elements.managedSessions = sessions;
   setManageSelectOptions(elements, sessions);
 
   if (!sessions.length) {
-    setState(state, "");
+    const emptyMessage = elements.access?.isAdmin
+      ? "管理対象の依頼書は見つかりませんでした。"
+      : "自分の依頼書はまだありません。";
+    setState(state, emptyMessage);
+    if (readSelectedSessionId()) {
+      setState(elements.formState, "編集対象の依頼書が見つかりません。静的データ由来、または権限のない予定は編集できません。", "is-error");
+      replaceSelectedSessionId("");
+    }
     select.value = "new";
     return;
   }
@@ -721,7 +756,7 @@ async function loadManagedSessions(client, elements) {
   const selectedSessionId = readSelectedSessionId();
   const selectedIndex = sessions.findIndex((session) => selectedSessionId && session.id === selectedSessionId);
   if (selectedSessionId && selectedIndex < 0) {
-    setState(elements.formState, "指定された依頼書は自分の依頼書一覧に見つかりませんでした。", "is-error");
+    setState(elements.formState, "編集対象の依頼書が見つかりません。静的データ由来、または権限のない予定は編集できません。", "is-error");
     replaceSelectedSessionId("");
   }
   selectManagedSession(elements, sessions, selectedIndex, { applyToForm: selectedIndex >= 0 });
@@ -741,7 +776,7 @@ async function loadManagedSessions(client, elements) {
   };
 }
 
-async function initializeForm(root, client) {
+async function initializeForm(root, client, access = {}) {
   const formPanel = root.querySelector("[data-session-post-form-panel]");
   const form = root.querySelector("[data-session-post-form]");
   const submit = root.querySelector("[data-session-post-submit]");
@@ -752,6 +787,7 @@ async function initializeForm(root, client) {
   const manageElements = {
     currentSession: null,
     managedSessions: [],
+    access,
     formPanel,
     form,
     submit,
@@ -835,14 +871,15 @@ export async function renderSessionPost(root) {
       return;
     }
 
-    const canPost = await hasPostingRole(client);
-    if (!canPost) {
+    const access = await getPostingAccess(client);
+    if (!access.canPost) {
       setState(authState, "依頼書投稿はGM/admin向けです。", "is-error");
       return;
     }
+    access.userId = String(data.session.user?.id || "").trim();
 
-    setState(authState, "投稿できます。", "is-ok");
-    await initializeForm(root, client);
+    setState(authState, access.isAdmin ? "admin権限で管理できます。" : "投稿できます。", "is-ok");
+    await initializeForm(root, client, access);
   } catch {
     setState(authState, "依頼書投稿の準備に失敗しました。", "is-error");
   }

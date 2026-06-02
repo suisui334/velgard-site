@@ -151,6 +151,27 @@ session-detailから編集画面へ渡すのは、既存URLで使っている公
 
 この工程ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、admin全件管理UI、削除/募集終了本実装、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
 
+## M-14D-11A admin管理対象select整理
+
+adminをサイト内の全権限ユーザーとして扱う方針に合わせ、`session-post.html` の依頼書selectを整理した。
+通常GMは自分が作成した依頼書だけを選択対象にし、adminは既存RLSで取得できるSupabase由来依頼書を管理対象として扱う。
+
+`sessions` の取得は従来どおり認証済みSupabase clientと既存RLSに従う。
+service_role key、secret類、フロントからのDB直UPDATEは使わない。
+取得後のJS側で、通常GMは `gm_user_id === ログイン中ユーザー` の行だけに絞り、adminは取得できた行を管理対象として残す。
+`gm_user_id` はDOM、画面、consoleへ出さず、表示ラベルには `【自分】` / `【管理】` だけを使う。
+
+select option value は引き続き `manage-0` 形式のローカルキーだけにした。
+保存時の `p_session_id` はJSメモリ上の選択レコードから `update_session_post` RPCへ渡す。
+
+adminで管理対象取得が失敗した場合は、画面に `管理対象の依頼書を取得できませんでした。管理用RPCの追加が必要です。` と表示する方針にした。
+今回の実装ではSQL Editor実行、DB構造変更、管理RPC追加、RPC置換は行っていないため、既存RLS/APIで取得できないケースは後続でlist/update用の管理RPC追加が必要になる。
+
+`session-detail.html` 側の編集ボタン条件は、Supabase由来かつ `is_admin()` または `is_session_gm(target_session_id)` が通る場合だけ有効化する既存方針を維持する。
+静的JSON由来は編集不可理由を表示し、削除ボタンは引き続きdisabled配置のみで削除処理は行わない。
+
+この工程ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、削除/募集終了本実装、Discord resync UI、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
+
 ## 未実装
 
 - 公開切替専用UI

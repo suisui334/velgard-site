@@ -448,3 +448,15 @@ DB側の変更はRPC作成・権限設定のみで、テーブル構造変更は
 raw id / uuid、user_id、email、token、credential類はDOM、画面、consoleへ出さない方針を維持する。
 
 この工程ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、admin全件管理UI、削除/募集終了本実装、`updates.json` 変更、credential類の実値記録、commit / pushは行っていない。
+
+## 32. M-14D-11A admin management scope
+
+adminをヴェルガルド公開サイト内の全権限ユーザーとして扱う方針で、`session-post.html` の管理対象selectを整理した。
+通常GMは自分が作成した依頼書だけを編集対象にし、adminは既存RLS/APIで取得できるSupabase由来依頼書を管理対象として扱う。
+
+service_role keyやsecret類は使わず、フロントからDB直UPDATEもしない。
+取得は認証済みSupabase clientと既存RLSに従い、保存は既存 `update_session_post` RPCを使う。
+select option valueは `manage-0` 形式のローカルキーだけを維持し、raw id / uuid / user_id / email / token はDOM、画面、consoleへ出さない。
+
+adminの管理対象取得が既存RLS/APIで失敗した場合は、管理対象の依頼書を取得できない旨と管理用RPC追加が必要である旨を表示する。
+この工程ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、削除/募集終了本実装、Discord resync UI、`updates.json` 変更、credential類の実値記録、commit / pushは行っていない。
