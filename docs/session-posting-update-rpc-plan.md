@@ -429,3 +429,16 @@ M-14D-13A時点では soft delete = `visibility = hidden` / `status = canceled` 
 `hidden` / `canceled` は「中止として残す」操作として扱い、完全削除とは分離する。完全削除は `delete_session_post` RPC を新設して実装する方針とし、`session-detail.html` の削除ボタンに加えて、`session-post.html` の編集画面にも削除ボタンを置く。
 
 完全削除前には確認ポップアップを出し、確認文には「中止として残したい場合は募集状態を中止にする」旨を含める。この方針追記では SQL Editor未実行、DB変更なし、RPC変更なし。
+
+## M-14D-13B delete_session_post設計追記
+
+`update_session_post` は引き続き依頼書の編集保存、公開状態変更、募集状態変更、中止として残す操作に使う。
+完全削除は `update_session_post` の `hidden` / `canceled` ではなく、新規 `delete_session_post` RPCへ分離する。
+
+`delete_session_post` 草案は `p_session_id text` を受け取り、`deleted_session_id text` と `deleted_at timestamptz` だけを返す。
+権限方針は `update_session_post` と同じく、authenticatedのみ、adminまたは対象GMのみ許可、通常PLと他GMは拒否、静的JSON由来はDB対象外。
+
+preflight専用SQL `docs/supabase/sql/018_delete_session_post_preflight_select_only.sql` で、完全削除前に `public.sessions` 主キー、FK、ON DELETE、関連テーブル、helper、既存routine権限を確認する。
+`docs/supabase/sql/018_delete_session_post_rpc_draft.sql` はpreflight結果レビュー前に実行しない草案であり、関連FKがRESTRICT / NO ACTIONの場合やCASCADEしてはいけないテーブルが見つかった場合は改訂する。
+
+この工程ではSQL Editor未実行、DB構造変更なし、RPC作成なし、GRANT/REVOKE未実行、実データ削除なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、secret類の出力なし、commit / pushなし。

@@ -702,3 +702,12 @@
 - `hidden` / `canceled` は「中止として残す」操作として扱う。完全削除は後続で `delete_session_post` RPC を新設して実装する。
 - `session-detail.html` だけでなく、`session-post.html` 編集画面にも削除ボタンを置く。削除前には確認ポップアップを出し、確認文には「中止として残したい場合は募集状態を中止にする」旨を含める。
 - この追記でCodexはSQL Editor実行、DB変更、RPC変更、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+
+## M-14D-13B delete_session_post RPC preflight / 草案
+- 完全削除用 `delete_session_post` RPC の設計docs `docs/session-posting-delete-rpc-plan.md`、SELECT-only preflight `docs/supabase/sql/018_delete_session_post_preflight_select_only.sql`、未実行RPC草案 `docs/supabase/sql/018_delete_session_post_rpc_draft.sql` を追加した。
+- `hidden` / `canceled` は「中止として残す」操作として維持し、削除ボタンは後続で完全削除RPCへ接続する。フロントからDB直DELETEは行わない。
+- RPC草案は `delete_session_post(p_session_id text)`、戻り値 `deleted_session_id text` / `deleted_at timestamptz`、authenticatedのみEXECUTE、adminまたは対象GMのみ許可、通常PL/他GM/静的JSON由来は削除不可の方針。
+- preflightでは `public.sessions` 主キー、`id` 型、sessions参照FK、ON DELETE、`session_id` 列を持つテーブル、申請/コメント/連絡先/履歴候補テーブル、既存 `delete_session_post`、helper、`update_session_post` 権限、anon/authenticated/PUBLIC routine権限をSELECTだけで確認する。
+- 関連データとして `session_applications`、`session_comments`、申請履歴、Discord連絡先表示、Discord同期メタデータ、session-detail、calendar、mypageへの影響を記録した。FKがCASCADEなら関連行も消える可能性があり、RESTRICT / NO ACTIONならAPPLY前に草案改訂が必要。
+- Discord実送信は行わない。`discord_message_id` がある場合は将来Edge Functionで削除同期が必要。Edge Function未実装の間は公開済み完全削除前に強い確認を出し、「中止として残したい場合は、削除せず募集状態を中止にしてください」という趣旨を入れる。
+- この工程でCodexはSQL Editor未実行、DB構造変更なし、RPC作成なし、GRANT/REVOKE未実行、実データ削除なし、Discord実送信なし、Edge Function deployなし、service_role key利用なし、secret類の出力なし、`updates.json` 変更なし、commit / pushなし。

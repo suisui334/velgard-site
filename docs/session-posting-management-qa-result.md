@@ -47,3 +47,19 @@ M-14D-13A時点では soft delete = `visibility = hidden` / `status = canceled` 
 ## Not done
 
 SQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE、Discord実送信、Edge Function deploy、Discord resync UI、テンプレート保存実装、PC名登録実装、mypage予定プルダウン実装、`updates.json` 変更、service_role key利用、フロントからのDB直UPDATE、commit / push は行っていない。
+
+## M-14D-13B delete_session_post RPC preflight準備
+
+M-14D-13Bとして、完全削除用 `delete_session_post` RPC のpreflight / 草案設計を追加した。
+M-14D-13A時点のQA結果である `visibility = hidden` / `status = canceled` は「中止として残す」操作として扱い、削除ボタンは後続で完全削除へ変更する。
+
+新規docs `docs/session-posting-delete-rpc-plan.md`、SELECT-only preflight `docs/supabase/sql/018_delete_session_post_preflight_select_only.sql`、RPC草案 `docs/supabase/sql/018_delete_session_post_rpc_draft.sql` を作成した。
+preflightは `public.sessions` の主キー、`id` 型、sessionsを参照するFK、ON DELETE、`session_id` 列を持つテーブル、申請/コメント/連絡先/履歴候補テーブル、既存 `delete_session_post`、helper、`update_session_post` 権限をSELECTだけで確認する。
+
+RPC草案は `delete_session_post(p_session_id text)`、戻り値 `deleted_session_id text` / `deleted_at timestamptz`、`security definer`、`set search_path = ''`、authenticatedのみEXECUTE方針。
+許可対象はadminまたは対象GMのみで、通常PL、他GM、未ログイン、静的JSON由来は削除不可とする。
+
+関連データはpreflight結果を見て確定する。`session_applications`、`session_comments`、申請履歴、Discord連絡先表示、Discord同期メタデータ、session-detail、calendar、mypageへの影響をdocsへ明記した。
+Discord実送信は行わず、`discord_message_id` がある場合は将来Edge Functionの削除同期が必要。Edge Function未実装の間は公開済み完全削除前に強い確認を出し、「中止として残したい場合は、削除せず募集状態を中止にしてください」という趣旨を入れる。
+
+この工程ではSQL Editor未実行、DB構造変更なし、RPC作成なし、GRANT/REVOKE未実行、実データ削除なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、secret類の出力なし、commit / pushなし。

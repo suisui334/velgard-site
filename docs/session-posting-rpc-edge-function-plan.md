@@ -478,3 +478,23 @@ M-14D-13A時点では soft delete = `visibility = hidden` / `status = canceled` 
 `hidden` / `canceled` は「中止として残す」操作として扱う。完全削除は後続で `delete_session_post` RPC を新設して実装し、`session-detail.html` と `session-post.html` 編集画面の両方に削除ボタンを置く。
 
 完全削除前には確認ポップアップを出す。確認文には「中止として残したい場合は募集状態を中止にする」旨を含める。この追記では SQL Editor未実行、DB変更なし、RPC変更なし、Discord実送信なし、Edge Function deployなし。
+
+## 35. M-14D-13B delete_session_post preflight / draft
+
+完全削除用の `delete_session_post` RPCについて、preflight専用SELECTと未実行草案を追加した。
+
+- 設計docs: `docs/session-posting-delete-rpc-plan.md`
+- preflight: `docs/supabase/sql/018_delete_session_post_preflight_select_only.sql`
+- RPC草案: `docs/supabase/sql/018_delete_session_post_rpc_draft.sql`
+
+`delete_session_post(p_session_id text)` は、authenticatedのみ実行可、adminまたは対象GMのみ許可、戻り値は `deleted_session_id` / `deleted_at` に限定する方針。
+通常PL、他GM、未ログイン、静的JSON由来は削除不可。フロントからDB直DELETEは行わない。
+
+Discord観点では、初期 `delete_session_post` はDB削除のみでDiscord実送信を行わない。
+ただし `discord_message_id` がある依頼書を完全削除すると、Discord投稿削除同期が後続Edge Function課題として残る。
+Edge Function未実装の間は、公開済みまたはDiscord投稿済み依頼書の完全削除前に強い確認を出し、「中止として残したい場合は、削除せず募集状態を中止にしてください」という趣旨を明示する。
+
+関連データはpreflight結果で確認する。`session_applications`、`session_comments`、申請履歴、Discord連絡先表示、session-detail、calendar、mypageが影響範囲。
+FKがCASCADEなら関連行も消える可能性があり、RESTRICT / NO ACTIONならRPC草案を改訂する。
+
+この工程ではSQL Editor未実行、DB構造変更なし、RPC作成なし、GRANT/REVOKE未実行、実データ削除なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、secret類の出力なし、commit / pushなし。
