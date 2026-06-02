@@ -538,3 +538,12 @@ DB側の変更はRPC作成・権限設定のみ。
 実データ削除、Discord実送信、Edge Function deploy、secret類の出力、`updates.json` 変更は行っていない。
 Discord投稿削除同期は引き続き後続Edge Function課題。
 次工程はM-14D-13Dとして、`session-detail.html` / `session-post.html` の削除ボタンを `delete_session_post` RPCへ接続する。
+
+## 39. M-14D-13D delete flow UI connection
+
+M-14D-13Dで `session-detail.html` / `session-post.html` の削除ボタンを `delete_session_post` RPCへ接続した。
+削除は完全削除であり、`visibility = hidden` / `status = canceled` は「中止として残す」操作として分離する。
+DB制約により、削除時は依頼書本体に加えて `session_applications` と `session_comments` も削除される。
+
+Discord通知・投稿削除の同期はまだ未実装で、削除確認文にも「Discord通知・投稿削除はまだ未実装です。」と明記する。
+この工程でSQL Editor追加実行、DB構造変更、RPC変更、GRANT/REVOKE再実行、実データ削除、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行っていない。

@@ -179,3 +179,31 @@ GM側の許可判定は既存 `update_session_post` と同じ方針で、`public
 DB側の変更はRPC作成・権限設定のみ。
 実データ削除、Discord実送信、Edge Function deploy、secret類の出力、`updates.json` 変更は行っていない。
 次工程はM-14D-13Dとして、`session-detail.html` / `session-post.html` の削除ボタンを `delete_session_post` RPCへ接続する。
+
+## M-14D-13D frontend connection
+
+M-14D-13Dとして、`session-detail.html` と `session-post.html` 編集画面の削除ボタンを `delete_session_post` RPCへ接続した。
+削除ボタンは完全削除として扱い、M-14D-12A時点の `visibility = hidden` / `status = canceled` は「中止として残す」操作へ役割を分ける。
+
+`session-detail.html` では、Supabase由来かつ既存helper方針で編集可能な依頼書だけ削除ボタンを有効化し、確認OK時に `delete_session_post({ p_session_id })` を呼び出す。
+成功時は「この依頼書を削除しました。」を表示し、削除済み状態として操作ボタンを無効化したうえでcalendarへ戻す。
+静的JSON由来の予定は引き続き削除不可で、RPCへ流さない。
+
+`session-post.html` では、既存依頼書の編集モード中だけ削除ボタンを表示する。
+成功後は管理対象selectから削除済み項目を除外し、JSメモリ上の管理対象も更新し、新規作成モードへ戻す。
+URLの `id` は消し、保存/削除ボタンは非表示、作成ボタンは有効にする。
+
+削除確認文は以下の方針にした。
+
+```text
+この依頼書を完全に削除します。
+削除すると、依頼書本体に加えて参加申請・コメントも削除されます。
+中止として残したい場合は、削除せず募集状態を「中止」にしてください。
+Discord通知・投稿削除はまだ未実装です。
+本当に削除しますか？
+```
+
+RPCエラーは `login_required` / `not_allowed` / `session_not_found` を日本語へ丸め、未知エラーは「依頼書の削除に失敗しました。」と表示する。
+raw id / uuid / user_id / email / gmUserId / token / secret類は画面・DOM・consoleへ出さず、select option valueは `manage-N` 形式のローカル値のみを使う。
+
+この工程でSQL Editor追加実行、DB構造変更、RPC変更、GRANT/REVOKE再実行、実データ削除、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行っていない。

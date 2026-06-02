@@ -271,3 +271,19 @@ DELETE対象は `public.sessions` の1件のみで、`session_applications` / `s
 DB側変更はRPC作成・権限設定のみで、実データ削除は行っていない。
 Discord実送信、Edge Function deploy、secret類の出力、`updates.json` 変更も行っていない。
 次工程M-14D-13Dで、`session-detail.html` と `session-post.html` 編集画面の削除ボタンを `delete_session_post` RPCへ接続する。
+
+## M-14D-13D detail/post delete RPC接続
+
+M-14D-13Dとして、`session-detail.html` 右下の削除ボタンと `session-post.html` 編集画面の削除ボタンを `delete_session_post` RPCへ接続した。
+削除ボタンは完全削除へ変更し、`visibility = hidden` / `status = canceled` は「中止として残す」操作として扱う。
+
+`session-detail.html` ではSupabase由来かつ作成者GMまたはadminとして編集可能な依頼書だけ削除可能にする。
+静的JSON由来は編集不可・削除不可の理由表示を維持し、RPC対象へ流さない。
+削除成功後は「この依頼書を削除しました。」を表示し、操作ボタンを無効化してcalendarへ戻す。
+
+`session-post.html` では既存依頼書の編集モード中のみ削除ボタンを表示する。
+削除成功後は管理対象selectとJSメモリから対象を外し、新規作成モードへ戻してURLの `id` を消す。
+`delete_session_post` RPCへ渡す値は `p_session_id` のみで、フロントからDB直DELETEはしない。
+
+確認文には、完全削除、参加申請・コメントの同時削除、中止として残したい場合は募集状態を「中止」にすること、Discord通知・投稿削除未実装を明記した。
+SQL Editor追加実行、DB構造変更、RPC変更、GRANT/REVOKE再実行、実データ削除、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行っていない。

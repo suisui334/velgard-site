@@ -15,6 +15,9 @@ const SAVE_ERROR_MESSAGE = "保存に失敗しました。";
 const SAVE_SUCCESS_MESSAGE = "変更を保存しました。";
 const PUBLIC_SAVE_SUCCESS_MESSAGE = "変更を保存しました。公開カレンダーに反映されます。Discord通知はまだ未実装です。";
 const DRAFT_PUBLIC_MESSAGE = "下書きは公開にできません。募集状態を変更するか、公開状態を非公開にしてください。";
+const DELETE_CONFIRM_MESSAGE = "この依頼書を完全に削除します。\n削除すると、依頼書本体に加えて参加申請・コメントも削除されます。\n中止として残したい場合は、削除せず募集状態を「中止」にしてください。\nDiscord通知・投稿削除はまだ未実装です。\n本当に削除しますか？";
+const DELETE_SUCCESS_MESSAGE = "この依頼書を削除しました。";
+const DELETE_ERROR_MESSAGE = "依頼書の削除に失敗しました。";
 const PUBLICATION_HIDDEN_HINT = "この依頼書は公開カレンダーには表示されません。";
 const PUBLICATION_ACTIVE_HINT = "保存すると公開カレンダーに表示されます。Discord通知はまだ未実装です。";
 const STATUS_CLOSED_HINTS = {
@@ -68,6 +71,12 @@ const UPDATE_ERROR_MESSAGES = {
   invalid_player_max: "募集人数の範囲を確認してください。",
   "invalid-player-count": "募集人数の範囲を確認してください。",
   "end-before-start": END_BEFORE_START_MESSAGE
+};
+const DELETE_ERROR_MESSAGES = {
+  login_required: "ログインが必要です。",
+  not_allowed: "この依頼書を削除する権限がありません。",
+  session_not_found: "対象の依頼書が見つかりません。",
+  session_id_required: "対象の依頼書が見つかりません。"
 };
 
 function renderShell(initialStartAt = "") {
@@ -137,6 +146,7 @@ function renderShell(initialStartAt = "") {
           <div class="session-post-submit-row">
             <button class="button primary" type="submit" data-session-post-submit>作成する</button>
             <button class="button primary" type="button" data-session-post-save hidden>変更を保存</button>
+            <button class="button danger" type="button" data-session-post-delete hidden>削除</button>
             <p class="session-post-state" data-session-post-state aria-live="polite"></p>
           </div>
         </form>
@@ -335,6 +345,12 @@ function buildUpdatePayload(form, session) {
   };
 }
 
+function buildDeletePayload(session) {
+  const sessionId = String(session?.id ?? "").trim();
+  if (!sessionId) throw new Error("session_not_found");
+  return { p_session_id: sessionId };
+}
+
 async function getPostingAccess(client) {
   const [gmResult, adminResult] = await Promise.all([
     client.rpc("has_role", { role_name: "gm" }),
@@ -525,6 +541,11 @@ function setEditControls(elements, isEditing) {
   elements.save.hidden = !isEditing;
   elements.save.disabled = !isEditing;
   elements.save.textContent = "変更を保存";
+  if (elements.deleteButton) {
+    elements.deleteButton.hidden = !isEditing;
+    elements.deleteButton.disabled = !isEditing;
+    elements.deleteButton.textContent = "削除";
+  }
 }
 
 function enterEditMode(elements, session) {
@@ -612,6 +633,17 @@ function getUpdateErrorMessage(error) {
   return key ? UPDATE_ERROR_MESSAGES[key] : SAVE_ERROR_MESSAGE;
 }
 
+function getDeleteErrorMessage(error) {
+  const text = [
+    error?.message,
+    error?.details,
+    error?.hint,
+    error?.code
+  ].map((value) => String(value || "")).join(" ");
+  const key = Object.keys(DELETE_ERROR_MESSAGES).find((name) => text.includes(name));
+  return key ? DELETE_ERROR_MESSAGES[key] : DELETE_ERROR_MESSAGE;
+}
+
 function normalizeManagedSessionFromUpdate(previousSession, payload, result) {
   return normalizeManagedSession({
     id: previousSession.id,
@@ -686,6 +718,54 @@ async function saveManagedSession(client, elements) {
     elements.isSaving = false;
     if (elements.currentSession) {
       setEditControls(elements, true);
+    }
+  }
+}
+
+async function deleteManagedSession(client, elements) {
+  if (!elements.currentSession || elements.isDeleting || elements.isSaving) return;
+  if (!window.confirm(DELETE_CONFIRM_MESSAGE)) return;
+
+  const previousSession = elements.currentSession;
+  elements.isDeleting = true;
+  elements.resultPanel.hidden = true;
+  elements.save.disabled = true;
+  if (elements.deleteButton) {
+    elements.deleteButton.disabled = true;
+    elements.deleteButton.textContent = "削除中...";
+  }
+  elements.submit.disabled = true;
+  elements.select.disabled = true;
+  setState(elements.formState, "削除しています。");
+
+  try {
+    const payload = buildDeletePayload(previousSession);
+    const { error } = await client.rpc("delete_session_post", payload);
+    if (error) throw error;
+
+    const index = getManagedSessionIndex(elements, previousSession);
+    if (index >= 0) {
+      elements.managedSessions.splice(index, 1);
+    }
+    setManageSelectOptions(elements, elements.managedSessions);
+    enterNewMode(elements, { clearForm: true, clearResult: true });
+    elements.select.value = "new";
+    setState(elements.formState, DELETE_SUCCESS_MESSAGE, "is-ok");
+    if (!elements.managedSessions.length) {
+      const emptyMessage = elements.access?.isAdmin
+        ? "管理対象の依頼書は見つかりませんでした。"
+        : "自分の依頼書はまだありません。";
+      setState(elements.manageState, emptyMessage);
+    }
+  } catch (error) {
+    setState(elements.formState, getDeleteErrorMessage(error), "is-error");
+  } finally {
+    elements.isDeleting = false;
+    elements.select.disabled = false;
+    if (elements.currentSession) {
+      setEditControls(elements, true);
+    } else {
+      setEditControls(elements, false);
     }
   }
 }
@@ -790,6 +870,7 @@ async function initializeForm(root, client, access = {}) {
   const form = root.querySelector("[data-session-post-form]");
   const submit = root.querySelector("[data-session-post-submit]");
   const save = root.querySelector("[data-session-post-save]");
+  const deleteButton = root.querySelector("[data-session-post-delete]");
   const state = root.querySelector("[data-session-post-state]");
   const resultPanel = root.querySelector("[data-session-post-result-panel]");
   const resultList = root.querySelector("[data-session-post-result]");
@@ -801,6 +882,7 @@ async function initializeForm(root, client, access = {}) {
     form,
     submit,
     save,
+    deleteButton,
     formState: state,
     resultPanel,
     modeTitle: root.querySelector("[data-session-post-mode-title]"),
@@ -817,6 +899,9 @@ async function initializeForm(root, client, access = {}) {
   await loadManagedSessions(client, manageElements);
   save.addEventListener("click", () => {
     saveManagedSession(client, manageElements);
+  });
+  deleteButton?.addEventListener("click", () => {
+    deleteManagedSession(client, manageElements);
   });
   form.addEventListener("change", (event) => {
     if (event.target?.name === "p_visibility" || event.target?.name === "p_status") {

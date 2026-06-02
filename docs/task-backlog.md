@@ -733,3 +733,11 @@
 - 権限確認は `authenticated EXECUTEあり`、`anon EXECUTEなし`、`public EXECUTEなし` で、すべて期待値どおり `ok = true`。
 - DB側の変更はRPC作成・権限設定のみ。実データ削除、Discord実送信、Edge Function deploy、secret類の出力、`updates.json` 変更は行っていない。
 - 次工程はM-14D-13Dとして、`session-detail.html` / `session-post.html` の削除ボタンを `delete_session_post` RPCへ接続する。
+
+## M-14D-13D session post delete RPC UI connection
+- `session-detail.html` と `session-post.html` 編集画面の削除ボタンを `delete_session_post` RPCへ接続した。
+- 削除ボタンは完全削除として扱い、`visibility = hidden` / `status = canceled` は「中止として残す」操作として維持する。
+- 完全削除では依頼書本体に加えて `session_applications` / `session_comments` もDB制約で削除されるため、確認文へ影響を明記した。
+- `session-post.html` 編集画面では既存依頼書編集中のみ削除ボタンを表示し、削除成功後は管理対象selectとJSメモリから対象を外して新規作成モードへ戻す。
+- 静的JSON由来は編集不可・削除不可のまま維持し、`delete_session_post` RPCへ流さない。
+- SQL Editor追加実行、DB構造変更、RPC変更、GRANT/REVOKE再実行、実データ削除、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行っていない。

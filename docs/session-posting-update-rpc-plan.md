@@ -454,3 +454,12 @@ preflight専用SQL `docs/supabase/sql/018_delete_session_post_preflight_select_o
 
 SQL草案は `delete_session_post(p_session_id text)`、`security definer`、安全な `search_path`、`auth.uid()` 確認、adminまたは作成者GMのみ許可、静的JSON対象外、対象1件のWHERE付きDELETE、最小戻り値、`public` / `anon` revokeと `authenticated` grant方針で、preflight結果と矛盾しない。
 SQL EditorではSELECT-only preflightのみ実行され、RPC本体、DB構造変更、RPC作成、GRANT/REVOKE、DELETEは未実行。
+
+## M-14D-13D relation to delete flow
+
+M-14D-13Dで削除ボタンは `update_session_post` による `visibility = hidden` / `status = canceled` 保存ではなく、`delete_session_post` RPCによる完全削除へ接続した。
+`update_session_post` は引き続き作成者GM/adminの編集保存、公開状態/募集状態変更、`draft + public` ガード、`p_end_at` / 日跨ぎ対応のために使う。
+`status = canceled` は「削除」ではなく「中止として残す」募集状態として扱う。
+
+削除確認文には、完全削除であること、参加申請・コメントも削除されること、中止として残す場合は募集状態を「中止」にすること、Discord通知・投稿削除は未実装であることを明記した。
+この工程でSQL Editor追加実行、DB構造変更、RPC変更、GRANT/REVOKE再実行、実データ削除、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行っていない。

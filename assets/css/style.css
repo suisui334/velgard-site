@@ -694,6 +694,18 @@ p {
   background: linear-gradient(135deg, var(--soot), var(--iron));
 }
 
+.button.danger {
+  border-color: rgba(151, 89, 50, 0.42);
+  color: var(--rust);
+  background: rgba(255, 248, 242, 0.88);
+}
+
+.button.danger:not(:disabled):hover,
+.button.danger:not(:disabled):focus-visible {
+  border-color: rgba(151, 89, 50, 0.62);
+  background: rgba(255, 239, 226, 0.96);
+}
+
 .section {
   padding: 34px 0;
 }

@@ -98,3 +98,19 @@ APPLY専用ファイルはpreflight SELECT群とrollback草案を含めず、`de
 DB側の変更はRPC作成・権限設定のみ。
 実データ削除、Discord実送信、Edge Function deploy、secret類の出力、`updates.json` 変更は行っていない。
 次工程はM-14D-13Dとして、`session-detail.html` / `session-post.html` の削除ボタンを `delete_session_post` RPCへ接続する。
+
+## M-14D-13D delete RPC UI接続QA記録
+
+M-14D-13Dとして、依頼書管理導線の削除ボタンを `delete_session_post` RPCへ接続した。
+M-14D-13A時点でQA済みだった soft delete = `visibility = hidden` / `status = canceled` は、「削除」ではなく「中止として残す」操作として扱う。
+削除ボタンは完全削除で、DB制約により依頼書本体に加えて `session_applications` と `session_comments` も削除される前提を確認文へ明記した。
+
+`session-detail.html` ではSupabase由来かつ作成者GMまたはadminとして編集可能な依頼書だけ削除可能にし、静的JSON由来は削除不可理由を表示する。
+`session-post.html` では編集モード中のみ削除ボタンを出し、削除成功後は管理対象selectとJSメモリを更新して新規作成モードへ戻す。
+`delete_session_post` 呼び出しは `p_session_id` のみで、フロントからDB直DELETEは行わない。
+
+削除確認文には、完全削除であること、参加申請・コメントも削除されること、中止として残したい場合は募集状態を「中止」にすること、Discord通知・投稿削除は未実装であることを入れた。
+成功時は「この依頼書を削除しました。」、既知エラーは `login_required` / `not_allowed` / `session_not_found` を日本語化し、未知エラーは「依頼書の削除に失敗しました。」へ丸める。
+raw id / uuid / user_id / email / gmUserId / token / secret類は画面・DOM・consoleへ出さず、select option valueは `manage-N` のローカル値のみを維持する。
+
+この工程でSQL Editor追加実行、DB構造変更、RPC変更、GRANT/REVOKE再実行、実データ削除、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
