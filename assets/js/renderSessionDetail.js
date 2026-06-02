@@ -3,14 +3,25 @@ import { loadMergedSessions } from "./sessionData.js?v=20260602-session-edit-rou
 import {
   escapeHtml,
   getSessionDisplayTitle,
+  getSessionStatusLabel,
+  getSessionVisibilityLabel,
   renderSessionDetailContent
-} from "./sessionDisplay.js?v=20260602-session-edit-route";
+} from "./sessionDisplay.js?v=20260603-delete-equivalent";
 import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260601-gm-contact-copy";
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js?v=20260601-session-post";
 
 const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const DELETE_CONFIRM_MESSAGE = "この依頼書を非公開・中止扱いにします。\n物理削除は行いません。\nよろしいですか？";
+const DELETE_SUCCESS_MESSAGE = "この依頼書を非公開・中止扱いにしました。";
+const DELETE_ERROR_MESSAGE = "削除相当操作に失敗しました。";
+const DELETE_ERROR_MESSAGES = {
+  login_required: "ログインが必要です。",
+  not_allowed: "この依頼書を操作する権限がありません。",
+  session_not_found: "対象の依頼書が見つかりません。",
+  session_id_required: "対象の依頼書が見つかりません。"
+};
 
 function parseIsoDate(value) {
   const text = String(value || "").trim();
@@ -104,6 +115,85 @@ function setManageState(target, message, modifier = "") {
   target.className = `session-detail-manage-note${modifier ? ` ${modifier}` : ""}`;
 }
 
+function normalizeRpcTime(value) {
+  const text = String(value ?? "").trim();
+  const match = text.match(/^(\d{2}:\d{2})/);
+  return match ? match[1] : "";
+}
+
+function normalizeRpcDateTime(value) {
+  const text = String(value ?? "").trim();
+  const match = text.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/);
+  return match ? `${match[1]} ${match[2]}` : "";
+}
+
+function normalizeNullableInteger(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return null;
+  const number = Number(text);
+  return Number.isInteger(number) ? number : null;
+}
+
+function normalizeNullableDateTime(value) {
+  return normalizeRpcDateTime(value) || null;
+}
+
+function buildDeleteEquivalentPayload(session) {
+  const sessionId = String(session?.id ?? "").trim();
+  if (!sessionId) throw new Error("session_not_found");
+
+  const date = String(session?.date ?? "").trim();
+  const startTime = normalizeRpcTime(session?.startTime);
+  const endTime = normalizeRpcTime(session?.endTime);
+  const endAt = normalizeRpcDateTime(session?.endAt) || (date && endTime ? `${date} ${endTime}` : null);
+
+  return {
+    p_session_id: sessionId,
+    p_title: String(session?.title ?? getSessionDisplayTitle(session)).trim(),
+    p_session_date: date,
+    p_start_time: startTime,
+    p_end_time: endTime || null,
+    p_end_at: endAt,
+    p_application_deadline: normalizeNullableDateTime(session?.applicationDeadline),
+    p_session_type: String(session?.sessionType || "one-shot").trim(),
+    p_player_min: normalizeNullableInteger(session?.playerMin),
+    p_player_max: normalizeNullableInteger(session?.playerMax),
+    p_summary: String(session?.summary ?? "").trim() || null,
+    p_visibility: "hidden",
+    p_status: "canceled"
+  };
+}
+
+function getDeleteErrorMessage(error) {
+  const text = [
+    error?.message,
+    error?.details,
+    error?.hint,
+    error?.code
+  ].map((value) => String(value || "")).join(" ");
+  const key = Object.keys(DELETE_ERROR_MESSAGES).find((name) => text.includes(name));
+  return key ? DELETE_ERROR_MESSAGES[key] : DELETE_ERROR_MESSAGE;
+}
+
+function getAccessDeniedManageMessage(access) {
+  const message = String(access?.message || "");
+  return message.includes("ログイン") ? "ログインが必要です。" : "この依頼書を操作する権限がありません。";
+}
+
+function updateDetailStateLabels(root, session) {
+  const statusValue = root.querySelector("[data-session-detail-status-row] dd");
+  const visibilityValue = root.querySelector("[data-session-detail-visibility-row] dd");
+  const applicationPanel = root.querySelector("[data-session-application-panel]");
+  if (statusValue) statusValue.textContent = getSessionStatusLabel(session?.status);
+  if (visibilityValue) visibilityValue.textContent = getSessionVisibilityLabel(session?.visibility);
+  if (applicationPanel) {
+    applicationPanel.dataset.sessionStatus = String(session?.status || "");
+    applicationPanel.dataset.sessionVisibility = String(session?.visibility || "");
+    applicationPanel.classList.remove("is-closed", "is-finished");
+    applicationPanel.classList.add("is-canceled");
+  }
+}
+
 function getSessionManageElements(root) {
   const panel = root.querySelector("[data-session-detail-manage-panel]");
   return {
@@ -141,18 +231,49 @@ async function hasSessionEditAccess(client, sessionId) {
   return { allowed: false, message: "この予定は編集できません。" };
 }
 
-async function initSessionDetailManageActions(root, session) {
+async function applyDeleteEquivalent(root, client, elements, session) {
+  if (!elements.deleteButton || elements.deleteButton.disabled) return;
+  if (!window.confirm(DELETE_CONFIRM_MESSAGE)) return;
+
+  const wasEditDisabled = Boolean(elements.editButton?.disabled);
+  elements.deleteButton.disabled = true;
+  if (elements.editButton) elements.editButton.disabled = true;
+  setManageState(elements.state, "削除相当操作を実行しています。");
+
+  try {
+    const payload = buildDeleteEquivalentPayload(session);
+    const { error } = await client.rpc("update_session_post", payload);
+    if (error) throw error;
+
+    session.visibility = "hidden";
+    session.status = "canceled";
+    updateDetailStateLabels(root, session);
+    setManageState(elements.state, `${DELETE_SUCCESS_MESSAGE}\n公開状態: 非公開\n募集状態: 中止`, "is-ok");
+    elements.deleteButton.title = "この依頼書は非公開・中止扱いです。";
+    if (elements.editButton) elements.editButton.disabled = wasEditDisabled;
+  } catch (error) {
+    setManageState(elements.state, getDeleteErrorMessage(error), "is-error");
+    elements.deleteButton.disabled = false;
+    if (elements.editButton) elements.editButton.disabled = wasEditDisabled;
+  }
+}
+
+async function initSessionDetailManageActionsWithDelete(root, session) {
   const elements = getSessionManageElements(root);
   if (!elements.panel) return;
 
   if (elements.deleteButton) {
     elements.deleteButton.disabled = true;
-    elements.deleteButton.title = "削除機能は次工程で実装予定です";
+    elements.deleteButton.title = "権限確認後に有効化します。";
   }
 
   if (!isSupabaseSession(session)) {
     if (elements.editButton) elements.editButton.disabled = true;
-    setManageState(elements.state, "この予定は静的データ由来のため、この画面では編集できません。");
+    if (elements.deleteButton) {
+      elements.deleteButton.disabled = true;
+      elements.deleteButton.title = "この予定は静的データ由来のため、この画面では削除できません。";
+    }
+    setManageState(elements.state, "この予定は静的データ由来のため、この画面では編集できません。この予定は静的データ由来のため、この画面では削除できません。");
     return;
   }
 
@@ -160,7 +281,8 @@ async function initSessionDetailManageActions(root, session) {
     const client = await createSupabaseBrowserClient();
     if (!client) {
       if (elements.editButton) elements.editButton.disabled = true;
-      setManageState(elements.state, "接続設定が未構成のため、編集できません。", "is-error");
+      if (elements.deleteButton) elements.deleteButton.disabled = true;
+      setManageState(elements.state, "接続設定が未構成のため、編集・削除できません。", "is-error");
       return;
     }
 
@@ -170,15 +292,35 @@ async function initSessionDetailManageActions(root, session) {
       elements.editButton.addEventListener("click", () => {
         window.location.href = `session-post.html?id=${encodeURIComponent(session.id)}#my-sessions`;
       });
+      if (elements.deleteButton) {
+        elements.deleteButton.disabled = false;
+        elements.deleteButton.title = "この依頼書を非公開・中止扱いにします。";
+        elements.deleteButton.addEventListener("click", () => {
+          applyDeleteEquivalent(root, client, elements, session);
+        });
+      }
       setManageState(elements.state, access.message, "is-ok");
       return;
     }
+
     if (elements.editButton) elements.editButton.disabled = true;
-    setManageState(elements.state, access.message);
+    if (elements.deleteButton) {
+      elements.deleteButton.disabled = true;
+      elements.deleteButton.title = "この依頼書を操作する権限がありません。";
+    }
+    setManageState(elements.state, getAccessDeniedManageMessage(access));
   } catch {
     if (elements.editButton) elements.editButton.disabled = true;
+    if (elements.deleteButton) {
+      elements.deleteButton.disabled = true;
+      elements.deleteButton.title = "権限確認に失敗しました。";
+    }
     setManageState(elements.state, "編集権限を確認できませんでした。", "is-error");
   }
+}
+
+async function initSessionDetailManageActions(root, session) {
+  return initSessionDetailManageActionsWithDelete(root, session);
 }
 
 export async function renderSessionDetail(root) {

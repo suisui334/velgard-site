@@ -689,3 +689,10 @@
 - select option valueは `manage-0` 形式を維持し、表示ラベルは `【自分】` / `【管理】` を付ける。raw id / uuid / user_id / email / token はDOM、画面、consoleへ出さない。
 - adminで管理対象取得に失敗した場合は、画面に `管理対象の依頼書を取得できませんでした。管理用RPCの追加が必要です。` と表示する。既存RLS/APIで全件取得できない場合は、後続でlist/update用の管理RPC追加が必要。
 - この工程でCodexはSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、削除/募集終了本実装、Discord resync UI、service_role key利用、フロントからのDB直UPDATE、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+
+## M-14D-12A 削除相当操作と募集終了補助文
+- `session-detail.html` の削除ボタンを、物理削除ではなく既存 `update_session_post` RPC で `visibility = hidden` / `status = canceled` を保存する削除相当操作へ接続した。既存のタイトル、日時、概要、募集人数、種別、締切、`end_at` は維持する。
+- 削除相当操作は Supabase由来かつ admin または作成者GMのみ実行可。静的JSON由来、通常PL、他GMでは削除ボタンを disabled のままにし、静的JSON由来では削除できない理由を表示する。
+- 成功時は `この依頼書を非公開・中止扱いにしました。` と表示し、詳細画面の公開状態/募集状態も `非公開` / `中止` に更新する。失敗時は `login_required`、`not_allowed`、`session_not_found` を日本語へ丸め、未知エラーは削除相当操作失敗として表示する。
+- `session-post.html` の募集状態selectに `closed` / `finished` / `canceled` を追加し、募集終了、開催終了、中止の補助文を整理した。既存の編集ボタン、`session-post.html?id=...` 復元、自分の依頼書select、admin管理対象select、変更保存、`draft + public` ガード、`p_end_at` / 日跨ぎ対応、hidden/draft の公開calendar非表示は維持する。
+- この工程でCodexはSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、物理削除、Discord実送信、Edge Function deploy、Discord resync UI、service_role key利用、フロントからのDB直UPDATE、`updates.json` 変更、secret類の出力、commit / pushを行っていない。

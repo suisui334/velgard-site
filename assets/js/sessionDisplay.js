@@ -8,6 +8,12 @@ const SESSION_STATUSES = {
   canceled: "中止"
 };
 
+const SESSION_VISIBILITIES = {
+  hidden: "非公開",
+  private: "限定",
+  public: "公開"
+};
+
 const SESSION_TYPES = {
   "one-shot": "単発シナリオ",
   campaign: "キャンペーン",
@@ -27,6 +33,10 @@ export function escapeHtml(value) {
 
 export function getSessionStatusLabel(status) {
   return SESSION_STATUSES[status] || "未設定";
+}
+
+export function getSessionVisibilityLabel(visibility) {
+  return SESSION_VISIBILITIES[visibility] || "未設定";
 }
 
 export function getSessionStatusClass(status) {
@@ -123,11 +133,12 @@ export function renderSessionTags(tags) {
   `;
 }
 
-export function renderSessionDetailRow(label, value) {
+export function renderSessionDetailRow(label, value, options = {}) {
   const text = String(value ?? "").trim();
   if (!text) return "";
+  const attrs = options.attrs ? ` ${options.attrs}` : "";
   return `
-    <div>
+    <div${attrs}>
       <dt>${escapeHtml(label)}</dt>
       <dd>${escapeHtml(text)}</dd>
     </div>
@@ -179,7 +190,7 @@ function renderSessionApplicationPanel(session) {
   })();
 
   return `
-    <section class="session-application-panel session-comment-application-panel is-readonly ${escapeHtml(statusClass)}" data-session-application-panel data-session-id="${escapeHtml(session?.id || "")}" data-session-status="${escapeHtml(status || "")}" data-session-visibility="${escapeHtml(visibility || "")}" aria-labelledby="session-application-title">
+    <section class="session-application-panel session-comment-application-panel is-readonly ${escapeHtml(statusClass)}" data-session-application-panel data-session-status="${escapeHtml(status || "")}" data-session-visibility="${escapeHtml(visibility || "")}" aria-labelledby="session-application-title">
       <div class="session-application-copy">
         <h3 id="session-application-title">参加希望コメント</h3>
         <p>${escapeHtml(lead)}</p>
@@ -220,7 +231,8 @@ export function renderSessionDetailContent(session, options = {}) {
     session?.requirements ? `<section class="calendar-session-modal-block"><h3>参加条件・注意事項</h3><p>${escapeHtml(session.requirements)}</p></section>` : ""
   ].join("");
   const supplementalRows = [
-    renderSessionDetailRow("状態", getSessionStatusLabel(session?.status)),
+    renderSessionDetailRow("公開状態", getSessionVisibilityLabel(session?.visibility), { attrs: "data-session-detail-visibility-row" }),
+    renderSessionDetailRow("募集状態", getSessionStatusLabel(session?.status), { attrs: "data-session-detail-status-row" }),
     renderSessionDetailRow("更新日時", formatSessionUpdatedAt(session?.updatedAt))
   ].join("");
   const supplementalHtml = supplementalRows
