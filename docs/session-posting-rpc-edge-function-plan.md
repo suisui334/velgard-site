@@ -409,3 +409,29 @@ M-14D-8fではSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOK
 権限確認は、`authenticated` にEXECUTEあり、`anon` と `public` にEXECUTEなしで、いずれも期待値どおり `ok = true`。
 DB側の変更はRPC作成・権限設定のみで、テーブル構造変更はない。Discord実送信、Edge Function deploy、credential類の実値記録、`updates.json` 変更は行っていない。
 次工程はM-14D-9として、`session-post.html` の既存依頼書編集モードに「変更を保存」UIを接続し、`update_session_post` を呼ぶ。
+
+## 29. M-14D-9 frontend update save UI
+
+`session-post.html` の既存依頼書編集モードに `変更を保存` UIを接続し、保存時に `update_session_post` RPCを呼ぶようにした。
+新規作成モードでは従来どおり `create_session_post` を使い、既存依頼書選択中は作成ボタンを非表示/disabledにして誤作成を防ぐ。
+
+更新payloadは作成用と同じフォーム値整形を共通利用し、`p_end_at` / 日跨ぎ対応、申請締切、種別、募集人数、概要、公開状態、募集状態を維持する。
+`p_session_id` はDOMやselect option valueから取得せず、JSメモリ上の選択レコードからRPCへ渡す。
+
+保存成功後はフォーム内容、select表示、JSメモリ上の選択レコードを最新化する。
+保存失敗時は既知RPCエラーを日本語に丸め、内部IDやcredential類を表示しない。
+
+この工程ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、公開切替専用UI、削除/募集終了UI、`updates.json` 変更、credential類の実値記録、commit / pushは行っていない。
+
+## 30. M-14D-10 publication switch UI guard
+
+既存依頼書編集中に、`公開状態` / `募集状態` の組み合わせに応じた短い補助文を追加した。
+非公開または下書きは公開カレンダー非表示、公開系は公開カレンダー反映とDiscord通知未実装、終了系は募集終了扱いになることを示す。
+
+`draft + public` はUI側でも保存前に止め、該当時は `下書きは公開にできません。募集状態を変更するか、公開状態を非公開にしてください。` と表示する。
+この場合は `update_session_post` RPCを呼ばない。
+
+公開保存時の成功メッセージは、公開カレンダー反映とDiscord未実装を明示する。
+非公開保存は従来どおり短い成功メッセージに留める。
+
+この工程ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、公開切替専用大型UI、削除/募集終了専用UI、`updates.json` 変更、credential類の実値記録、commit / pushは行っていない。

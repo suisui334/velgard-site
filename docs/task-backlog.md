@@ -667,3 +667,10 @@
 - `p_session_id` はselect option valueから取らず、JSメモリ上の選択レコードから `update_session_post` へ渡す。select option valueは `manage-0` 形式のローカルキーのみで、raw id / uuidはDOM、画面、consoleへ出さない。
 - 保存成功後は `変更を保存しました。` を表示し、select表示とJSメモリ上の選択レコードを最新化する。保存失敗時は既知RPCエラーを日本語表示し、未知エラーは `保存に失敗しました。` に丸める。
 - この工程でCodexはSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、公開切替専用UI、削除/募集終了UI、`updates.json` 変更、credential類の実値出力、commit / pushを行っていない。
+
+## M-14D-10 公開切替まわりのUI整理
+- 既存依頼書編集中に、`公開状態` / `募集状態` の選択へ連動する短い補助文を追加した。非公開または下書きは公開カレンダー非表示、公開系は公開カレンダー反映とDiscord通知未実装、終了系は募集終了扱いになることを示す。
+- `draft + public` はUI側でも保存前に止める。該当時は `下書きは公開にできません。募集状態を変更するか、公開状態を非公開にしてください。` を表示し、`update_session_post` RPCを呼ばない。
+- 保存成功メッセージは公開状態で出し分ける。非公開保存は従来どおり、公開保存は公開カレンダー反映とDiscord未実装を明示する。
+- 公開切替専用の大型UI、削除/募集終了専用UIは追加していない。既存のselect、フォーム反映、`変更を保存`、新規作成モード、raw id / uuid非表示方針は維持する。
+- この工程でCodexはSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、`updates.json` 変更、secret類の出力、commit / pushを行っていない。

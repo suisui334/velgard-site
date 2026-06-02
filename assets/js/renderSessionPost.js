@@ -13,8 +13,14 @@ const ERROR_MESSAGE = "依頼書を投稿できませんでした。権限また
 const END_BEFORE_START_MESSAGE = "終了日時は開始日時より後にしてください。";
 const SAVE_ERROR_MESSAGE = "保存に失敗しました。";
 const SAVE_SUCCESS_MESSAGE = "変更を保存しました。";
+const PUBLIC_SAVE_SUCCESS_MESSAGE = "変更を保存しました。公開カレンダーに反映されます。Discord通知はまだ未実装です。";
+const DRAFT_PUBLIC_MESSAGE = "下書きは公開にできません。募集状態を変更するか、公開状態を非公開にしてください。";
+const PUBLICATION_HIDDEN_HINT = "この依頼書は公開カレンダーには表示されません。";
+const PUBLICATION_ACTIVE_HINT = "保存すると公開カレンダーに表示されます。Discord通知はまだ未実装です。";
+const PUBLICATION_CLOSED_HINT = "保存すると公開表示は残りますが、募集終了扱いになります。Discord通知はまだ未実装です。";
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const DATE_TIME_PATTERN = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})$/;
+const CLOSED_STATUS_VALUES = new Set(["closed", "finished", "canceled"]);
 const MANAGE_SESSION_SELECT = [
   "id",
   "title",
@@ -49,7 +55,7 @@ const UPDATE_ERROR_MESSAGES = {
   login_required: "ログインが必要です。",
   not_allowed: "この依頼書を編集する権限がありません。",
   session_not_found: "対象の依頼書が見つかりません。",
-  draft_must_not_be_public: "下書きは公開にできません。",
+  draft_must_not_be_public: DRAFT_PUBLIC_MESSAGE,
   invalid_player_range: "募集人数の範囲を確認してください。",
   end_at_must_be_after_start_at: END_BEFORE_START_MESSAGE,
   end_time_must_be_after_start_time: END_BEFORE_START_MESSAGE,
@@ -114,6 +120,7 @@ function renderShell(initialStartAt = "") {
               </select>
               <span data-session-post-manage-state aria-live="polite" hidden>読み込み中</span>
             </label>
+            <p class="session-post-publication-note" data-session-post-publication-note aria-live="polite" hidden></p>
             ${renderTextareaField("概要", "p_summary", 1000)}
           </div>
           <label class="session-post-public-confirm">
@@ -515,6 +522,7 @@ function enterEditMode(elements, session) {
   elements.resultPanel.hidden = true;
   setState(elements.formState, "既存依頼書を編集中です。");
   setState(elements.manageState, "");
+  updatePublicationHint(elements);
   replaceSelectedSessionId("");
 }
 
@@ -529,18 +537,49 @@ function enterNewMode(elements, options = {}) {
   if (options.clearResult) elements.resultPanel.hidden = true;
   if (options.clearForm) setState(elements.formState, "");
   setState(elements.manageState, "");
+  updatePublicationHint(elements);
   replaceSelectedSessionId("");
 }
 
 function validatePublicSave(payload) {
   if (payload.p_visibility === "public" && payload.p_status === "draft") {
-    return "公開状態の下書きは保存できません。";
+    return DRAFT_PUBLIC_MESSAGE;
   }
   return "";
 }
 
 function requirePublicConfirm(form, payload) {
   return payload.p_visibility === "public" && new FormData(form).get("public_confirm") !== "yes";
+}
+
+function getPublicationHint(visibility, status) {
+  if (visibility === "public" && status === "draft") {
+    return DRAFT_PUBLIC_MESSAGE;
+  }
+  if (visibility !== "public" || status === "draft") {
+    return PUBLICATION_HIDDEN_HINT;
+  }
+  if (CLOSED_STATUS_VALUES.has(status)) {
+    return PUBLICATION_CLOSED_HINT;
+  }
+  return PUBLICATION_ACTIVE_HINT;
+}
+
+function updatePublicationHint(elements) {
+  const target = elements.publicationNote;
+  if (!target) return;
+  if (!elements.currentSession) {
+    target.textContent = "";
+    target.hidden = true;
+    return;
+  }
+  const message = getPublicationHint(getValue(elements.form, "p_visibility"), getValue(elements.form, "p_status"));
+  target.textContent = message;
+  target.hidden = !message;
+}
+
+function getSaveSuccessMessage(payload) {
+  return payload.p_visibility === "public" ? PUBLIC_SAVE_SUCCESS_MESSAGE : SAVE_SUCCESS_MESSAGE;
 }
 
 function getUpdateErrorMessage(error) {
@@ -600,13 +639,13 @@ async function saveManagedSession(client, elements) {
 
   try {
     const payload = buildUpdatePayload(elements.form, previousSession);
-    if (requirePublicConfirm(elements.form, payload)) {
-      setState(elements.formState, "公開状態で保存する場合は確認してください。", "is-error");
-      return;
-    }
     const validationMessage = validatePublicSave(payload);
     if (validationMessage) {
       setState(elements.formState, validationMessage, "is-error");
+      return;
+    }
+    if (requirePublicConfirm(elements.form, payload)) {
+      setState(elements.formState, "公開状態で保存する場合は確認してください。", "is-error");
       return;
     }
 
@@ -619,7 +658,8 @@ async function saveManagedSession(client, elements) {
     const updatedSession = normalizeManagedSessionFromUpdate(previousSession, payload, result);
     updateManagedSessionMemory(elements, updatedSession, previousSession);
     fillFormFromManagedSession(elements.form, updatedSession);
-    setState(elements.formState, SAVE_SUCCESS_MESSAGE, "is-ok");
+    updatePublicationHint(elements);
+    setState(elements.formState, getSaveSuccessMessage(payload), "is-ok");
     setState(elements.manageState, "");
   } catch (error) {
     setState(elements.formState, getUpdateErrorMessage(error), "is-error");
@@ -719,6 +759,7 @@ async function initializeForm(root, client) {
     resultPanel,
     modeTitle: root.querySelector("[data-session-post-mode-title]"),
     modeNote: root.querySelector("[data-session-post-mode-note]"),
+    publicationNote: root.querySelector("[data-session-post-publication-note]"),
     panel: root.querySelector("[data-session-post-manage-panel]"),
     select: root.querySelector("[data-session-post-manage-select]"),
     manageLabel: root.querySelector("[data-session-post-manage-label]"),
@@ -730,6 +771,11 @@ async function initializeForm(root, client) {
   await loadManagedSessions(client, manageElements);
   save.addEventListener("click", () => {
     saveManagedSession(client, manageElements);
+  });
+  form.addEventListener("change", (event) => {
+    if (event.target?.name === "p_visibility" || event.target?.name === "p_status") {
+      updatePublicationHint(manageElements);
+    }
   });
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -743,14 +789,14 @@ async function initializeForm(root, client) {
 
     try {
       const payload = buildCreatePayload(form);
-      if (requirePublicConfirm(form, payload)) {
-        setState(state, "公開状態で保存する場合は確認してください。", "is-error");
-        submit.disabled = false;
-        return;
-      }
       const validationMessage = validatePublicSave(payload);
       if (validationMessage) {
         setState(state, validationMessage, "is-error");
+        submit.disabled = false;
+        return;
+      }
+      if (requirePublicConfirm(form, payload)) {
+        setState(state, "公開状態で保存する場合は確認してください。", "is-error");
         submit.disabled = false;
         return;
       }

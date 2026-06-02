@@ -3416,6 +3416,15 @@ body[data-page="session-post"] .session-post-field--wide {
   grid-column: 1 / -1;
 }
 
+body[data-page="session-post"] .session-post-publication-note {
+  grid-column: 1 / -1;
+  margin: -2px 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
 body[data-page="session-post"] .session-post-public-confirm {
   display: flex;
   gap: 10px;

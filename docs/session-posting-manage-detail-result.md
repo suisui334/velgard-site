@@ -112,9 +112,25 @@ raw id / uuid、user_id、email、token、key、secret類はDOM、画面、conso
 `新規依頼書を書く` を選んだ場合は、従来どおり編集モード解除、保存ボタン非表示、作成ボタン有効化、フォーム初期化、URLの `id` 除去を行う。
 この工程ではSQL Editor実行、DB構造変更、RPC変更、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力は行っていない。
 
+## M-14D-10 公開切替まわりのUI整理
+
+既存依頼書編集中に、`公開状態` / `募集状態` の選択に応じた短い補助文を表示するようにした。
+非公開または下書きは公開カレンダー非表示、公開系は公開カレンダー反映とDiscord通知未実装、終了系は募集終了扱いになることをフォーム内の小さな文で示す。
+
+`visibility = public` かつ `status = draft` は、保存前にUI側で止める。
+この場合は `下書きは公開にできません。募集状態を変更するか、公開状態を非公開にしてください。` と表示し、`update_session_post` RPCを呼ばない。
+
+保存成功メッセージは公開状態に応じて出し分ける。
+非公開保存では従来どおり `変更を保存しました。`、公開保存では公開カレンダー反映とDiscord通知未実装を明示する。
+
+公開切替専用の大型ボタンや別パネル、削除/募集終了専用UIは追加していない。
+既存の `公開状態` / `募集状態` select、`変更を保存` ボタン、新規作成モード、`create_session_post` / `update_session_post` 接続、`p_end_at` / 日跨ぎ対応、raw id / uuid非表示方針は維持する。
+
+この工程ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
+
 ## 未実装
 
-- 公開切替
+- 公開切替専用UI
 - 削除
 - 募集終了
 - Discord実送信
