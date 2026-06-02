@@ -20,11 +20,13 @@ const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";
 const CALENDAR_SELECTED_DATE_KEY = "velgard.calendar.selectedDate";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const CALENDAR_EXCLUDED_STATUSES = new Set(["draft", "canceled", "cancelled"]);
 
 function isVisibleSession(session) {
+  const status = String(session?.status || "").trim();
   return session
     && session.visibility === "public"
-    && session.status !== "draft"
+    && !CALENDAR_EXCLUDED_STATUSES.has(status)
     && ISO_DATE_PATTERN.test(String(session.date || ""));
 }
 

@@ -163,7 +163,7 @@ function renderSessionDetailManageRow(session, options = {}) {
       <dd>
         <div class="session-detail-manage-buttons">
           <button class="session-detail-manage-button session-detail-manage-edit" type="button" data-session-detail-edit disabled>編集</button>
-          <button class="session-detail-manage-button session-detail-manage-delete" type="button" data-session-detail-delete disabled title="削除機能は次工程で実装予定です">削除</button>
+          <button class="session-detail-manage-button session-detail-manage-delete" type="button" data-session-detail-delete disabled title="権限確認後に有効化します">削除</button>
         </div>
         <p class="session-detail-manage-note" data-session-detail-manage-state>${escapeHtml(note)}</p>
       </dd>

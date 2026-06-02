@@ -6,13 +6,14 @@ import {
   getSessionStatusLabel,
   getSessionVisibilityLabel,
   renderSessionDetailContent
-} from "./sessionDisplay.js?v=20260603-delete-equivalent";
+} from "./sessionDisplay.js?v=20260603-management-qa";
 import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260601-gm-contact-copy";
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js?v=20260601-session-post";
 
 const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const DETAIL_EXCLUDED_STATUSES = new Set(["draft", "canceled", "cancelled"]);
 const DELETE_CONFIRM_MESSAGE = "この依頼書を非公開・中止扱いにします。\n物理削除は行いません。\nよろしいですか？";
 const DELETE_SUCCESS_MESSAGE = "この依頼書を非公開・中止扱いにしました。";
 const DELETE_ERROR_MESSAGE = "削除相当操作に失敗しました。";
@@ -41,9 +42,10 @@ function formatRealDate(isoDate) {
 }
 
 function isVisibleSession(session) {
+  const status = String(session?.status || "").trim();
   return session
     && session.visibility === "public"
-    && session.status !== "draft"
+    && !DETAIL_EXCLUDED_STATUSES.has(status)
     && String(session.id || "").trim();
 }
 
