@@ -293,3 +293,44 @@ M-15E: mypage PC名登録UI
 ```
 
 今回CodexはSQL Editor追加実行、DB構造変更、RPC作成 / 置換、GRANT / REVOKE、フロントUI実装、PC名登録UI実装、参加申請UI変更、テンプレート保存機能実装、Discord実送信、Edge Function deploy、`updates.json` 変更、service_role key利用、secret類の出力、commit / pushを行っていない。
+
+## M-15C APPLY専用SQL作成
+
+M-15Cとして、PC名登録・参加申請PC紐付け用のAPPLY専用SQLファイル `docs/supabase/sql/019_player_characters_apply_reviewed.sql` を作成した。
+SQL Editorで実行する場合は、この `apply_reviewed.sql` の全文のみを使い、`019_player_characters_rpc_draft.sql` の全文は貼らない。
+
+preflight / draft / apply は以下のように分離する。
+
+```text
+preflight:
+docs/supabase/sql/019_player_characters_preflight_select_only.sql
+SELECT-only。DBを変更しない。
+
+draft:
+docs/supabase/sql/019_player_characters_rpc_draft.sql
+検討用草案。参加申請RPC置換案やテンプレート用RPC候補も含むため、そのまま貼らない。
+
+apply:
+docs/supabase/sql/019_player_characters_apply_reviewed.sql
+レビュー済みAPPLY専用。SQL Editorで実行する対象を固定する。
+```
+
+APPLY専用SQLに含めた内容:
+
+- `public.player_characters` テーブル作成。
+- `session_applications.selected_character_id` / `pc_name_snapshot` 追加。
+- PC名の空文字禁止、40文字上限、単一行制約。
+- `owner_user_id` / active検索用index。
+- 有効なdefault PCを1ユーザー1件にする部分unique index。
+- `player_characters_set_updated_at` trigger。
+- `player_characters` RLS有効化と本人select policy。
+- 書き込みはsecurity definer RPC経由とし、直接insert/update/delete policyは追加しない方針。
+- PC管理RPC 5本: `get_my_player_characters`、`create_player_character`、`update_player_character`、`set_default_player_character`、`deactivate_player_character`。
+- `public` / `anon` からのEXECUTE revoke、`authenticated` へのEXECUTE grant。
+- table / column / FK / RPC security definer / EXECUTE権限の実行後確認SELECT。
+
+参加申請へのdefault PC自動採用、`create_application_comment` 置換、`update_my_application_character`、テンプレート用 `get_gm_session_approved_template_data` はM-15F以降に分離した。
+後続では、参加申請時にdefault PCを `pc_name_snapshot` へ保存し、GMコメントは参加申請扱いしない方針、辞退 / 再申請時のPC名扱いを改めて整理する。
+
+APPLYはまだ未実行。
+今回CodexはSQL Editor実行、DB構造変更、RPC作成 / 置換、GRANT / REVOKE実行、フロントUI実装、PC名登録UI実装、参加申請UI変更、テンプレート保存機能実装、Discord実送信、Edge Function deploy、`updates.json` 変更、service_role key利用、secret類の出力、commit / pushを行っていない。

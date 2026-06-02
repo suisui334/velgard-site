@@ -192,3 +192,16 @@ PC名は物理削除ではなく `is_active = false` を基本とし、テンプ
 
 次工程はM-15CとしてAPPLY専用SQL作成・最終レビュー、M-15DとしてSQL Editor適用、M-15Eとしてmypage PC名登録UIへ進む想定。
 今回CodexはSQL Editor追加実行、DB構造変更、RPC作成 / 置換、GRANT / REVOKE、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+
+## M-15C player_characters APPLY専用SQL
+
+M-15Cとして、PC名登録・参加申請PC紐付け用のAPPLY専用SQL `docs/supabase/sql/019_player_characters_apply_reviewed.sql` を作成した。
+SQL Editorで実行する場合はAPPLY専用ファイル全文のみを使い、`019_player_characters_rpc_draft.sql` の全文は貼らない。
+
+APPLY専用SQLには、`player_characters` テーブル、`session_applications.selected_character_id` / `pc_name_snapshot`、必要なconstraint / index、default PC部分unique index、updated_at trigger、本人select RLS policy、PC管理RPC 5本、`public` / `anon` EXECUTE不可と `authenticated` EXECUTE許可、実行後確認SELECTを含めた。
+
+参加申請RPC置換、default PCの申請時自動採用、テンプレート用RPC、フロントUI実装は含めていない。
+GMコメントは参加申請扱いしない方針、辞退 / 再申請時のPC名扱いは後続で整理する。
+
+APPLYはまだ未実行。
+今回CodexはSQL Editor実行、DB構造変更、RPC作成 / 置換、GRANT / REVOKE実行、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。

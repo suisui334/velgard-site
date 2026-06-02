@@ -3,6 +3,8 @@
 --
 -- DRAFT ONLY:
 -- - SQL Editorではまだ実行しない。
+-- - SQL Editor apply時は 019_player_characters_apply_reviewed.sql を使う。
+-- - このdraft全文を貼らない。
 -- - DB構造変更、RPC作成/置換、GRANT/REVOKEは今回行わない。
 -- - フロントUI実装、参加申請UI変更、テンプレート保存機能実装は今回行わない。
 -- - 実メール、実user_id、実PC名、実Discord ID、Project URL、API key、
