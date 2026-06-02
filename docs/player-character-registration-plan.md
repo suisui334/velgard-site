@@ -287,37 +287,42 @@ secret類
 
 ## 段階実装案
 
-### M-15B SQL草案
+### M-15B preflight結果記録・SQL草案レビュー
 
-- `player_characters` テーブル草案。
-- `session_applications` への `selected_character_id` / `pc_name_snapshot` 追加草案。
-- PC名管理RPC草案。
-- 既存 `create_application_comment` / `get_gm_session_accepted_contacts` への影響整理。
-- SQL Editorはまだ実行しない。
+- SELECT-only preflight結果をdocsへ記録する。
+- `019_player_characters_rpc_draft.sql` が実DB状態と矛盾しないか点検する。
+- `owner_user_id`、`selected_character_id`、`pc_name_snapshot` の方針を確定する。
+- SQL Editor追加実行、DB構造変更、RPC作成は行わない。
 
-### M-15C SQL適用結果記録
+### M-15C APPLY専用SQL作成・最終レビュー
+
+- `019_player_characters` APPLY専用SQLを作成する。
+- SQL Editorへ貼る対象を固定し、草案全文をそのまま実行しない。
+- 適用前確認、権限方針、rollback草案を整理する。
+
+### M-15D SQL Editor適用結果記録
 
 - ユーザーがSQL Editorで適用した場合、その結果だけdocsへ記録する。
 - Codex側では追加実行しない。
 
-### M-15D mypage PC名登録UI
+### M-15E mypage PC名登録UI
 
 - 初期は単一デフォルトPC登録または簡易一覧。
 - 空欄 / 未登録表示。
 - display_name / DiscordユーザーID導線を壊さない。
 
-### M-15E 参加申請へのPC名スナップショット接続
+### M-15F 参加申請へのPC名スナップショット接続
 
 - 参加申請投稿時にデフォルトPC名を `pc_name_snapshot` へ保存する。
 - 再申請時もスナップショットを更新する。
 - 既存PL申請 / 辞退 / 再申請導線を壊さない。
 
-### M-15F GM向け承認済み参加者情報のPC名対応
+### M-15G GM向け承認済み参加者情報のPC名対応
 
 - GM向け承認済み参加者連絡先表示にPC名を追加する。
 - `{{approved_call_list}}` / `{{approved_pc_names}}` 用データを取得できるようにする。
 
-### M-15G テンプレート変数置換UI
+### M-15H テンプレート変数置換UI
 
 - テンプレート保存本体またはコピー用テンプレートUIを実装する。
 - 初期変数は `{{session_title}}` / `{{approved_call_list}}` / `{{approved_pc_names}}` を優先する。
@@ -364,3 +369,22 @@ SQL草案では、`player_characters` テーブル、`session_applications.selec
 既存 `get_gm_session_accepted_contacts(target_session_id text)` は現在のフロント返却列チェックと結びついているため、M-15B草案ではすぐPC名付きへ置換せず、テンプレート用の別RPC候補を置く方針とした。
 
 この工程ではSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE、フロントUI実装、PC名登録UI実装、参加申請UI変更、テンプレート保存機能実装、Discord実送信、Edge Function deploy、`updates.json` 変更、service_role key利用、secret類の出力、commit / pushは行わない。
+
+## M-15B preflight結果・SQL草案点検
+
+ユーザーがSupabase SQL Editorで実行したのは `019_player_characters_preflight_select_only.sql` のSELECT-only preflightのみ。
+`019_player_characters_rpc_draft.sql`、CREATE TABLE、ALTER TABLE、CREATE FUNCTION、GRANT / REVOKE、DB構造変更、RPC作成は未実行。
+
+preflightでは、`player_characters` テーブル、`session_applications.selected_character_id`、`session_applications.pc_name_snapshot` が未作成であることを確認した。
+また、`profiles.id` は uuid / NOT NULL で `auth.users(id)` を `ON DELETE CASCADE` 参照し、`session_applications.user_id` は `profiles(id)`、`session_applications.session_id` は `sessions(id)` を参照する。
+`session_applications` には既存どおり `UNIQUE(session_id, user_id)` と `PRIMARY KEY(id)` がある。
+
+この結果から、`player_characters.owner_user_id` は `public.profiles(id)` 参照で進めるのが自然と整理した。
+`session_applications.selected_character_id` は `player_characters(id) on delete set null`、`pc_name_snapshot` は nullable text とし、テンプレートや履歴表示では `pc_name_snapshot` を正とする。
+PC行は原則として物理削除せず `is_active = false` を基本にするため、selected_character_idが非アクティブPCを指しても過去申請のPC名表示はスナップショットで維持する。
+
+`019_player_characters_rpc_draft.sql` は、上記preflight結果と矛盾しないことを確認した。
+`session_applications.comment_id` は既存の `session_comments(id)` 参照制約を維持し、今回の草案ではPC名連携に必要な列だけを追加する。
+
+次工程はM-15CとしてAPPLY専用SQL作成・最終レビュー、M-15DとしてSQL Editor適用、M-15Eとしてmypage PC名登録UIへ進む想定。
+今回CodexはSQL Editor追加実行、DB構造変更、RPC作成 / 置換、GRANT / REVOKE、フロントUI実装、PC名登録UI実装、参加申請UI変更、テンプレート保存機能実装、Discord実送信、Edge Function deploy、`updates.json` 変更、service_role key利用、secret類の出力、commit / pushを行っていない。

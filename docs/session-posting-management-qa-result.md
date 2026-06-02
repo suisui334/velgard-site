@@ -176,3 +176,19 @@ M-15Bとして、PC名登録・参加申請PC紐付け用のSQL草案とSELECT-o
 既存 `get_gm_session_accepted_contacts(target_session_id text)` は現在のフロント返却列チェックと結びついているため、M-15Bでは即置換せず、テンプレート用の別RPC候補を置いた。`{{approved_call_list}}` / `{{approved_pc_names}}` は承認済み参加者の `display_name`、`discord_handle`、`pc_name_snapshot` を使う方針。
 
 この工程ではSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE、フロントUI実装、PC名登録UI実装、参加申請UI変更、テンプレート保存機能実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行わない。
+
+## M-15B PC名登録SQL preflight結果
+
+ユーザーがSupabase SQL Editorで実行したのは `019_player_characters_preflight_select_only.sql` のSELECT-only preflightのみ。
+`019_player_characters_rpc_draft.sql`、CREATE TABLE、ALTER TABLE、CREATE FUNCTION、GRANT / REVOKE、DB構造変更、RPC作成は未実行。
+
+preflightでは、`player_characters` テーブル、`session_applications.selected_character_id`、`session_applications.pc_name_snapshot` が未作成であることを確認した。
+`profiles.id` は uuid / NOT NULL の主キーで `auth.users(id)` を `ON DELETE CASCADE` 参照し、`session_applications.user_id` は `profiles(id)`、`session_applications.session_id` は `sessions(id)` を参照する。
+`session_applications` には `UNIQUE(session_id, user_id)` と `PRIMARY KEY(id)` がある。
+
+SQL草案は、`player_characters.owner_user_id` を `public.profiles(id)` 参照、`session_applications.selected_character_id` を `player_characters(id) on delete set null`、`session_applications.pc_name_snapshot` を nullable text とする方針で、実DB状態と矛盾しない。
+PC名は物理削除ではなく `is_active = false` を基本とし、テンプレートや履歴表示では `pc_name_snapshot` を正とする。
+`session_applications.comment_id` の既存制約は変更せず、既存挙動を維持する。
+
+次工程はM-15CとしてAPPLY専用SQL作成・最終レビュー、M-15DとしてSQL Editor適用、M-15Eとしてmypage PC名登録UIへ進む想定。
+今回CodexはSQL Editor追加実行、DB構造変更、RPC作成 / 置換、GRANT / REVOKE、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。

@@ -210,13 +210,13 @@ DiscordユーザーIDは既存方針どおり、17〜20桁の数字なら `<@ID>
 
 ## 段階実装案
 
-1. M-15B: preflight SELECT-only SQLとSQL草案作成。
-2. M-15C: ユーザーがSQL Editorでpreflightを実行した場合の結果記録と草案レビュー。
-3. M-15D: reviewed apply SQL作成または草案修正。
-4. M-15E: SQL適用結果記録。
-5. M-15F: mypage PC名登録UI。
-6. M-15G: 参加申請へのPC名スナップショット接続。
-7. M-15H: GM向け承認済み参加者情報とテンプレート変数置換UI。
+1. M-15B: preflight結果記録とSQL草案レビュー。
+2. M-15C: 019_player_characters APPLY専用SQL作成・最終レビュー。
+3. M-15D: SQL Editor適用と結果記録。
+4. M-15E: mypage PC名登録UI。
+5. M-15F: 参加申請へのPC名スナップショット接続。
+6. M-15G: GM向け承認済み参加者情報のPC名対応。
+7. M-15H: テンプレート変数置換UI。
 
 ## 今回やらないこと
 
@@ -234,3 +234,62 @@ DiscordユーザーIDは既存方針どおり、17〜20桁の数字なら `<@ID>
 - service_role key利用。
 - secret類の出力。
 - commit / push。
+
+## M-15B preflight結果・草案点検
+
+ユーザーがSupabase SQL Editorで実行したのは `019_player_characters_preflight_select_only.sql` のSELECT-only preflightのみ。
+`019_player_characters_rpc_draft.sql`、CREATE TABLE、ALTER TABLE、CREATE FUNCTION、GRANT / REVOKE、DB構造変更、RPC作成は未実行。
+
+preflight結果:
+
+```text
+player_characters table: missing
+session_applications.selected_character_id: missing
+session_applications.pc_name_snapshot: missing
+profiles.id: uuid / NOT NULL
+session_applications.user_id: uuid / NOT NULL
+session_applications.session_id: text / NOT NULL
+```
+
+追加確認した制約:
+
+```text
+profiles.id:
+PRIMARY KEY
+FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
+
+session_applications.user_id:
+FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
+
+session_applications.session_id:
+FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE
+
+session_applications:
+UNIQUE(session_id, user_id)
+PRIMARY KEY(id)
+```
+
+`session_applications.comment_id` は `session_comments(id)` を参照する既存制約があり、削除時挙動は既存挙動維持として扱う。
+
+SQL草案点検結果:
+
+- `player_characters.owner_user_id` は `public.profiles(id)` 参照で、preflight結果と矛盾しない。
+- `session_applications.selected_character_id` は `public.player_characters(id) on delete set null` 参照で、将来PC行が消えても申請側の参照だけを外せる。
+- `session_applications.pc_name_snapshot` は nullable text で、テンプレートや履歴表示ではこちらを正とする。
+- 既存 `UNIQUE(session_id, user_id)` と矛盾せず、申請行は従来どおりセッション/ユーザー単位で1件を維持する。
+- 既存 `session_applications.user_id = profiles(id)` 方針と矛盾しない。
+- PC名の削除は物理削除ではなく `is_active = false` を基本にする。
+- `selected_character_id` が指すPCを非アクティブ化しても、`pc_name_snapshot` は残る設計にする。
+
+`selected_character_id` の外部キー方針は `references public.player_characters(id) on delete set null` を推奨する。
+理由は、PC行が何らかの理由で削除されても、過去申請のPC名スナップショットを `pc_name_snapshot` として残し、テンプレートや履歴表示を維持するため。
+
+次工程方針:
+
+```text
+M-15C: 019_player_characters APPLY専用SQL作成・最終レビュー
+M-15D: SQL Editor適用
+M-15E: mypage PC名登録UI
+```
+
+今回CodexはSQL Editor追加実行、DB構造変更、RPC作成 / 置換、GRANT / REVOKE、フロントUI実装、PC名登録UI実装、参加申請UI変更、テンプレート保存機能実装、Discord実送信、Edge Function deploy、`updates.json` 変更、service_role key利用、secret類の出力、commit / pushを行っていない。

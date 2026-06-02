@@ -32,6 +32,20 @@
 -- - get_gm_session_accepted_contacts currently returns display_name / discord_handle only.
 -- - Frontend must be updated before a returned column contract changes.
 --
+-- M-15B preflight result reviewed:
+-- - public.player_characters does not exist yet.
+-- - public.session_applications.selected_character_id does not exist yet.
+-- - public.session_applications.pc_name_snapshot does not exist yet.
+-- - public.profiles.id is uuid, not null, primary key, and references auth.users(id) on delete cascade.
+-- - public.session_applications.user_id is uuid, not null, and references public.profiles(id) on delete cascade.
+-- - public.session_applications.session_id is text, not null, and references public.sessions(id) on delete cascade.
+-- - public.session_applications has primary key(id) and unique(session_id, user_id).
+-- - public.session_applications.comment_id already references public.session_comments(id);
+--   this draft keeps the existing comment_id delete behavior unchanged.
+-- - owner_user_id should reference public.profiles(id).
+-- - selected_character_id should reference public.player_characters(id) on delete set null.
+-- - pc_name_snapshot remains nullable text and is the source of truth for template/history output.
+--
 -- Stop and revise if:
 -- - player_characters already exists with a different contract.
 -- - session_applications already has selected_character_id or pc_name_snapshot
