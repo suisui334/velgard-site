@@ -331,6 +331,19 @@ M-14D-8fではAPPLY専用ファイル作成のみを行い、SQL Editor実行、
 M-14D-8gではCodex側のSQL Editor追加実行、DB追加変更、RPC再作成、GRANT/REVOKE再実行、Discord実送信、Edge Function deploy、secret類の出力、`updates.json` 変更は行っていない。
 次工程はM-14D-9として、フロントの「変更を保存」UI接続を行う。
 
+## M-14D-9 frontend update save UI
+
+`session-post.html` の既存依頼書編集モードに `変更を保存` UIを接続し、保存時に `update_session_post` RPCを呼ぶ実装を追加した。
+新規作成モードでは従来どおり `create_session_post` を使い、既存依頼書選択中は作成ボタンを非表示/disabledにして `変更を保存` ボタンを有効化する。
+
+RPC payloadは `create_session_post` と同じフォーム整形を共通利用しつつ、更新時は `p_session_id`、`p_title`、`p_session_date`、`p_start_time`、`p_end_time`、`p_application_deadline`、`p_session_type`、`p_player_min`、`p_player_max`、`p_summary`、`p_visibility`、`p_status`、`p_end_at` を送る。
+`p_session_id` はDOMやselect option valueから取得せず、JSメモリ上の選択レコードから渡す。
+
+保存成功後は成功メッセージを表示し、selectの該当option表示とJSメモリ上の選択レコードを最新化する。
+保存失敗時は `login_required`、`not_allowed`、`session_not_found`、`draft_must_not_be_public`、`invalid_player_range`、`end_at_must_be_after_start_at`、`summary_too_long` などを日本語に丸め、内部IDやcredential類を表示しない。
+
+M-14D-9ではSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力は行っていない。
+
 ## 停止条件
 
 - `public.sessions.id` がtextでない。

@@ -660,3 +660,10 @@
 - 権限確認は `authenticated EXECUTEあり`、`anon EXECUTEなし`、`public EXECUTEなし` で、すべて期待値どおり `ok = true`。DB側の変更はRPC作成・権限設定のみで、テーブル構造変更はない。
 - Discord実送信、Edge Function deploy、フロントUI接続、公開切替、削除、`updates.json` 変更、credential類の実値出力は行っていない。
 - 次工程はM-14D-9として、`session-post.html` の既存依頼書編集モードに「変更を保存」UIを接続し、`update_session_post` を呼ぶ。
+
+## M-14D-9 既存依頼書の変更保存UI接続
+- `session-post.html` の既存依頼書編集モードに `変更を保存` ボタンを追加し、選択中の依頼書を `update_session_post` RPCで保存できるようにした。新規作成モードでは従来どおり `create_session_post` を使い、編集モード中は作成ボタンを非表示/disabledにして誤作成を防ぐ。
+- 更新payloadは作成用と同じフォーム値整形を共通利用し、`p_end_at` / `end_at` 日跨ぎ対応、申請締切、種別、募集人数min/max、概要、公開状態、募集状態を維持する。`draft + public` はUI側でも保存前に拒否する。
+- `p_session_id` はselect option valueから取らず、JSメモリ上の選択レコードから `update_session_post` へ渡す。select option valueは `manage-0` 形式のローカルキーのみで、raw id / uuidはDOM、画面、consoleへ出さない。
+- 保存成功後は `変更を保存しました。` を表示し、select表示とJSメモリ上の選択レコードを最新化する。保存失敗時は既知RPCエラーを日本語表示し、未知エラーは `保存に失敗しました。` に丸める。
+- この工程でCodexはSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE実行、Edge Function deploy、Discord実送信、公開切替専用UI、削除/募集終了UI、`updates.json` 変更、credential類の実値出力、commit / pushを行っていない。

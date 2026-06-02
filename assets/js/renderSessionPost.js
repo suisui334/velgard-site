@@ -11,6 +11,8 @@ import {
 
 const ERROR_MESSAGE = "依頼書を投稿できませんでした。権限または入力内容を確認してください。";
 const END_BEFORE_START_MESSAGE = "終了日時は開始日時より後にしてください。";
+const SAVE_ERROR_MESSAGE = "保存に失敗しました。";
+const SAVE_SUCCESS_MESSAGE = "変更を保存しました。";
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const DATE_TIME_PATTERN = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})$/;
 const MANAGE_SESSION_SELECT = [
@@ -43,7 +45,20 @@ const DISCORD_SYNC_STATUS_LABELS = {
   posted: "同期済み",
   failed: "同期失敗"
 };
-const EDIT_STATUS_MESSAGE = "編集保存は次工程です。新規作成する場合は「新規依頼書を書く」を選んでください。";
+const UPDATE_ERROR_MESSAGES = {
+  login_required: "ログインが必要です。",
+  not_allowed: "この依頼書を編集する権限がありません。",
+  session_not_found: "対象の依頼書が見つかりません。",
+  draft_must_not_be_public: "下書きは公開にできません。",
+  invalid_player_range: "募集人数の範囲を確認してください。",
+  end_at_must_be_after_start_at: END_BEFORE_START_MESSAGE,
+  end_time_must_be_after_start_time: END_BEFORE_START_MESSAGE,
+  summary_too_long: "概要が長すぎます。",
+  invalid_player_min: "募集人数の範囲を確認してください。",
+  invalid_player_max: "募集人数の範囲を確認してください。",
+  "invalid-player-count": "募集人数の範囲を確認してください。",
+  "end-before-start": END_BEFORE_START_MESSAGE
+};
 
 function renderShell(initialStartAt = "") {
   return `
@@ -107,6 +122,7 @@ function renderShell(initialStartAt = "") {
           </label>
           <div class="session-post-submit-row">
             <button class="button primary" type="submit" data-session-post-submit>作成する</button>
+            <button class="button primary" type="button" data-session-post-save hidden>変更を保存</button>
             <p class="session-post-state" data-session-post-state aria-live="polite"></p>
           </div>
         </form>
@@ -249,7 +265,7 @@ function readSelectedSessionId() {
   return String(params.get("id") || "").trim();
 }
 
-function buildPayload(form) {
+function buildSessionPayload(form) {
   const playerMin = nullableInteger(getValue(form, "p_player_min"));
   const playerMax = nullableInteger(getValue(form, "p_player_max"));
   if (Number.isNaN(playerMin) || Number.isNaN(playerMax)) {
@@ -276,14 +292,29 @@ function buildPayload(form) {
     p_end_at: toRpcDateTimeValue(endAt),
     p_application_deadline: toDeadlineValue(getValue(form, "p_application_deadline")),
     p_session_type: getValue(form, "p_session_type"),
-    p_level_range: null,
     p_player_min: playerMin,
     p_player_max: playerMax,
     p_summary: nullableText(getValue(form, "p_summary")),
-    p_request_body: null,
-    p_requirements: null,
     p_visibility: getValue(form, "p_visibility"),
     p_status: getValue(form, "p_status")
+  };
+}
+
+function buildCreatePayload(form) {
+  return {
+    ...buildSessionPayload(form),
+    p_level_range: null,
+    p_request_body: null,
+    p_requirements: null
+  };
+}
+
+function buildUpdatePayload(form, session) {
+  const sessionId = String(session?.id ?? "").trim();
+  if (!sessionId) throw new Error("session_not_found");
+  return {
+    p_session_id: sessionId,
+    ...buildSessionPayload(form)
   };
 }
 
@@ -382,6 +413,14 @@ function renderManagedSessionOption(session, index) {
   return `<option value="manage-${Number(index)}">${escapeHtml(`【${session.statusLabel}・${session.visibilityLabel}】${formatManagedOptionDate(session)} ${session.title}`)}</option>`;
 }
 
+function getManagedSessionIndex(elements, session) {
+  if (!session) return -1;
+  const byReference = elements.managedSessions.findIndex((item) => item === session);
+  if (byReference >= 0) return byReference;
+  const sessionId = String(session.id ?? "").trim();
+  return elements.managedSessions.findIndex((item) => sessionId && item.id === sessionId);
+}
+
 function getFormControl(form, name) {
   return form?.elements?.namedItem(name) || null;
 }
@@ -457,6 +496,14 @@ function replaceSelectedSessionId(sessionId = "") {
   window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
+function setEditControls(elements, isEditing) {
+  elements.submit.disabled = Boolean(isEditing);
+  elements.submit.hidden = Boolean(isEditing);
+  elements.save.hidden = !isEditing;
+  elements.save.disabled = !isEditing;
+  elements.save.textContent = "変更を保存";
+}
+
 function enterEditMode(elements, session) {
   elements.currentSession = session;
   fillFormFromManagedSession(elements.form, session);
@@ -464,11 +511,10 @@ function enterEditMode(elements, session) {
   elements.form.classList.add("is-editing");
   elements.modeTitle.textContent = "依頼書";
   elements.modeNote.textContent = "初期値は非公開の下書きです。";
-  elements.submit.disabled = true;
-  elements.submit.textContent = "編集保存は次工程";
+  setEditControls(elements, true);
   elements.resultPanel.hidden = true;
-  setState(elements.formState, EDIT_STATUS_MESSAGE);
-  setState(elements.manageState, "保存更新は次工程です。");
+  setState(elements.formState, "既存依頼書を編集中です。");
+  setState(elements.manageState, "");
   replaceSelectedSessionId("");
 }
 
@@ -479,12 +525,110 @@ function enterNewMode(elements, options = {}) {
   elements.form.classList.remove("is-editing");
   elements.modeTitle.textContent = "依頼書";
   elements.modeNote.textContent = "初期値は非公開の下書きです。";
-  elements.submit.disabled = false;
-  elements.submit.textContent = "作成する";
+  setEditControls(elements, false);
   if (options.clearResult) elements.resultPanel.hidden = true;
   if (options.clearForm) setState(elements.formState, "");
   setState(elements.manageState, "");
   replaceSelectedSessionId("");
+}
+
+function validatePublicSave(payload) {
+  if (payload.p_visibility === "public" && payload.p_status === "draft") {
+    return "公開状態の下書きは保存できません。";
+  }
+  return "";
+}
+
+function requirePublicConfirm(form, payload) {
+  return payload.p_visibility === "public" && new FormData(form).get("public_confirm") !== "yes";
+}
+
+function getUpdateErrorMessage(error) {
+  const text = [
+    error?.message,
+    error?.details,
+    error?.hint,
+    error?.code
+  ].map((value) => String(value || "")).join(" ");
+  const key = Object.keys(UPDATE_ERROR_MESSAGES).find((name) => text.includes(name));
+  return key ? UPDATE_ERROR_MESSAGES[key] : SAVE_ERROR_MESSAGE;
+}
+
+function normalizeManagedSessionFromUpdate(previousSession, payload, result) {
+  return normalizeManagedSession({
+    id: previousSession.id,
+    title: payload.p_title,
+    date: payload.p_session_date,
+    start_time: payload.p_start_time,
+    end_time: payload.p_end_time,
+    end_at: payload.p_end_at,
+    application_deadline: payload.p_application_deadline,
+    session_type: payload.p_session_type,
+    player_min: payload.p_player_min,
+    player_max: payload.p_player_max,
+    summary: payload.p_summary,
+    visibility: payload.p_visibility,
+    status: payload.p_status,
+    discord_sync_status: result?.discord_sync_status || previousSession.discordSyncStatus,
+    created_at: previousSession.createdAt,
+    updated_at: result?.updated_at || previousSession.updatedAt
+  });
+}
+
+function updateManagedSessionMemory(elements, updatedSession, previousSession) {
+  const index = getManagedSessionIndex(elements, previousSession);
+  if (index < 0) {
+    elements.currentSession = updatedSession;
+    return;
+  }
+  elements.managedSessions[index] = updatedSession;
+  elements.currentSession = updatedSession;
+  setManageSelectOptions(elements, elements.managedSessions);
+  elements.select.value = `manage-${index}`;
+}
+
+async function saveManagedSession(client, elements) {
+  if (!elements.currentSession || elements.isSaving) return;
+
+  const previousSession = elements.currentSession;
+  elements.isSaving = true;
+  elements.resultPanel.hidden = true;
+  elements.save.disabled = true;
+  elements.save.textContent = "保存中...";
+  elements.submit.disabled = true;
+  setState(elements.formState, "保存中...");
+
+  try {
+    const payload = buildUpdatePayload(elements.form, previousSession);
+    if (requirePublicConfirm(elements.form, payload)) {
+      setState(elements.formState, "公開状態で保存する場合は確認してください。", "is-error");
+      return;
+    }
+    const validationMessage = validatePublicSave(payload);
+    if (validationMessage) {
+      setState(elements.formState, validationMessage, "is-error");
+      return;
+    }
+
+    const { data, error } = await client.rpc("update_session_post", payload);
+    if (error) throw error;
+
+    const result = Array.isArray(data) ? data[0] : data;
+    if (!result || typeof result !== "object") throw new Error("invalid-result");
+
+    const updatedSession = normalizeManagedSessionFromUpdate(previousSession, payload, result);
+    updateManagedSessionMemory(elements, updatedSession, previousSession);
+    fillFormFromManagedSession(elements.form, updatedSession);
+    setState(elements.formState, SAVE_SUCCESS_MESSAGE, "is-ok");
+    setState(elements.manageState, "");
+  } catch (error) {
+    setState(elements.formState, getUpdateErrorMessage(error), "is-error");
+  } finally {
+    elements.isSaving = false;
+    if (elements.currentSession) {
+      setEditControls(elements, true);
+    }
+  }
 }
 
 function setManageSelectOptions(elements, sessions) {
@@ -560,6 +704,7 @@ async function initializeForm(root, client) {
   const formPanel = root.querySelector("[data-session-post-form-panel]");
   const form = root.querySelector("[data-session-post-form]");
   const submit = root.querySelector("[data-session-post-submit]");
+  const save = root.querySelector("[data-session-post-save]");
   const state = root.querySelector("[data-session-post-state]");
   const resultPanel = root.querySelector("[data-session-post-result-panel]");
   const resultList = root.querySelector("[data-session-post-result]");
@@ -569,6 +714,7 @@ async function initializeForm(root, client) {
     formPanel,
     form,
     submit,
+    save,
     formState: state,
     resultPanel,
     modeTitle: root.querySelector("[data-session-post-mode-title]"),
@@ -582,10 +728,13 @@ async function initializeForm(root, client) {
 
   formPanel.hidden = false;
   await loadManagedSessions(client, manageElements);
+  save.addEventListener("click", () => {
+    saveManagedSession(client, manageElements);
+  });
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (manageElements.currentSession) {
-      setState(state, EDIT_STATUS_MESSAGE);
+      await saveManagedSession(client, manageElements);
       return;
     }
     resultPanel.hidden = true;
@@ -593,15 +742,15 @@ async function initializeForm(root, client) {
     submit.disabled = true;
 
     try {
-      const payload = buildPayload(form);
-      const publicConfirmed = new FormData(form).get("public_confirm") === "yes";
-      if (payload.p_visibility === "public" && !publicConfirmed) {
+      const payload = buildCreatePayload(form);
+      if (requirePublicConfirm(form, payload)) {
         setState(state, "公開状態で保存する場合は確認してください。", "is-error");
         submit.disabled = false;
         return;
       }
-      if (payload.p_visibility === "public" && payload.p_status === "draft") {
-        setState(state, "公開状態の下書きは保存できません。", "is-error");
+      const validationMessage = validatePublicSave(payload);
+      if (validationMessage) {
+        setState(state, validationMessage, "is-error");
         submit.disabled = false;
         return;
       }
