@@ -161,3 +161,21 @@ GM側の許可判定は既存 `update_session_post` と同じ方針で、`public
 `session_applications` / `session_comments` はM-14D-13B preflightで確認した `ON DELETE CASCADE` に任せる。
 
 この工程ではAPPLY専用SQLファイルを作成しただけで、SQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE実行、実データ削除、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
+
+## M-14D-13C apply result
+
+ユーザーがSupabase SQL Editorで `docs/supabase/sql/018_delete_session_post_apply_reviewed.sql` を適用済み。
+`delete_session_post` RPC作成と権限設定が完了した。
+
+適用後確認結果:
+
+- `function_count = 1`
+- `all_security_definer = true`
+- signature: `delete_session_post(text)`
+- `authenticated`: `expected_execute = true` / `actual_execute = true` / `ok = true`
+- `anon`: `expected_execute = false` / `actual_execute = false` / `ok = true`
+- `public`: `expected_execute = false` / `actual_execute = false` / `ok = true`
+
+DB側の変更はRPC作成・権限設定のみ。
+実データ削除、Discord実送信、Edge Function deploy、secret類の出力、`updates.json` 変更は行っていない。
+次工程はM-14D-13Dとして、`session-detail.html` / `session-post.html` の削除ボタンを `delete_session_post` RPCへ接続する。

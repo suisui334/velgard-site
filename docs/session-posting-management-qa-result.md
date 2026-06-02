@@ -87,3 +87,14 @@ APPLY専用ファイルはpreflight SELECT群とrollback草案を含めず、`de
 確認SELECTでは `delete_session_post(text)` の存在、`security_definer = true`、`authenticated` EXECUTEあり、`anon` / `public` EXECUTEなしを確認できる。
 
 この工程ではSQL Editor追加実行なし、DB構造変更なし、RPC作成なし、GRANT/REVOKE未実行、実データ削除なし、Discord実送信なし、Edge Function deployなし、secret類なし、`updates.json` 変更なし、commit / pushなし。
+
+## M-14D-13C APPLY結果
+
+ユーザーがSupabase SQL Editorで `docs/supabase/sql/018_delete_session_post_apply_reviewed.sql` を適用し、`delete_session_post` RPC作成と権限設定が完了した。
+
+確認結果は `function_count = 1`、`all_security_definer = true`、signatureは `delete_session_post(text)`。
+権限確認は `authenticated EXECUTEあり`、`anon EXECUTEなし`、`public EXECUTEなし` で、すべて期待値どおり `ok = true`。
+
+DB側の変更はRPC作成・権限設定のみ。
+実データ削除、Discord実送信、Edge Function deploy、secret類の出力、`updates.json` 変更は行っていない。
+次工程はM-14D-13Dとして、`session-detail.html` / `session-post.html` の削除ボタンを `delete_session_post` RPCへ接続する。
