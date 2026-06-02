@@ -805,3 +805,12 @@
 - PC名は物理削除ではなく `is_active = false` を基本とし、テンプレート / 履歴表示では `pc_name_snapshot` を正とする。
 - 参加申請RPC置換、default PCの申請時自動採用、テンプレート用RPC、フロントUI実装は後続に分離した。GMコメントは参加申請扱いしない方針、辞退 / 再申請時のPC名扱いは後続で整理する。
 - APPLYはまだ未実行。今回CodexはSQL Editor実行、DB構造変更、RPC作成 / 置換、GRANT / REVOKE実行、フロントUI実装、PC名登録UI実装、参加申請UI変更、テンプレート保存機能実装、Discord実送信、Edge Function deploy、`updates.json` 変更、service_role key利用、secret類の出力、commit / pushを行っていない。
+
+## M-15D PC名登録APPLY結果
+- ユーザーがSupabase SQL Editorで `docs/supabase/sql/019_player_characters_apply_reviewed.sql` を適用し、PC名登録・参加申請PC紐付け用DB変更が完了した。
+- `player_characters` table、`player_characters.id` / `owner_user_id` / `pc_name` / `is_default` / `is_active`、`session_applications.selected_character_id`、`session_applications.pc_name_snapshot` は作成済みで、確認結果はすべて `ok = true`。
+- `player_characters.owner_user_id` は `profiles(id)`、`session_applications.selected_character_id` は `player_characters(id)` を参照するFKとして確認済み。
+- PC管理RPC 5本、`get_my_player_characters()`、`create_player_character(text, boolean)`、`update_player_character(uuid, text, boolean, boolean)`、`set_default_player_character(uuid)`、`deactivate_player_character(uuid)` は作成済み。各RPCは `security_definer = true`。
+- RPC権限は `authenticated EXECUTEあり`、`anon / public EXECUTEなし` で、すべて `ok = true`。
+- 実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、secret類の出力、`updates.json` 変更は行っていない。次工程はM-15Eとして mypage PC名登録UI。
+- 今回CodexはSQL Editor追加実行、DB構造追加変更、RPC再作成、GRANT / REVOKE再実行、実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。

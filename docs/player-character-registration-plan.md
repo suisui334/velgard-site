@@ -400,3 +400,17 @@ APPLY専用SQLは、`player_characters` テーブル、`session_applications.sel
 参加申請時のdefault PC自動採用、GMコメントを参加申請扱いしない整理、辞退 / 再申請時のPC名更新は後続M-15F以降で扱う。
 
 今回CodexはSQL Editor実行、DB構造変更、RPC作成 / 置換、GRANT / REVOKE実行、フロントUI実装、PC名登録UI実装、参加申請UI変更、テンプレート保存機能実装、Discord実送信、Edge Function deploy、`updates.json` 変更、service_role key利用、secret類の出力、commit / pushを行っていない。
+
+## M-15D SQL Editor適用結果
+
+ユーザーがSupabase SQL Editorで `docs/supabase/sql/019_player_characters_apply_reviewed.sql` を適用し、PC名登録・参加申請PC紐付け用DB変更が完了した。
+
+適用後確認では、`player_characters` table、`player_characters.id` / `owner_user_id` / `pc_name` / `is_default` / `is_active`、`session_applications.selected_character_id`、`session_applications.pc_name_snapshot` が存在し、すべて `ok = true`。
+`owner_user_id` は `profiles(id)`、`selected_character_id` は `player_characters(id)` を参照するFKとして確認済み。
+
+PC管理RPC 5本、`get_my_player_characters()`、`create_player_character(text, boolean)`、`update_player_character(uuid, text, boolean, boolean)`、`set_default_player_character(uuid)`、`deactivate_player_character(uuid)` は作成済みで、各RPCは `security_definer = true`。
+権限は `authenticated EXECUTEあり`、`anon / public EXECUTEなし` で、すべて `ok = true`。
+
+実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、secret類の出力、`updates.json` 変更は行っていない。
+次工程はM-15Eとして mypage PC名登録UI を進める。
+今回CodexはSQL Editor追加実行、DB構造追加変更、RPC再作成、GRANT / REVOKE再実行、実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。

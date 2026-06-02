@@ -85,3 +85,17 @@ APPLY専用SQLは、`player_characters` と `session_applications.pc_name_snapsh
 
 APPLYはまだ未実行。
 今回CodexはSQL Editor実行、DB構造変更、RPC作成 / 置換、GRANT / REVOKE実行、フロントUI実装、テンプレート変数置換処理、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+
+## M-15D APPLY結果との接続
+
+ユーザーがSupabase SQL Editorで `docs/supabase/sql/019_player_characters_apply_reviewed.sql` を適用し、`player_characters` と `session_applications.pc_name_snapshot` のDB土台が作成済みになった。
+`session_applications.selected_character_id` は `player_characters(id)` を参照し、`player_characters.owner_user_id` は `profiles(id)` を参照する。
+
+PC管理RPC 5本は作成済みで、各RPCは `security_definer = true`。
+権限は `authenticated EXECUTEあり`、`anon / public EXECUTEなし` と確認済み。
+
+テンプレート変数方針は維持する。
+`{{approved_call_list}}` / `{{approved_pc_names}}` の出力に必要な `pc_name_snapshot` はDB列として用意されたが、参加申請時の保存接続、テンプレート用RPC接続、テンプレート変数置換UIはまだ未実装。
+
+次工程はM-15Eとして mypage PC名登録UI。
+今回CodexはSQL Editor追加実行、DB構造追加変更、RPC再作成、GRANT / REVOKE再実行、実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
