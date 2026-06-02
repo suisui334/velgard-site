@@ -6,6 +6,11 @@
   const MIN_PASSWORD_LENGTH = 8;
   const DISPLAY_NAME_MAX_LENGTH = 40;
   const DISCORD_ID_MAX_LENGTH = 100;
+  const DISCORD_USER_ID_EXAMPLE = "123456789012345678";
+  const DISCORD_USER_ID_PATTERN = /^\d{17,20}$/;
+  const DISCORD_MENTION_INPUT_PATTERN = /^<@(\d{17,20})>$/;
+  const DISCORD_USER_ID_FORMAT_MESSAGE = `DiscordユーザーIDは17〜20桁の数字で入力してください。\n入力例: ${DISCORD_USER_ID_EXAMPLE}`;
+  const DISCORD_USER_ID_RECHECK_MESSAGE = `登録形式を確認してください。今後は ${DISCORD_USER_ID_EXAMPLE} のように17〜20桁の数字で登録してください。`;
   const SESSIONS_DATA_URL = "data/sessions.json?v=20260531-mypage-applications";
   const APPLICATION_SELECT_COLUMNS = "session_id,status,comment_id,created_at,updated_at,canceled_at";
   const APPLICATION_STATUSES = ["pending", "waitlisted", "accepted"];
@@ -444,6 +449,17 @@
     return String(value || "").trim();
   }
 
+  function normalizeDiscordUserIdInput(value) {
+    const text = normalizeDiscordId(value);
+    if (!text) return { valid: true, value: "" };
+    if (DISCORD_USER_ID_PATTERN.test(text)) return { valid: true, value: text };
+
+    const mentionMatch = text.match(DISCORD_MENTION_INPUT_PATTERN);
+    if (mentionMatch) return { valid: true, value: mentionMatch[1] };
+
+    return { valid: false, value: text };
+  }
+
   function countDiscordIdCharacters(value) {
     return Array.from(value).length;
   }
@@ -839,10 +855,10 @@
     head.className = "mypage-profile-panel-head";
 
     const title = document.createElement("h3");
-    title.textContent = "Discord ID";
+    title.textContent = "DiscordユーザーID";
 
     const description = document.createElement("p");
-    description.textContent = "GMが承認済み参加者へ連絡するために使用します。未登録でも参加申請は可能です。";
+    description.textContent = "GMが承認済み参加者を呼び出すために使用します。未登録でも参加申請は可能です。";
 
     head.append(title, description);
 
@@ -851,7 +867,7 @@
     current.dataset.mypageDiscordIdCurrent = "";
 
     const currentLabel = document.createElement("span");
-    currentLabel.textContent = "Discord ID：";
+    currentLabel.textContent = "DiscordユーザーID：";
 
     const currentValue = document.createElement("strong");
     currentValue.dataset.mypageDiscordIdCurrentValue = "";
@@ -868,7 +884,7 @@
     discordIdInput.type = "text";
     discordIdInput.name = "discordId";
     discordIdInput.autocomplete = "off";
-    discordIdInput.placeholder = "Discord IDを入力";
+    discordIdInput.placeholder = DISCORD_USER_ID_EXAMPLE;
 
     const submit = document.createElement("button");
     submit.className = "button primary";
@@ -878,8 +894,41 @@
     submit.disabled = true;
     submit.textContent = "保存";
 
+    const warning = document.createElement("p");
+    warning.className = "mypage-profile-warning";
+    warning.textContent = "DiscordユーザーIDは17〜20桁の数字で入力してください。";
+
+    const example = document.createElement("p");
+    example.className = "mypage-profile-note";
+    example.textContent = `入力例: ${DISCORD_USER_ID_EXAMPLE}`;
+
+    const guide = document.createElement("details");
+    guide.className = "mypage-profile-guide";
+
+    const guideSummary = document.createElement("summary");
+    guideSummary.textContent = "DiscordユーザーIDの確認方法";
+
+    const guideList = document.createElement("ol");
+    [
+      "Discord左下のアカウント付近にある歯車を押して、設定メニューを開きます。",
+      "メニュー内の「詳細設定」または「開発者向け」項目を開きます。",
+      "開発者モードをオンにします。",
+      "再びDiscordの画面へ戻り、左下の自分のアカウントを押します。",
+      "一番下に表示される「ユーザーIDをコピー」を押すと、自動的にコピーされます。",
+      "コピーした数字を、この入力欄へ形式に従って貼り付けてください。"
+    ].forEach((text) => {
+      const item = document.createElement("li");
+      item.textContent = text;
+      guideList.append(item);
+    });
+
+    guide.append(guideSummary, guideList);
+
     form.append(
-      createInputField("Discord ID", discordIdInput),
+      createInputField("DiscordユーザーID", discordIdInput),
+      warning,
+      example,
+      guide,
       submit
     );
 
@@ -925,14 +974,21 @@
     editor.state.textContent = message || "";
     editor.state.hidden = !message;
     editor.state.classList.toggle("is-error", Boolean(options.error));
+    editor.state.classList.toggle("is-warn", Boolean(options.warn));
   }
 
   function setDiscordIdEditorState(editor, discordId, options = {}) {
-    const nextDiscordId = normalizeDiscordId(discordId);
-    editor.currentValue.textContent = nextDiscordId || "未登録";
+    const rawDiscordId = normalizeDiscordId(discordId);
+    const normalized = normalizeDiscordUserIdInput(rawDiscordId);
+    const nextDiscordId = normalized.valid ? normalized.value : rawDiscordId;
+    const hasInvalidStoredValue = Boolean(rawDiscordId && !normalized.valid);
+    editor.currentValue.textContent = hasInvalidStoredValue
+      ? "登録形式を確認してください"
+      : nextDiscordId || "未登録";
+    editor.currentValue.classList.toggle("is-invalid", hasInvalidStoredValue);
 
     if (!options.preserveDirtyInput || !editor.inputDirty) {
-      editor.input.value = nextDiscordId;
+      editor.input.value = hasInvalidStoredValue ? "" : nextDiscordId;
       editor.inputDirty = false;
     }
 
@@ -953,7 +1009,7 @@
     setDiscordIdPanelState(editor, "保存できませんでした", { error: true });
 
     if (error) {
-      console.warn("discord_id update failed", {
+      console.warn("discord user id update failed", {
         code: error?.code || "unknown",
         name: error?.name || "unknown",
         status: error?.status || "unknown"
@@ -984,8 +1040,15 @@
         return;
       }
 
-      setDiscordIdEditorState(editor, row.discord_handle, { preserveDirtyInput: true });
-      setDiscordIdPanelState(editor, "");
+      const storedDiscordId = normalizeDiscordId(row.discord_handle);
+      const storedDiscordIdState = normalizeDiscordUserIdInput(storedDiscordId);
+      const needsRecheck = Boolean(storedDiscordId && !storedDiscordIdState.valid);
+      setDiscordIdEditorState(editor, storedDiscordId, { preserveDirtyInput: true });
+      setDiscordIdPanelState(
+        editor,
+        needsRecheck ? DISCORD_USER_ID_RECHECK_MESSAGE : "",
+        { warn: needsRecheck }
+      );
     } catch (error) {
       setDiscordIdEditorError(editor);
     }
@@ -995,7 +1058,8 @@
     event?.preventDefault?.();
 
     const rawDiscordId = editor.input ? editor.input.value : "";
-    const nextDiscordId = normalizeDiscordId(rawDiscordId);
+    const normalizedDiscordId = normalizeDiscordUserIdInput(rawDiscordId);
+    const nextDiscordId = normalizedDiscordId.valid ? normalizedDiscordId.value : normalizeDiscordId(rawDiscordId);
 
     if (hasLineBreak(rawDiscordId)) {
       setDiscordIdPanelState(editor, "改行は使えません。", { error: true });
@@ -1003,7 +1067,12 @@
     }
 
     if (countDiscordIdCharacters(nextDiscordId) > DISCORD_ID_MAX_LENGTH) {
-      setDiscordIdPanelState(editor, "Discord IDは100文字以内で入力してください。", { error: true });
+      setDiscordIdPanelState(editor, DISCORD_USER_ID_FORMAT_MESSAGE, { error: true });
+      return;
+    }
+
+    if (!normalizedDiscordId.valid) {
+      setDiscordIdPanelState(editor, DISCORD_USER_ID_FORMAT_MESSAGE, { error: true });
       return;
     }
 
@@ -1021,8 +1090,11 @@
       }
 
       const row = Array.isArray(data) ? data[0] : data;
-      const savedDiscordId = row && Object.prototype.hasOwnProperty.call(row, "discord_handle")
-        ? row.discord_handle
+      const returnedDiscordId = row && Object.prototype.hasOwnProperty.call(row, "discord_handle")
+        ? normalizeDiscordUserIdInput(row.discord_handle)
+        : null;
+      const savedDiscordId = returnedDiscordId?.valid && returnedDiscordId.value
+        ? returnedDiscordId.value
         : nextDiscordId;
       editor.inputDirty = false;
       setDiscordIdEditorState(editor, savedDiscordId);
@@ -1039,7 +1111,7 @@
     setStatus(
       elements,
       "ログイン済みです。",
-      "表示名、Discord ID、参加申請中・参加予定セッションを確認できます。"
+      "表示名、DiscordユーザーID、参加申請中・参加予定セッションを確認できます。"
     );
     clearContent(elements);
 

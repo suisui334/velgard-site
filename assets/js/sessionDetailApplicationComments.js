@@ -14,6 +14,9 @@ const SESSION_GM_CHECK_RPC = "is_session_gm";
 const APPLICATION_SELECT_COLUMNS = "session_id,status,created_at,updated_at,canceled_at";
 const GM_APPLICATION_SELECT_COLUMNS = "id,session_id,status,comment_id,created_at,updated_at";
 const COMMENT_MAX_LENGTH = 4000;
+const DISCORD_USER_ID_PATTERN = /^\d{17,20}$/;
+const DISCORD_MENTION_PATTERN = /^<@(\d{17,20})>$/;
+const DISCORD_CONTACT_MISSING_MESSAGE = "登録されていません";
 const POST_ALLOWED_STATUSES = new Set(["recruiting", "tentative"]);
 const COMMENT_UPDATE_ERROR_MESSAGE = "コメントを保存できませんでした。時間をおいて再度お試しください。";
 const COMMENT_UPDATE_PERMISSION_MESSAGE = "編集権限がないか、コメントの状態が変更された可能性があります。";
@@ -1096,16 +1099,56 @@ function toSingleLineText(value) {
   return String(value ?? "").replace(/[\r\n]+/g, " ").trim();
 }
 
+function getDiscordUserId(value) {
+  const text = toSingleLineText(value);
+  if (DISCORD_USER_ID_PATTERN.test(text)) return text;
+
+  const mentionMatch = text.match(DISCORD_MENTION_PATTERN);
+  return mentionMatch ? mentionMatch[1] : "";
+}
+
+function getGmDiscordMentionState(value) {
+  const text = toSingleLineText(value);
+  const userId = getDiscordUserId(text);
+  if (!text) {
+    return {
+      copyText: DISCORD_CONTACT_MISSING_MESSAGE,
+      displayText: DISCORD_CONTACT_MISSING_MESSAGE,
+      state: "missing"
+    };
+  }
+
+  if (!userId) {
+    return {
+      copyText: DISCORD_CONTACT_MISSING_MESSAGE,
+      displayText: DISCORD_CONTACT_MISSING_MESSAGE,
+      state: "invalid"
+    };
+  }
+
+  const mentionText = `<@${userId}>`;
+  return {
+    copyText: mentionText,
+    displayText: mentionText,
+    state: "valid"
+  };
+}
+
 function normalizeGmContactRows(rows) {
-  return rows.map((row) => ({
-    displayName: redactSensitiveText(row?.display_name).trim() || "名前未設定",
-    discordHandle: toSingleLineText(row?.discord_handle)
-  })).sort((a, b) => a.displayName.localeCompare(b.displayName, "ja"));
+  return rows.map((row) => {
+    const mention = getGmDiscordMentionState(row?.discord_handle);
+    return {
+      displayName: redactSensitiveText(row?.display_name).trim() || "名前未設定",
+      discordCopyText: mention.copyText,
+      discordMention: mention.displayText,
+      discordState: mention.state
+    };
+  }).sort((a, b) => a.displayName.localeCompare(b.displayName, "ja"));
 }
 
 function formatGmContactCopyText(rows) {
   return rows
-    .map((row) => `${row.displayName}: ${row.discordHandle || "未登録"}`)
+    .map((row) => `${row.displayName}: ${row.discordCopyText}`)
     .join("\n");
 }
 
@@ -1484,8 +1527,8 @@ function createGmContactItem(row) {
   name.textContent = row.displayName;
 
   const value = document.createElement("span");
-  value.className = `session-gm-contact-value${row.discordHandle ? "" : " is-missing"}`;
-  value.textContent = row.discordHandle || "未登録";
+  value.className = `session-gm-contact-value is-${row.discordState}`;
+  value.textContent = row.discordMention;
 
   item.append(name, value);
   return item;
@@ -1545,7 +1588,7 @@ function createGmContactControl(options = {}) {
 
   const summary = document.createElement("summary");
   summary.className = "session-gm-contact-summary";
-  summary.textContent = "GM向け：承認済み参加者連絡先";
+  summary.textContent = "GM向け：承認済み参加者Discord連絡先";
 
   const body = document.createElement("div");
   body.className = "session-gm-contact-body";

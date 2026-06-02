@@ -114,3 +114,23 @@ M-14D-13A時点でQA済みだった soft delete = `visibility = hidden` / `statu
 raw id / uuid / user_id / email / gmUserId / token / secret類は画面・DOM・consoleへ出さず、select option valueは `manage-N` のローカル値のみを維持する。
 
 この工程でSQL Editor追加実行、DB構造変更、RPC変更、GRANT/REVOKE再実行、実データ削除、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
+
+## DiscordユーザーID登録UI方針
+
+テンプレート機能の前提整備として、Discord連絡先登録UIのユーザー向け表記を `DiscordユーザーID` へ寄せる。
+
+本人登録では17〜20桁の数字を基本形式とし、互換として `<@123456789012345678>` 形式も受け付ける。その場合は保存前に数字部分だけへ正規化し、`update_my_discord_id(new_discord_id text)` へ渡す。空欄は未登録扱いで許可する。
+
+数字だけだが桁数不正、英字混じり、改行入り、`<@abc>`、`@123456789012345678` は保存前に止める。既に形式不正の値が保存されている場合は自動変換せず、再登録を促す。
+
+保存成功後は、RPC返却が空でも保存に使った正規化済みDiscordユーザーIDで本人画面の表示状態を即時更新する。空欄保存時だけ `未登録` 表示に戻す。
+
+GM向けの承認済み参加者連絡先表示では、保存された数字IDから `<@DiscordユーザーID>` を生成して表示・コピーする。未登録または形式不正の値は生表示せず `登録されていません` に丸める。raw Supabase `user_id` / email / token / secret類を画面・DOM・consoleへ出さない方針は維持する。
+
+呼び出し用テンプレートでは、GMが承認済み参加者を一人ずつ選ぶ方式にはしない。現在のセッションに紐付く承認済み参加者全員を対象にし、コピー時にテンプレート内の変数をまとめて置換する。
+
+初期実装で優先する変数は `{{session_title}}`、`{{approved_call_list}}`、`{{approved_pc_names}}` とする。`{{approved_call_list}}` は承認済み参加者のDiscordメンション、表示名、PC名を1人1行で出力し、DiscordユーザーIDが未登録または形式不正の場合は `登録されていません`、PC名未登録の場合は `PC名未登録` を出す方針を推奨する。
+
+`{{approved_discord_mentions}}` はDiscordメンションだけをまとめて出す変数として残してよいが、呼び出し文で実用性が高いのは `{{approved_call_list}}` とする。`{{approved_discord_ids}}` は初期実装では見送る。
+
+この工程でSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、テンプレート保存テーブル作成、テンプレート生成UI、`{{approved_call_list}}` の実際の置換処理、テンプレート保存機能本体、PC名登録機能、mypage予定プルダウン化、`updates.json` 変更、secret類の出力、commit / pushは行わない。

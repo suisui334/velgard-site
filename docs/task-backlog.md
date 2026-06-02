@@ -755,3 +755,13 @@
 - 静的JSON行には `source: "static"` を付与し、Supabase行は `source: "supabase"` を維持するため、`session-detail.html` の編集不可・削除不可表示とSupabase編集権限判定を壊さない。
 - Supabase側で取得できた同ID行が `visibility = hidden`、`status = draft` / `canceled` / `cancelled` の場合も静的JSON fallbackを置き換え、calendar/detail側の既存フィルタで非表示にする。これにより非公開化・下書き化・中止化した予定が静的JSONから復活しない。
 - `data/sessions.json` はまだ削除していない。Supabaseへのデータ投入、SQL Editor実行、DB構造変更、RPC変更、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## DiscordユーザーID登録UI 前提整備
+- テンプレート機能の前提として、Discord連絡先登録を17〜20桁の数字である `DiscordユーザーID` として扱う方針へ寄せた。`<@ID>` 形式は互換として受け付けるが、保存前に数字部分だけへ正規化する。
+- mypageの本人登録UIでは赤字注意文、入力例、折りたたみ式の確認方法を表示し、保存前に `^\d{17,20}$` 相当の形式チェックを行う。桁数不正、英字混じり、改行入り、`<@abc>`、`@123456789012345678` は保存しない。空欄は未登録扱いとして維持する。
+- 保存成功後は、RPC返却が空でも保存に使った正規化済みDiscordユーザーIDで本人画面の表示を即時更新する。登録済み値が形式不正の場合は自動変換せず、再登録を促す。
+- GM向け承認済み参加者連絡先表示では、保存された数字IDから `<@DiscordユーザーID>` を生成して表示・コピーする。未登録または形式不正の場合は生表示を避けて `登録されていません` に丸める。
+- 呼び出し用テンプレートではGMが承認済み参加者を一人ずつ選ぶ方式にせず、現在のセッションに紐付く承認済み参加者全員を対象にしてコピー時に変数をまとめて置換する。
+- 初期実装で優先する変数は `{{session_title}}`、`{{approved_call_list}}`、`{{approved_pc_names}}` とする。`{{approved_call_list}}` はDiscordメンション、表示名、PC名を1人1行で出力し、DiscordユーザーID未登録/形式不正は `登録されていません`、PC名未登録は `PC名未登録` と出す方針を推奨する。
+- `{{approved_discord_mentions}}` はDiscordメンションだけをまとめて出す変数として残してよいが、`{{approved_discord_ids}}` とGMが一人ずつ選ぶ方式は初期実装では見送る。
+- 方針docs `docs/discord-mention-registration-plan.md` を追加した。この工程ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、テンプレート保存テーブル作成、テンプレート生成UI、`{{approved_call_list}}` の実際の置換処理、テンプレート保存機能本体、PC名登録機能、mypage予定プルダウン化、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
