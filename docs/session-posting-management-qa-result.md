@@ -63,3 +63,17 @@ RPC草案は `delete_session_post(p_session_id text)`、戻り値 `deleted_sessi
 Discord実送信は行わず、`discord_message_id` がある場合は将来Edge Functionの削除同期が必要。Edge Function未実装の間は公開済み完全削除前に強い確認を出し、「中止として残したい場合は、削除せず募集状態を中止にしてください」という趣旨を入れる。
 
 この工程ではSQL Editor未実行、DB構造変更なし、RPC作成なし、GRANT/REVOKE未実行、実データ削除なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、secret類の出力なし、commit / pushなし。
+
+## M-14D-13B preflight結果
+
+ユーザーがSQL Editorで実行したのは `018_delete_session_post_preflight_select_only.sql` のSELECT-only preflightのみ。
+`018_delete_session_post_rpc_draft.sql`、`delete_session_post` RPC本体、CREATE FUNCTION、GRANT / REVOKE、DELETE、DB構造変更は未実行。
+
+preflightでは、`public.sessions` を参照する外部キーは `session_applications_session_id_fkey` と `session_comments_session_id_fkey` の2件だけと確認した。
+どちらも `ON DELETE CASCADE` で、`session_id` 列を持つpublic base tableも `session_applications` / `session_comments` のみだった。
+
+そのため、`delete_session_post` で `public.sessions` の対象行を完全削除すると、依頼書本体だけでなく該当セッションの参加申請・参加希望コメントもDB制約で削除される。
+後続UIの削除確認文には `削除すると、依頼書本体に加えて参加申請・コメントも削除されます。` を明記する。
+
+SQL草案は、`delete_session_post(p_session_id text)`、`security definer`、`set search_path = ''`、`auth.uid()` 確認、adminまたは対象GMのみ許可、静的JSONはDB対象外、`public.sessions` の対象1件のみDELETE、WHEREあり、戻り値最小限、`public` / `anon` revokeと `authenticated` grant方針で、preflight結果と矛盾しない。
+`session_applications` / `session_comments` は `ON DELETE CASCADE` に任せる前提へ更新した。

@@ -498,3 +498,17 @@ Edge Function未実装の間は、公開済みまたはDiscord投稿済み依頼
 FKがCASCADEなら関連行も消える可能性があり、RESTRICT / NO ACTIONならRPC草案を改訂する。
 
 この工程ではSQL Editor未実行、DB構造変更なし、RPC作成なし、GRANT/REVOKE未実行、実データ削除なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、secret類の出力なし、commit / pushなし。
+
+## 36. M-14D-13B preflight result
+
+ユーザーがSQL Editorで実行したのは `018_delete_session_post_preflight_select_only.sql` のSELECT-only preflightのみ。
+`018_delete_session_post_rpc_draft.sql`、`delete_session_post` RPC本体、CREATE FUNCTION、GRANT / REVOKE、DELETE、DB構造変更は未実行。
+
+preflight結果では、`public.sessions` を参照するFKは `session_applications_session_id_fkey` と `session_comments_session_id_fkey` の2件だけで、どちらも `ON DELETE CASCADE`。
+`session_id` 列を持つpublic base tableも `session_applications` / `session_comments` のみだった。
+
+したがって `delete_session_post` で対象 `public.sessions` 行を削除すると、依頼書本体に加えて参加申請・参加希望コメントもDB制約で削除される。
+Discord同期については引き続きRPC内では実送信せず、`discord_message_id` がある場合のDiscord投稿削除同期は後続Edge Function課題として扱う。
+
+後続UIの削除確認文は、完全削除と中止保存の違いに加えて、参加申請・コメントも削除されることを明記する。
+SQL草案は対象1件のWHERE付きDELETE、最小戻り値、authenticatedのみEXECUTE方針で、preflight結果と矛盾しない。

@@ -41,6 +41,14 @@
 -- - related rows use RESTRICT / NO ACTION and must be handled explicitly.
 -- - related rows use CASCADE but the product decision is to retain them.
 -- - Discord deletion sync must happen atomically before DB deletion.
+--
+-- M-14D-13B preflight result:
+-- - session_applications.session_id references sessions(id) ON DELETE CASCADE.
+-- - session_comments.session_id references sessions(id) ON DELETE CASCADE.
+-- - Public base tables with a session_id column are session_applications and
+--   session_comments only.
+-- - Therefore deleting one public.sessions row also deletes its application
+--   rows and application comment rows by database constraint.
 
 -- ============================================================
 -- SECTION 2: APPLY DRAFT
@@ -93,13 +101,15 @@ begin
 
   -- Full deletion policy:
   -- - Static JSON sessions are outside public.sessions and cannot be targeted here.
-  -- - Related row handling depends on FK preflight results.
-  -- - If preflight shows RESTRICT / NO ACTION references, revise before applying.
-  -- - If preflight shows CASCADE references, confirm that application/comment data
-  --   may be removed together with the session.
+  -- - M-14D-13B preflight confirmed that session_applications.session_id and
+  --   session_comments.session_id both use ON DELETE CASCADE.
+  -- - This draft relies on those constraints, so application rows and application
+  --   comment rows for the target session are removed together with the session.
+  -- - The UI confirmation must clearly say that applications and comments are
+  --   deleted as well.
   -- - This RPC does not send Discord messages or call Edge Functions.
   delete from public.sessions as s
-  where s.id = v_deleted_session_id;
+  where s.id = v_target_session_id;
 
   deleted_session_id := v_deleted_session_id;
   deleted_at := v_deleted_at;
@@ -159,6 +169,8 @@ order by specific_name, grantee, privilege_type;
 -- - admin can delete a test Supabase session.
 -- - static JSON sessions are not DB targets.
 -- - deleted session disappears from draft list, admin targets, calendar, and detail.
+-- - related session_applications and session_comments rows are removed by
+--   ON DELETE CASCADE.
 -- - If Discord metadata existed, no Discord real send happens in this RPC.
 
 -- Rollback draft, not for this step:

@@ -442,3 +442,15 @@ preflight専用SQL `docs/supabase/sql/018_delete_session_post_preflight_select_o
 `docs/supabase/sql/018_delete_session_post_rpc_draft.sql` はpreflight結果レビュー前に実行しない草案であり、関連FKがRESTRICT / NO ACTIONの場合やCASCADEしてはいけないテーブルが見つかった場合は改訂する。
 
 この工程ではSQL Editor未実行、DB構造変更なし、RPC作成なし、GRANT/REVOKE未実行、実データ削除なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、secret類の出力なし、commit / pushなし。
+
+## M-14D-13B preflight結果
+
+`018_delete_session_post_preflight_select_only.sql` のSELECT-only preflight結果として、`public.sessions` を参照する外部キーは `session_applications_session_id_fkey` / `session_comments_session_id_fkey` の2件だけだった。
+どちらも `ON DELETE CASCADE`。
+また、`session_id` 列を持つpublic base tableは `session_applications` / `session_comments` のみで、現時点で迷子になりそうな外部キーなし `session_id` テーブルは見当たらない。
+
+完全削除は `update_session_post` の中止保存とは別物であり、`delete_session_post` で対象 `public.sessions` 行を削除すると、DB制約により参加申請・参加希望コメントも削除される。
+後続UIの確認文にはこの影響を明記する。
+
+SQL草案は `delete_session_post(p_session_id text)`、`security definer`、安全な `search_path`、`auth.uid()` 確認、adminまたは作成者GMのみ許可、静的JSON対象外、対象1件のWHERE付きDELETE、最小戻り値、`public` / `anon` revokeと `authenticated` grant方針で、preflight結果と矛盾しない。
+SQL EditorではSELECT-only preflightのみ実行され、RPC本体、DB構造変更、RPC作成、GRANT/REVOKE、DELETEは未実行。
