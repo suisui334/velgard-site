@@ -741,3 +741,11 @@
 - `session-post.html` 編集画面では既存依頼書編集中のみ削除ボタンを表示し、削除成功後は管理対象selectとJSメモリから対象を外して新規作成モードへ戻す。
 - 静的JSON由来は編集不可・削除不可のまま維持し、`delete_session_post` RPCへ流さない。
 - SQL Editor追加実行、DB構造変更、RPC変更、GRANT/REVOKE再実行、実データ削除、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
+
+## M-14D-14A static session retirement planning
+- `data/sessions.json` 由来の静的依頼書 / セッション予定7件を棚卸しし、Supabase移行候補、旧モック / テストデータ削除候補、一時的に残す候補を整理した。
+- 退役計画docs `docs/session-posting-static-retirement-plan.md` を作成し、現在の静的JSON由来データの役割、Supabase移行済み機能、静的JSONを残すリスク、削除前確認、段階的な退役手順、停止条件を記録した。
+- `session-2026-06-08-railway-incident` は既存QA / mypage突合 / URL互換で参照が多いため、いきなり削除せずSupabase移行候補かつ一時残存対象とした。
+- `closed` / `finished` / `tentative` / `full` の静的予定は表示fixtureとしての代替確認後に削除候補、`canceled` の静的予定は現行calendar/detailで非表示のため強い削除候補とした。
+- `loadMergedSessions()` は静的JSONを先に読み、同じIDのSupabase行を後から追加しないため、同ID移行時はURL互換と静的行退役の順序確認が必要。
+- 今回はいきなり削除しない。`data/sessions.json` 削除 / 大規模編集、Supabase投入、SQL Editor実行、DB構造変更、RPC変更、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
