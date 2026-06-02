@@ -149,3 +149,15 @@ preflight結果:
 
 SQL草案点検では、`delete_session_post(p_session_id text)`、`security definer`、`set search_path = ''`、`auth.uid()` 確認、adminまたは対象GMのみ許可、静的JSONはDB対象外、`public.sessions` の対象1件のみDELETE、WHEREあり、戻り値最小限、`public` / `anon` revokeと `authenticated` grant方針を確認した。
 `session_applications` / `session_comments` はpreflight結果の `ON DELETE CASCADE` に任せる前提へ更新した。
+
+## M-14D-13C apply-only SQL
+
+M-14D-13Cとして、`delete_session_post` のAPPLY専用SQLファイル `docs/supabase/sql/018_delete_session_post_apply_reviewed.sql` を作成した。
+SQL Editorで実行する場合は、この `apply_reviewed.sql` の全文だけを使い、`018_delete_session_post_rpc_draft.sql` の全文は貼らない。
+
+`018_delete_session_post_apply_reviewed.sql` には、レビュー済みの `create or replace function public.delete_session_post(p_session_id text)`、`security definer`、`set search_path = ''`、`auth.uid()` による未ログイン拒否、対象session存在確認、adminまたは作成者GMのみ許可、`public.sessions` 対象1件のWHERE付きDELETE、function comment、`public` / `anon` からのEXECUTE取り外し、`authenticated` へのEXECUTE付与、実行後確認SELECTのみを入れた。
+
+GM側の許可判定は既存 `update_session_post` と同じ方針で、`public.has_role('gm')` かつ `sessions.gm_user_id = auth.uid()` を確認する。admin判定は `public.is_admin()` を使う。
+`session_applications` / `session_comments` はM-14D-13B preflightで確認した `ON DELETE CASCADE` に任せる。
+
+この工程ではAPPLY専用SQLファイルを作成しただけで、SQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE実行、実データ削除、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行っていない。

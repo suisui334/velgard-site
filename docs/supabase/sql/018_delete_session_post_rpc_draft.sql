@@ -13,6 +13,8 @@
 -- - 今後 hidden / canceled は「中止として残す」操作として扱う。
 -- - 削除ボタンは完全削除に変更する。
 -- - この草案は preflight のFK/関連テーブル確認結果をレビューするまでAPPLYしない。
+-- - SQL Editor apply時は docs/supabase/sql/018_delete_session_post_apply_reviewed.sql
+--   を使い、このdraft全文を貼らない。
 
 -- ============================================================
 -- SECTION 1: PREFLIGHT NOTE

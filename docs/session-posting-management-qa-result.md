@@ -77,3 +77,13 @@ preflightでは、`public.sessions` を参照する外部キーは `session_appl
 
 SQL草案は、`delete_session_post(p_session_id text)`、`security definer`、`set search_path = ''`、`auth.uid()` 確認、adminまたは対象GMのみ許可、静的JSONはDB対象外、`public.sessions` の対象1件のみDELETE、WHEREあり、戻り値最小限、`public` / `anon` revokeと `authenticated` grant方針で、preflight結果と矛盾しない。
 `session_applications` / `session_comments` は `ON DELETE CASCADE` に任せる前提へ更新した。
+
+## M-14D-13C apply-only SQL
+
+M-14D-13Cとして、`delete_session_post` のAPPLY専用SQLファイル `docs/supabase/sql/018_delete_session_post_apply_reviewed.sql` を作成した。
+SQL Editorで実行する場合は `apply_reviewed.sql` の全文のみを使い、draft全文は貼らない方針にした。
+
+APPLY専用ファイルはpreflight SELECT群とrollback草案を含めず、`delete_session_post` RPC本体、function comment、`public` / `anon` revoke、`authenticated` grant、実行後確認SELECTだけを含む。
+確認SELECTでは `delete_session_post(text)` の存在、`security_definer = true`、`authenticated` EXECUTEあり、`anon` / `public` EXECUTEなしを確認できる。
+
+この工程ではSQL Editor追加実行なし、DB構造変更なし、RPC作成なし、GRANT/REVOKE未実行、実データ削除なし、Discord実送信なし、Edge Function deployなし、secret類なし、`updates.json` 変更なし、commit / pushなし。

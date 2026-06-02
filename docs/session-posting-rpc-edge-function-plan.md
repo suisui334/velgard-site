@@ -512,3 +512,16 @@ Discord同期については引き続きRPC内では実送信せず、`discord_m
 
 後続UIの削除確認文は、完全削除と中止保存の違いに加えて、参加申請・コメントも削除されることを明記する。
 SQL草案は対象1件のWHERE付きDELETE、最小戻り値、authenticatedのみEXECUTE方針で、preflight結果と矛盾しない。
+
+## 37. M-14D-13C apply-only SQL
+
+`delete_session_post` のAPPLY専用SQLファイル `docs/supabase/sql/018_delete_session_post_apply_reviewed.sql` を作成した。
+SQL Editorで実行する場合は `apply_reviewed.sql` の全文のみを使い、draft全文は貼らない。
+
+APPLY専用ファイルには、`create or replace function public.delete_session_post(p_session_id text)`、`security definer`、`set search_path = ''`、未ログイン拒否、対象session存在確認、adminまたは作成者GMのみ許可、`public.sessions` のWHERE付きDELETE、function comment、`public` / `anon` revoke、`authenticated` grant、実行後確認SELECTだけを入れた。
+preflight SELECT群、rollback草案、Discord実送信、Edge Function呼び出しは含めない。
+
+Discord観点では、このRPCは引き続きDB削除のみで実送信しない。
+`discord_message_id` がある場合のDiscord投稿削除同期は後続Edge Function課題として残す。
+
+この工程ではSQL Editor未実行、DB構造変更なし、RPC作成なし、GRANT/REVOKE未実行、実データ削除なし、Discord実送信なし、Edge Function deployなし、secret類なし、`updates.json` 変更なし、commit / pushなし。

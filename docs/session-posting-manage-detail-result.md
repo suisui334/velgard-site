@@ -248,3 +248,14 @@ DB構造変更、RPC作成、GRANT/REVOKE、実データ削除は行っていな
 
 SQL草案は、対象1件の `public.sessions` DELETEに限定され、WHEREなしDELETEはない。
 `session_applications` / `session_comments` はpreflightで確認した `ON DELETE CASCADE` に任せる前提として、草案コメントを更新した。
+
+## M-14D-13C apply-only SQL
+
+`delete_session_post` のSQL Editor貼り付け対象を固定するため、APPLY専用ファイル `docs/supabase/sql/018_delete_session_post_apply_reviewed.sql` を作成した。
+今後SQL Editorで実行する場合はこのファイル全文のみを使い、`018_delete_session_post_rpc_draft.sql` の全文は貼らない。
+
+APPLY専用ファイルでは、adminは `public.is_admin()`、作成者GMは `public.has_role('gm')` と `sessions.gm_user_id = auth.uid()` で許可する。
+静的JSON由来はDB上の `public.sessions` 対象ではないため削除対象外。
+DELETE対象は `public.sessions` の1件のみで、`session_applications` / `session_comments` は `ON DELETE CASCADE` に任せる。
+
+この工程ではSQL Editor実行、DB構造変更、RPC作成/置換、GRANT/REVOKE実行、実データ削除、フロントUI接続、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。

@@ -719,3 +719,10 @@
 - 完全削除では依頼書本体だけでなく、該当セッションの参加申請・参加希望コメントもDB制約で削除される。後続UIの確認文には `削除すると、依頼書本体に加えて参加申請・コメントも削除されます。` を明記する。
 - SQL草案は `delete_session_post(p_session_id text)`、`security definer`、安全な `search_path`、`auth.uid()` 確認、adminまたは作成者GMのみ許可、静的JSON対象外、対象1件のWHERE付きDELETE、最小戻り値、`public` / `anon` revokeと `authenticated` grant方針で、preflight結果と矛盾しない。
 - この工程でCodexはSQL Editor追加実行なし、DB構造変更なし、RPC作成なし、GRANT/REVOKE未実行、実データ削除なし、Discord実送信なし、Edge Function deployなし、service_role key利用なし、secret類の出力なし、`updates.json` 変更なし、commit / pushなし。
+
+## M-14D-13C delete_session_post APPLY専用SQLファイル
+- SQL Editorで実行する対象を固定するため、APPLY専用ファイル `docs/supabase/sql/018_delete_session_post_apply_reviewed.sql` を作成した。今後SQL Editorで実行する場合はこのファイル全文のみを使い、`018_delete_session_post_rpc_draft.sql` の全文は貼らない。
+- APPLY専用ファイルには `create or replace function public.delete_session_post(p_session_id text)`、`security definer`、`set search_path = ''`、`auth.uid()` 確認、対象session存在確認、adminまたは作成者GMのみ許可、`public.sessions` 対象1件のWHERE付きDELETE、function comment、`public` / `anon` revoke、`authenticated` grant、実行後確認SELECTを入れた。
+- GM許可は既存更新RPC方針に合わせ、`public.has_role('gm')` かつ `sessions.gm_user_id = auth.uid()` とした。admin判定は `public.is_admin()` を使う。
+- `session_applications` / `session_comments` はM-14D-13B preflightで確認した `ON DELETE CASCADE` に任せる。Discord実送信やEdge Function呼び出しは含めない。
+- この工程でCodexはSQL Editor実行なし、DB構造変更なし、RPC作成なし、GRANT/REVOKE未実行、実データ削除なし、フロントUI接続なし、Discord実送信なし、Edge Function deployなし、service_role key利用なし、secret類の出力なし、`updates.json` 変更なし、commit / pushなし。
