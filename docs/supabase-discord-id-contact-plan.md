@@ -278,3 +278,19 @@ M-12Dとして、`session-detail.html` のGM/admin向け領域に承認済み参
 email、`user_id`、`application_id`、`comment_id`、`discord_user_id`、`discord_name`、token、key、secret類は表示・コピー対象にしない。Discord ID実値はdocsやconsoleへ記録しない。
 
 M-12DではSQL Editor実行、DB変更、RLS smoke test追加、Discord ID実値入力、`updates.json` 変更、commit / pushは行っていない。詳細は `docs/supabase-discord-id-gm-contact-ui-result.md` に分離した。
+
+## 16. DiscordユーザーID登録方針への変更
+
+テンプレート機能の前提整備として、ユーザー向けの連絡先登録・表示方針を `DiscordユーザーID` へ変更する。
+
+DB列名 `profiles.discord_handle` と既存RPC名 `update_my_discord_id(new_discord_id text)` / `get_my_profile_contact()` / `get_gm_session_accepted_contacts(target_session_id text)` は変更しない。過去セクションの `Discord ID` 表記はM-12時点の履歴として扱い、現在のUIでは17〜20桁の数字を基本形式として保存対象にする。
+
+互換として `<@123456789012345678>` 形式も受け付けるが、保存前に数字部分だけへ正規化する。桁数不正、英字混じり、改行入り、`<@abc>`、`@123456789012345678` は保存しない。既存の形式不正値は自動変換せず、本人画面で再登録を促す。GM向け表示では、保存された数字IDから `<@DiscordユーザーID>` を生成し、未登録または形式不正の値は `登録されていません` へ丸める。
+
+呼び出し用テンプレートでは、GMが承認済み参加者を一人ずつ選ぶ方式にはしない。現在のセッションに紐付く承認済み参加者全員を対象にし、コピー時にテンプレート内の変数をまとめて置換する。
+
+初期実装で優先する変数は `{{session_title}}`、`{{approved_call_list}}`、`{{approved_pc_names}}` とする。`{{approved_call_list}}` は承認済み参加者のDiscordメンション、表示名、PC名を1人1行で出力し、DiscordユーザーIDが未登録または形式不正の場合は `登録されていません`、PC名未登録の場合は `PC名未登録` を出す方針を推奨する。
+
+`{{approved_discord_mentions}}` はDiscordメンションだけをまとめて出す変数として残してよいが、呼び出し文で実用性が高いのは `{{approved_call_list}}` とする。`{{approved_discord_ids}}` は初期実装では見送る。
+
+この方針変更でSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、テンプレート保存テーブル作成、テンプレート生成UI、`{{approved_call_list}}` の実際の置換処理、テンプレート保存機能本体、PC名登録機能、mypage予定プルダウン化、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
