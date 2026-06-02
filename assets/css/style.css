@@ -3045,6 +3045,11 @@ body[data-page="session-detail"] .session-comment-status-badge.is-canceled {
   color: var(--rust);
 }
 
+body[data-page="session-detail"] .session-comment-status-badge.is-gm-comment {
+  background: rgba(86, 96, 106, 0.14);
+  color: var(--ink);
+}
+
 body[data-page="session-detail"] .session-comment-body,
 body[data-page="session-detail"] .session-comment-meta {
   margin: 0;

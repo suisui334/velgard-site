@@ -12,7 +12,8 @@ const SET_APPLICATION_STATUS_RPC = "set_application_status";
 const ADMIN_CHECK_RPC = "is_admin";
 const SESSION_GM_CHECK_RPC = "is_session_gm";
 const APPLICATION_SELECT_COLUMNS = "session_id,status,created_at,updated_at,canceled_at";
-const GM_APPLICATION_SELECT_COLUMNS = "id,session_id,status,comment_id,created_at,updated_at";
+const APPLICATION_COUNT_SELECT_COLUMNS = "user_id,status";
+const GM_APPLICATION_SELECT_COLUMNS = "id,session_id,user_id,status,comment_id,created_at,updated_at";
 const COMMENT_MAX_LENGTH = 4000;
 const DISCORD_USER_ID_PATTERN = /^\d{17,20}$/;
 const DISCORD_MENTION_PATTERN = /^<@(\d{17,20})>$/;
@@ -24,6 +25,8 @@ const COMMENT_DELETE_ERROR_MESSAGE = "コメントを削除できませんでし
 const COMMENT_DELETE_PERMISSION_MESSAGE = "権限がないか、コメントの状態が変更された可能性があります。";
 const COMMENT_DELETE_CONFIRM_TEXT = "この参加希望コメントを削除しますか？";
 const COMMENT_DELETE_CONFIRM_NOTE = "最後の有効コメントを削除した場合、参加申請が取り消されることがあります。";
+const GM_COMMENT_DELETE_CONFIRM_TEXT = "このGMコメントを削除しますか？";
+const GM_COMMENT_DELETE_CONFIRM_NOTE = "参加申請には影響しません。";
 const APPLICATION_WITHDRAW_ERROR_MESSAGE = "参加申請を取り下げできませんでした。時間をおいて再度お試しください。";
 const APPLICATION_WITHDRAW_PERMISSION_MESSAGE = "申請状態が変更された可能性があります。ページを再読み込みしてください。";
 const GM_APPLICATION_STATUS_ERROR_MESSAGE = "申請状況を更新できませんでした。状態が変更された可能性があります。";
@@ -33,6 +36,7 @@ const GM_ACTION_ALLOWED_STATUSES = new Set(["pending", "waitlisted"]);
 const GM_ACTION_TARGET_STATUSES = new Set(["accepted", "rejected"]);
 const panelEditStates = new WeakMap();
 const panelCommentRenderContexts = new WeakMap();
+const panelSessionContexts = new WeakMap();
 
 const APPLICATION_STATUS_LABELS = Object.freeze({
   pending: "申請中",
@@ -71,10 +75,20 @@ const GM_HISTORY_GROUP_ORDER = ["pending", "accepted", "canceled", "rejected", "
 const GM_APPLICATION_INTERNAL_FIELD_NAMES = new Set([
   "id",
   "session_id",
+  "user_id",
   "status",
   "comment_id",
   "created_at",
   "updated_at"
+]);
+
+const APPLICATION_COUNT_FIELD_NAMES = new Set([
+  "user_id",
+  "status"
+]);
+
+const PUBLIC_PROFILE_FIELD_NAMES = new Set([
+  "display_name"
 ]);
 
 const GM_HISTORY_FIELD_NAMES = new Set([
@@ -229,6 +243,24 @@ function toBooleanFlag(value) {
   return value === true;
 }
 
+function normalizeInternalId(value) {
+  return String(value || "").trim();
+}
+
+function getAuthUserId(authSession) {
+  return normalizeInternalId(authSession?.user?.id);
+}
+
+function isSameInternalId(left, right) {
+  const leftId = normalizeInternalId(left);
+  const rightId = normalizeInternalId(right);
+  return Boolean(leftId && rightId && leftId === rightId);
+}
+
+function isSessionOwner(authSession, gmUserId) {
+  return isSameInternalId(getAuthUserId(authSession), gmUserId);
+}
+
 function getCommentCreatedTime(comment) {
   const time = Date.parse(comment?.createdAt || "");
   return Number.isFinite(time) ? time : Number.NEGATIVE_INFINITY;
@@ -294,6 +326,30 @@ function assertOnlyGmApplicationInternalFields(rows) {
   }
 }
 
+function assertOnlyApplicationCountFields(rows) {
+  const list = Array.isArray(rows) ? rows : rows ? [rows] : [];
+  for (const row of list) {
+    if (!row || typeof row !== "object") continue;
+    for (const key of Object.keys(row)) {
+      if (!APPLICATION_COUNT_FIELD_NAMES.has(String(key).toLowerCase())) {
+        throw new Error("application-count-field-returned");
+      }
+    }
+  }
+}
+
+function assertOnlyPublicProfileFields(rows) {
+  const list = Array.isArray(rows) ? rows : rows ? [rows] : [];
+  for (const row of list) {
+    if (!row || typeof row !== "object") continue;
+    for (const key of Object.keys(row)) {
+      if (!PUBLIC_PROFILE_FIELD_NAMES.has(String(key).toLowerCase())) {
+        throw new Error("public-profile-field-returned");
+      }
+    }
+  }
+}
+
 function assertOnlyGmHistoryFields(rows) {
   const list = Array.isArray(rows) ? rows : rows ? [rows] : [];
   for (const row of list) {
@@ -340,6 +396,45 @@ async function queryApplicationCounts(client, sessionId) {
   return rows[0] || null;
 }
 
+function buildApplicationCountsFromRows(rows, sessionId, excludedUserId) {
+  const accepted = new Set();
+  const pending = new Set();
+  const waitlisted = new Set();
+  const excludedId = normalizeInternalId(excludedUserId);
+
+  for (const row of Array.isArray(rows) ? rows : []) {
+    const userId = normalizeInternalId(row?.user_id);
+    const status = String(row?.status || "").trim().toLowerCase();
+    if (!userId || (excludedId && userId === excludedId)) continue;
+    if (status === "accepted") accepted.add(userId);
+    if (status === "pending") pending.add(userId);
+    if (status === "waitlisted") waitlisted.add(userId);
+  }
+
+  return {
+    session_id: sessionId,
+    accepted_count: accepted.size,
+    pending_count: pending.size,
+    waitlisted_count: waitlisted.size
+  };
+}
+
+async function queryApplicationCountsExcludingUser(client, sessionId, excludedUserId) {
+  const targetSessionId = String(sessionId || "").trim();
+  if (!targetSessionId) throw new Error("application-count-session-missing");
+
+  const { data, error } = await client
+    .from("session_applications")
+    .select(APPLICATION_COUNT_SELECT_COLUMNS)
+    .eq("session_id", targetSessionId)
+    .in("status", ["pending", "waitlisted", "accepted"]);
+
+  if (error) throw new Error("application-count-query-failed");
+  const rows = Array.isArray(data) ? data : [];
+  assertOnlyApplicationCountFields(rows);
+  return buildApplicationCountsFromRows(rows, targetSessionId, excludedUserId);
+}
+
 async function createApplicationComment(client, sessionId, body) {
   const { error } = await client.rpc(POST_RPC, {
     target_session_id: sessionId,
@@ -347,6 +442,18 @@ async function createApplicationComment(client, sessionId, body) {
   });
 
   if (error) throw new Error("application-comment-post-failed");
+}
+
+async function postSessionDetailComment(client, sessionId, body, options = {}) {
+  await createApplicationComment(client, sessionId, body);
+
+  if (!options.isSessionOwner) return;
+
+  try {
+    await cancelMySessionApplication(client, sessionId);
+  } catch {
+    // Keep the GM comment visible even if an old non-withdrawable row prevents cleanup.
+  }
 }
 
 async function updateApplicationComment(client, commentId, body) {
@@ -444,6 +551,21 @@ async function queryGmSessionAcceptedContacts(client, sessionId) {
   const rows = Array.isArray(data) ? data : [];
   assertOnlyGmContactFields(rows);
   return rows;
+}
+
+async function queryPublicProfileDisplayName(client, userId) {
+  const targetUserId = normalizeInternalId(userId);
+  if (!targetUserId) return "";
+
+  const { data, error } = await client
+    .from("public_profiles")
+    .select("display_name")
+    .eq("id", targetUserId)
+    .maybeSingle();
+
+  if (error || !data) return "";
+  assertOnlyPublicProfileFields(data);
+  return redactSensitiveText(data.display_name).trim();
 }
 
 async function queryBooleanRpc(client, rpcName, params) {
@@ -552,7 +674,7 @@ function getPostContextError(options = {}) {
   if (!options.sessionId) return "対象のセッションを確認できませんでした。";
   if (!options.sessionMeta?.canApply) return "募集状態が変更された可能性があります。ページを再読み込みしてください。";
   if (options.authState !== "authenticated") return "投稿にはログインが必要です。";
-  if (getOwnApplicationStatus(options.ownApplication) === "rejected") return "このセッションへの申請は現在行えません。";
+  if (!options.isSessionOwner && getOwnApplicationStatus(options.ownApplication) === "rejected") return "このセッションへの申請は現在行えません。";
   return "";
 }
 
@@ -671,6 +793,7 @@ function rerenderPanelComments(panel) {
 }
 
 function appendCommentForm(target, options = {}) {
+  const isGmComment = options.isSessionOwner === true;
   const form = document.createElement("form");
   form.className = "session-comment-form";
   form.noValidate = true;
@@ -679,25 +802,29 @@ function appendCommentForm(target, options = {}) {
   field.className = "session-comment-field";
 
   const labelText = document.createElement("span");
-  labelText.textContent = "参加希望コメント";
+  labelText.textContent = isGmComment ? "GMコメント" : "参加希望コメント";
 
   const textarea = document.createElement("textarea");
   textarea.className = "session-comment-textarea";
   textarea.name = "application-comment";
   textarea.rows = 4;
-  textarea.placeholder = "参加希望や連絡事項を入力してください。";
+  textarea.placeholder = isGmComment
+    ? "募集補足や連絡事項を入力してください。"
+    : "参加希望や連絡事項を入力してください。";
 
   field.append(labelText, textarea);
 
   const guidance = document.createElement("p");
   guidance.className = "session-comment-form-guidance";
-  guidance.textContent = "コメント投稿時点で参加申請として扱われます。複数コメントしても申請人数は重複してカウントされません。申請を辞退する場合は、自分が投稿したコメントをすべて削除するか、辞退する旨のコメントを残したうえで申請取り下げ操作を行ってください。";
+  guidance.textContent = isGmComment
+    ? "GMコメントとして投稿されます。参加申請には含まれません。"
+    : "コメント投稿時点で参加申請として扱われます。複数コメントしても申請人数は重複してカウントされません。申請を辞退する場合は、自分が投稿したコメントをすべて削除するか、辞退する旨のコメントを残したうえで申請取り下げ操作を行ってください。";
 
   const button = document.createElement("button");
   button.className = "session-application-button session-comment-button";
   button.type = "submit";
   button.disabled = true;
-  button.textContent = "参加希望コメントを送信";
+  button.textContent = isGmComment ? "GMコメントを送信" : "参加希望コメントを送信";
 
   const status = document.createElement("p");
   status.setAttribute("aria-live", "polite");
@@ -760,12 +887,14 @@ function appendCommentForm(target, options = {}) {
     setInlineStatus(status, "送信中です。", "is-warn");
 
     try {
-      await createApplicationComment(options.client, options.sessionId, validation.body);
+      await postSessionDetailComment(options.client, options.sessionId, validation.body, {
+        isSessionOwner: isGmComment
+      });
       textarea.value = "";
       setInlineStatus(status, "送信しました。表示を更新しています。", "is-ok");
       setPanelEditState(options.panel, { isPosting: false });
       await refreshPanel(options.panel, options.sessionId, {
-        feedbackMessage: "参加希望コメントを送信しました。",
+        feedbackMessage: isGmComment ? "GMコメントを送信しました。" : "参加希望コメントを送信しました。",
         feedbackModifier: "is-ok"
       });
     } catch {
@@ -777,7 +906,9 @@ function appendCommentForm(target, options = {}) {
       updateAvailability(false);
       setInlineStatus(
         status,
-        "参加希望コメントを送信できませんでした。募集状態が変更された可能性があります。ページを再読み込みしてください。",
+        isGmComment
+          ? "GMコメントを送信できませんでした。募集状態が変更された可能性があります。ページを再読み込みしてください。"
+          : "参加希望コメントを送信できませんでした。募集状態が変更された可能性があります。ページを再読み込みしてください。",
         "is-error"
       );
     }
@@ -800,6 +931,10 @@ function getOwnApplicationMessage(ownApplication) {
 
 function shouldShowCommentForm(ownApplication) {
   return getOwnApplicationStatus(ownApplication) !== "rejected";
+}
+
+function isSessionOwnerComment(comment, options = {}) {
+  return options.isSessionOwner === true && comment?.isOwn === true;
 }
 
 function shouldShowWithdrawUi(ownApplication) {
@@ -957,11 +1092,6 @@ function renderPostControl(target, options = {}) {
   const sessionMeta = options.sessionMeta || {};
   target.replaceChildren();
 
-  if (!sessionMeta.canApply) {
-    target.append(createStateMessage("このセッションは現在申請できません。参加希望コメントは読み取り専用です。", "is-warn"));
-    return;
-  }
-
   if (authState === "anonymous") {
     target.append(createStateMessage("参加希望コメントの投稿にはログインが必要です。ACCOUNTからログインしてください。", "is-warn"));
     appendLoginAction(target);
@@ -970,6 +1100,23 @@ function renderPostControl(target, options = {}) {
 
   if (authState !== "authenticated") {
     target.append(createStateMessage("ログイン状態を確認できませんでした。時間をおいて再読み込みしてください。", "is-error"));
+    return;
+  }
+
+  if (!sessionMeta.canApply) {
+    const message = options.isSessionOwner
+      ? "現在の募集状態では、既存の投稿機能からGMコメントを送信できません。表示中のコメントは引き続き確認できます。"
+      : "このセッションは現在申請できません。参加希望コメントは読み取り専用です。";
+    target.append(createStateMessage(message, "is-warn"));
+    return;
+  }
+
+  if (options.isSessionOwner) {
+    target.append(createStateMessage("GMとして管理中です。参加申請は不要です。", "is-ok"));
+    if (options.feedbackMessage) {
+      target.append(createStateMessage(options.feedbackMessage, options.feedbackModifier || ""));
+    }
+    appendCommentForm(target, options);
     return;
   }
 
@@ -1058,22 +1205,25 @@ function normalizeGmHistoryRows(rows) {
   });
 }
 
-function normalizeGmApplicationActionRows(rows, publicCommentRows) {
+function normalizeGmApplicationActionRows(rows, publicCommentRows, options = {}) {
   const commentsById = new Map();
   for (const comment of normalizeComments(Array.isArray(publicCommentRows) ? publicCommentRows : [])) {
     if (comment.commentId) commentsById.set(comment.commentId, comment);
   }
 
+  const excludedUserId = normalizeInternalId(options.gmUserId);
   const actionRows = [];
   let skippedUnsafeCount = 0;
 
   for (const row of rows) {
+    const userId = normalizeInternalId(row?.user_id);
     const applicationId = String(row?.id || "").trim();
     const applicationStatus = String(row?.status || "").trim().toLowerCase();
     const commentId = String(row?.comment_id || "").trim();
     const comment = commentId ? commentsById.get(commentId) : null;
     const displayName = comment?.displayName || "";
 
+    if (excludedUserId && userId === excludedUserId) continue;
     if (!applicationId || !GM_ACTION_ALLOWED_STATUSES.has(applicationStatus)) continue;
     if (!displayName) {
       skippedUnsafeCount += 1;
@@ -1582,6 +1732,23 @@ function renderGmContactRows(target, rows) {
   target.append(list, actions);
 }
 
+async function filterOutSessionOwnerDisplayNameRows(client, rows, gmUserId) {
+  if (!Array.isArray(rows) || !rows.length || !normalizeInternalId(gmUserId)) return rows;
+
+  const gmDisplayName = await queryPublicProfileDisplayName(client, gmUserId);
+  if (!gmDisplayName) return rows;
+
+  let removed = false;
+  return rows.filter((row) => {
+    const displayName = redactSensitiveText(row?.display_name).trim();
+    if (!removed && displayName && displayName === gmDisplayName) {
+      removed = true;
+      return false;
+    }
+    return true;
+  });
+}
+
 function createGmContactControl(options = {}) {
   const details = document.createElement("details");
   details.className = "session-gm-contact-details";
@@ -1604,7 +1771,8 @@ function createGmContactControl(options = {}) {
 
     try {
       const rows = await queryGmSessionAcceptedContacts(options.client, options.sessionId);
-      renderGmContactRows(body, rows);
+      const filteredRows = await filterOutSessionOwnerDisplayNameRows(options.client, rows, options.gmUserId);
+      renderGmContactRows(body, filteredRows);
       hasLoaded = true;
     } catch {
       setGmContactState(body, "連絡先を取得できませんでした", "is-error");
@@ -1658,10 +1826,18 @@ function renderGmHistoryControl(target, canView, options = {}) {
       }
 
       const gmApplicationActions = applicationsResult.status === "fulfilled"
-        ? normalizeGmApplicationActionRows(applicationsResult.value, options.publicCommentRows)
+        ? normalizeGmApplicationActionRows(applicationsResult.value, options.publicCommentRows, {
+          gmUserId: options.gmUserId
+        })
         : { actionRows: [], skippedUnsafeCount: 0 };
 
-      renderGmHistoryRows(body, historyResult.value, {
+      const filteredHistoryRows = await filterOutSessionOwnerDisplayNameRows(
+        options.client,
+        historyResult.value,
+        options.gmUserId
+      );
+
+      renderGmHistoryRows(body, filteredHistoryRows, {
         ...options,
         gmApplicationActions,
         gmApplicationActionsLoadFailed: applicationsResult.status !== "fulfilled"
@@ -1862,18 +2038,19 @@ function appendCommentEditForm(item, comment, rows, target, options = {}) {
 }
 
 function appendCommentDeleteConfirm(preview, comment, rows, target, options = {}) {
+  const isGmComment = isSessionOwnerComment(comment, options);
   const confirm = document.createElement("div");
   confirm.className = "session-comment-delete-confirm";
   confirm.setAttribute("role", "group");
-  confirm.setAttribute("aria-label", "参加希望コメント削除の確認");
+  confirm.setAttribute("aria-label", isGmComment ? "GMコメント削除の確認" : "参加希望コメント削除の確認");
 
   const message = document.createElement("p");
   message.className = "session-comment-delete-confirm-text";
-  message.textContent = COMMENT_DELETE_CONFIRM_TEXT;
+  message.textContent = isGmComment ? GM_COMMENT_DELETE_CONFIRM_TEXT : COMMENT_DELETE_CONFIRM_TEXT;
 
   const note = document.createElement("p");
   note.className = "session-comment-delete-confirm-note";
-  note.textContent = COMMENT_DELETE_CONFIRM_NOTE;
+  note.textContent = isGmComment ? GM_COMMENT_DELETE_CONFIRM_NOTE : COMMENT_DELETE_CONFIRM_NOTE;
 
   const actions = document.createElement("div");
   actions.className = "session-comment-delete-confirm-actions";
@@ -2036,6 +2213,7 @@ function renderComments(target, rows, options = {}) {
   list.className = "session-comment-items";
 
   for (const comment of comments) {
+    const isGmComment = isSessionOwnerComment(comment, options);
     const item = document.createElement("li");
     item.className = "session-comment-item";
 
@@ -2047,8 +2225,10 @@ function renderComments(target, rows, options = {}) {
     name.textContent = comment.displayName;
 
     const status = document.createElement("span");
-    status.className = `session-comment-status-badge is-${getStatusClass(comment.applicationStatus)}`;
-    status.textContent = getStatusLabel(comment.applicationStatus);
+    status.className = isGmComment
+      ? "session-comment-status-badge is-gm-comment"
+      : `session-comment-status-badge is-${getStatusClass(comment.applicationStatus)}`;
+    status.textContent = isGmComment ? "GMコメント" : getStatusLabel(comment.applicationStatus);
 
     header.append(name, status);
 
@@ -2081,6 +2261,8 @@ function renderComments(target, rows, options = {}) {
 }
 
 async function refreshPanel(panel, sessionId, options = {}) {
+  const panelContext = panelSessionContexts.get(panel) || {};
+  const gmUserId = normalizeInternalId(options.gmUserId || panelContext.gmUserId);
   const countsTarget = panel.querySelector("[data-session-comment-counts]");
   const commentsTarget = panel.querySelector("[data-session-comment-list]");
   const authNote = panel.querySelector("[data-session-comment-auth-note]");
@@ -2116,20 +2298,15 @@ async function refreshPanel(panel, sessionId, options = {}) {
       getAuthSession(client)
     ]);
 
-    if (countsResult.status === "fulfilled") {
-      renderCounts(countsTarget, countsResult.value);
-    } else {
-      setState(countsTarget, "申請人数の取得に失敗しました", "is-error");
-    }
-
     const authContext = authResult.status === "fulfilled" ? authResult.value : { state: "unknown", session: null };
     let ownApplication = null;
     let ownApplicationError = false;
     let canViewGmHistory = false;
+    const isSessionOwnerUser = authContext.state === "authenticated" && isSessionOwner(authContext.session, gmUserId);
 
     if (authContext.state === "authenticated") {
       const [ownApplicationResult, gmHistoryAccessResult] = await Promise.allSettled([
-        queryOwnApplication(client, sessionId, authContext.session),
+        isSessionOwnerUser ? Promise.resolve(null) : queryOwnApplication(client, sessionId, authContext.session),
         queryGmHistoryAccess(client, sessionId, authContext.state)
       ]);
 
@@ -2144,11 +2321,27 @@ async function refreshPanel(panel, sessionId, options = {}) {
       }
     }
 
+    let countsRow = countsResult.status === "fulfilled" ? countsResult.value : null;
+    if (authContext.state === "authenticated" && gmUserId && (isSessionOwnerUser || canViewGmHistory)) {
+      try {
+        countsRow = await queryApplicationCountsExcludingUser(client, sessionId, gmUserId);
+      } catch {
+        // Keep the public RPC count as a fallback when direct RLS-scoped correction is unavailable.
+      }
+    }
+
+    if (countsRow) {
+      renderCounts(countsTarget, countsRow);
+    } else {
+      setState(countsTarget, "申請人数の取得に失敗しました", "is-error");
+    }
+
     renderAuthNote(authNote, authContext.state);
     renderGmHistoryControl(gmHistoryTarget, canViewGmHistory, {
       client,
       panel,
       sessionId,
+      gmUserId,
       authState: authContext.state,
       publicCommentRows: commentsResult.status === "fulfilled" ? commentsResult.value : [],
       openOnLoad: options.openGmHistory === true,
@@ -2161,7 +2354,9 @@ async function refreshPanel(panel, sessionId, options = {}) {
         client,
         panel,
         sessionId,
-        authState: authContext.state
+        gmUserId,
+        authState: authContext.state,
+        isSessionOwner: isSessionOwnerUser
       });
     } else {
       setState(commentsTarget, "参加希望コメントを取得できませんでした", "is-error");
@@ -2172,6 +2367,7 @@ async function refreshPanel(panel, sessionId, options = {}) {
       panel,
       sessionId,
       authState: authContext.state,
+      isSessionOwner: isSessionOwnerUser,
       ownApplication,
       ownApplicationError,
       sessionMeta,
@@ -2195,6 +2391,9 @@ export function initSessionDetailApplicationComments(root, options = {}) {
     if (panel.dataset.sessionApplicationInitialized === "true") continue;
     panel.dataset.sessionApplicationInitialized = "true";
     const sessionId = String(options.sessionId || panel.dataset.sessionId || "").trim();
+    panelSessionContexts.set(panel, {
+      gmUserId: normalizeInternalId(options.gmUserId)
+    });
     refreshPanel(panel, sessionId);
   }
 }
