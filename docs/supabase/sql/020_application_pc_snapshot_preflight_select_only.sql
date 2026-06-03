@@ -90,7 +90,7 @@ where con.conrelid in (
     to_regclass('public.session_applications'),
     to_regclass('public.player_characters')
   )
-order by source_table::text, con.contype, con.conname;
+order by con.conrelid::regclass::text, con.contype, con.conname;
 
 with application_fks as (
   select
