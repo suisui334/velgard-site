@@ -961,3 +961,12 @@
 - 第一段階のためテンプレート保存、DB保存、localStorage保存は実装しない。
 - raw user_id / email / token / selected_character_id / application_id は表示・DOM・console・docsに出さない。
 - SQL Editor未実行、DB構造変更なし、RPC変更なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。
+
+## M-15I-1 テンプレート保存機能仕様設計
+- `docs/gm-template-storage-plan.md` を作成し、M-15Hのテンプレ変数置換UIを保存・編集・無効化・一覧表示へ拡張するための仕様を整理した。
+- 初期実装はログインユーザー本人の個人テンプレートを優先し、`owner_user_id` を持つ保存テーブルを想定する。admin共通テンプレート、共有テンプレート、並び替え、説明文、scopeなどは後続拡張候補に分離する。
+- 削除方式は物理削除ではなく `is_active = false` による非アクティブ化を第一候補とする。
+- テンプレート種別は `call` / `result` / `session_post` / `application` / `other` の固定候補を想定し、text CHECK制約案とRPC側バリデーション案を後続SQL草案で比較する。
+- 想定RPCは `get_my_template_presets()`、`create_template_preset(...)`、`update_template_preset(...)`、`deactivate_template_preset(...)`。フロントからDB直INSERT / UPDATE / DELETEはしない。
+- 次工程はM-15I-2として、SELECT-only preflight SQLで `profiles.id`、`auth.uid()` 対応、admin helper、updated_at helper、既存RPCのsecurity/search_path/EXECUTE方針、テーブル名衝突を確認する。
+- この工程ではSQLファイル作成なし、SQL Editor未実行、DB構造変更なし、RPC変更なし、フロント実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。
