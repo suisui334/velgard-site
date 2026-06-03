@@ -137,3 +137,11 @@ M-15Fとして、`docs/supabase/sql/020_application_pc_snapshot_apply_reviewed.s
 適用後の方針として、PLの新規申請・再申請時は既定PCをsnapshotする。PC名未登録でも申請可能。GM/admin管理コメントは参加申請扱いにせず、snapshotしない。参加申請コメント本文は自由本文のままで、PC名やDiscordユーザーIDを本文に書かせない。
 
 実データ投入、フロントUI変更、参加申請UI変更、Discord実送信、Edge Function deploy、`updates.json` 変更は行っていない。
+
+## M-15F 実動作確認結果
+
+実ブラウザ / SQL確認で、通常PLの参加申請時に `session_applications.pc_name_snapshot` へ既定PC名が保存され、`selected_character_id` も紐付くことを確認した。確認用SELECT上では `linked_pc_name` と `pc_name_snapshot` が一致した。
+
+`status = accepted` の申請でもPC名snapshotは保持されていた。これにより、PC名やDiscordユーザーIDを参加申請コメント本文へ書かせず、mypage登録情報とプロフィール登録情報から自動で紐付けるM-15F方針が成立していることを確認した。
+
+この記録では raw user_id / application_id / selected_character_id の実値、ユーザー名、PC名の実値は記録しない。SQL Editor追加実行、DB追加変更、RPC変更、フロントUI変更、Discord実送信、Edge Function deploy、`updates.json` 変更は行っていない。

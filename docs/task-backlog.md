@@ -894,3 +894,11 @@
 - PL新規申請・再申請時は既定PCをsnapshotする。PC名未登録でも申請可能。
 - GM/admin管理コメントでは参加申請扱いせずsnapshotしない。参加申請コメント本文は自由本文で、PC名やDiscordユーザーIDを本文に書かせない。
 - 実データ投入なし、フロントUI変更なし、参加申請UI変更なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。
+
+## M-15F application PC snapshot 実動作確認
+- 通常PLの参加申請で `session_applications.pc_name_snapshot` に既定PC名が保存され、`selected_character_id` も紐付くことを確認した。
+- SQL確認では `linked_pc_name` と `pc_name_snapshot` が一致した。
+- `status = accepted` の申請でもPC名snapshotが保持されていた。
+- PC名やDiscordユーザーIDを参加申請コメント本文へ書かせるのではなく、登録情報から自動で紐付ける方針が成立している。
+- raw user_id / application_id / selected_character_id の実値、ユーザー名、PC名の実値は記録しない。
+- SQL Editor追加実行なし、DB追加変更なし、RPC変更なし、フロントUI変更なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。
