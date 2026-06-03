@@ -120,3 +120,11 @@ DiscordユーザーIDは `profiles.discord_handle` の17〜20桁数字から `<@
 `{{approved_call_list}}` は後続M-15Hで、承認済み参加者ごとに `<@DiscordユーザーID> ユーザー名 PC名` を1行ずつ出す。DiscordユーザーID未登録/形式不正は `登録されていません`、PC名未登録は `PC名未登録` に丸める。M-15Fではテンプレート置換処理そのものは実装しない。
 
 GMコメントは許可するが、参加申請として扱わず、PC snapshotも保存しない。承認済み参加者向けの連絡先/テンプレート出力にはGM本人コメントを含めない。
+
+## M-15G preflight結果との接続
+
+M-15G preflightで、既存 `get_gm_session_accepted_contacts(text)` は `display_name` / `discord_handle` の2列のみを返すことを確認した。`security_definer = true`、`search_path` 設定あり、`authenticated EXECUTEあり`、`anon` / `public EXECUTEなし`。
+
+PC名付きの呼び出し用データには、既存列を維持しつつ `discord_mention` / `pc_name` / `pc_name_missing` を追加する必要がある。`discord_mention` は保存済み `profiles.discord_handle` が17〜20桁の数字の場合だけ `<@ID>` とし、未登録または形式不正は `登録されていません` に丸める。生の形式不正値は返さない。
+
+`pc_name` は `session_applications.pc_name_snapshot` を正とし、null/空は `PC名未登録` とする。戻り値型変更を同名RPCで行う場合はdrop/recreateが必要になる可能性があるため、後続APPLYでdrop/recreate案とv2 RPC案をレビューする。今回はSQL Editor追加実行、DB構造変更、RPC作成/置換、GRANT / REVOKE、フロントUI実装は行っていない。

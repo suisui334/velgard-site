@@ -911,3 +911,13 @@
 - DiscordユーザーIDは `profiles.discord_handle` から `<@ID>` へ変換表示し、未登録または形式不正は `登録されていません` とする。生の不正値は返さない。
 - GM本人は承認済み参加者一覧から除外し、raw user_id / email / token / selected_character_id / application_id は返さない。
 - SQL Editor未実行、DB構造変更なし、RPC変更なし、GRANT / REVOKE未実行、APPLY専用SQL作成なし、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。
+
+## M-15G GM向け承認済み参加者PC名表示RPC preflight結果
+- ユーザーが `022_gm_accepted_contacts_pc_name_preflight_select_only.sql` をSupabase SQL Editorで実行し、既存 `get_gm_session_accepted_contacts(text)` は `display_name` / `discord_handle` の2列返却と確認した。
+- 既存RPCは `security_definer = true`、`search_path` 設定あり。`authenticated EXECUTEあり`、`anon` / `public EXECUTEなし`。
+- PC名表示には戻り値列追加が必要。既存列 `display_name` / `discord_handle` は維持し、追加列候補は `discord_mention` / `pc_name` / `pc_name_missing`。
+- 同名RPCで戻り値型を変更する場合はdrop/recreateが必要になる可能性がある。後続APPLYではdrop/recreate案とv2 RPC案をレビューする。
+- `pc_name` は `session_applications.pc_name_snapshot` を正とし、null/空は `PC名未登録`。過去申請にはsnapshotなしが混在するためfallback必須。
+- DiscordユーザーIDは17〜20桁の数字のみ `<@ID>` に変換し、未登録/形式不正は `登録されていません`。生の不正値は返さない。
+- GM本人は承認済み参加者一覧から除外し、raw user_id / email / token / selected_character_id / application_id は返さない。
+- SQL Editor追加実行なし、DB構造変更なし、RPC作成/置換なし、GRANT / REVOKE未実行、APPLY専用SQL作成なし、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。

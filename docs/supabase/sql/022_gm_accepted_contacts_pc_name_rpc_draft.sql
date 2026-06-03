@@ -15,6 +15,14 @@
 -- REVIEW SUMMARY
 -- ============================================================
 --
+-- M-15G preflight result reviewed:
+-- - public.get_gm_session_accepted_contacts(text) currently returns
+--   TABLE(display_name text, discord_handle text).
+-- - Current function is security definer and has a search_path config.
+-- - authenticated has EXECUTE; anon and public do not.
+-- - Accepted application rows may include both pc_name_snapshot present and
+--   missing rows because older applications predate M-15F snapshots.
+--
 -- Existing contract:
 -- - public.get_gm_session_accepted_contacts(target_session_id text)
 -- - Current return columns are display_name text and discord_handle text.
@@ -58,6 +66,15 @@
 -- - GM/admin management comments are not applications and should not appear in
 --   session_applications after M-15F.
 --
+-- Return type change strategy:
+-- - Option A: keep the existing RPC name/signature and use a reviewed
+--   drop/recreate APPLY, because PostgreSQL can reject create-or-replace when
+--   the table return shape changes.
+-- - Option B: create a v2 RPC such as get_gm_session_accepted_contacts_v2(text)
+--   if same-name rollout risk is too high.
+-- - Preferred direction is Option A only when the frontend allow-list and UI are
+--   updated in the same rollout. Until then, do not run this draft.
+--
 -- Stop before applying if:
 -- - M-15G preflight has not confirmed the current return columns.
 -- - Frontend GM_CONTACT_FIELD_NAMES still allows only display_name /
@@ -73,7 +90,8 @@
 begin;
 
 -- Return type changes need a reviewed APPLY strategy. The final APPLY may need
--- to drop the old function before creating the new table-return shape.
+-- to drop the old function before creating the new table-return shape. If
+-- same-name compatibility risk is too high, use a reviewed v2 RPC instead.
 drop function if exists public.get_gm_session_accepted_contacts(text);
 
 create function public.get_gm_session_accepted_contacts(

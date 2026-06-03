@@ -108,3 +108,17 @@ secret類
 - service_role key利用
 - secret類の出力
 - commit / push
+
+## M-15G preflight結果
+
+ユーザーがSupabase SQL Editorで `docs/supabase/sql/022_gm_accepted_contacts_pc_name_preflight_select_only.sql` を実行し、既存 `get_gm_session_accepted_contacts(text)` の現在状態を確認した。
+
+確認結果は、signature `get_gm_session_accepted_contacts(text)`、arguments `target_session_id text`、result type `TABLE(display_name text, discord_handle text)`。現在の戻り値は `display_name` / `discord_handle` の2列のみ。`security_definer = true` で、function configには `search_path` 設定がある。
+
+権限は `authenticated EXECUTEあり`、`anon EXECUTEなし`、`public EXECUTEなし`。承認済み申請の集計では `pc_name_snapshot` あり/なしが混在していたが、M-15F以前の過去申請にはsnapshotがないため自然な状態として扱う。
+
+PC名表示にはRPC戻り値列の追加が必要。既存列 `display_name` / `discord_handle` は互換性のため維持し、追加列候補は `discord_mention` / `pc_name` / `pc_name_missing` とする。同名RPCで戻り値型を変更する場合、PostgreSQLでは単純な `create or replace function` では失敗する可能性があるため、後続APPLYでは既存 `get_gm_session_accepted_contacts(text)` をdrop/recreateする案A、または `get_gm_session_accepted_contacts_v2(text)` のような別RPCを作る案Bをレビューする。
+
+基本方針は、既存フロントとの互換性を意識しつつ、同じ工程でフロント許可列とUIを更新できるなら既存signature維持のdrop/recreateを優先する。APPLY専用SQLは今回作成せず、SQL Editor追加実行、DB構造変更、RPC作成/置換、GRANT / REVOKE、フロントUI実装は行っていない。
+
+`pc_name` は `session_applications.pc_name_snapshot` を正とし、null/空は `PC名未登録` に丸める。`discord_handle` が17〜20桁の数字なら `discord_mention` を `<@ID>` として生成し、未登録または形式不正は `登録されていません` とする。形式不正値、raw user_id / email / token / selected_character_id / application_id は返さない。GM本人は承認済み参加者一覧から除外する。
