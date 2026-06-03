@@ -1,6 +1,14 @@
 -- 021_fix_selected_character_fk_apply_reviewed.sql
 -- M-15D correction APPLY for session_applications.selected_character_id FK.
 --
+-- 2026-06-03 follow-up:
+-- 021 preflight result reported:
+--   selected_character_fk_has_on_delete_set_null = true
+-- The live DB already has ON DELETE SET NULL semantics for this FK.
+-- This APPLY file was not executed and is normally unnecessary. Keep it only
+-- as a reviewed fallback if a future preflight shows the FK is missing or has
+-- drifted away from ON DELETE SET NULL.
+--
 -- APPLY ONLY AFTER 021_fix_selected_character_fk_preflight_select_only.sql
 -- confirms:
 -- - public.session_applications.selected_character_id exists.

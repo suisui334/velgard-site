@@ -841,3 +841,11 @@
 - APPLY専用SQL `docs/supabase/sql/021_fix_selected_character_fk_apply_reviewed.sql` を作成した。既存FKをdropし、`ON DELETE SET NULL` 付きで同名FKを作り直す内容。
 - APPLY末尾に、FK存在、参照先 `player_characters(id)`、definition内の `ON DELETE SET NULL` / `confdeltype = 'n'` 相当を確認するSELECTを入れた。
 - SQL Editor未実行、DB構造変更なし、ALTER TABLE未実行、RPC変更なし、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。
+
+## M-15D補正 selected_character_id FK preflight結果
+- ユーザーがSupabase SQL Editorで `021_fix_selected_character_fk_preflight_select_only.sql` を実行した。
+- `selected_character_fk_has_on_delete_set_null = true` と確認され、現DB上では `session_applications.selected_character_id` FKはすでに `ON DELETE SET NULL` 相当だった。
+- `021_fix_selected_character_fk_apply_reviewed.sql` は未実行で、現時点では実行不要と判断する。
+- 前回の `ON DELETE SET NULL` 不足は、表示上の見切れまたは確認不足だった可能性として扱う。
+- DB追加変更なし、ALTER TABLE未実行、RPC変更なし、GRANT / REVOKE未実行。
+- 次はM-15Fとして、参加申請PC名スナップショット接続へ戻る。
