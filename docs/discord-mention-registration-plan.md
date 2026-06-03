@@ -111,6 +111,12 @@ M-15EでmypageにPC名登録UIを追加した。DiscordユーザーID登録UIそ
 
 M-15Fでは、参加申請コメント投稿時にPC名をコメント本文へ書かせず、RPC側で本人の既定PCを `session_applications.pc_name_snapshot` へ自動保存する方針とした。ユーザー名は `profiles.display_name`、DiscordユーザーIDは `profiles.discord_handle`、PC名は `player_characters` の既定PCから取得する。
 
+## M-15G GM向けPC名付き連絡先RPC準備
+
+M-15Gでは、GM/admin向け承認済み参加者連絡先RPC `get_gm_session_accepted_contacts(text)` にPC名を追加するためのpreflight SQLとRPC草案を作成した。PC名は `session_applications.pc_name_snapshot` を正とし、未登録時は `PC名未登録` とする。
+
+DiscordユーザーIDは `profiles.discord_handle` の17〜20桁数字から `<@ID>` を生成する。未登録または形式不正は `登録されていません` とし、生の不正値は返さない。`{{approved_call_list}}` では `<@DiscordユーザーID> ユーザー名 PC名`、`{{approved_pc_names}}` ではPC名一覧を使う後続方針を維持する。
+
 `{{approved_call_list}}` は後続M-15Hで、承認済み参加者ごとに `<@DiscordユーザーID> ユーザー名 PC名` を1行ずつ出す。DiscordユーザーID未登録/形式不正は `登録されていません`、PC名未登録は `PC名未登録` に丸める。M-15Fではテンプレート置換処理そのものは実装しない。
 
 GMコメントは許可するが、参加申請として扱わず、PC snapshotも保存しない。承認済み参加者向けの連絡先/テンプレート出力にはGM本人コメントを含めない。

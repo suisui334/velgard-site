@@ -454,3 +454,15 @@ M-15Fとして、`docs/supabase/sql/020_application_pc_snapshot_apply_reviewed.s
 `status = accepted` の申請でもPC名snapshotが保持されていることを確認した。参加申請コメント本文にPC名やDiscordユーザーIDを書かせる設計ではなく、登録済み情報から自動紐付けする方針で実動作確認済み。
 
 raw user_id / application_id / selected_character_id の実値、ユーザー名やPC名の実値はdocsへ記録しない。SQL Editor追加実行、DB追加変更、RPC変更、フロントUI変更、Discord実送信、Edge Function deploy、`updates.json` 変更は行っていない。
+
+## M-15G GM向け承認済み参加者PC名表示RPC草案
+
+M-15Gとして、`get_gm_session_accepted_contacts(text)` にPC名を追加するためのpreflight SELECT-only SQLとRPC草案を作成した。
+
+preflightは `docs/supabase/sql/022_gm_accepted_contacts_pc_name_preflight_select_only.sql`。既存RPCのsignature / 戻り値、`security_definer`、`authenticated EXECUTE`、`anon` / `public EXECUTEなし`、`pc_name_snapshot` / `selected_character_id`、status許可値、`profiles.display_name` / `discord_handle`、`player_characters`、`sessions.gm_user_id`、helper関数を確認する。`pg_get_functiondef` は使わない。
+
+RPC草案は `docs/supabase/sql/022_gm_accepted_contacts_pc_name_rpc_draft.sql`。既存入力signature `target_session_id text` を維持し、既存列 `display_name` / `discord_handle` に加えて `discord_mention` / `pc_name` / `pc_name_missing` を追加する案とした。戻り値型変更があるため、後続APPLY時はdrop/recreateまたは別RPC化をレビューする。
+
+PC名は `session_applications.pc_name_snapshot` を正とし、未登録は `PC名未登録`。DiscordユーザーIDは17〜20桁の数字のみ `<@ID>` にし、未登録または形式不正は `登録されていません` とする。GM本人はRPC内で除外し、raw user_id / email / token / selected_character_id などは返さない。
+
+この工程ではSQL Editor未実行、DB構造変更なし、RPC変更なし、GRANT / REVOKE未実行、APPLY専用SQL作成なし、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。

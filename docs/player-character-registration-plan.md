@@ -495,3 +495,13 @@ PL新規申請・再申請時は既定PCをsnapshotし、PC名未登録でも申
 `accepted` 状態の申請でもPC名snapshotは保持されていた。PC名やDiscordユーザーIDを参加申請コメント本文へ書かせず、登録情報から自動で紐付ける方針が成立している。
 
 内部IDの実値、ユーザー名、PC名の実値は記録しない。SQL Editor追加実行、DB追加変更、RPC変更、フロントUI変更、Discord実送信、Edge Function deploy、`updates.json` 変更は行っていない。
+
+## M-15G GM向け承認済み参加者PC名表示RPC準備
+
+GM/admin向け承認済み参加者一覧へPC名を表示するため、M-15Gとしてpreflight専用SQLとRPC草案を作成した。
+
+`get_gm_session_accepted_contacts(text)` は既存の `display_name` / `discord_handle` を維持しつつ、後続でPC名列を追加する方針。既存フロントは返却列を2列に限定しているため、APPLYとUI更新は後続で同時に扱う。
+
+PC名は `pc_name_snapshot` を正とし、未登録時は `PC名未登録`。DiscordユーザーIDは `<@ID>` に変換し、未登録または形式不正は `登録されていません`。GM本人は承認済み参加者一覧から除外し、内部IDやsecret類は返さない。
+
+この工程ではSQL Editor未実行、DB構造変更なし、RPC変更なし、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。

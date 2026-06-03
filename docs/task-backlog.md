@@ -902,3 +902,12 @@
 - PC名やDiscordユーザーIDを参加申請コメント本文へ書かせるのではなく、登録情報から自動で紐付ける方針が成立している。
 - raw user_id / application_id / selected_character_id の実値、ユーザー名、PC名の実値は記録しない。
 - SQL Editor追加実行なし、DB追加変更なし、RPC変更なし、フロントUI変更なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。
+
+## M-15G GM向け承認済み参加者PC名表示RPC準備
+- GM/admin向け承認済み参加者連絡先にPC名を追加するため、preflight専用SQL `docs/supabase/sql/022_gm_accepted_contacts_pc_name_preflight_select_only.sql` を作成した。
+- RPC草案 `docs/supabase/sql/022_gm_accepted_contacts_pc_name_rpc_draft.sql` と設計docs `docs/gm-accepted-contacts-pc-name-plan.md` を作成した。
+- 既存 `get_gm_session_accepted_contacts(text)` は `display_name` / `discord_handle` の2列を返し、現行フロントも2列のみ許可している。後続では既存列を維持しつつ `discord_mention` / `pc_name` / `pc_name_missing` を追加する方針。
+- PC名は `session_applications.pc_name_snapshot` を正とし、未登録時は `PC名未登録` とする。
+- DiscordユーザーIDは `profiles.discord_handle` から `<@ID>` へ変換表示し、未登録または形式不正は `登録されていません` とする。生の不正値は返さない。
+- GM本人は承認済み参加者一覧から除外し、raw user_id / email / token / selected_character_id / application_id は返さない。
+- SQL Editor未実行、DB構造変更なし、RPC変更なし、GRANT / REVOKE未実行、APPLY専用SQL作成なし、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。

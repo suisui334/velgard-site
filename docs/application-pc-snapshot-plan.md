@@ -145,3 +145,13 @@ M-15Fとして、`docs/supabase/sql/020_application_pc_snapshot_apply_reviewed.s
 `status = accepted` の申請でもPC名snapshotは保持されていた。これにより、PC名やDiscordユーザーIDを参加申請コメント本文へ書かせず、mypage登録情報とプロフィール登録情報から自動で紐付けるM-15F方針が成立していることを確認した。
 
 この記録では raw user_id / application_id / selected_character_id の実値、ユーザー名、PC名の実値は記録しない。SQL Editor追加実行、DB追加変更、RPC変更、フロントUI変更、Discord実送信、Edge Function deploy、`updates.json` 変更は行っていない。
+
+## M-15G GM向け承認済み参加者PC名表示RPC準備
+
+M-15Gとして、GM/admin向け承認済み参加者連絡先へPC名を追加するためのpreflight専用SQLとRPC草案を作成した。
+
+作成ファイルは `docs/supabase/sql/022_gm_accepted_contacts_pc_name_preflight_select_only.sql`、`docs/supabase/sql/022_gm_accepted_contacts_pc_name_rpc_draft.sql`、`docs/gm-accepted-contacts-pc-name-plan.md`。既存 `get_gm_session_accepted_contacts(text)` は現在 `display_name` / `discord_handle` のみを返し、フロントもこの2列だけを許可しているため、PC名列追加は後続APPLYとUI更新を同じ工程で扱う。
+
+PC名は `session_applications.pc_name_snapshot` を正とし、未登録時は `PC名未登録` とする。DiscordユーザーIDは `profiles.discord_handle` から `<@ID>` へ変換表示し、未登録または形式不正は `登録されていません` とする。raw user_id / email / token / selected_character_id などの内部情報は返さない方針を維持する。
+
+この工程ではSQL Editor未実行、DB構造変更なし、RPC変更なし、GRANT / REVOKE未実行、APPLY専用SQL作成なし、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。
