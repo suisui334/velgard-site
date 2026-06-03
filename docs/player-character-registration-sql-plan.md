@@ -474,3 +474,11 @@ PC名は `session_applications.pc_name_snapshot` を正とし、未登録は `PC
 M-15GでPC名を返すには戻り値列追加が必要。互換性のため既存列 `display_name` / `discord_handle` は維持し、追加列候補を `discord_mention` / `pc_name` / `pc_name_missing` とする。`pc_name` は `session_applications.pc_name_snapshot` を正とし、null/空は `PC名未登録`。過去申請にはsnapshotなしが混在するため、このfallbackを前提にする。
 
 戻り値型変更のため、同名RPCで進める場合は後続APPLYでdrop/recreateが必要になる可能性がある。代替として `get_gm_session_accepted_contacts_v2(text)` のような別RPC化も検討する。今回はSQL Editor追加実行、DB構造変更、RPC作成/置換、GRANT / REVOKE、APPLY専用SQL作成は行っていない。
+
+## M-15G APPLY専用SQL作成
+
+GM/admin向け承認済み参加者PC名表示RPCのAPPLY専用SQLとして `docs/supabase/sql/022_gm_accepted_contacts_pc_name_apply_reviewed.sql` を作成した。既存 `get_gm_session_accepted_contacts(text)` は2列返却のため、戻り値型変更に合わせてdrop/recreateする方針。
+
+既存列 `display_name` / `discord_handle` は維持し、`discord_mention` / `pc_name` / `pc_name_missing` を追加する。`pc_name` は `session_applications.pc_name_snapshot` を正とし、null/空は `PC名未登録`。DiscordユーザーID未登録・形式不正時は `登録されていません` とし、生の不正値や raw user_id / email / token は返さない。
+
+APPLY専用SQLには、`security definer`、`set search_path = ''`、`authenticated` のみEXECUTE、`anon` / `public` EXECUTE不可、関数本数・戻り値列・権限の実行後確認SELECTを含めた。今回CodexはAPPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし。

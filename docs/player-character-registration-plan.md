@@ -513,3 +513,11 @@ PC名は `pc_name_snapshot` を正とし、未登録時は `PC名未登録`。Di
 GM/admin向け承認済み参加者一覧でPC名を表示するには、既存列を維持したまま `discord_mention` / `pc_name` / `pc_name_missing` を追加する方針。`pc_name` は `session_applications.pc_name_snapshot` を正とし、未登録や過去申請のnull/空は `PC名未登録` とする。DiscordユーザーIDは17〜20桁の数字のみ `<@ID>` に変換し、未登録/形式不正は `登録されていません` とする。
 
 同名RPCの戻り値型変更はdrop/recreateが必要になる可能性があるため、後続APPLYではdrop/recreate案とv2 RPC案をレビューする。今回はSQL Editor追加実行、DB構造変更、RPC作成/置換、GRANT / REVOKE、APPLY専用SQL作成、フロントUI実装は行っていない。
+
+## M-15G APPLY専用SQL作成
+
+M-15Gとして `docs/supabase/sql/022_gm_accepted_contacts_pc_name_apply_reviewed.sql` を作成した。GM/admin向け承認済み参加者一覧で、既存 `display_name` / `discord_handle` に加えて `discord_mention` / `pc_name` / `pc_name_missing` を返すためのAPPLY専用SQL。
+
+PC名は `session_applications.pc_name_snapshot` を正とし、PC名未登録時は `PC名未登録`。DiscordユーザーID未登録・形式不正時は `登録されていません`。GM本人は一覧から除外し、raw user_id / email / token は返さない。
+
+既存RPCの戻り値型が変わるため、APPLY専用SQLはdrop/recreate方針を採用した。今回はSQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし。

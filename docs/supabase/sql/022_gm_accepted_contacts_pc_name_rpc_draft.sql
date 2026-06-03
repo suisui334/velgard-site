@@ -2,6 +2,9 @@
 -- M-15G draft for adding PC names to GM accepted participant contacts.
 --
 -- DRAFT ONLY. DO NOT RUN UNTIL A REVIEWED APPLY STEP IS REQUESTED.
+-- When applying M-15G in SQL Editor, use
+-- 022_gm_accepted_contacts_pc_name_apply_reviewed.sql.
+-- Do not paste this draft file for the apply step.
 -- This file may require a reviewed drop/recreate strategy because PostgreSQL
 -- does not allow changing a function's table return type with a simple
 -- create-or-replace operation.

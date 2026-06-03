@@ -163,3 +163,11 @@ PC名は `session_applications.pc_name_snapshot` を正とし、未登録時は 
 PC名をGM向け承認済み参加者連絡先へ出すには戻り値列追加が必要。既存列を維持し、追加列として `discord_mention` / `pc_name` / `pc_name_missing` を検討する。`pc_name` はM-15Fで保存する `session_applications.pc_name_snapshot` を正とし、null/空は `PC名未登録` とする。過去申請ではsnapshotなしが混在するため、fallback表示は必須。
 
 同名RPCの戻り値型変更はdrop/recreateが必要になる可能性がある。後続APPLYでは既存signature維持のdrop/recreate案と、v2 RPC案を比較する。今回はSQL Editor追加実行、DB構造変更、RPC作成/置換、GRANT / REVOKE、APPLY専用SQL作成、フロントUI実装は行っていない。
+
+## M-15G APPLY専用SQL作成
+
+`get_gm_session_accepted_contacts(text)` にPC名を返すため、APPLY専用SQL `docs/supabase/sql/022_gm_accepted_contacts_pc_name_apply_reviewed.sql` を作成した。既存RPCは `display_name` / `discord_handle` の2列返却だったため、戻り値型変更に備えてdrop/recreate方針を採用した。
+
+戻り値は `display_name` / `discord_handle` を維持し、`discord_mention` / `pc_name` / `pc_name_missing` を追加する。`pc_name` はM-15Fで保存する `session_applications.pc_name_snapshot` を正とし、PC名未登録時は `PC名未登録` に丸める。DiscordユーザーID未登録・形式不正時は `登録されていません` とし、raw user_id / email / token は返さない。
+
+APPLY専用SQLには実行後確認SELECTを含めたが、今回はAPPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし。

@@ -128,3 +128,11 @@ M-15G preflightで、既存 `get_gm_session_accepted_contacts(text)` は `displa
 PC名付きの呼び出し用データには、既存列を維持しつつ `discord_mention` / `pc_name` / `pc_name_missing` を追加する必要がある。`discord_mention` は保存済み `profiles.discord_handle` が17〜20桁の数字の場合だけ `<@ID>` とし、未登録または形式不正は `登録されていません` に丸める。生の形式不正値は返さない。
 
 `pc_name` は `session_applications.pc_name_snapshot` を正とし、null/空は `PC名未登録` とする。戻り値型変更を同名RPCで行う場合はdrop/recreateが必要になる可能性があるため、後続APPLYでdrop/recreate案とv2 RPC案をレビューする。今回はSQL Editor追加実行、DB構造変更、RPC作成/置換、GRANT / REVOKE、フロントUI実装は行っていない。
+
+## M-15G APPLY専用SQL作成との接続
+
+M-15Gで `docs/supabase/sql/022_gm_accepted_contacts_pc_name_apply_reviewed.sql` を作成した。GM/admin向け承認済み参加者RPCは、既存 `display_name` / `discord_handle` を維持しつつ、`discord_mention` / `pc_name` / `pc_name_missing` を追加する方針。
+
+DiscordユーザーIDは17〜20桁の数字のみ `<@ID>` に変換する。未登録・空欄・形式不正時は `discord_mention` を `登録されていません` とし、生の不正値は返さない。PC名は `session_applications.pc_name_snapshot` を正とし、未登録時は `PC名未登録`。
+
+APPLY専用SQLは戻り値型変更のためdrop/recreate方針を採用した。今回はAPPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし。

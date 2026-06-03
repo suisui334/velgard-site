@@ -122,3 +122,15 @@ PC名表示にはRPC戻り値列の追加が必要。既存列 `display_name` / 
 基本方針は、既存フロントとの互換性を意識しつつ、同じ工程でフロント許可列とUIを更新できるなら既存signature維持のdrop/recreateを優先する。APPLY専用SQLは今回作成せず、SQL Editor追加実行、DB構造変更、RPC作成/置換、GRANT / REVOKE、フロントUI実装は行っていない。
 
 `pc_name` は `session_applications.pc_name_snapshot` を正とし、null/空は `PC名未登録` に丸める。`discord_handle` が17〜20桁の数字なら `discord_mention` を `<@ID>` として生成し、未登録または形式不正は `登録されていません` とする。形式不正値、raw user_id / email / token / selected_character_id / application_id は返さない。GM本人は承認済み参加者一覧から除外する。
+
+## M-15G APPLY専用SQL作成
+
+M-15Gとして、GM/admin向け承認済み参加者一覧へPC名を返すためのAPPLY専用SQL `docs/supabase/sql/022_gm_accepted_contacts_pc_name_apply_reviewed.sql` を作成した。SQL Editorで適用する場合はこのAPPLY専用ファイルを使い、`022_gm_accepted_contacts_pc_name_rpc_draft.sql` の全文は貼らない。
+
+既存 `get_gm_session_accepted_contacts(text)` は `display_name` / `discord_handle` の2列返却だったため、戻り値型変更に備えて `drop function if exists public.get_gm_session_accepted_contacts(text);` の後に同名・同signatureで再作成するdrop/recreate方針とした。既存列 `display_name` / `discord_handle` は維持し、追加列として `discord_mention` / `pc_name` / `pc_name_missing` を返す。
+
+`pc_name` は `session_applications.pc_name_snapshot` を正とし、null/空は `PC名未登録`、`pc_name_missing = true` とする。DiscordユーザーIDは17〜20桁の数字のみ `discord_handle` に残し、`discord_mention` は `<@ID>` とする。未登録・形式不正の場合は `discord_mention = 登録されていません` とし、形式不正の生値は返さない。
+
+対象は `session_applications.status = 'accepted'` のみ。GM本人は `sessions.gm_user_id` との比較で除外し、raw user_id / email / token / selected_character_id / application_id は戻り値に含めない。権限は未ログイン拒否、GMまたはadminのみ取得可、`security definer`、`set search_path = ''`、`authenticated` のみEXECUTE、`anon` / `public` EXECUTE不可の方針。
+
+APPLY専用SQL末尾には、関数本数、signature、`security_definer`、`search_path` 設定、戻り値列、`authenticated` / `anon` / `public` のEXECUTE状態を確認するSELECTを含めた。今回CodexはAPPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。

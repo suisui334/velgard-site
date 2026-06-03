@@ -335,3 +335,13 @@ SQL Editor未実行、DB構造変更なし、RPC変更なし、GRANT / REVOKE未
 PC名表示には戻り値列追加が必要。既存列 `display_name` / `discord_handle` は維持し、`discord_mention` / `pc_name` / `pc_name_missing` を追加候補とする。`pc_name` は `session_applications.pc_name_snapshot` を正とし、null/空は `PC名未登録`。DiscordユーザーIDが17〜20桁の数字なら `<@ID>` に変換し、未登録/形式不正は `登録されていません` とする。GM本人を承認済み参加者一覧から除外し、raw user_id / email / token / selected_character_id / application_id は返さない。
 
 同名RPCで戻り値型を変更する場合はdrop/recreateが必要になる可能性があるため、後続APPLYではdrop/recreate案とv2 RPC案をレビューする。今回はSQL Editor追加実行、DB構造変更、RPC作成/置換、GRANT / REVOKE、APPLY専用SQL作成、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更は行っていない。
+
+## M-15G GM向け承認済み参加者PC名表示RPC APPLY専用SQL
+
+M-15Gとして `docs/supabase/sql/022_gm_accepted_contacts_pc_name_apply_reviewed.sql` を作成した。既存 `get_gm_session_accepted_contacts(text)` は `display_name` / `discord_handle` の2列返却だったため、戻り値型変更に備えてdrop/recreate方針を採用した。
+
+APPLY後の戻り値は `display_name` / `discord_handle` / `discord_mention` / `pc_name` / `pc_name_missing`。既存列は維持し、PC名は `session_applications.pc_name_snapshot` を正とする。PC名未登録時は `PC名未登録`、DiscordユーザーID未登録・形式不正時は `登録されていません` とし、形式不正値、raw user_id / email / token は返さない。
+
+対象は承認済み申請のみで、GM本人は除外する。権限方針は未ログイン拒否、GM/adminのみ、`security definer`、`set search_path = ''`、`authenticated` のみEXECUTE。実行後確認SELECTとして関数本数、signature、戻り値列、権限状態を確認する内容を含めた。
+
+今回CodexはAPPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。

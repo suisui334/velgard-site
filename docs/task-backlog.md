@@ -921,3 +921,13 @@
 - DiscordユーザーIDは17〜20桁の数字のみ `<@ID>` に変換し、未登録/形式不正は `登録されていません`。生の不正値は返さない。
 - GM本人は承認済み参加者一覧から除外し、raw user_id / email / token / selected_character_id / application_id は返さない。
 - SQL Editor追加実行なし、DB構造変更なし、RPC作成/置換なし、GRANT / REVOKE未実行、APPLY専用SQL作成なし、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。
+
+## M-15G GM向け承認済み参加者PC名表示RPC APPLY専用SQL
+- GM/admin向け承認済み参加者一覧へPC名を返すため、APPLY専用SQL `docs/supabase/sql/022_gm_accepted_contacts_pc_name_apply_reviewed.sql` を作成した。
+- 既存 `get_gm_session_accepted_contacts(text)` は `display_name` / `discord_handle` の2列返却だったため、戻り値型変更に備えてdrop/recreate方針を採用した。
+- 既存列 `display_name` / `discord_handle` は維持し、追加列は `discord_mention` / `pc_name` / `pc_name_missing`。
+- `pc_name` は `session_applications.pc_name_snapshot` を正とし、PC名未登録時は `PC名未登録`。
+- DiscordユーザーID未登録・形式不正時は `登録されていません` とし、生の不正値は返さない。
+- GM本人は承認済み参加者一覧から除外し、raw user_id / email / token / selected_character_id / application_id は返さない。
+- APPLY専用SQL末尾に、関数本数、signature、`security_definer`、`search_path`、戻り値列、EXECUTE権限の実行後確認SELECTを含めた。
+- APPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。
