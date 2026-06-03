@@ -115,13 +115,13 @@ M-15I初期のフロント接続は、まずGM/admin管理領域のテンプレU
 初期制限案:
 
 ```text
-template_name: 1〜60文字
-template_body: 1〜4000文字
+template_name: 1〜80文字
+template_body: 1〜5000文字
 ```
 
 `template_name` は空欄不可。改行は不可。前後空白は保存前にtrimする。
 
-`template_body` は自由本文だが空欄不可。M-15Hの参加希望コメント上限が4000文字であるため、初期テンプレ本文も4000文字上限に合わせる案を推奨する。
+`template_body` は自由本文だが空欄不可。M-15I-3 draft SQLと合わせ、初期テンプレ本文は5000文字上限を推奨する。本文の改行は許可する。
 
 説明文 `description` を将来追加する場合は200文字程度に抑える。
 
@@ -295,6 +295,20 @@ M-15I-2 preflight手動実行結果:
 判断: preflight結果としては、M-15I-3 RPC draft SQL作成へ進める前提が整っている。ただしM-15I-2では結果記録までとし、RPC draft SQLはまだ作成しない。
 
 M-15I-3 RPC draftでは、テーブル作成案、RLS案、RPC案、GRANT / REVOKE案、戻り値列、rollback案をまとめる。ただし実行しない草案として扱う。
+
+M-15I-3 draft SQL作成結果:
+
+- `docs/supabase/sql/023_gm_template_storage_rpc_draft.sql` を作成した。これはレビュー用草案であり、SQL Editorへ貼り付けるapply用ファイルではない。
+- 作成予定テーブルは `public.gm_template_presets`。列は `id` / `owner_user_id` / `template_name` / `template_type` / `template_body` / `is_active` / `created_at` / `updated_at`。
+- `template_type` はCHECK制約で `call` / `result` / `session_post` / `application` / `other` に制限する案を第一候補にした。日本語表示名はDBへ保存せず、UIまたはdocs側で扱う。
+- `template_name` はtrim後1〜80文字、単一行。`template_body` はtrim後空を拒否し、最大5000文字。本文の改行は許可する。
+- RLSは本人行のみselect / insert / updateできる方針で草案化した。物理削除policyは作らず、無効化は `is_active = false` で行う。
+- フロントからのテーブル直書きは初期機能に含めず、テーブル権限は付与しない方針にした。作成、更新、無効化、一覧取得はRPC経由にする。
+- RPCは `get_my_template_presets()`、`create_template_preset(text, text, text)`、`update_template_preset(uuid, text, text, text, boolean)`、`deactivate_template_preset(uuid)` の4本。すべて `security definer` と明示的な `search_path` を使う案。
+- RPC戻り値には `owner_user_id` を含めない。本人判定はRPC内で `auth.uid()` と `profiles.id` を使い、他人のテンプレート指定はnot found扱いの例外に寄せる。
+- EXECUTE権限は `authenticated` のみを付与し、`anon` / `public` は許可しない草案にした。
+- admin共通テンプレート、共有テンプレート、`sort_order`、`scope`、`description`、同名テンプレートの一意制約は初期草案から除外した。
+- この工程ではdraft SQL作成のみ。apply_reviewed SQL作成、SQL Editor実行、DB構造変更、RPC作成 / 変更、フロント実装は行っていない。
 
 M-15I-4 apply_reviewedでは、レビュー済みのAPPLY専用SQLだけを分離する。SQL Editorで実行する場合はapply専用ファイルのみを使う方針にする。
 

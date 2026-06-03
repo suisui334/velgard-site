@@ -977,3 +977,9 @@
 - ユーザーがSQL Editorでpreflight SQLを手動実行し、エラーなし。単一結果セットとして全チェックが表示された。`gm_template_presets` は未作成で予定テーブル名は未使用、類似テーブル名衝突なし、想定列は未作成のためすべて `pending_create`、`profiles.id` はuuidかつ `auth.users(id)` 参照、`auth.uid()` との型互換も問題なし。
 - `set_updated_at()` はupdated_at helper再利用候補。`has_role(text)` / `is_admin()` / `is_session_gm(text)` と `public.user_roles` を確認済み。既存RPCは `security_definer=true` / `search_path=true` の傾向があり、EXECUTE権限は `authenticated` が確認できる。想定RPC名 `get_my_template_presets` / `create_template_preset` / `update_template_preset` / `deactivate_template_preset` は同名衝突なし。
 - 初期テンプレート種別候補は `call = 呼び出し用`、`result = リザルト用`、`session_post = 依頼書用`、`application = 申請用`、`other = その他`。preflight結果としてはM-15I-3 RPC draft SQL作成へ進める前提が整っている。ただしこの工程では結果記録までとし、RPC draft SQL作成、apply SQL作成、DB構造変更、RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-15I-3 テンプレート保存機能 RPC draft SQL
+- `docs/supabase/sql/023_gm_template_storage_rpc_draft.sql` を作成した。`public.gm_template_presets` テーブル、本人行向けRLS、updated_at trigger、テーブル直書き不可の権限方針、RPC 4本、EXECUTE権限、post-apply確認、rollback草案を含むレビュー用draft。
+- 想定RPCは `get_my_template_presets()`、`create_template_preset(text, text, text)`、`update_template_preset(uuid, text, text, text, boolean)`、`deactivate_template_preset(uuid)`。RPCは `security_definer` と明示的な `search_path` を使い、戻り値に `owner_user_id` を含めない。
+- `template_type` は `call` / `result` / `session_post` / `application` / `other` のCHECK制約案。`template_name` は1〜80文字の単一行、`template_body` は1〜5000文字で改行可。削除は物理削除ではなく `is_active = false`。
+- admin共通テンプレート、共有テンプレート、`sort_order`、`scope`、`description`、同名テンプレートの一意制約は初期草案から除外した。この工程ではSQL Editor実行、DB構造変更、RPC作成 / 変更、apply_reviewed SQL作成、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
