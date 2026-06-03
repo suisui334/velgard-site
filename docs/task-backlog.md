@@ -995,3 +995,12 @@
 - 適用後確認SELECTで、`gm_template_presets` テーブル存在、RLS有効化、本人向けRLS policy 3件、RPC 4本、各RPCの `security_definer=true` と `search_path` 設定ありを確認済み。RLS policyは `gm_template_presets_insert_own` / `gm_template_presets_select_own` / `gm_template_presets_update_own` の3件で、rolesはいずれも `authenticated`。DELETE policyなしは `is_active=false` の非アクティブ化方針と整合する。
 - RPCは `create_template_preset(text, text, text)` / `deactivate_template_preset(uuid)` / `get_my_template_presets()` / `update_template_preset(uuid, text, text, text, boolean)` の4本すべて存在確認済み。EXECUTE権限は4本すべて `authenticated` のみ許可、`anon` / `public` は不可であることを確認した。
 - M-15I-5は成功扱い。次工程はM-15I-6「フロント接続」。この記録工程でCodexはSQL Editor実行、DB/RPC追加変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushを行っていない。
+
+## M-15I-6 テンプレート保存機能フロント接続
+- `assets/js/sessionDetailApplicationComments.js` のGM/admin向けテンプレUIを「GM向け：テンプレート」へ整理し、保存済みテンプレートselect、テンプレート名入力、テンプレート種別select、新規保存、変更を保存、削除ボタンを追加した。削除表示でも内部処理は `deactivate_template_preset(uuid)` による非アクティブ化であり、物理削除ではない。通常PLには既存のGM/admin判定どおり表示しない。
+- 一覧取得は `get_my_template_presets()`、新規保存は `create_template_preset(text, text, text)`、更新は `update_template_preset(uuid, text, text, text, boolean)`、無効化は `deactivate_template_preset(uuid)` をRPC経由で呼ぶ。フロントからDB直INSERT / UPDATE / DELETEはしない。
+- 保存済みテンプレート選択時、selectの値には表示用の一時キーだけを使い、実IDは画面やDOMに出さない。エラー表示は一般メッセージに丸め、RPC結果の生データをconsole出力しない。
+- バリデーションは `template_name` trim後1〜80文字・改行不可、`template_body` trim後空欄不可・最大5000文字、DB/RPC上の `template_type` は `call` / `result` / `session_post` / `application` / `other`。画面上の選択肢は文脈別に絞り、session-detailでは `call` / `result` / `other`、session-postでは `session_post` / `other` のみ表示する。PL向け申請テンプレUIは将来工程で `application` / `other` を扱う想定。
+- session-detailの独立した「GM向け：承認済み参加者連絡先」UIは削除した。承認済み参加者データの取得と整形は、`{{approved_call_list}}` / `{{approved_pc_names}}` のテンプレ変数置換用に内部利用を継続する。置換プレビューとコピーは既存M-15Hの `formatGmTemplateText` を維持し、出力形式は変更していない。
+- `session-post.html` の依頼書フォーム上部に「依頼書テンプレート」UIを追加した。保存対象はタイトル、開始日時、終了日時、申請締切、種別、募集人数min/max、公開状態、募集状態、概要。管理対象selectや公開確認チェックは保存しない。`template_body` はフロント専用JSON文字列として保存し、保存済みテンプレート選択だけではフォームへ反映せず、「反映」ボタンで適用する。
+- 編集中の依頼書にテンプレートを反映する場合は、未保存の入力内容が失われる旨を確認する。この工程ではSQL Editor実行、DB/RPC変更、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。

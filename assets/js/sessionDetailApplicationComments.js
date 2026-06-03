@@ -8,6 +8,10 @@ const DELETE_RPC = "delete_application_comment_and_maybe_cancel";
 const WITHDRAW_RPC = "cancel_my_session_application";
 const GM_HISTORY_RPC = "get_gm_session_application_history";
 const GM_ACCEPTED_CONTACTS_RPC = "get_gm_session_accepted_contacts";
+const GM_TEMPLATE_PRESETS_RPC = "get_my_template_presets";
+const GM_TEMPLATE_CREATE_RPC = "create_template_preset";
+const GM_TEMPLATE_UPDATE_RPC = "update_template_preset";
+const GM_TEMPLATE_DEACTIVATE_RPC = "deactivate_template_preset";
 const SET_APPLICATION_STATUS_RPC = "set_application_status";
 const ADMIN_CHECK_RPC = "is_admin";
 const SESSION_GM_CHECK_RPC = "is_session_gm";
@@ -21,6 +25,20 @@ const DISCORD_CONTACT_MISSING_MESSAGE = "登録されていません";
 const PC_NAME_MISSING_MESSAGE = "PC名未登録";
 const GM_ACCEPTED_CONTACTS_EMPTY_MESSAGE = "承認済み参加者はまだいません";
 const GM_TEMPLATE_DEFAULT_TEXT = "{{session_title}} 参加者呼び出し\n\n{{approved_call_list}}\n\nPC一覧：\n{{approved_pc_names}}";
+const GM_TEMPLATE_NAME_MAX_LENGTH = 80;
+const GM_TEMPLATE_BODY_MAX_LENGTH = 5000;
+const GM_TEMPLATE_TYPE_OPTIONS = Object.freeze([
+  { value: "call", label: "呼び出し用" },
+  { value: "result", label: "リザルト用" },
+  { value: "session_post", label: "依頼書用" },
+  { value: "application", label: "申請用" },
+  { value: "other", label: "その他" }
+]);
+const GM_TEMPLATE_TYPE_VALUES = new Set(GM_TEMPLATE_TYPE_OPTIONS.map((option) => option.value));
+const GM_TEMPLATE_DETAIL_TYPE_VALUES = new Set(["call", "result", "other"]);
+const GM_TEMPLATE_DETAIL_TYPE_OPTIONS = Object.freeze(
+  GM_TEMPLATE_TYPE_OPTIONS.filter((option) => GM_TEMPLATE_DETAIL_TYPE_VALUES.has(option.value))
+);
 const POST_ALLOWED_STATUSES = new Set(["recruiting", "tentative"]);
 const COMMENT_UPDATE_ERROR_MESSAGE = "コメントを保存できませんでした。時間をおいて再度お試しください。";
 const COMMENT_UPDATE_PERMISSION_MESSAGE = "編集権限がないか、コメントの状態が変更された可能性があります。";
@@ -112,6 +130,16 @@ const GM_CONTACT_FIELD_NAMES = new Set([
   "pc_name_missing"
 ]);
 
+const GM_TEMPLATE_PRESET_FIELD_NAMES = new Set([
+  "template_id",
+  "template_name",
+  "template_type",
+  "template_body",
+  "is_active",
+  "created_at",
+  "updated_at"
+]);
+
 const GM_TEMPLATE_VARIABLES = Object.freeze([
   {
     name: "{{session_title}}",
@@ -179,12 +207,14 @@ const SENSITIVE_FIELD_NAMES = new Set([
   "gmuserid",
   "jwt",
   "key",
+  "owner_user_id",
   "password",
   "publishable_key",
   "refresh_token",
   "role",
   "secret",
   "service_role",
+  "selected_character_id",
   "token",
   "user_id"
 ]);
@@ -395,6 +425,18 @@ function assertOnlyGmContactFields(rows) {
   }
 }
 
+function assertOnlyGmTemplatePresetFields(rows) {
+  const list = Array.isArray(rows) ? rows : rows ? [rows] : [];
+  for (const row of list) {
+    if (!row || typeof row !== "object") continue;
+    for (const key of Object.keys(row)) {
+      if (!GM_TEMPLATE_PRESET_FIELD_NAMES.has(String(key).toLowerCase())) {
+        throw new Error("gm-template-preset-field-returned");
+      }
+    }
+  }
+}
+
 async function queryPublicComments(client, sessionId) {
   const { data, error } = await client.rpc(COMMENT_RPC, {
     target_session_id: sessionId
@@ -572,6 +614,53 @@ async function queryGmSessionAcceptedContacts(client, sessionId) {
   const rows = Array.isArray(data) ? data : [];
   assertOnlyGmContactFields(rows);
   return rows;
+}
+
+async function queryGmTemplatePresets(client) {
+  const { data, error } = await client.rpc(GM_TEMPLATE_PRESETS_RPC);
+
+  if (error) throw new Error("gm-template-presets-rpc-failed");
+  const rows = Array.isArray(data) ? data : [];
+  assertOnlyGmTemplatePresetFields(rows);
+  return rows;
+}
+
+async function createGmTemplatePreset(client, preset) {
+  const { data, error } = await client.rpc(GM_TEMPLATE_CREATE_RPC, {
+    p_template_name: preset.templateName,
+    p_template_type: preset.templateType,
+    p_template_body: preset.templateBody
+  });
+
+  if (error) throw new Error("gm-template-preset-create-failed");
+  assertOnlyGmTemplatePresetFields(data);
+  return Array.isArray(data) ? data[0] || null : data || null;
+}
+
+async function updateGmTemplatePreset(client, preset) {
+  const { data, error } = await client.rpc(GM_TEMPLATE_UPDATE_RPC, {
+    p_template_id: preset.templateId,
+    p_template_name: preset.templateName,
+    p_template_type: preset.templateType,
+    p_template_body: preset.templateBody,
+    p_is_active: true
+  });
+
+  if (error) throw new Error("gm-template-preset-update-failed");
+  assertOnlyGmTemplatePresetFields(data);
+  return Array.isArray(data) ? data[0] || null : data || null;
+}
+
+async function deactivateGmTemplatePreset(client, templateId) {
+  const targetTemplateId = normalizeInternalId(templateId);
+  if (!targetTemplateId) throw new Error("gm-template-preset-target-missing");
+
+  const { data, error } = await client.rpc(GM_TEMPLATE_DEACTIVATE_RPC, {
+    p_template_id: targetTemplateId
+  });
+
+  if (error) throw new Error("gm-template-preset-deactivate-failed");
+  assertOnlyGmTemplatePresetFields(data);
 }
 
 async function queryPublicProfileDisplayName(client, userId) {
@@ -1383,6 +1472,73 @@ function formatGmTemplateText(templateText, options = {}) {
     .replaceAll("{{approved_pc_names}}", formatGmApprovedPcNames(contactRows));
 }
 
+function normalizeGmTemplateType(value, allowedValues = GM_TEMPLATE_TYPE_VALUES) {
+  const templateType = String(value || "").trim().toLowerCase();
+  return allowedValues.has(templateType) ? templateType : "";
+}
+
+function getGmTemplateTypeLabel(value) {
+  const templateType = normalizeGmTemplateType(value, GM_TEMPLATE_TYPE_VALUES);
+  const option = GM_TEMPLATE_TYPE_OPTIONS.find((item) => item.value === templateType);
+  return option?.label || "その他";
+}
+
+function validateGmTemplatePresetInput(nameValue, typeValue, bodyValue, allowedValues = GM_TEMPLATE_TYPE_VALUES) {
+  const rawName = String(nameValue || "");
+  const templateName = rawName.trim();
+  const templateType = normalizeGmTemplateType(typeValue, allowedValues);
+  const templateBody = String(bodyValue || "");
+
+  if (!templateName) {
+    return { ok: false, message: "テンプレート名を入力してください。" };
+  }
+
+  if (/[\r\n]/.test(rawName)) {
+    return { ok: false, message: "テンプレート名は1行で入力してください。" };
+  }
+
+  if (templateName.length > GM_TEMPLATE_NAME_MAX_LENGTH) {
+    return { ok: false, message: `テンプレート名は${GM_TEMPLATE_NAME_MAX_LENGTH}文字以内で入力してください。` };
+  }
+
+  if (!templateType) {
+    return { ok: false, message: "テンプレート種別を選んでください。" };
+  }
+
+  if (!templateBody.trim()) {
+    return { ok: false, message: "テンプレ文を入力してください。" };
+  }
+
+  if (templateBody.length > GM_TEMPLATE_BODY_MAX_LENGTH) {
+    return { ok: false, message: `テンプレ文は${GM_TEMPLATE_BODY_MAX_LENGTH}文字以内で入力してください。` };
+  }
+
+  return {
+    ok: true,
+    message: "",
+    templateName,
+    templateType,
+    templateBody
+  };
+}
+
+function normalizeGmTemplatePresetRows(rows, allowedValues = GM_TEMPLATE_TYPE_VALUES) {
+  return (Array.isArray(rows) ? rows : []).map((row) => {
+    const templateId = normalizeInternalId(row?.template_id);
+    const templateType = normalizeGmTemplateType(row?.template_type, allowedValues);
+    const templateName = toSingleLineText(redactSensitiveText(row?.template_name));
+    const templateBody = redactSensitiveText(row?.template_body);
+    return {
+      templateId,
+      templateName: templateName || "名称未設定",
+      templateType,
+      templateBody,
+      createdAt: String(row?.created_at || "").trim(),
+      updatedAt: String(row?.updated_at || "").trim()
+    };
+  }).filter((row) => row.templateId && row.templateType && row.templateBody.trim());
+}
+
 function createGmAcceptedContactsLoader(options = {}) {
   let cachedRows = null;
   let loadingPromise = null;
@@ -1763,74 +1919,6 @@ function renderGmHistoryRows(target, rows, options = {}) {
   target.append(fragment);
 }
 
-function setGmContactState(target, message, modifier = "") {
-  if (!target) return;
-  target.replaceChildren();
-  const paragraph = createStateMessage(message, modifier);
-  paragraph.classList.add("session-gm-contact-state");
-  target.append(paragraph);
-}
-
-function createGmContactItem(row) {
-  const item = document.createElement("li");
-  item.className = "session-gm-contact-item";
-
-  const line = document.createElement("span");
-  line.className = `session-gm-contact-line is-discord-${row.discordState} is-pc-${row.pcNameState}`;
-  line.textContent = formatGmContactLine(row);
-
-  item.append(line);
-  return item;
-}
-
-function renderGmContactRows(target, rows) {
-  if (!target) return;
-  const contactRows = normalizeGmContactRows(rows);
-  target.replaceChildren();
-
-  if (!contactRows.length) {
-    const empty = createStateMessage("承認済み参加者はまだいません", "is-empty");
-    empty.classList.add("session-gm-contact-state");
-    target.append(empty);
-    return;
-  }
-
-  const list = document.createElement("ul");
-  list.className = "session-gm-contact-list";
-  for (const row of contactRows) {
-    list.append(createGmContactItem(row));
-  }
-
-  const actions = document.createElement("div");
-  actions.className = "session-gm-contact-actions";
-
-  const copyButton = document.createElement("button");
-  copyButton.className = "session-application-button session-comment-button session-gm-contact-copy-button";
-  copyButton.type = "button";
-  copyButton.textContent = "連絡先一覧をコピー";
-
-  const status = document.createElement("p");
-  status.setAttribute("aria-live", "polite");
-  setInlineStatus(status, "");
-
-  copyButton.addEventListener("click", async () => {
-    copyButton.disabled = true;
-    setInlineStatus(status, "");
-
-    try {
-      await writeClipboardText(formatGmContactCopyText(contactRows));
-      setInlineStatus(status, "コピーしました", "is-ok");
-    } catch {
-      setInlineStatus(status, "コピーできませんでした", "is-error");
-    } finally {
-      copyButton.disabled = false;
-    }
-  });
-
-  actions.append(copyButton, status);
-  target.append(list, actions);
-}
-
 async function filterOutSessionOwnerDisplayNameRows(client, rows, gmUserId) {
   if (!Array.isArray(rows) || !rows.length || !normalizeInternalId(gmUserId)) return rows;
 
@@ -1846,47 +1934,6 @@ async function filterOutSessionOwnerDisplayNameRows(client, rows, gmUserId) {
     }
     return true;
   });
-}
-
-function createGmContactControl(options = {}) {
-  const details = document.createElement("details");
-  details.className = "session-gm-contact-details";
-
-  const summary = document.createElement("summary");
-  summary.className = "session-gm-contact-summary";
-  summary.textContent = "GM向け：承認済み参加者連絡先";
-
-  const body = document.createElement("div");
-  body.className = "session-gm-contact-body";
-
-  let hasLoaded = false;
-  let isLoading = false;
-
-  const loadGmContacts = async () => {
-    if (!details.open || hasLoaded || isLoading) return;
-
-    isLoading = true;
-    setGmContactState(body, "読み込み中", "is-warn");
-
-    try {
-      const rows = typeof options.loadGmAcceptedContacts === "function"
-        ? await options.loadGmAcceptedContacts()
-        : await createGmAcceptedContactsLoader(options)();
-      renderGmContactRows(body, rows);
-      hasLoaded = true;
-    } catch {
-      setGmContactState(body, "連絡先を取得できませんでした", "is-error");
-    } finally {
-      isLoading = false;
-    }
-  };
-
-  details.addEventListener("toggle", () => {
-    void loadGmContacts();
-  });
-
-  details.append(summary, body);
-  return details;
 }
 
 function createGmTemplateVariableList() {
@@ -1913,10 +1960,101 @@ function createGmTemplateControl(options = {}) {
 
   const summary = document.createElement("summary");
   summary.className = "session-gm-template-summary";
-  summary.textContent = "GM向け：呼び出しテンプレート";
+  summary.textContent = "GM向け：テンプレート";
 
   const body = document.createElement("div");
   body.className = "session-gm-template-body";
+
+  const presetSection = document.createElement("section");
+  presetSection.className = "session-gm-template-presets";
+
+  const presetTitle = document.createElement("h4");
+  presetTitle.className = "session-gm-template-subtitle";
+  presetTitle.textContent = "保存テンプレート";
+
+  const presetGrid = document.createElement("div");
+  presetGrid.className = "session-gm-template-preset-grid";
+
+  const savedPresetField = document.createElement("label");
+  savedPresetField.className = "session-gm-template-field";
+
+  const savedPresetLabel = document.createElement("span");
+  savedPresetLabel.className = "session-gm-template-label";
+  savedPresetLabel.textContent = "保存済み";
+
+  const savedPresetSelect = document.createElement("select");
+  savedPresetSelect.className = "session-gm-template-select";
+  savedPresetSelect.disabled = true;
+
+  savedPresetField.append(savedPresetLabel, savedPresetSelect);
+
+  const nameField = document.createElement("label");
+  nameField.className = "session-gm-template-field";
+
+  const nameLabel = document.createElement("span");
+  nameLabel.className = "session-gm-template-label";
+  nameLabel.textContent = "テンプレート名";
+
+  const nameInput = document.createElement("input");
+  nameInput.className = "session-gm-template-input";
+  nameInput.type = "text";
+  nameInput.maxLength = GM_TEMPLATE_NAME_MAX_LENGTH;
+  nameInput.autocomplete = "off";
+  nameInput.placeholder = "例：卓前呼び出し";
+
+  nameField.append(nameLabel, nameInput);
+
+  const typeField = document.createElement("label");
+  typeField.className = "session-gm-template-field";
+
+  const typeLabel = document.createElement("span");
+  typeLabel.className = "session-gm-template-label";
+  typeLabel.textContent = "種別";
+
+  const typeSelect = document.createElement("select");
+  typeSelect.className = "session-gm-template-select";
+  for (const optionItem of GM_TEMPLATE_DETAIL_TYPE_OPTIONS) {
+    const option = document.createElement("option");
+    option.value = optionItem.value;
+    option.textContent = optionItem.label;
+    typeSelect.append(option);
+  }
+  typeSelect.value = "call";
+
+  typeField.append(typeLabel, typeSelect);
+  presetGrid.append(savedPresetField, nameField, typeField);
+
+  const presetNote = document.createElement("p");
+  presetNote.className = "session-gm-template-note";
+  presetNote.textContent = "秘匿情報や認証情報はテンプレート本文に入れないでください。";
+
+  const presetActions = document.createElement("div");
+  presetActions.className = "session-gm-template-save-actions";
+
+  const createButton = document.createElement("button");
+  createButton.className = "session-application-button session-comment-button session-gm-template-save-button";
+  createButton.type = "button";
+  createButton.textContent = "新規保存";
+  createButton.disabled = true;
+
+  const updateButton = document.createElement("button");
+  updateButton.className = "session-application-button session-comment-button session-gm-template-update-button";
+  updateButton.type = "button";
+  updateButton.textContent = "変更を保存";
+  updateButton.disabled = true;
+
+  const deactivateButton = document.createElement("button");
+  deactivateButton.className = "session-application-button session-comment-button session-gm-template-deactivate-button";
+  deactivateButton.type = "button";
+  deactivateButton.textContent = "削除";
+  deactivateButton.disabled = true;
+
+  const presetStatus = document.createElement("p");
+  presetStatus.setAttribute("aria-live", "polite");
+  setInlineStatus(presetStatus, "保存済みテンプレートを読み込んでいます。", "is-warn");
+
+  presetActions.append(createButton, updateButton, deactivateButton);
+  presetSection.append(presetTitle, presetGrid, presetNote, presetActions, presetStatus);
 
   const field = document.createElement("label");
   field.className = "session-gm-template-field";
@@ -1970,11 +2108,48 @@ function createGmTemplateControl(options = {}) {
   setInlineStatus(status, "承認済み参加者情報を読み込んでいます。", "is-warn");
 
   actions.append(copyButton, status);
-  body.append(field, variables, resultField, actions);
+  body.append(presetSection, field, variables, resultField, actions);
 
   let contactRows = [];
+  let presetRows = [];
+  let selectedTemplateId = "";
   let hasLoaded = false;
+  let presetsLoaded = false;
   let isLoading = false;
+  let isTemplateOperation = false;
+  let presetsByKey = new Map();
+
+  const getSelectedPreset = () => (
+    selectedTemplateId
+      ? presetRows.find((preset) => preset.templateId === selectedTemplateId) || null
+      : null
+  );
+
+  const renderPresetOptions = () => {
+    const selectedPresetExists = Boolean(getSelectedPreset());
+    if (!selectedPresetExists) selectedTemplateId = "";
+
+    presetsByKey = new Map();
+    savedPresetSelect.replaceChildren();
+
+    const blankOption = document.createElement("option");
+    blankOption.value = "";
+    blankOption.textContent = presetRows.length
+      ? "新規テンプレートとして編集"
+      : "保存済みテンプレートはありません";
+    savedPresetSelect.append(blankOption);
+
+    presetRows.forEach((preset, index) => {
+      const optionKey = `preset-${index}`;
+      presetsByKey.set(optionKey, preset);
+
+      const option = document.createElement("option");
+      option.value = optionKey;
+      option.textContent = `${preset.templateName}（${getGmTemplateTypeLabel(preset.templateType)}）`;
+      option.selected = preset.templateId === selectedTemplateId;
+      savedPresetSelect.append(option);
+    });
+  };
 
   const updateResult = () => {
     if (!hasLoaded) {
@@ -1989,33 +2164,254 @@ function createGmTemplateControl(options = {}) {
     copyButton.disabled = output.value.length === 0;
   };
 
-  const loadTemplateData = async () => {
-    if (!details.open || hasLoaded || isLoading) return;
+  const updatePresetControls = (showValidation = false) => {
+    const validation = validateGmTemplatePresetInput(
+      nameInput.value,
+      typeSelect.value,
+      input.value,
+      GM_TEMPLATE_DETAIL_TYPE_VALUES
+    );
+    const selectedPreset = getSelectedPreset();
+    const isUnavailable = isLoading || isTemplateOperation || options.authState !== "authenticated";
 
-    isLoading = true;
-    setInlineStatus(status, "承認済み参加者情報を読み込んでいます。", "is-warn");
-    updateResult();
+    nameInput.disabled = isTemplateOperation;
+    typeSelect.disabled = isTemplateOperation;
+    input.disabled = isTemplateOperation;
+    savedPresetSelect.disabled = isUnavailable || !presetsLoaded || !presetRows.length;
+    createButton.disabled = isUnavailable || !validation.ok;
+    updateButton.disabled = isUnavailable || !selectedPreset || !validation.ok;
+    deactivateButton.disabled = isUnavailable || !selectedPreset;
 
-    try {
-      const rows = typeof options.loadGmAcceptedContacts === "function"
-        ? await options.loadGmAcceptedContacts()
-        : await createGmAcceptedContactsLoader(options)();
-      contactRows = normalizeGmContactRows(rows);
-      hasLoaded = true;
-      updateResult();
-      setInlineStatus(status, "");
-    } catch {
-      output.value = "";
-      copyButton.disabled = true;
-      setInlineStatus(status, "テンプレ変数の取得に失敗しました。", "is-error");
-    } finally {
-      isLoading = false;
+    if (showValidation && !validation.ok) {
+      setInlineStatus(presetStatus, validation.message, "is-error");
     }
   };
 
+  const applyPresetToForm = (preset) => {
+    if (!preset) return;
+    nameInput.value = preset.templateName;
+    typeSelect.value = normalizeGmTemplateType(preset.templateType, GM_TEMPLATE_DETAIL_TYPE_VALUES) || "other";
+    input.value = preset.templateBody;
+    updateResult();
+    updatePresetControls(false);
+  };
+
+  const loadTemplatePresets = async (preferredTemplateId = selectedTemplateId) => {
+    const rows = await queryGmTemplatePresets(options.client);
+    presetRows = normalizeGmTemplatePresetRows(rows, GM_TEMPLATE_DETAIL_TYPE_VALUES);
+    presetsLoaded = true;
+    selectedTemplateId = presetRows.some((preset) => preset.templateId === preferredTemplateId)
+      ? preferredTemplateId
+      : "";
+    renderPresetOptions();
+    updatePresetControls(false);
+    return getSelectedPreset();
+  };
+
+  const loadTemplateData = async () => {
+    if (!details.open || (hasLoaded && presetsLoaded) || isLoading) return;
+
+    isLoading = true;
+    if (!hasLoaded) setInlineStatus(status, "承認済み参加者情報を読み込んでいます。", "is-warn");
+    if (!presetsLoaded) setInlineStatus(presetStatus, "保存済みテンプレートを読み込んでいます。", "is-warn");
+    updateResult();
+    updatePresetControls(false);
+
+    const contactsPromise = hasLoaded
+      ? Promise.resolve(contactRows)
+      : (async () => {
+        const rows = typeof options.loadGmAcceptedContacts === "function"
+          ? await options.loadGmAcceptedContacts()
+          : await createGmAcceptedContactsLoader(options)();
+        return normalizeGmContactRows(rows);
+      })();
+
+    const presetsPromise = presetsLoaded
+      ? Promise.resolve(presetRows)
+      : (async () => normalizeGmTemplatePresetRows(
+        await queryGmTemplatePresets(options.client),
+        GM_TEMPLATE_DETAIL_TYPE_VALUES
+      ))();
+
+    const [contactsResult, presetsResult] = await Promise.allSettled([
+      contactsPromise,
+      presetsPromise
+    ]);
+
+    if (contactsResult.status === "fulfilled") {
+      contactRows = contactsResult.value;
+      hasLoaded = true;
+      updateResult();
+      setInlineStatus(status, "");
+    } else {
+      output.value = "";
+      copyButton.disabled = true;
+      setInlineStatus(status, "テンプレ変数の取得に失敗しました。", "is-error");
+    }
+
+    if (presetsResult.status === "fulfilled") {
+      presetRows = presetsResult.value;
+      presetsLoaded = true;
+      renderPresetOptions();
+      setInlineStatus(presetStatus, presetRows.length ? "" : "保存済みテンプレートはありません。");
+    } else {
+      setInlineStatus(presetStatus, "保存済みテンプレートを取得できませんでした。", "is-error");
+    }
+
+    isLoading = false;
+    updatePresetControls(false);
+  };
+
+  const runTemplateOperation = async (operation, progressMessage, successMessage, errorMessage) => {
+    if (isTemplateOperation) return;
+
+    isTemplateOperation = true;
+    presetSection.setAttribute("aria-busy", "true");
+    setInlineStatus(presetStatus, progressMessage, "is-warn");
+    updatePresetControls(false);
+
+    try {
+      await operation();
+      setInlineStatus(presetStatus, successMessage, "is-ok");
+    } catch {
+      setInlineStatus(presetStatus, errorMessage, "is-error");
+    } finally {
+      isTemplateOperation = false;
+      presetSection.removeAttribute("aria-busy");
+      updatePresetControls(false);
+    }
+  };
+
+  const handleCreatePreset = async () => {
+    const validation = validateGmTemplatePresetInput(
+      nameInput.value,
+      typeSelect.value,
+      input.value,
+      GM_TEMPLATE_DETAIL_TYPE_VALUES
+    );
+    if (!validation.ok) {
+      setInlineStatus(presetStatus, validation.message, "is-error");
+      updatePresetControls(false);
+      return;
+    }
+
+    await runTemplateOperation(
+      async () => {
+        const created = normalizeGmTemplatePresetRows([
+          await createGmTemplatePreset(options.client, validation)
+        ], GM_TEMPLATE_DETAIL_TYPE_VALUES)[0];
+        selectedTemplateId = created?.templateId || "";
+        const selectedPreset = await loadTemplatePresets(selectedTemplateId);
+        if (selectedPreset) applyPresetToForm(selectedPreset);
+      },
+      "テンプレートを保存しています。",
+      "テンプレートを保存しました。",
+      "テンプレートを保存できませんでした。時間をおいて再読み込みしてください。"
+    );
+  };
+
+  const handleUpdatePreset = async () => {
+    const selectedPreset = getSelectedPreset();
+    const validation = validateGmTemplatePresetInput(
+      nameInput.value,
+      typeSelect.value,
+      input.value,
+      GM_TEMPLATE_DETAIL_TYPE_VALUES
+    );
+    if (!selectedPreset) {
+      setInlineStatus(presetStatus, "保存済みテンプレートを選んでください。", "is-error");
+      updatePresetControls(false);
+      return;
+    }
+
+    if (!validation.ok) {
+      setInlineStatus(presetStatus, validation.message, "is-error");
+      updatePresetControls(false);
+      return;
+    }
+
+    await runTemplateOperation(
+      async () => {
+        const updated = normalizeGmTemplatePresetRows([
+          await updateGmTemplatePreset(options.client, {
+            ...validation,
+            templateId: selectedPreset.templateId
+          })
+        ], GM_TEMPLATE_DETAIL_TYPE_VALUES)[0];
+        selectedTemplateId = updated?.templateId || selectedPreset.templateId;
+        const reloadedPreset = await loadTemplatePresets(selectedTemplateId);
+        if (reloadedPreset) applyPresetToForm(reloadedPreset);
+      },
+      "テンプレートを保存しています。",
+      "変更を保存しました。",
+      "テンプレートを保存できませんでした。時間をおいて再読み込みしてください。"
+    );
+  };
+
+  const handleDeactivatePreset = async () => {
+    const selectedPreset = getSelectedPreset();
+    if (!selectedPreset) {
+      setInlineStatus(presetStatus, "保存済みテンプレートを選んでください。", "is-error");
+      updatePresetControls(false);
+      return;
+    }
+
+    if (!window.confirm("このテンプレートを削除します。テンプレートは一覧から外れます。続けますか？")) return;
+
+    await runTemplateOperation(
+      async () => {
+        await deactivateGmTemplatePreset(options.client, selectedPreset.templateId);
+        selectedTemplateId = "";
+        await loadTemplatePresets("");
+        savedPresetSelect.value = "";
+      },
+      "テンプレートを削除しています。",
+      "テンプレートを削除しました。",
+      "テンプレートを削除できませんでした。時間をおいて再読み込みしてください。"
+    );
+  };
+
+  savedPresetSelect.addEventListener("change", () => {
+    const preset = presetsByKey.get(savedPresetSelect.value);
+    if (!preset) {
+      selectedTemplateId = "";
+      updatePresetControls(false);
+      setInlineStatus(presetStatus, "");
+      return;
+    }
+
+    selectedTemplateId = preset.templateId;
+    applyPresetToForm(preset);
+    setInlineStatus(presetStatus, "保存済みテンプレートを読み込みました。", "is-ok");
+  });
+
+  nameInput.addEventListener("input", () => {
+    updatePresetControls(false);
+    if (!isTemplateOperation) setInlineStatus(presetStatus, "");
+  });
+
+  typeSelect.addEventListener("change", () => {
+    updatePresetControls(false);
+    if (!isTemplateOperation) setInlineStatus(presetStatus, "");
+  });
+
   input.addEventListener("input", () => {
     updateResult();
+    updatePresetControls(false);
     if (hasLoaded) setInlineStatus(status, "");
+    if (!isTemplateOperation) setInlineStatus(presetStatus, "");
+  });
+
+  createButton.addEventListener("click", () => {
+    void handleCreatePreset();
+  });
+
+  updateButton.addEventListener("click", () => {
+    void handleUpdatePreset();
+  });
+
+  deactivateButton.addEventListener("click", () => {
+    void handleDeactivatePreset();
   });
 
   copyButton.addEventListener("click", async () => {
@@ -2033,6 +2429,8 @@ function createGmTemplateControl(options = {}) {
       copyButton.disabled = output.value.length === 0;
     }
   });
+
+  updatePresetControls(false);
 
   details.addEventListener("toggle", () => {
     void loadTemplateData();
@@ -2113,7 +2511,7 @@ function renderGmHistoryControl(target, canView, options = {}) {
   });
 
   details.append(summary, body);
-  target.append(details, createGmContactControl(gmSharedOptions), createGmTemplateControl(gmSharedOptions));
+  target.append(details, createGmTemplateControl(gmSharedOptions));
 
   if (options.openOnLoad) {
     details.open = true;

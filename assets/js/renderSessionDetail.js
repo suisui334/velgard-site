@@ -5,7 +5,7 @@ import {
   getSessionDisplayTitle,
   renderSessionDetailContent
 } from "./sessionDisplay.js?v=20260603-management-qa";
-import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260606-gm-template-vars";
+import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260606-gm-template-storage";
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js?v=20260601-session-post";
 
 const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";

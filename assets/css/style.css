@@ -2913,9 +2913,25 @@ body[data-page="session-detail"] .session-gm-contact-copy-button {
 }
 
 body[data-page="session-detail"] .session-gm-template-field,
-body[data-page="session-detail"] .session-gm-template-variables {
+body[data-page="session-detail"] .session-gm-template-variables,
+body[data-page="session-detail"] .session-gm-template-presets {
   display: grid;
   gap: 6px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-gm-template-presets {
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(86, 96, 106, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 250, 0.64);
+}
+
+body[data-page="session-detail"] .session-gm-template-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
   min-width: 0;
 }
 
@@ -2927,6 +2943,20 @@ body[data-page="session-detail"] .session-gm-template-subtitle {
   font-weight: 900;
   line-height: 1.45;
   overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-gm-template-input,
+body[data-page="session-detail"] .session-gm-template-select {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 250, 0.82);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.84rem;
 }
 
 body[data-page="session-detail"] .session-gm-template-textarea,
@@ -2948,6 +2978,15 @@ body[data-page="session-detail"] .session-gm-template-output {
 body[data-page="session-detail"] .session-gm-template-output {
   min-height: 154px;
   background: rgba(250, 252, 247, 0.82);
+}
+
+body[data-page="session-detail"] .session-gm-template-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 body[data-page="session-detail"] .session-gm-template-variable-list {
@@ -2997,7 +3036,23 @@ body[data-page="session-detail"] .session-gm-template-actions {
   min-width: 0;
 }
 
+body[data-page="session-detail"] .session-gm-template-save-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
 body[data-page="session-detail"] .session-gm-template-copy-button {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 0.78rem;
+}
+
+body[data-page="session-detail"] .session-gm-template-save-button,
+body[data-page="session-detail"] .session-gm-template-update-button,
+body[data-page="session-detail"] .session-gm-template-deactivate-button {
   min-height: 34px;
   padding: 0 12px;
   font-size: 0.78rem;
@@ -3611,6 +3666,73 @@ body[data-page="session-post"] .session-post-mode-row h2 {
   min-width: 0;
   margin: 0;
   overflow-wrap: anywhere;
+}
+
+body[data-page="session-post"] .session-post-template-panel {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(60, 113, 95, 0.24);
+  border-radius: 6px;
+  background: rgba(241, 250, 245, 0.34);
+}
+
+body[data-page="session-post"] .session-post-template-head {
+  display: grid;
+  gap: 4px;
+}
+
+body[data-page="session-post"] .session-post-template-head h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+body[data-page="session-post"] .session-post-template-head p,
+body[data-page="session-post"] .session-post-template-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+body[data-page="session-post"] .session-post-template-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) minmax(180px, 1fr) minmax(150px, 0.7fr);
+  gap: 10px;
+}
+
+body[data-page="session-post"] .session-post-template-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+body[data-page="session-post"] .session-post-template-field span {
+  font-size: 0.82rem;
+}
+
+body[data-page="session-post"] .session-post-template-field input,
+body[data-page="session-post"] .session-post-template-field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid rgba(86, 96, 106, 0.28);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.9);
+  color: var(--ink);
+  font: inherit;
+}
+
+body[data-page="session-post"] .session-post-template-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
 
 body[data-page="session-post"] .session-post-form {
@@ -4532,12 +4654,14 @@ body.is-modal-open .back-to-top {
   }
 
   body[data-page="session-post"] .session-post-grid,
+  body[data-page="session-post"] .session-post-template-grid,
   body[data-page="session-post"] .session-post-result-list {
     grid-template-columns: 1fr;
   }
 
   body[data-page="session-post"] .session-post-submit-row,
   body[data-page="session-post"] .session-post-actions,
+  body[data-page="session-post"] .session-post-template-actions,
   body[data-page="session-post"] .session-post-mode-row {
     align-items: stretch;
     flex-direction: column;
@@ -4545,6 +4669,7 @@ body.is-modal-open .back-to-top {
 
   body[data-page="session-post"] .session-post-submit-row .button,
   body[data-page="session-post"] .session-post-actions .button,
+  body[data-page="session-post"] .session-post-template-actions .button,
   body[data-page="session-post"] .session-post-mode-row .button {
     width: 100%;
     justify-content: center;
