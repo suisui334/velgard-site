@@ -17,7 +17,7 @@ import { renderGallery } from "./renderGallery.js?v=20260529-gallery-swipe";
 import { renderUpdates } from "./renderUpdates.js";
 import { renderTools } from "./renderTools.js?v=20260529-calendar-date-tools-history";
 import { renderCalendar } from "./renderCalendar.js?v=20260603-management-qa";
-import { renderMypage } from "./renderMypage.js?v=20260531-mypage-applications";
+import { renderMypage } from "./renderMypage.js?v=20260605-user-name-ui";
 
 const navItems = [
   { label: "TOP", href: "index.html", key: "home", enabled: true },

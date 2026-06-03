@@ -3,12 +3,12 @@ export async function renderMypage(root) {
     <header class="page-title">
       <div class="eyebrow">Account</div>
       <h1>マイページ</h1>
-      <p class="lead">ログイン、表示名、参加申請中・参加予定セッションを確認できます。</p>
+      <p class="lead">ログイン、ユーザー名、参加申請中・参加予定セッションを確認できます。</p>
     </header>
     <section class="section">
       <article class="article-box">
         <h2>アカウントと参加状況</h2>
-        <p>ログインすると、表示名の確認・変更と、参加申請中・参加予定セッションの確認ができます。</p>
+        <p>ログインすると、ユーザー名の確認・変更と、参加申請中・参加予定セッションの確認ができます。</p>
         <p>参加希望コメントの投稿やGM承認操作は、今後の工程で対応予定です。</p>
         <p>
           <a class="button primary" href="index.html">トップへ戻る</a>
