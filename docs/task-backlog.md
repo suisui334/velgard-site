@@ -970,3 +970,10 @@
 - 想定RPCは `get_my_template_presets()`、`create_template_preset(...)`、`update_template_preset(...)`、`deactivate_template_preset(...)`。フロントからDB直INSERT / UPDATE / DELETEはしない。
 - 次工程はM-15I-2として、SELECT-only preflight SQLで `profiles.id`、`auth.uid()` 対応、admin helper、updated_at helper、既存RPCのsecurity/search_path/EXECUTE方針、テーブル名衝突を確認する。
 - この工程ではSQLファイル作成なし、SQL Editor未実行、DB構造変更なし、RPC変更なし、フロント実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。
+
+## M-15I-2 テンプレート保存機能 preflight SELECT-only SQL
+- `docs/supabase/sql/023_gm_template_storage_preflight_select_only.sql` を作成した。対象は `gm_template_presets` の存在有無、類似テーブル名、想定列、`profiles.id` と `auth.uid()` の型前提、`profiles.id` の `auth.users(id)` 参照、updated_at helper、admin / role helper、既存RPCのsecurity/search_path/EXECUTE傾向、想定RPC名衝突、RLS / 権限傾向、既存text CHECK制約、初期テンプレート種別候補。
+- `docs/gm-template-storage-plan.md` は、想定テーブル名を `gm_template_presets` 第一候補へ更新し、DB値は `call` / `result` / `session_post` / `application` / `other`、画面表示は日本語ラベルに分ける方針を追記した。
+- ユーザーがSQL Editorでpreflight SQLを手動実行し、エラーなし。単一結果セットとして全チェックが表示された。`gm_template_presets` は未作成で予定テーブル名は未使用、類似テーブル名衝突なし、想定列は未作成のためすべて `pending_create`、`profiles.id` はuuidかつ `auth.users(id)` 参照、`auth.uid()` との型互換も問題なし。
+- `set_updated_at()` はupdated_at helper再利用候補。`has_role(text)` / `is_admin()` / `is_session_gm(text)` と `public.user_roles` を確認済み。既存RPCは `security_definer=true` / `search_path=true` の傾向があり、EXECUTE権限は `authenticated` が確認できる。想定RPC名 `get_my_template_presets` / `create_template_preset` / `update_template_preset` / `deactivate_template_preset` は同名衝突なし。
+- 初期テンプレート種別候補は `call = 呼び出し用`、`result = リザルト用`、`session_post = 依頼書用`、`application = 申請用`、`other = その他`。preflight結果としてはM-15I-3 RPC draft SQL作成へ進める前提が整っている。ただしこの工程では結果記録までとし、RPC draft SQL作成、apply SQL作成、DB構造変更、RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
