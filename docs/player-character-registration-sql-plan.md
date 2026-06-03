@@ -430,3 +430,9 @@ PLの新規申請時は `owner_user_id = auth.uid()` / `is_active = true` / `is_
 APPLY専用SQLには `revoke execute` / `grant execute` による権限整理と、関数本数、`security_definer`、signature、`authenticated` / `anon` / `public` のEXECUTE状態、`selected_character_id` / `pc_name_snapshot` の存在を確認するSELECTを含めた。
 
 この工程ではAPPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。
+
+### APPLY前レビュー修正
+
+`020_application_pc_snapshot_apply_reviewed.sql` の適用前レビューで、管理コメント判定を `public.is_admin() or public.is_session_gm(v_target_session_id)` に修正した。GM本人だけでなくadminコメントも管理コメントとして扱い、参加申請行やPC snapshotを作成/更新しない。
+
+コメント保存値はtrim後の `v_comment_body` を使うように修正した。SQL Editor実行、DB構造変更、RPC作成/置換実行、GRANT / REVOKE実行は行っていない。

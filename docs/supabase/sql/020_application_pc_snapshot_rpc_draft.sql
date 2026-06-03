@@ -109,7 +109,7 @@ declare
   v_existing_status text;
   v_default_character_id uuid;
   v_default_pc_name text;
-  v_is_session_owner boolean := false;
+  v_is_management_comment boolean := false;
 begin
   if v_actor_id is null then
     raise exception 'not authenticated';
@@ -126,19 +126,21 @@ begin
     raise exception 'comment body is blank';
   end if;
 
-  if length(comment_body) > 4000 then
+  if length(v_comment_body) > 4000 then
     raise exception 'comment body is too long';
   end if;
 
-  -- Keep the existing open-session gate. The current frontend also limits the
-  -- comment form to statuses where application comments are accepted.
-  if not public.can_apply_to_session(v_target_session_id) then
+  v_is_management_comment :=
+    public.is_admin() or public.is_session_gm(v_target_session_id);
+
+  -- Keep the open-session gate for PL applications. GM/admin management
+  -- comments are not applications.
+  if not v_is_management_comment
+    and not public.can_apply_to_session(v_target_session_id) then
     raise exception 'session is not open for applications';
   end if;
 
-  v_is_session_owner := public.is_session_gm(v_target_session_id);
-
-  if not v_is_session_owner then
+  if not v_is_management_comment then
     select
       pc.id,
       pc.pc_name
@@ -171,16 +173,16 @@ begin
   values (
     v_target_session_id,
     v_actor_id,
-    comment_body,
-    not v_is_session_owner
+    v_comment_body,
+    not v_is_management_comment
   )
   returning id into v_new_comment_id;
 
-  if v_is_session_owner then
-    -- GM comments are not applications and must not be counted as participant
-    -- rows. Existing frontend cleanup that calls cancel_my_session_application
-    -- after a GM comment can remain; with this replacement there may simply be
-    -- no application row to cancel.
+  if v_is_management_comment then
+    -- GM/admin management comments are not applications and must not be
+    -- counted as participant rows. Existing frontend cleanup that calls
+    -- cancel_my_session_application after a GM comment can remain; with this
+    -- replacement there may simply be no application row to cancel.
     return v_new_comment_id;
   end if;
 

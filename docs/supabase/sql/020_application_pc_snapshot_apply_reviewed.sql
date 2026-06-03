@@ -49,11 +49,12 @@ begin
     raise exception 'comment body is blank';
   end if;
 
-  if length(comment_body) > 4000 then
+  if length(v_comment_body) > 4000 then
     raise exception 'comment body is too long';
   end if;
 
-  v_is_management_comment := public.is_session_gm(v_target_session_id);
+  v_is_management_comment :=
+    public.is_admin() or public.is_session_gm(v_target_session_id);
 
   if not v_is_management_comment
     and not public.can_apply_to_session(v_target_session_id) then
@@ -93,7 +94,7 @@ begin
   values (
     v_target_session_id,
     v_actor_id,
-    comment_body,
+    v_comment_body,
     not v_is_management_comment
   )
   returning id into v_new_comment_id;

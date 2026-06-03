@@ -121,3 +121,9 @@ PC名未登録でも申請可能で、その場合は `selected_character_id = n
 APPLY専用SQLには、`authenticated` のみEXECUTEを許可し、`public` / `anon` のEXECUTEを外す権限文と、実行後確認SELECTを含めた。確認SELECTでは `create_application_comment(text,text)` が1本だけ存在すること、`security_definer = true`、`authenticated EXECUTEあり`、`anon` / `public EXECUTEなし`、`selected_character_id` / `pc_name_snapshot` の存在を確認する。
 
 この記録時点ではAPPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。
+
+### APPLY前レビュー修正
+
+適用前の最終確認として、管理コメント判定を `public.is_admin() or public.is_session_gm(v_target_session_id)` に修正した。これによりadminが他GMのセッションへコメントした場合もPL参加申請扱いにならず、`session_applications` 作成/更新やPC snapshot保存を行わない。
+
+また、`session_comments.body` へ保存する値をtrim後の `v_comment_body` に揃えた。コメント本文は自由本文のまま維持するが、前後空白は保存しない方針とする。この修正時点でもAPPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行。

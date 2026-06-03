@@ -878,3 +878,9 @@
 - コメント編集時はsnapshotを維持する。再申請時のみ、その時点の既定PCでsnapshotを更新する。
 - APPLY専用SQLには `authenticated` のみEXECUTEを許可する権限文と、関数本数、`security_definer`、signature、EXECUTE権限、snapshot列の存在を確認するSELECTを含めた。
 - APPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。
+
+## M-15F application PC snapshot APPLY前レビュー修正
+- `020_application_pc_snapshot_apply_reviewed.sql` の管理コメント判定を `public.is_admin() or public.is_session_gm(v_target_session_id)` に修正した。
+- adminが他GMのセッションへコメントした場合も管理コメント扱いとし、PL参加申請、`session_applications` 作成/更新、PC snapshot保存を行わない。
+- `session_comments.body` へ保存する値を、元の `comment_body` ではなくtrim後の `v_comment_body` に修正した。コメント本文は自由本文のまま維持し、前後空白だけ保存しない。
+- SQL Editor未実行、DB構造変更なし、RPC作成/置換実行なし、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。
