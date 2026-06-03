@@ -106,3 +106,11 @@ M-15EでmypageにPC名登録UIを追加した。DiscordユーザーID登録UIそ
 呼び出し用テンプレートでは、DiscordユーザーIDから生成する `<@DiscordユーザーID>`、ユーザー名、PC名を組み合わせる。PC名は後続工程で `session_applications.pc_name_snapshot` を正として使う方針を維持し、M-15E時点では参加申請へのスナップショット保存やテンプレート置換処理はまだ実装していない。
 
 今回CodexはSQL Editor実行、DB構造変更、RPC変更、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+
+## M-15F 参加申請PC snapshotとの関係
+
+M-15Fでは、参加申請コメント投稿時にPC名をコメント本文へ書かせず、RPC側で本人の既定PCを `session_applications.pc_name_snapshot` へ自動保存する方針とした。ユーザー名は `profiles.display_name`、DiscordユーザーIDは `profiles.discord_handle`、PC名は `player_characters` の既定PCから取得する。
+
+`{{approved_call_list}}` は後続M-15Hで、承認済み参加者ごとに `<@DiscordユーザーID> ユーザー名 PC名` を1行ずつ出す。DiscordユーザーID未登録/形式不正は `登録されていません`、PC名未登録は `PC名未登録` に丸める。M-15Fではテンプレート置換処理そのものは実装しない。
+
+GMコメントは許可するが、参加申請として扱わず、PC snapshotも保存しない。承認済み参加者向けの連絡先/テンプレート出力にはGM本人コメントを含めない。

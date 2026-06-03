@@ -822,3 +822,14 @@
 - raw DB uuid / Supabase user_id / email / token / secret類は画面、DOM、consoleに出さない。DOM上の操作キーは `pc-0` などのローカル値のみ。
 - 参加申請時の `selected_character_id` / `pc_name_snapshot` 保存、承認済み参加者一覧へのPC名表示、テンプレート変数 `{{approved_call_list}}` / `{{approved_pc_names}}` 置換は後続M-15F以降。
 - SQL Editor実行なし、DB構造変更なし、RPC変更なし、GRANT / REVOKEなし、Discord実送信なし、Edge Function deployなし、`updates.json` 変更なし、commit / pushなし。
+
+## M-15F 参加申請PC名スナップショットRPC草案
+- 参加申請コメント投稿時に、本人の既定PCを `session_applications.selected_character_id` / `pc_name_snapshot` へ自動保存するRPC草案を作成した。
+- preflight専用SQL `docs/supabase/sql/020_application_pc_snapshot_preflight_select_only.sql` を作成した。SELECT-onlyで関係列、関数契約、権限、RLSを確認する。
+- RPC草案 `docs/supabase/sql/020_application_pc_snapshot_rpc_draft.sql` を作成した。`create_application_comment(target_session_id text, comment_body text)` のシグネチャを維持し、フロントからPC名、ユーザー名、DiscordユーザーID、character idを渡さない。
+- 参加申請コメントは自由本文とし、コメント本文に識別情報を書かせない。ユーザー名は `profiles.display_name`、DiscordユーザーIDは `profiles.discord_handle`、PC名は `player_characters` の既定PCから取得する。
+- 既定PCがない場合も参加申請を許可し、`selected_character_id` / `pc_name_snapshot` は `null` とする。
+- 辞退済みからの再申請では、その時点の既定PCでsnapshotを更新する。コメント編集時はsnapshotを維持する。
+- GM本人コメントは許可するが参加申請として扱わない。GMコメントは `session_comments.is_application = false` とし、参加人数、申請者一覧、承認済み連絡先、テンプレート変数対象から除外する。
+- M-15GではGM向け承認済み参加者一覧/連絡先表示にPC名を含める。M-15Hでは `{{session_title}}` / `{{approved_call_list}}` / `{{approved_pc_names}}` のテンプレート変数接続を行う。
+- SQL Editor未実行、DB構造変更なし、RPC作成/置換なし、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、secret類なし、commit / pushなし。

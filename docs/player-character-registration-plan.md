@@ -427,3 +427,15 @@ PCレコードのDB uuidはJSメモリ上だけで保持し、DOM上の操作キ
 今回の範囲はmypage PC名登録UIまでで、参加申請時の `selected_character_id` / `pc_name_snapshot` 保存、承認済み参加者一覧へのPC名表示、テンプレート変数 `{{approved_call_list}}` / `{{approved_pc_names}}` の置換処理は後続工程に分ける。
 
 今回CodexはSQL Editor実行、DB構造変更、RPC作成 / 置換、GRANT / REVOKE、参加申請UI変更、テンプレート保存機能実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+
+## M-15F 参加申請PC名スナップショット接続
+
+M-15Fでは、参加申請コメント投稿時に、本人の既定PCをRPC側で自動的に `session_applications.selected_character_id` / `pc_name_snapshot` へ保存する方針を整理した。新規docs `docs/application-pc-snapshot-plan.md` と、SQL草案 `docs/supabase/sql/020_application_pc_snapshot_rpc_draft.sql`、SELECT-only preflight `docs/supabase/sql/020_application_pc_snapshot_preflight_select_only.sql` を作成した。
+
+参加申請コメントはPLの自由本文であり、ユーザー名、PC名、DiscordユーザーIDをコメント欄に手入力させない。ユーザー名は `profiles.display_name`、DiscordユーザーIDは `profiles.discord_handle`、PC名は `player_characters` の既定PCから取得する。コメント本文からPC名やDiscord IDを解析せず、特定書式も強制しない。
+
+既定PCが登録されていれば、新規申請時に `selected_character_id = 既定PC id`、`pc_name_snapshot = 既定PC名` とする。既定PCがない場合も参加申請は許可し、両方 `null` とする。辞退済みからの再申請では、その時点の既定PCでsnapshotを更新する。コメント編集ではsnapshotを維持する。
+
+GM本人コメントは許可するが参加申請として扱わない。RPC草案ではGMコメントを `session_comments.is_application = false` として保存し、参加人数、申請者一覧、承認済み連絡先、テンプレート変数対象から除外する。後続で複数PC選択が必要になった場合は、コメント欄とは別に参加PC選択UIを追加する。
+
+この工程ではSQL Editor実行、DB構造変更、RPC作成/置換、GRANT / REVOKE実行、フロントUI実装、テンプレート保存機能実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行わない。

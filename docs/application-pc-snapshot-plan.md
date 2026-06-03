@@ -1,0 +1,91 @@
+# M-15F 参加申請PC名スナップショット計画
+
+## 目的
+
+M-15Eまでに、mypageでPC名を管理するUIと `player_characters` / `session_applications.pc_name_snapshot` のDB土台が用意された。M-15Fでは、参加申請コメント投稿時に、ログインユーザー本人の既定PCを `session_applications` へ自動保存するRPC草案を整理する。
+
+この工程ではSQL Editor実行、DB構造変更、RPC作成/置換、GRANT / REVOKE実行、フロントUI実装、テンプレート保存機能実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行わない。
+
+## 現在の接続
+
+フロントの参加申請投稿は `create_application_comment(target_session_id, comment_body)` を呼び、渡している値はセッションIDとコメント本文だけである。コメント本文はPLの自由本文として扱う。
+
+```text
+参加希望です。
+よろしくお願いします。
+日程問題ありません。
+```
+
+参加申請コメント欄に、ユーザー名、PC名、DiscordユーザーIDを手入力させない。コメント本文からPC名やDiscord IDを解析せず、特定書式も強制しない。
+
+## 登録情報の取得元
+
+ユーザー名は `profiles.display_name` を使う。DiscordユーザーIDは `profiles.discord_handle` を使う。PC名は `player_characters` のうち、本人所有、active、default の行を使う。
+
+M-15FのRPC草案では、参加申請時点の既定PCを以下のように保存する。
+
+```text
+selected_character_id = ログインユーザー本人の既定PC id
+pc_name_snapshot = ログインユーザー本人の既定PC名
+```
+
+既定PCがない場合も参加申請は許可し、以下の状態にする。
+
+```text
+selected_character_id = null
+pc_name_snapshot = null
+```
+
+PC名未登録を理由に参加申請を拒否しない。テンプレート出力側では未登録を `PC名未登録` に丸める。
+
+## RPC草案
+
+新規作成した草案は `docs/supabase/sql/020_application_pc_snapshot_rpc_draft.sql`。既存の `create_application_comment(text, text)` と同じシグネチャを維持し、フロントからPC名やDiscordユーザーIDを渡さない。
+
+新規PL申請では既定PCをsnapshotする。辞退済みからの再申請では、その時点の既定PCで `selected_character_id` / `pc_name_snapshot` を更新する。既に `pending` / `accepted` / `rejected` / `waitlisted` の申請行がある場合は、コメント追記のみを許可し、既存の申請状態とPC snapshotは変更しない。
+
+コメント編集は既存の `update_application_comment` 側の責務であり、PC snapshotは変更しない。
+
+## GMコメント
+
+GM本人コメントは許可する。ただし参加申請として扱わない。M-15FのRPC草案では、GM本人が `create_application_comment` を使ってコメントした場合、`session_comments.is_application = false` として保存し、`session_applications` 行の作成/更新やPC snapshot保存を行わない。
+
+これにより、GMコメントは告知・補足用コメントとして残しつつ、参加人数、申請者一覧、承認済み参加者連絡先、テンプレート変数の対象から外す。既存フロントにはGMコメント後に `cancel_my_session_application` を呼ぶcleanupがあるが、RPC置換後はキャンセル対象の申請行がない場合があり、その失敗は既存どおり握りつぶす想定。
+
+## preflight SQL
+
+新規作成したpreflight SQLは `docs/supabase/sql/020_application_pc_snapshot_preflight_select_only.sql`。以下をSELECT-onlyで確認する。
+
+- `session_applications.selected_character_id` / `pc_name_snapshot`
+- `player_characters` のPC名管理列
+- `session_comments.is_application`
+- `create_application_comment(text, text)`、`cancel_my_session_application(text)`、`get_gm_session_accepted_contacts(text)` などの関数契約
+- 関連関数の `security_definer` / `search_path` / 権限
+- `session_applications` / `session_comments` / `player_characters` のRLS policyとtable privilege
+
+preflightはcatalog inspectionのみで、schema、data、privilegesを変更しない。
+
+## 後続工程との分離
+
+M-15Fは参加申請時のPC名snapshotまでを扱う。M-15GではGM向け承認済み参加者一覧/連絡先表示にPC名を含める。M-15Hでは `{{session_title}}`、`{{approved_call_list}}`、`{{approved_pc_names}}` のテンプレート変数置換に接続する。
+
+将来、複数PCから申請時に選びたい場合は、コメント欄とは別に「参加PC選択UI」を追加する。初期実装ではmypageで設定した既定PCを自動採用する。
+
+## 今回やらないこと
+
+- SQL Editor実行
+- DB構造変更
+- RPC作成 / 置換
+- GRANT / REVOKE実行
+- フロントUI実装
+- 参加申請コメント欄へのPC名入力欄追加
+- 参加申請コメント欄へのDiscordユーザーID入力欄追加
+- コメント本文からのPC名 / Discord ID解析
+- PC名未登録を理由にした参加申請拒否
+- テンプレート保存機能本体
+- Discord実送信
+- Edge Function deploy
+- `updates.json` 変更
+- service_role key利用
+- secret類の出力
+- commit / push
