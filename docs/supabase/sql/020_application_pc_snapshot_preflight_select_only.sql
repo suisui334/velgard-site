@@ -92,48 +92,32 @@ where con.conrelid in (
   )
 order by con.conrelid::regclass::text, con.contype, con.conname;
 
-with application_fks as (
+with application_fk_rows as (
   select
-    con.oid,
     con.conname,
-    con.conrelid,
-    con.confrelid,
-    con.conkey,
-    con.confkey,
-    con.confdeltype
+    con.conrelid::regclass as referencing_table,
+    con.confrelid::regclass as referenced_table,
+    case con.confdeltype
+      when 'a' then 'NO ACTION'
+      when 'r' then 'RESTRICT'
+      when 'c' then 'CASCADE'
+      when 'n' then 'SET NULL'
+      when 'd' then 'SET DEFAULT'
+      else con.confdeltype::text
+    end as on_delete_action,
+    pg_catalog.pg_get_constraintdef(con.oid) as definition
   from pg_catalog.pg_constraint con
   where con.contype = 'f'
     and con.conrelid = to_regclass('public.session_applications')
 )
 select
-  f.conname,
-  f.conrelid::regclass as referencing_table,
-  (
-    select array_agg(att.attname order by cols.ord)
-    from unnest(f.conkey) with ordinality as cols(attnum, ord)
-    join pg_catalog.pg_attribute att
-      on att.attrelid = f.conrelid
-     and att.attnum = cols.attnum
-  ) as referencing_columns,
-  f.confrelid::regclass as referenced_table,
-  (
-    select array_agg(att.attname order by cols.ord)
-    from unnest(f.confkey) with ordinality as cols(attnum, ord)
-    join pg_catalog.pg_attribute att
-      on att.attrelid = f.confrelid
-     and att.attnum = cols.attnum
-  ) as referenced_columns,
-  case f.confdeltype
-    when 'a' then 'NO ACTION'
-    when 'r' then 'RESTRICT'
-    when 'c' then 'CASCADE'
-    when 'n' then 'SET NULL'
-    when 'd' then 'SET DEFAULT'
-    else f.confdeltype::text
-  end as on_delete_action,
-  pg_catalog.pg_get_constraintdef(f.oid) as definition
-from application_fks f
-order by f.conname;
+  conname,
+  referencing_table,
+  referenced_table,
+  on_delete_action,
+  definition
+from application_fk_rows
+order by conname;
 
 select
   schemaname,
@@ -199,20 +183,6 @@ where n.nspname = 'public'
 order by p.proname, p.oid::regprocedure::text;
 
 select
-  p.oid::regprocedure as signature,
-  p.proname as routine_name,
-  pg_catalog.pg_get_function_arguments(p.oid) as arguments,
-  pg_catalog.pg_get_function_result(p.oid) as result_type,
-  p.prosecdef as security_definer,
-  p.provolatile as volatility
-from pg_catalog.pg_proc p
-join pg_catalog.pg_namespace n
-  on n.oid = p.pronamespace
-where n.nspname = 'public'
-  and pg_catalog.pg_get_functiondef(p.oid) ilike '%session_applications%'
-order by p.proname, p.oid::regprocedure::text;
-
-select
   routine_name,
   specific_name,
   grantee,
@@ -263,8 +233,23 @@ where n.nspname = 'public'
 order by p.proname, p.oid::regprocedure::text, grantee, acl.privilege_type;
 
 select
+  con.conname,
+  pg_catalog.pg_get_constraintdef(con.oid) as definition
+from pg_catalog.pg_constraint con
+where con.conrelid = to_regclass('public.session_applications')
+  and con.conname in (
+    'session_applications_status_check',
+    'session_applications_session_id_user_id_key'
+  )
+order by con.conname;
+
+select
   p.oid::regprocedure as signature,
-  pg_catalog.pg_get_functiondef(p.oid) as function_definition
+  p.proname as routine_name,
+  pg_catalog.pg_get_function_arguments(p.oid) as arguments,
+  pg_catalog.pg_get_function_result(p.oid) as result_type,
+  p.prosecdef as security_definer,
+  p.proconfig as function_config
 from pg_catalog.pg_proc p
 join pg_catalog.pg_namespace n
   on n.oid = p.pronamespace

@@ -451,3 +451,11 @@ M-15F以降へ進む前の補正として、SELECT-only preflight `docs/supabase
 021 preflightをSupabase SQL Editorで実行し、`selected_character_fk_has_on_delete_set_null = true` と確認された。現DBでは `session_applications.selected_character_id` FKがすでに `ON DELETE SET NULL` 相当であるため、`021_fix_selected_character_fk_apply_reviewed.sql` は未実行かつ実行不要とする。
 
 前回の `ON DELETE SET NULL` 不足は、表示上の見切れまたは確認不足だった可能性として扱う。DB追加変更、ALTER TABLE実行、RPC変更、GRANT / REVOKE実行は行わず、M-15Fの参加申請PC名スナップショット接続へ戻る。
+
+## M-15F preflight確認結果
+
+`020_application_pc_snapshot_preflight_select_only.sql` はSQL Editor実行時に `array_agg` aggregate function エラーで途中停止したが、SELECT-only preflight中のエラーでありDB変更は起きていない。
+
+小型確認SQLで、`player_characters`、`selected_character_id`、`pc_name_snapshot`、`create_application_comment(text,text)`、`cancel_my_session_application(text)`、`get_gm_session_accepted_contacts(text)`、`get_my_player_characters()` の存在を確認済み。status許可値は `pending` / `accepted` / `rejected` / `waitlisted` / `canceled` で、参加申請PC名snapshot草案と矛盾しない。
+
+主要RPCは `security_definer = true`、`authenticated EXECUTE` ありで、`anon` / `public` EXECUTEは確認結果画面に出ていない。preflight SQLは `pg_get_functiondef` と不要な集約表示を外し、必要な関数契約と権限確認に絞った。M-15FのRPC草案は、PC名未登録許可、GMコメント非申請扱い、新規PL申請時snapshot、再申請時snapshot更新、コメント編集時snapshot維持の方針を満たしている。

@@ -398,3 +398,13 @@ M-15D適用後確認で、`session_applications.selected_character_id` のFKが 
 このため、`docs/supabase/sql/021_fix_selected_character_fk_apply_reviewed.sql` は未実行のまま、現時点では実行不要と整理する。前回の `ON DELETE SET NULL` 不足は、表示上の見切れまたは確認不足だった可能性として扱う。
 
 DB追加変更、ALTER TABLE実行、RPC変更、GRANT / REVOKE実行は行っていない。M-15Fは参加申請PC名スナップショット接続へ戻る。
+
+## M-15F preflight確認結果
+
+ユーザーが修正版 `020_application_pc_snapshot_preflight_select_only.sql` をSQL Editorで実行したところ、`ERROR: 42809: "array_agg" is an aggregate function` で途中停止した。このpreflightはSELECT-onlyであり、DB変更は発生していない。
+
+小型確認SQLでは、M-15Fに必要な前提として `public.player_characters`、`session_applications.selected_character_id`、`session_applications.pc_name_snapshot`、`create_application_comment(text,text)`、`cancel_my_session_application(text)`、`get_gm_session_accepted_contacts(text)`、`get_my_player_characters()` の存在を確認済み。`session_applications.status` は `pending` / `accepted` / `rejected` / `waitlisted` / `canceled` を許可しており、RPC草案の `pending` / `canceled` と矛盾しない。
+
+主要RPCとhelper関数は `security_definer = true`。対象RPCは `authenticated EXECUTE` ありで、確認画面では `anon` / `public` のEXECUTEは出ていない。020 preflightは `pg_get_functiondef` を使わず、必要なRPCだけを `to_regprocedure`、`pg_get_function_arguments`、`pg_get_function_result`、`prosecdef`、`proconfig`、routine privilegesで確認する形へ修正した。
+
+RPC草案 `020_application_pc_snapshot_rpc_draft.sql` は既存signature、security definer、`set search_path = ''`、PC名未登録でも申請可能、GMコメント非申請扱い、新規PL申請時active default PC snapshot、再申請時snapshot更新、コメント編集時snapshot維持の方針と一致する。今回CodexはSQL Editor追加実行、DB構造変更、RPC作成/置換、GRANT / REVOKE、APPLY専用SQL作成、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushを行っていない。
