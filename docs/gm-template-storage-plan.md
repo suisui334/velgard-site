@@ -312,7 +312,22 @@ M-15I-3 draft SQL作成結果:
 
 M-15I-4 apply_reviewedでは、レビュー済みのAPPLY専用SQLだけを分離する。SQL Editorで実行する場合はapply専用ファイルのみを使う方針にする。
 
-M-15I-5ではユーザーがSQL Editorで手動適用し、Codexは実行しない。
+M-15I-4 apply_reviewed SQL作成結果:
+
+- `docs/supabase/sql/023_gm_template_storage_apply_reviewed.sql` を作成した。SQL Editorで適用する場合はこのAPPLY専用ファイル全文のみを使い、draft全文は貼らない。
+- draftから、`gm_template_presets` テーブル作成、CHECK制約、index、updated_at trigger、RLS有効化、本人行向けRLS policy、RPC 4本、EXECUTE権限整理、`authenticated` へのEXECUTE付与、post-apply確認SELECTを切り出した。
+- preflight SELECT、rollback草案、共有 / admin共通テンプレート、`sort_order`、`scope`、`description`、物理削除、フロント実装内容は含めていない。
+- apply_reviewed SQLは `owner_user_id` をRPC引数にせず、RPC内で `auth.uid()` と `profiles.id` を使う方針を維持する。RPC戻り値にも `owner_user_id` を含めない。
+- この工程ではapply_reviewed SQL作成とレビューのみ。SQL Editor実行、DB構造変更、RPC作成 / 変更、フロント実装は行っていない。
+
+M-15I-5 apply_reviewed SQL適用結果:
+
+- ユーザーがSupabase SQL Editorで `docs/supabase/sql/023_gm_template_storage_apply_reviewed.sql` を手動適用し、SQL Editor上のエラーなしを確認した。
+- 適用後確認SELECTで、`gm_template_presets` テーブル存在、RLS有効化、本人向けRLS policy 3件、RPC 4本の存在、各RPCの `security_definer=true` と `search_path` 設定ありを確認した。
+- RLS policyは `gm_template_presets_insert_own` / `gm_template_presets_select_own` / `gm_template_presets_update_own` の3件で、rolesはいずれも `authenticated`。DELETE policyがないことは、物理削除ではなく `is_active=false` の非アクティブ化方針と整合する。
+- RPCは `create_template_preset(text, text, text)` / `deactivate_template_preset(uuid)` / `get_my_template_presets()` / `update_template_preset(uuid, text, text, text, boolean)` の4本すべて存在確認済み。
+- EXECUTE権限は4本すべて `authenticated` のみ許可、`anon` / `public` は不可であることを確認した。
+- M-15I-5は成功扱いとし、次工程はM-15I-6「フロント接続」。この記録工程でCodexはSQL Editor実行、DB/RPC追加変更、フロント実装を行っていない。
 
 M-15I-6ではフロント接続のみ行い、フロントからDB直UPDATE / DELETEをしない。
 

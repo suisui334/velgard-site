@@ -983,3 +983,15 @@
 - 想定RPCは `get_my_template_presets()`、`create_template_preset(text, text, text)`、`update_template_preset(uuid, text, text, text, boolean)`、`deactivate_template_preset(uuid)`。RPCは `security_definer` と明示的な `search_path` を使い、戻り値に `owner_user_id` を含めない。
 - `template_type` は `call` / `result` / `session_post` / `application` / `other` のCHECK制約案。`template_name` は1〜80文字の単一行、`template_body` は1〜5000文字で改行可。削除は物理削除ではなく `is_active = false`。
 - admin共通テンプレート、共有テンプレート、`sort_order`、`scope`、`description`、同名テンプレートの一意制約は初期草案から除外した。この工程ではSQL Editor実行、DB構造変更、RPC作成 / 変更、apply_reviewed SQL作成、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-15I-4 テンプレート保存機能 apply_reviewed SQL
+- SQL Editorで実行する対象を固定するため、APPLY専用SQL `docs/supabase/sql/023_gm_template_storage_apply_reviewed.sql` を作成した。今後SQL Editorで適用する場合はこのファイル全文のみを使い、`023_gm_template_storage_rpc_draft.sql` の全文は貼らない。
+- APPLY専用SQLには `public.gm_template_presets`、CHECK制約、index、updated_at trigger、本人行向けRLS policy、RPC 4本、EXECUTE権限整理、post-apply確認SELECTを含めた。RPC戻り値に `owner_user_id` は含めない。
+- preflight SELECT、rollback草案、共有 / admin共通テンプレート、`sort_order`、`scope`、`description`、物理削除、フロント実装内容は含めていない。次工程はM-15I-5として、ユーザーがSQL EditorでAPPLY専用SQLを手動適用する想定。
+- この工程ではSQL Editor実行、DB構造変更、RPC作成 / 変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-15I-5 テンプレート保存機能 apply_reviewed SQL適用結果
+- ユーザーがSupabase SQL Editorで `docs/supabase/sql/023_gm_template_storage_apply_reviewed.sql` を手動適用し、SQL Editor上のエラーなしを確認した。
+- 適用後確認SELECTで、`gm_template_presets` テーブル存在、RLS有効化、本人向けRLS policy 3件、RPC 4本、各RPCの `security_definer=true` と `search_path` 設定ありを確認済み。RLS policyは `gm_template_presets_insert_own` / `gm_template_presets_select_own` / `gm_template_presets_update_own` の3件で、rolesはいずれも `authenticated`。DELETE policyなしは `is_active=false` の非アクティブ化方針と整合する。
+- RPCは `create_template_preset(text, text, text)` / `deactivate_template_preset(uuid)` / `get_my_template_presets()` / `update_template_preset(uuid, text, text, text, boolean)` の4本すべて存在確認済み。EXECUTE権限は4本すべて `authenticated` のみ許可、`anon` / `public` は不可であることを確認した。
+- M-15I-5は成功扱い。次工程はM-15I-6「フロント接続」。この記録工程でCodexはSQL Editor実行、DB/RPC追加変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushを行っていない。
