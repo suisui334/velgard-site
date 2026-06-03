@@ -884,3 +884,13 @@
 - adminが他GMのセッションへコメントした場合も管理コメント扱いとし、PL参加申請、`session_applications` 作成/更新、PC snapshot保存を行わない。
 - `session_comments.body` へ保存する値を、元の `comment_body` ではなくtrim後の `v_comment_body` に修正した。コメント本文は自由本文のまま維持し、前後空白だけ保存しない。
 - SQL Editor未実行、DB構造変更なし、RPC作成/置換実行なし、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。
+
+## M-15F application PC snapshot APPLY結果
+- ユーザーがSupabase SQL Editorで `docs/supabase/sql/020_application_pc_snapshot_apply_reviewed.sql` を適用した。
+- `create_application_comment(text,text)` の置換は成功した。
+- 確認結果は `function_count = 1`、`all_security_definer = true`、signature `create_application_comment(text,text)`、`search_path` 設定あり。
+- 権限は `authenticated EXECUTEあり`、`anon EXECUTEなし`、`public EXECUTEなし` で、すべて `ok = true`。
+- `session_applications.selected_character_id` / `pc_name_snapshot` の存在を確認済み。
+- PL新規申請・再申請時は既定PCをsnapshotする。PC名未登録でも申請可能。
+- GM/admin管理コメントでは参加申請扱いせずsnapshotしない。参加申請コメント本文は自由本文で、PC名やDiscordユーザーIDを本文に書かせない。
+- 実データ投入なし、フロントUI変更なし、参加申請UI変更なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。

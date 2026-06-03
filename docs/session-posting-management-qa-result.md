@@ -297,3 +297,13 @@ APPLY専用SQLには、`authenticated` のみEXECUTEを許可し、`public` / `a
 APPLY前レビューで、adminコメントも管理コメント扱いになるよう `public.is_admin() or public.is_session_gm(v_target_session_id)` へ修正した。adminが他GMのセッションへコメントしてもPL参加申請扱いにならず、`session_applications` 作成/更新やPC snapshot保存は行わない。
 
 コメント本文の保存値は、元の `comment_body` ではなくtrim後の `v_comment_body` に修正した。SQL Editor実行、DB構造変更、RPC作成/置換実行、GRANT / REVOKE実行は行っていない。
+
+## M-15F application PC snapshot APPLY結果
+
+ユーザーがSupabase SQL Editorで `docs/supabase/sql/020_application_pc_snapshot_apply_reviewed.sql` を適用し、`create_application_comment(text,text)` の置換が成功した。
+
+確認結果は `function_count = 1`、`all_security_definer = true`、signatureは `create_application_comment(text,text)`、function configに `search_path` 設定あり。権限確認は `authenticated EXECUTEあり`、`anon EXECUTEなし`、`public EXECUTEなし` で、すべて `ok = true`。`session_applications.selected_character_id` / `pc_name_snapshot` の存在も確認済み。
+
+PL新規申請・再申請時は既定PCをsnapshotする。PC名未登録でも申請可能。GM/admin管理コメントでは参加申請扱いせず、`selected_character_id` / `pc_name_snapshot` を保存しない。参加申請コメント本文は自由本文で、PC名やDiscordユーザーIDを本文に書かせない。
+
+実データ投入、フロントUI変更、参加申請UI変更、Discord実送信、Edge Function deploy、`updates.json` 変更は行っていない。
