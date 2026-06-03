@@ -1004,3 +1004,12 @@
 - session-detailの独立した「GM向け：承認済み参加者連絡先」UIは削除した。承認済み参加者データの取得と整形は、`{{approved_call_list}}` / `{{approved_pc_names}}` のテンプレ変数置換用に内部利用を継続する。置換プレビューとコピーは既存M-15Hの `formatGmTemplateText` を維持し、出力形式は変更していない。
 - `session-post.html` の依頼書フォーム上部に「依頼書テンプレート」UIを追加した。保存対象はタイトル、開始日時、終了日時、申請締切、種別、募集人数min/max、公開状態、募集状態、概要。管理対象selectや公開確認チェックは保存しない。`template_body` はフロント専用JSON文字列として保存し、保存済みテンプレート選択だけではフォームへ反映せず、「反映」ボタンで適用する。
 - 編集中の依頼書にテンプレートを反映する場合は、未保存の入力内容が失われる旨を確認する。この工程ではSQL Editor実行、DB/RPC変更、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-15J テンプレート管理拡張仕様整理
+- `docs/gm-template-storage-plan.md` に、将来拡張として mypage テンプレート一元管理とPL申請コメントテンプレートの方針を追記した。この工程はdocs整理のみで、SQL Editor実行、DB/RPC変更、フロント実装は行っていない。
+- mypageには将来的に「テンプレート管理」セクションを追加し、`call` / `result` / `session_post` / `application` / `other` を横断的に作成、編集、削除できる管理画面にする案を整理した。テンプレート操作はRPC経由方針を維持する。
+- 種別ごとの用途は、`call` がGM向け呼び出し、`result` がGM向けリザルト、`session_post` がGM向け依頼書フォーム、`application` がPL向け参加申請コメント、`other` が補助用途。`session_post` はフォームJSON文字列、その他の基本種別は自由本文 + 変数として扱う。
+- PL申請コメントテンプレートは、session-detailの参加希望コメントフォーム付近にテンプレートselectを置き、`application` / `other` を呼び出してコメント本文へ反映する案を候補にした。既に本文入力済みの場合は上書き確認を出し、初期は保存・編集をmypage側に寄せる。
+- `other` は文脈をまたいで混線しやすいため、session-detail、session-post、PL申請コメント、mypageで表示対象を慎重に分ける。必要になった場合のみ、将来の利用文脈追加設計を検討する。
+- 追加DB/RPCは急がず、まず既存RPC 4本で本人テンプレートの管理と呼び出しに足りるかを見る。admin共通テンプレート、共有テンプレート、説明文、並び順、利用文脈の厳密分離は後続候補。
+- 次工程候補は、M-15K mypageテンプレート管理UI設計、M-15L mypage自由本文系テンプレ接続、M-15M PL参加希望コメント欄テンプレ呼び出し、M-15N `session_post` テンプレ管理UI、M-15O 利用文脈追加検討。
