@@ -380,3 +380,13 @@ M-15Fとして、参加申請コメント投稿時に既定PCを `session_applic
 GM本人コメントは許可するが、参加申請として扱わない。RPC草案ではGMコメントを `session_comments.is_application = false` として保存し、`session_applications` 行の作成/更新やPC snapshot保存を行わない。GMコメントは参加人数、申請者一覧、承認済み連絡先、テンプレート変数対象から除外する方針を維持する。
 
 M-15GではGM向け承認済み参加者一覧/連絡先表示にPC名を含める。M-15Hでは `{{session_title}}`、`{{approved_call_list}}`、`{{approved_pc_names}}` のテンプレート変数置換に接続する。今回CodexはSQL Editor実行、DB構造変更、RPC作成/置換、GRANT / REVOKE実行、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+
+## M-15D補正 selected_character_id FK ON DELETE SET NULL
+
+M-15D適用後確認で、`session_applications.selected_character_id` のFKが `FOREIGN KEY (selected_character_id) REFERENCES player_characters(id)` となっており、期待方針だった `ON DELETE SET NULL` が付いていないことを確認した。M-15F以降のPC snapshot接続へ進む前の補正として、FKを `ON DELETE SET NULL` 付きで作り直すSQLを用意した。
+
+作成したpreflight SQLは `docs/supabase/sql/021_fix_selected_character_fk_preflight_select_only.sql`。現在のFK定義、constraint名、`player_characters` table存在、`session_applications.selected_character_id` 存在、既存 `selected_character_id` のNULL/非NULL件数、参照先 `player_characters.id` との整合性をSELECT-onlyで確認する。
+
+作成したAPPLY専用SQLは `docs/supabase/sql/021_fix_selected_character_fk_apply_reviewed.sql`。既存FK `session_applications_selected_character_id_fkey` をdropし、同名で `references public.player_characters(id) on delete set null` として作り直す。末尾に、FKが存在し、参照先が `player_characters(id)` で、definition / `confdeltype` が `ON DELETE SET NULL` 相当であることを確認するSELECTを入れた。
+
+今回CodexはSQL Editor実行、DB構造変更、ALTER TABLE実行、RPC変更、GRANT / REVOKE、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushを行っていない。

@@ -833,3 +833,11 @@
 - GM本人コメントは許可するが参加申請として扱わない。GMコメントは `session_comments.is_application = false` とし、参加人数、申請者一覧、承認済み連絡先、テンプレート変数対象から除外する。
 - M-15GではGM向け承認済み参加者一覧/連絡先表示にPC名を含める。M-15Hでは `{{session_title}}` / `{{approved_call_list}}` / `{{approved_pc_names}}` のテンプレート変数接続を行う。
 - SQL Editor未実行、DB構造変更なし、RPC作成/置換なし、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、secret類なし、commit / pushなし。
+
+## M-15D補正 selected_character_id FK ON DELETE SET NULL
+- M-15D適用後確認で、`session_applications.selected_character_id` のFKに `ON DELETE SET NULL` が付いていないことを確認した。
+- 期待方針は `FOREIGN KEY (selected_character_id) REFERENCES player_characters(id) ON DELETE SET NULL`。
+- M-15Fへ進む前に補正する方針として、SELECT-only preflight `docs/supabase/sql/021_fix_selected_character_fk_preflight_select_only.sql` を作成した。
+- APPLY専用SQL `docs/supabase/sql/021_fix_selected_character_fk_apply_reviewed.sql` を作成した。既存FKをdropし、`ON DELETE SET NULL` 付きで同名FKを作り直す内容。
+- APPLY末尾に、FK存在、参照先 `player_characters(id)`、definition内の `ON DELETE SET NULL` / `confdeltype = 'n'` 相当を確認するSELECTを入れた。
+- SQL Editor未実行、DB構造変更なし、ALTER TABLE未実行、RPC変更なし、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。
