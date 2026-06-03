@@ -762,7 +762,7 @@
 - 保存成功後は、RPC返却が空でも保存に使った正規化済みDiscordユーザーIDで本人画面の表示を即時更新する。登録済み値が形式不正の場合は自動変換せず、再登録を促す。
 - GM向け承認済み参加者連絡先表示では、保存された数字IDから `<@DiscordユーザーID>` を生成して表示・コピーする。未登録または形式不正の場合は生表示を避けて `登録されていません` に丸める。
 - 呼び出し用テンプレートではGMが承認済み参加者を一人ずつ選ぶ方式にせず、現在のセッションに紐付く承認済み参加者全員を対象にしてコピー時に変数をまとめて置換する。
-- 初期実装で優先する変数は `{{session_title}}`、`{{approved_call_list}}`、`{{approved_pc_names}}` とする。`{{approved_call_list}}` はDiscordメンション、表示名、PC名を1人1行で出力し、DiscordユーザーID未登録/形式不正は `登録されていません`、PC名未登録は `PC名未登録` と出す方針を推奨する。
+- 初期実装で優先する変数は `{{session_title}}`、`{{approved_call_list}}`、`{{approved_pc_names}}` とする。`{{approved_call_list}}` はDiscordメンション、ユーザー名、PC名を1人1行で出力し、DiscordユーザーID未登録/形式不正は `登録されていません`、PC名未登録は `PC名未登録` と出す方針を推奨する。
 - `{{approved_discord_mentions}}` はDiscordメンションだけをまとめて出す変数として残してよいが、`{{approved_discord_ids}}` とGMが一人ずつ選ぶ方式は初期実装では見送る。
 - 方針docs `docs/discord-mention-registration-plan.md` を追加した。この工程ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、テンプレート保存テーブル作成、テンプレート生成UI、`{{approved_call_list}}` の実際の置換処理、テンプレート保存機能本体、PC名登録機能、mypage予定プルダウン化、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
 
@@ -772,7 +772,7 @@
 - GM本人が投稿した場合は既存 `create_application_comment` の後に既存 `cancel_my_session_application` を呼び、GM本人の申請行を `canceled` へ戻す。これにより参加人数、mypageの申請中/参加予定、承認済み参加者連絡先にGM本人を含めない方針とした。
 - GMコメント削除時の確認文をPL参加希望コメント用から分離した。GMコメント削除では `このGMコメントを削除しますか？` と `参加申請には影響しません。` を表示し、PL参加希望コメント削除時の既存注意文は維持する。
 - GM/admin文脈の人数表示は、RLSで許可された `session_applications` の `user_id` / `status` を内部取得し、GM本人を除外して `pending` / `waitlisted` / `accepted` を再集計する。公開カウントRPC自体は今回変更しない。
-- GM向け申請履歴と承認済み連絡先は、現行RPCが内部 `user_id` を返さないため、GM本人の表示名を使ったbest-effort除外とした。厳密化は後続でRPC側にGM本人除外条件を入れる候補。
+- GM向け申請履歴と承認済み連絡先は、現行RPCが内部 `user_id` を返さないため、GM本人のユーザー名を使ったbest-effort除外とした。厳密化は後続でRPC側にGM本人除外条件を入れる候補。
 - adminコメントの扱い、GMコメント専用種別、既存DB上のGM本人申請/コメントcleanupは後続課題とする。この工程ではSQL Editor実行、DB構造変更、`comment_type` 列追加、RPC作成/置換、GRANT/REVOKE、既存データcleanup、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
 
 ## M-15A PC名登録・テンプレート変数前提設計
@@ -814,3 +814,11 @@
 - RPC権限は `authenticated EXECUTEあり`、`anon / public EXECUTEなし` で、すべて `ok = true`。
 - 実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、secret類の出力、`updates.json` 変更は行っていない。次工程はM-15Eとして mypage PC名登録UI。
 - 今回CodexはSQL Editor追加実行、DB構造追加変更、RPC再作成、GRANT / REVOKE再実行、実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+## M-15E mypage PC名登録UI
+- mypageのログイン済み表示にPC名登録UIを追加した。PC名の新規登録、一覧表示、編集、既定PC設定、一覧から外す操作を扱う。
+- 既存RPC `get_my_player_characters()`、`create_player_character(text, boolean)`、`update_player_character(uuid, text, boolean, boolean)`、`set_default_player_character(uuid)`、`deactivate_player_character(uuid)` へ接続した。
+- PC名は空欄、改行、40文字超過を保存前に止める。未登録時は「現在、登録済みPC名はありません。」を表示する。
+- 一覧から外す操作は物理削除ではなく `is_active = false` 相当の非アクティブ化として扱い、過去申請のPC名スナップショットは残る前提を確認文に入れる。
+- raw DB uuid / Supabase user_id / email / token / secret類は画面、DOM、consoleに出さない。DOM上の操作キーは `pc-0` などのローカル値のみ。
+- 参加申請時の `selected_character_id` / `pc_name_snapshot` 保存、承認済み参加者一覧へのPC名表示、テンプレート変数 `{{approved_call_list}}` / `{{approved_pc_names}}` 置換は後続M-15F以降。
+- SQL Editor実行なし、DB構造変更なし、RPC変更なし、GRANT / REVOKEなし、Discord実送信なし、Edge Function deployなし、`updates.json` 変更なし、commit / pushなし。

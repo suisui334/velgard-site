@@ -117,7 +117,7 @@ session_applications に selected_character_id と pc_name_snapshot を持たせ
 - PC名登録欄。
 - 現在のデフォルトPC表示。
 - PC名が未登録なら `PC名未登録` と表示。
-- 保存ボタンはDiscordユーザーIDや表示名とは分ける。
+- 保存ボタンはDiscordユーザーIDやユーザー名とは分ける。
 - PC名は空欄保存で未登録扱い、またはデフォルトPCなしに戻す。
 
 複数PC対応を見据えたUI:
@@ -191,9 +191,9 @@ accepted参加者の pc_name_snapshot
 初期出力方針:
 
 ```text
-<@123456789012345678> 表示名 PC名
-登録されていません 表示名 PC名
-<@234567890123456789> 表示名 PC名
+<@123456789012345678> ユーザー名 PC名
+登録されていません ユーザー名 PC名
+<@234567890123456789> ユーザー名 PC名
 ```
 
 ルール:
@@ -213,7 +213,7 @@ accepted参加者の pc_name_snapshot
 初期出力方針:
 
 ```text
-トレクティア、ロエアス、PC名未登録
+ボボボーボ・ボーボボ、ロエアス、PC名未登録
 ```
 
 ルール:
@@ -414,3 +414,16 @@ PC管理RPC 5本、`get_my_player_characters()`、`create_player_character(text,
 実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、secret類の出力、`updates.json` 変更は行っていない。
 次工程はM-15Eとして mypage PC名登録UI を進める。
 今回CodexはSQL Editor追加実行、DB構造追加変更、RPC再作成、GRANT / REVOKE再実行、実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+## M-15E mypage PC名登録UI
+
+M-15Eとして、mypageのログイン済み表示にPC名登録UIを追加した。`get_my_player_characters()` で本人のPC名一覧を取得し、`create_player_character(text, boolean)` / `update_player_character(uuid, text, boolean, boolean)` / `set_default_player_character(uuid)` / `deactivate_player_character(uuid)` を既存RPCとして利用する。
+
+UIでは、PC名の新規登録、一覧表示、編集、既定PC設定、一覧から外す操作を扱う。初期表示では有効なPCのみを表示し、未登録時は「現在、登録済みPC名はありません。」を出す。PC名は前後空白をtrimし、空欄、改行、40文字超過を保存前に止める。
+
+一覧から外す操作は物理削除ではなく `deactivate_player_character` に接続する。確認文は「このPC名を一覧から外しますか？ 過去の参加申請に保存されたPC名は残ります。」とし、成功時は「PC名を一覧から外しました。」を表示する。
+
+PCレコードのDB uuidはJSメモリ上だけで保持し、DOM上の操作キーは `pc-0` などのローカル値にする。raw DB uuid / Supabase user_id / email / token / secret類は画面、DOM、consoleへ出さない方針を維持する。
+
+今回の範囲はmypage PC名登録UIまでで、参加申請時の `selected_character_id` / `pc_name_snapshot` 保存、承認済み参加者一覧へのPC名表示、テンプレート変数 `{{approved_call_list}}` / `{{approved_pc_names}}` の置換処理は後続工程に分ける。
+
+今回CodexはSQL Editor実行、DB構造変更、RPC作成 / 置換、GRANT / REVOKE、参加申請UI変更、テンプレート保存機能実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。

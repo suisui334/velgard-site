@@ -6,6 +6,7 @@
   const MIN_PASSWORD_LENGTH = 8;
   const DISPLAY_NAME_MAX_LENGTH = 40;
   const DISCORD_ID_MAX_LENGTH = 100;
+  const PC_NAME_MAX_LENGTH = 40;
   const DISCORD_USER_ID_EXAMPLE = "123456789012345678";
   const DISCORD_USER_ID_PATTERN = /^\d{17,20}$/;
   const DISCORD_MENTION_INPUT_PATTERN = /^<@(\d{17,20})>$/;
@@ -468,6 +469,83 @@
     return /[\r\n]/.test(String(value || ""));
   }
 
+  function normalizePcName(value) {
+    return String(value || "").trim();
+  }
+
+  function countPcNameCharacters(value) {
+    return Array.from(String(value || "")).length;
+  }
+
+  function validatePcName(value) {
+    const rawValue = String(value || "");
+    const pcName = normalizePcName(rawValue);
+    if (!pcName) {
+      return {
+        valid: false,
+        message: "PC名を入力してください。"
+      };
+    }
+    if (hasLineBreak(rawValue)) {
+      return {
+        valid: false,
+        message: "PC名に改行は使えません。"
+      };
+    }
+    if (countPcNameCharacters(pcName) > PC_NAME_MAX_LENGTH) {
+      return {
+        valid: false,
+        message: `PC名は${PC_NAME_MAX_LENGTH}文字以内で入力してください。`
+      };
+    }
+    return {
+      valid: true,
+      value: pcName
+    };
+  }
+
+  function getPlayerCharacterErrorMessage(error) {
+    const text = [
+      error && error.message,
+      error && error.code,
+      error && error.details,
+      error && error.hint
+    ].filter(Boolean).join(" ").toLowerCase();
+
+    if (text.includes("login_required") || text.includes("28000")) {
+      return "ログインが必要です。";
+    }
+    if (text.includes("character_not_found") || text.includes("not_found") || text.includes("p0002")) {
+      return "対象のPC名が見つかりません。";
+    }
+    if (text.includes("not_allowed") || text.includes("42501") || text.includes("permission")) {
+      return "このPC名を操作する権限がありません。";
+    }
+    if (
+      text.includes("invalid_pc_name") ||
+      text.includes("pc_name_required") ||
+      text.includes("pc_name_too_long") ||
+      text.includes("pc_name_invalid") ||
+      text.includes("22023")
+    ) {
+      return "PC名の形式を確認してください。";
+    }
+    return "PC名の保存に失敗しました。";
+  }
+
+  function normalizePlayerCharacterRow(row) {
+    return {
+      characterId: String(row && row.character_id ? row.character_id : "").trim(),
+      pcName: normalizePcName(row && row.pc_name),
+      isDefault: Boolean(row && row.is_default),
+      isActive: row && Object.prototype.hasOwnProperty.call(row, "is_active") ? Boolean(row.is_active) : true
+    };
+  }
+
+  function getActivePlayerCharacters(panel) {
+    return (panel.records || []).filter((record) => record.characterId && record.isActive);
+  }
+
   async function getActiveSession(client, knownSession) {
     if (knownSession && knownSession.user && knownSession.user.id) {
       return knownSession;
@@ -621,7 +699,7 @@
     submit.textContent = "登録する";
 
     form.append(
-      createInputField("表示名", displayNameInput),
+      createInputField("ユーザー名", displayNameInput),
       createInputField("メールアドレス", emailInput),
       createInputField("パスワード", passwordInput),
       createInputField("パスワード確認", passwordConfirmInput),
@@ -689,7 +767,7 @@
     current.dataset.mypageDisplayNameCurrent = "";
 
     const currentLabel = document.createElement("span");
-    currentLabel.textContent = "表示名：";
+    currentLabel.textContent = "ユーザー名：";
 
     const currentValue = document.createElement("strong");
     currentValue.dataset.mypageDisplayNameCurrentValue = "";
@@ -707,7 +785,7 @@
     displayNameInput.name = "displayName";
     displayNameInput.autocomplete = "nickname";
     displayNameInput.required = true;
-    displayNameInput.placeholder = "表示名を入力";
+    displayNameInput.placeholder = "ユーザー名を入力";
 
     const submit = document.createElement("button");
     submit.className = "button primary";
@@ -718,7 +796,7 @@
     submit.textContent = "保存";
 
     form.append(
-      createInputField("表示名", displayNameInput),
+      createInputField("ユーザー名", displayNameInput),
       submit
     );
 
@@ -771,7 +849,7 @@
   }
 
   function showDisplayNameSaveFailure(elements, error) {
-    setMessage(elements, "表示名を保存できませんでした。\nしばらくしても続く場合は、管理者へお知らせください。");
+    setMessage(elements, "ユーザー名を保存できませんでした。\nしばらくしても続く場合は、管理者へお知らせください。");
 
     if (error) {
       console.warn("display_name update failed", {
@@ -813,12 +891,12 @@
     const nextDisplayName = normalizeDisplayName(displayNameInput ? displayNameInput.value : "");
 
     if (!nextDisplayName) {
-      setMessage(elements, "表示名を入力してください。");
+      setMessage(elements, "ユーザー名を入力してください。");
       return;
     }
 
     if (countDisplayNameCharacters(nextDisplayName) > DISPLAY_NAME_MAX_LENGTH) {
-      setMessage(elements, "表示名は40文字以内で入力してください。");
+      setMessage(elements, "ユーザー名は40文字以内で入力してください。");
       return;
     }
 
@@ -838,7 +916,7 @@
       const savedDisplayName = normalizeDisplayName(row && row.display_name ? row.display_name : nextDisplayName);
       editor.inputDirty = false;
       setDisplayNameEditorState(editor, savedDisplayName);
-      setMessage(elements, "表示名を保存しました。");
+      setMessage(elements, "ユーザー名を保存しました。");
     } catch (error) {
       showDisplayNameSaveFailure(elements, error);
     } finally {
@@ -1106,16 +1184,388 @@
     }
   }
 
+  function setPlayerCharacterPanelState(panel, message, options = {}) {
+    panel.state.textContent = message || "";
+    panel.state.hidden = !message;
+    panel.state.classList.toggle("is-error", Boolean(options.error));
+    panel.state.classList.toggle("is-warn", Boolean(options.warn));
+  }
+
+  function setPlayerCharacterPanelBusy(panel, busy) {
+    panel.container.querySelectorAll("input, button").forEach((control) => {
+      control.disabled = Boolean(busy);
+    });
+  }
+
+  function createPcNameCheckbox(labelText, checked = false) {
+    const label = document.createElement("label");
+    label.className = "mypage-pc-checkbox";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = checked;
+
+    const text = document.createElement("span");
+    text.textContent = labelText;
+
+    label.append(checkbox, text);
+    return { label, checkbox };
+  }
+
+  function createPlayerCharacterPanel(client, elements, session) {
+    const container = document.createElement("section");
+    container.className = "mypage-profile-panel";
+    container.dataset.mypagePlayerCharacterPanel = "";
+
+    const head = document.createElement("div");
+    head.className = "mypage-profile-panel-head";
+
+    const title = document.createElement("h3");
+    title.textContent = "PC名";
+
+    const description = document.createElement("p");
+    description.textContent = "参加申請やリザルト表示に使うPC名を登録できます。";
+
+    head.append(title, description);
+
+    const note = document.createElement("p");
+    note.className = "mypage-profile-note";
+    note.textContent = `PC名は${PC_NAME_MAX_LENGTH}文字以内で入力してください。改行は使えません。`;
+
+    const list = document.createElement("div");
+    list.className = "mypage-pc-list";
+    list.dataset.mypagePcList = "";
+
+    const createForm = document.createElement("form");
+    createForm.className = "calendar-form mypage-pc-create-form";
+    createForm.dataset.mypagePcCreateForm = "";
+
+    const createInput = document.createElement("input");
+    createInput.type = "text";
+    createInput.name = "pcName";
+    createInput.autocomplete = "off";
+    createInput.maxLength = PC_NAME_MAX_LENGTH;
+    createInput.placeholder = "例: ボボボーボ・ボーボボ";
+
+    const defaultControl = createPcNameCheckbox("このPCを既定にする");
+
+    const createSubmit = document.createElement("button");
+    createSubmit.type = "submit";
+    createSubmit.className = "button primary";
+    createSubmit.dataset.mypageFormSubmit = "";
+    createSubmit.textContent = "保存";
+
+    createForm.append(
+      createInputField("PC名", createInput),
+      defaultControl.label,
+      createSubmit
+    );
+
+    const state = document.createElement("p");
+    state.className = "mypage-profile-state";
+    state.dataset.mypagePlayerCharacterState = "";
+    state.setAttribute("role", "status");
+    state.setAttribute("aria-live", "polite");
+    state.hidden = true;
+
+    const panel = {
+      container,
+      list,
+      createForm,
+      createInput,
+      defaultCheckbox: defaultControl.checkbox,
+      state,
+      client,
+      records: [],
+      keyToCharacter: new Map(),
+      session
+    };
+
+    createForm.addEventListener("submit", (event) => {
+      handlePlayerCharacterCreate(client, elements, panel, event);
+    });
+
+    container.append(head, note, list, createForm, state);
+    return panel;
+  }
+
+  function renderPlayerCharacters(panel) {
+    panel.list.replaceChildren();
+    panel.keyToCharacter = new Map();
+
+    const activeRecords = getActivePlayerCharacters(panel);
+    if (!activeRecords.length) {
+      setPlayerCharacterPanelState(panel, "現在、登録済みPC名はありません。");
+      return;
+    }
+
+    setPlayerCharacterPanelState(panel, "");
+    activeRecords.forEach((character, index) => {
+      const localKey = `pc-${index}`;
+      panel.keyToCharacter.set(localKey, character);
+      panel.list.append(createPlayerCharacterCard(panel, character, localKey));
+    });
+  }
+
+  function createPlayerCharacterCard(panel, character, localKey) {
+    const card = document.createElement("article");
+    card.className = "mypage-pc-card";
+    card.dataset.mypagePcCard = "";
+    card.dataset.pcKey = localKey;
+
+    const head = document.createElement("div");
+    head.className = "mypage-pc-card-head";
+
+    const name = document.createElement("h4");
+    name.textContent = character.pcName || "PC名未設定";
+
+    const defaultBadge = document.createElement("span");
+    defaultBadge.className = "tag";
+    defaultBadge.textContent = character.isDefault ? "既定" : "通常";
+
+    const activeBadge = document.createElement("span");
+    activeBadge.className = "tag";
+    activeBadge.textContent = character.isActive ? "有効" : "非アクティブ";
+
+    head.append(name, defaultBadge, activeBadge);
+
+    const editForm = document.createElement("form");
+    editForm.className = "calendar-form mypage-pc-edit-form";
+    editForm.dataset.mypagePcEditForm = "";
+
+    const editInput = document.createElement("input");
+    editInput.type = "text";
+    editInput.name = "pcName";
+    editInput.autocomplete = "off";
+    editInput.maxLength = PC_NAME_MAX_LENGTH;
+    editInput.value = character.pcName || "";
+
+    const defaultControl = createPcNameCheckbox("既定PCにする", character.isDefault);
+
+    const saveButton = document.createElement("button");
+    saveButton.type = "submit";
+    saveButton.className = "button primary";
+    saveButton.dataset.mypageFormSubmit = "";
+    saveButton.textContent = "保存";
+
+    editForm.append(
+      createInputField("PC名", editInput),
+      defaultControl.label,
+      saveButton
+    );
+
+    editForm.addEventListener("submit", (event) => {
+      handlePlayerCharacterUpdate(panel, localKey, editInput, defaultControl.checkbox, event);
+    });
+
+    const actions = document.createElement("div");
+    actions.className = "mypage-pc-actions";
+
+    if (!character.isDefault) {
+      const setDefaultButton = document.createElement("button");
+      setDefaultButton.type = "button";
+      setDefaultButton.className = "button";
+      setDefaultButton.textContent = "既定にする";
+      setDefaultButton.addEventListener("click", () => {
+        handlePlayerCharacterSetDefault(panel, localKey);
+      });
+      actions.append(setDefaultButton);
+    }
+
+    const deactivateButton = document.createElement("button");
+    deactivateButton.type = "button";
+    deactivateButton.className = "button";
+    deactivateButton.textContent = "一覧から外す";
+    deactivateButton.addEventListener("click", () => {
+      handlePlayerCharacterDeactivate(panel, localKey);
+    });
+    actions.append(deactivateButton);
+
+    card.append(head, editForm, actions);
+    return card;
+  }
+
+  function getPlayerCharacterFromPanel(panel, localKey) {
+    return panel.keyToCharacter.get(localKey) || null;
+  }
+
+  async function loadPlayerCharacters(client, panel, options = {}) {
+    setPlayerCharacterPanelState(panel, "読み込み中");
+
+    try {
+      const session = await getActiveSession(client, panel.session);
+      if (!session) {
+        setPlayerCharacterPanelState(panel, "ログインが必要です。", { error: true });
+        return;
+      }
+
+      const { data, error } = await client.rpc("get_my_player_characters");
+      if (error) {
+        setPlayerCharacterPanelState(panel, getPlayerCharacterErrorMessage(error), { error: true });
+        return;
+      }
+
+      panel.records = (Array.isArray(data) ? data : []).map(normalizePlayerCharacterRow);
+      renderPlayerCharacters(panel);
+      if (options.successMessage) {
+        setPlayerCharacterPanelState(panel, options.successMessage);
+      }
+    } catch (error) {
+      setPlayerCharacterPanelState(panel, getPlayerCharacterErrorMessage(error), { error: true });
+    }
+  }
+
+  function showPlayerCharacterSaveFailure(panel, error) {
+    setPlayerCharacterPanelState(panel, getPlayerCharacterErrorMessage(error), { error: true });
+    if (error) {
+      console.warn("player character operation failed", {
+        code: error?.code || "unknown",
+        name: error?.name || "unknown",
+        status: error?.status || "unknown"
+      });
+    }
+  }
+
+  async function handlePlayerCharacterCreate(client, elements, panel, event) {
+    event?.preventDefault?.();
+
+    const validation = validatePcName(panel.createInput ? panel.createInput.value : "");
+    if (!validation.valid) {
+      setPlayerCharacterPanelState(panel, validation.message, { error: true });
+      return;
+    }
+
+    try {
+      setMessage(elements, "");
+      setPlayerCharacterPanelState(panel, "保存中");
+      setPlayerCharacterPanelBusy(panel, true);
+      const makeDefault = panel.defaultCheckbox.checked || getActivePlayerCharacters(panel).length === 0;
+      const { error } = await client.rpc("create_player_character", {
+        p_pc_name: validation.value,
+        p_is_default: makeDefault
+      });
+
+      if (error) {
+        showPlayerCharacterSaveFailure(panel, error);
+        return;
+      }
+
+      panel.createInput.value = "";
+      panel.defaultCheckbox.checked = false;
+      await loadPlayerCharacters(client, panel, { successMessage: "PC名を登録しました。" });
+    } catch (error) {
+      showPlayerCharacterSaveFailure(panel, error);
+    } finally {
+      if (panel.container.isConnected) setPlayerCharacterPanelBusy(panel, false);
+    }
+  }
+
+  async function handlePlayerCharacterUpdate(panel, localKey, input, defaultCheckbox, event) {
+    event?.preventDefault?.();
+
+    const character = getPlayerCharacterFromPanel(panel, localKey);
+    if (!character) {
+      setPlayerCharacterPanelState(panel, "対象のPC名が見つかりません。", { error: true });
+      return;
+    }
+
+    const validation = validatePcName(input ? input.value : "");
+    if (!validation.valid) {
+      setPlayerCharacterPanelState(panel, validation.message, { error: true });
+      return;
+    }
+
+    try {
+      setPlayerCharacterPanelState(panel, "保存中");
+      setPlayerCharacterPanelBusy(panel, true);
+      const { error } = await panel.client.rpc("update_player_character", {
+        p_character_id: character.characterId,
+        p_pc_name: validation.value,
+        p_is_default: Boolean(defaultCheckbox && defaultCheckbox.checked),
+        p_is_active: true
+      });
+
+      if (error) {
+        showPlayerCharacterSaveFailure(panel, error);
+        return;
+      }
+
+      await loadPlayerCharacters(panel.client, panel, { successMessage: "PC名を保存しました。" });
+    } catch (error) {
+      showPlayerCharacterSaveFailure(panel, error);
+    } finally {
+      if (panel.container.isConnected) setPlayerCharacterPanelBusy(panel, false);
+    }
+  }
+
+  async function handlePlayerCharacterSetDefault(panel, localKey) {
+    const character = getPlayerCharacterFromPanel(panel, localKey);
+    if (!character) {
+      setPlayerCharacterPanelState(panel, "対象のPC名が見つかりません。", { error: true });
+      return;
+    }
+
+    try {
+      setPlayerCharacterPanelState(panel, "保存中");
+      setPlayerCharacterPanelBusy(panel, true);
+      const { error } = await panel.client.rpc("set_default_player_character", {
+        p_character_id: character.characterId
+      });
+
+      if (error) {
+        showPlayerCharacterSaveFailure(panel, error);
+        return;
+      }
+
+      await loadPlayerCharacters(panel.client, panel, { successMessage: "既定PCを更新しました。" });
+    } catch (error) {
+      showPlayerCharacterSaveFailure(panel, error);
+    } finally {
+      if (panel.container.isConnected) setPlayerCharacterPanelBusy(panel, false);
+    }
+  }
+
+  async function handlePlayerCharacterDeactivate(panel, localKey) {
+    const character = getPlayerCharacterFromPanel(panel, localKey);
+    if (!character) {
+      setPlayerCharacterPanelState(panel, "対象のPC名が見つかりません。", { error: true });
+      return;
+    }
+
+    const confirmed = window.confirm("このPC名を一覧から外しますか？\n過去の参加申請に保存されたPC名は残ります。");
+    if (!confirmed) return;
+
+    try {
+      setPlayerCharacterPanelState(panel, "保存中");
+      setPlayerCharacterPanelBusy(panel, true);
+      const { error } = await panel.client.rpc("deactivate_player_character", {
+        p_character_id: character.characterId
+      });
+
+      if (error) {
+        showPlayerCharacterSaveFailure(panel, error);
+        return;
+      }
+
+      await loadPlayerCharacters(panel.client, panel, { successMessage: "PC名を一覧から外しました。" });
+    } catch (error) {
+      showPlayerCharacterSaveFailure(panel, error);
+    } finally {
+      if (panel.container.isConnected) setPlayerCharacterPanelBusy(panel, false);
+    }
+  }
+
   function renderAuthenticated(client, elements, message, session) {
     ensureAuthElements(elements);
     setStatus(
       elements,
       "ログイン済みです。",
-      "表示名、DiscordユーザーID、参加申請中・参加予定セッションを確認できます。"
+      "ユーザー名、PC名、DiscordユーザーID、参加申請中・参加予定セッションを確認できます。"
     );
     clearContent(elements);
 
     const displayNameEditor = createDisplayNameEditor(client, elements, session);
+    const playerCharacterPanel = createPlayerCharacterPanel(client, elements, session);
     const discordIdEditor = createDiscordIdEditor(client, elements, session);
     const applicationsPanel = createApplicationsPanel();
 
@@ -1141,9 +1591,16 @@
     });
 
     actions.append(changePassword, logout);
-    elements.content.append(displayNameEditor.container, discordIdEditor.container, actions, applicationsPanel.container);
+    elements.content.append(
+      displayNameEditor.container,
+      playerCharacterPanel.container,
+      discordIdEditor.container,
+      actions,
+      applicationsPanel.container
+    );
     setMessage(elements, message || "");
     loadDisplayName(client, displayNameEditor);
+    loadPlayerCharacters(client, playerCharacterPanel);
     loadProfileContact(client, discordIdEditor);
     loadApplications(client, applicationsPanel, session);
   }
@@ -1311,13 +1768,13 @@
 
     if (!displayName) {
       clearSignupPasswords(form);
-      setMessage(elements, "表示名を入力してください。");
+      setMessage(elements, "ユーザー名を入力してください。");
       return;
     }
 
     if (countDisplayNameCharacters(displayName) > DISPLAY_NAME_MAX_LENGTH) {
       clearSignupPasswords(form);
-      setMessage(elements, "表示名は40文字以内で入力してください。");
+      setMessage(elements, "ユーザー名は40文字以内で入力してください。");
       return;
     }
 

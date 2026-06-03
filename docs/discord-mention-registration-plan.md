@@ -24,22 +24,22 @@
 
 呼び出し用テンプレートでは、GMが承認済み参加者を一人ずつ選ぶ方式にはしない。現在のセッションに紐付く承認済み参加者全員を対象にし、コピー時にテンプレート内の変数をまとめて置換する。
 
-`{{approved_call_list}}` は、承認済み参加者のDiscordメンション、表示名、PC名を1人1行でまとめて出力する。呼び出し文で実用性が高いため、初期実装では `{{approved_discord_mentions}}` より優先して扱う。
+`{{approved_call_list}}` は、承認済み参加者のDiscordメンション、ユーザー名、PC名を1人1行でまとめて出力する。呼び出し文で実用性が高いため、初期実装では `{{approved_discord_mentions}}` より優先して扱う。
 
 出力形式:
 
 ```text
-<@123456789012345678> 表示名 PC名
-登録されていません 表示名 PC名
-<@234567890123456789> 表示名 PC名
+<@123456789012345678> ユーザー名 PC名
+登録されていません ユーザー名 PC名
+<@234567890123456789> ユーザー名 PC名
 ```
 
-DiscordユーザーIDが登録済みで形式が正しい場合は、`<@DiscordユーザーID> 表示名 PC名` の形式で出力する。DiscordユーザーIDが未登録、または形式不正の場合は、メンション部分を `登録されていません` に置き換える。
+DiscordユーザーIDが登録済みで形式が正しい場合は、`<@DiscordユーザーID> ユーザー名 PC名` の形式で出力する。DiscordユーザーIDが未登録、または形式不正の場合は、メンション部分を `登録されていません` に置き換える。
 
 PC名が未登録の場合は、初期方針として `PC名未登録` を出すことを推奨する。リザルトテンプレート運用を考えると、PC名が未登録であることが明示される方が望ましい。
 
 ```text
-<@123456789012345678> 表示名 PC名未登録
+<@123456789012345678> ユーザー名 PC名未登録
 ```
 
 `{{approved_discord_mentions}}` は、承認済み参加者全員のDiscordメンションだけをまとめて出力する変数として後続候補に残してよい。`{{approved_pc_names}}` は承認済み参加者のPC名一覧を出す変数候補とし、PC名未登録時は `PC名未登録` を含める方針を優先する。
@@ -99,3 +99,10 @@ PC管理RPC 5本は作成済みで、各RPCは `security_definer = true`。
 
 次工程はM-15Eとして mypage PC名登録UI。
 今回CodexはSQL Editor追加実行、DB構造追加変更、RPC再作成、GRANT / REVOKE再実行、実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+## M-15E PC名登録UIとの関係
+
+M-15EでmypageにPC名登録UIを追加した。DiscordユーザーID登録UIそのものは変更せず、後続テンプレート変数 `{{approved_call_list}}` / `{{approved_pc_names}}` のためのPC名管理導線を追加した扱いとする。
+
+呼び出し用テンプレートでは、DiscordユーザーIDから生成する `<@DiscordユーザーID>`、ユーザー名、PC名を組み合わせる。PC名は後続工程で `session_applications.pc_name_snapshot` を正として使う方針を維持し、M-15E時点では参加申請へのスナップショット保存やテンプレート置換処理はまだ実装していない。
+
+今回CodexはSQL Editor実行、DB構造変更、RPC変更、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。

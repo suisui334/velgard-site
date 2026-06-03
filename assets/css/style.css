@@ -3244,12 +3244,14 @@ body[data-page="session-detail"] .calendar-session-modal-meta--supplement dd {
 body[data-page="mypage"] [data-mypage-auth-content],
 body[data-page="mypage"] [data-mypage-display-name-panel],
 body[data-page="mypage"] [data-mypage-discord-id-panel],
+body[data-page="mypage"] [data-mypage-player-character-panel],
 body[data-page="mypage"] .mypage-applications {
   display: grid;
   gap: 16px;
 }
 
-body[data-page="mypage"] [data-mypage-discord-id-panel] {
+body[data-page="mypage"] [data-mypage-discord-id-panel],
+body[data-page="mypage"] [data-mypage-player-character-panel] {
   gap: 10px;
   padding-top: 16px;
   border-top: 1px solid rgba(86, 96, 106, 0.18);
@@ -3322,6 +3324,62 @@ body[data-page="mypage"] .mypage-profile-state.is-error {
 body[data-page="mypage"] .mypage-profile-state.is-warn,
 body[data-page="mypage"] [data-mypage-discord-id-current-value].is-invalid {
   color: var(--rust);
+}
+
+body[data-page="mypage"] .mypage-pc-list {
+  display: grid;
+  gap: 10px;
+}
+
+body[data-page="mypage"] .mypage-pc-card {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 7px;
+  background: rgba(255, 255, 250, 0.62);
+}
+
+body[data-page="mypage"] .mypage-pc-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+body[data-page="mypage"] .mypage-pc-card-head h4 {
+  flex: 1 1 220px;
+  min-width: 0;
+  margin: 0;
+  color: var(--soot);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="mypage"] .mypage-pc-checkbox {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  width: fit-content;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+body[data-page="mypage"] .mypage-pc-checkbox input {
+  width: auto;
+}
+
+body[data-page="mypage"] .mypage-pc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+body[data-page="mypage"] .mypage-pc-actions .button {
+  min-height: 34px;
+  padding: 6px 11px;
+  font-size: 0.82rem;
 }
 
 body[data-page="mypage"] .mypage-applications {

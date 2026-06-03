@@ -355,3 +355,14 @@ DB側の変更は、`player_characters` テーブル、`session_applications.sel
 
 次工程はM-15Eとして mypage PC名登録UI を実装する想定。
 今回CodexはSQL Editor追加実行、DB構造追加変更、RPC再作成、GRANT / REVOKE再実行、実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
+## M-15E mypage PC名登録UI接続
+
+M-15Eで、SQL Editor適用済みのPC管理RPC 5本をmypage UIから利用する接続を行った。利用するRPCは `get_my_player_characters()`、`create_player_character(text, boolean)`、`update_player_character(uuid, text, boolean, boolean)`、`set_default_player_character(uuid)`、`deactivate_player_character(uuid)`。
+
+今回のUI実装ではDB構造追加変更、RPC再作成、GRANT / REVOKE再実行は行っていない。PC名の非表示化は `deactivate_player_character` に任せ、`player_characters` 行の物理削除は行わない。
+
+参加申請時に `session_applications.selected_character_id` / `pc_name_snapshot` へ反映する処理、承認済み参加者一覧やテンプレート用データ取得のPC名対応は後続M-15F以降で扱う。
+
+raw DB uuid / owner_user_id / Supabase user_id / email / token / secret類はUI・DOM・consoleへ出さない。DOM上の操作キーは `pc-0` などのローカル値だけを使う。
+
+今回CodexはSQL Editor追加実行、DB追加変更、RPC再作成、GRANT / REVOKE再実行、実データ投入、Discord実送信、Edge Function deploy、`updates.json` 変更、secret類の出力、commit / pushを行っていない。
