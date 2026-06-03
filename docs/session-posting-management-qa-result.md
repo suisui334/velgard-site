@@ -281,3 +281,13 @@ preflight SQLは `pg_get_functiondef` を使わず、必要なRPCだけをsignat
 主要RPCとhelper関数は `security_definer = true`。対象RPCは `authenticated EXECUTE` ありで、確認結果画面では `anon` / `public` EXECUTEは出ていない。`table_privileges` の `REFERENCES` / `TRIGGER` / `TRUNCATE` 表示は権限一覧の読み取り結果であり、SQLが実行した操作ではない。後続実装ではDB直操作ではなくRPC経由方針を維持する。
 
 `020_application_pc_snapshot_rpc_draft.sql` は、既存signature、security definer、`set search_path = ''`、status許可値、PC名未登録許可、GMコメント非申請扱い、新規PL申請時snapshot、再申請時snapshot更新、コメント編集時snapshot維持の点でpreflight結果と矛盾しない。
+
+## M-15F application PC snapshot APPLY専用SQL
+
+M-15Fとして、参加申請コメント投稿時にPC名snapshotを保存するAPPLY専用SQL `docs/supabase/sql/020_application_pc_snapshot_apply_reviewed.sql` を作成した。対象は `create_application_comment(text,text)` の置換で、APPLY時はこの専用ファイルを使い、draft全文は貼らない。
+
+参加申請コメント本文は自由本文として維持し、PC名やDiscordユーザーIDを手入力させない。PLの新規申請と `canceled -> pending` の再申請では、本人のactive default PCを `selected_character_id` / `pc_name_snapshot` へ保存する。PC名未登録でも申請可能で、snapshot列は `null` とする。
+
+GMコメントは投稿可能だが参加申請扱いにせず、`session_comments.is_application = false` として保存する。GMコメントでは `session_applications` 行の作成/更新やPC snapshot保存を行わない。コメント編集時はsnapshotを維持する。
+
+APPLY専用SQLには、`authenticated` のみEXECUTEを許可し、`public` / `anon` のEXECUTEを外す権限文と、関数本数、`security_definer`、signature、EXECUTE権限、snapshot列の存在を確認するSELECTを含めた。この工程ではAPPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。

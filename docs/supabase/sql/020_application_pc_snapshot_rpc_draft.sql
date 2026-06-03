@@ -4,6 +4,12 @@
 -- DRAFT ONLY. DO NOT RUN UNTIL A REVIEWED APPLY STEP IS REQUESTED.
 -- This file intentionally documents CREATE/REPLACE and privilege statements
 -- for review. It is not a SELECT-only preflight file.
+-- SQL Editor apply uses:
+--   docs/supabase/sql/020_application_pc_snapshot_apply_reviewed.sql
+-- Do not paste this full draft file for the reviewed APPLY step.
+-- The reviewed APPLY file is the source of truth for execution. It keeps the
+-- PL open-session gate, while allowing GM/admin management comments to remain
+-- non-application comments.
 --
 -- Do not paste Project URL, API keys, service role keys, DB passwords,
 -- connection strings, JWT secrets, tokens, real emails, real user IDs,

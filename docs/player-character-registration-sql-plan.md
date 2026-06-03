@@ -418,3 +418,15 @@ RPC草案 `020_application_pc_snapshot_rpc_draft.sql` は既存signature、secur
 主要RPCとhelper関数は `security_definer = true`。対象RPCは `authenticated EXECUTE` ありで、確認結果画面では `anon` / `public` EXECUTEは出ていない。`table_privileges` に `REFERENCES` / `TRIGGER` / `TRUNCATE` 等が表示されたが、これは権限一覧の読み取り結果であり、SQLがTRUNCATE等を実行したわけではない。後続実装ではフロント直操作を行わずRPC経由を維持する。
 
 `020_application_pc_snapshot_rpc_draft.sql` は、既存signature、`security definer`、`set search_path = ''`、authenticated EXECUTEのみ、status許可値、PC名未登録許可、GMコメント非申請扱い、新規PL申請時active default PC snapshot、再申請時snapshot更新、コメント編集時snapshot維持の各方針と矛盾しない。今回CodexはSQL Editor追加実行、DB構造変更、RPC作成/置換、GRANT / REVOKE、APPLY専用SQL作成、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushを行っていない。
+
+## M-15F application PC snapshot APPLY専用SQL作成
+
+M-15FのAPPLY準備として `docs/supabase/sql/020_application_pc_snapshot_apply_reviewed.sql` を作成した。対象は `public.create_application_comment(text,text)` の置換のみで、`player_characters` や `session_applications` の構造変更は含めない。
+
+APPLYでは、未ログインを拒否し、PL向けには既存の `can_apply_to_session(text)` を維持する。GM本人または既存 `is_session_gm(text)` helperで管理コメント扱いとなる投稿は、コメント投稿を許可しつつ参加申請扱いにしない。GMコメントでは `session_applications` を作成/更新せず、`selected_character_id` / `pc_name_snapshot` も保存しない。
+
+PLの新規申請時は `owner_user_id = auth.uid()` / `is_active = true` / `is_default = true` のPCを取得し、`selected_character_id` と `pc_name_snapshot` へ保存する。既定PCがない場合も申請可能で、snapshot列は `null` のままとする。`canceled -> pending` の再申請時は、その時点のactive default PCでsnapshotを更新する。既存の `pending` / `accepted` / `rejected` / `waitlisted` 行にコメントを追記する場合、およびコメント編集時はsnapshotを維持する。
+
+APPLY専用SQLには `revoke execute` / `grant execute` による権限整理と、関数本数、`security_definer`、signature、`authenticated` / `anon` / `public` のEXECUTE状態、`selected_character_id` / `pc_name_snapshot` の存在を確認するSELECTを含めた。
+
+この工程ではAPPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。

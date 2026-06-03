@@ -467,3 +467,13 @@ M-15F以降へ進む前の補正として、SELECT-only preflight `docs/supabase
 status許可値は `pending` / `accepted` / `rejected` / `waitlisted` / `canceled`。主要RPCとhelper関数は `security_definer = true`、対象RPCは `authenticated EXECUTE` ありで、確認画面では `anon` / `public` EXECUTEは出ていない。
 
 `table_privileges` では `REFERENCES` / `TRIGGER` / `TRUNCATE` などの権限表示が確認されたが、これは権限一覧の読み取り結果であり、preflightがそれらを実行したものではない。後続もフロントからDB直操作せずRPC経由を維持する。
+
+## M-15F APPLY専用SQL作成
+
+M-15Fとして、参加申請PC名snapshot接続用のAPPLY専用SQL `docs/supabase/sql/020_application_pc_snapshot_apply_reviewed.sql` を作成した。SQL Editorで適用する場合はAPPLY専用ファイルを使い、draft全文は貼らない方針とする。
+
+APPLY専用SQLは `create_application_comment(text,text)` を置換し、参加申請コメント本文を自由本文として維持する。コメント欄にユーザー名、PC名、DiscordユーザーIDを手入力させず、PC名はmypageで登録したactive default PCから自動取得する。
+
+新規PL申請と再申請では、その時点の既定PCを `selected_character_id` / `pc_name_snapshot` に保存する。PC名未登録でも申請は許可し、snapshot列は `null` とする。GMコメントは投稿可能だが参加申請扱いにせず、`session_applications` 行やPC snapshotを作成/更新しない。コメント編集時はsnapshotを維持する。
+
+この工程ではAPPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。

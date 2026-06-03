@@ -868,3 +868,13 @@
 - 後続実装ではフロントからDB直操作を行わず、RPC経由方針を維持する。
 - `020_application_pc_snapshot_rpc_draft.sql` はpreflight結果と矛盾しない。
 - SQL Editor追加実行なし、DB構造変更なし、RPC作成なし、GRANT / REVOKE未実行、APPLY専用SQL作成なし、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。
+
+## M-15F application PC snapshot APPLY専用SQL作成
+- 参加申請時にPC名snapshotを保存するAPPLY専用SQL `docs/supabase/sql/020_application_pc_snapshot_apply_reviewed.sql` を作成した。
+- 対象は `create_application_comment(text,text)` の置換のみ。SQL Editorで適用する場合はAPPLY専用ファイルを使い、`020_application_pc_snapshot_rpc_draft.sql` の全文は貼らない。
+- 参加申請コメント本文にPC名、DiscordユーザーID、ユーザー名を書かせない。コメント本文はPLの自由本文として維持する。
+- PLの新規申請と辞退済みからの再申請では、本人のactive default PCを `selected_character_id` / `pc_name_snapshot` へ保存する。PC名未登録でも申請可能で、snapshot列は `null`。
+- GMコメントは投稿可能だが参加申請扱いにしない。`session_comments.is_application = false` とし、`session_applications` の作成/更新やPC snapshot保存は行わない。
+- コメント編集時はsnapshotを維持する。再申請時のみ、その時点の既定PCでsnapshotを更新する。
+- APPLY専用SQLには `authenticated` のみEXECUTEを許可する権限文と、関数本数、`security_definer`、signature、EXECUTE権限、snapshot列の存在を確認するSELECTを含めた。
+- APPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。
