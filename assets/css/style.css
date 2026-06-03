@@ -2647,7 +2647,8 @@ body[data-page="session-detail"] .session-gm-history-control[hidden] {
 }
 
 body[data-page="session-detail"] .session-gm-history-details,
-body[data-page="session-detail"] .session-gm-contact-details {
+body[data-page="session-detail"] .session-gm-contact-details,
+body[data-page="session-detail"] .session-gm-template-details {
   min-width: 0;
   border: 1px solid rgba(86, 96, 106, 0.18);
   border-radius: 8px;
@@ -2655,12 +2656,14 @@ body[data-page="session-detail"] .session-gm-contact-details {
 }
 
 body[data-page="session-detail"] .session-gm-history-details[open],
-body[data-page="session-detail"] .session-gm-contact-details[open] {
+body[data-page="session-detail"] .session-gm-contact-details[open],
+body[data-page="session-detail"] .session-gm-template-details[open] {
   background: rgba(250, 252, 247, 0.76);
 }
 
 body[data-page="session-detail"] .session-gm-history-summary,
-body[data-page="session-detail"] .session-gm-contact-summary {
+body[data-page="session-detail"] .session-gm-contact-summary,
+body[data-page="session-detail"] .session-gm-template-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2677,12 +2680,14 @@ body[data-page="session-detail"] .session-gm-contact-summary {
 }
 
 body[data-page="session-detail"] .session-gm-history-summary::-webkit-details-marker,
-body[data-page="session-detail"] .session-gm-contact-summary::-webkit-details-marker {
+body[data-page="session-detail"] .session-gm-contact-summary::-webkit-details-marker,
+body[data-page="session-detail"] .session-gm-template-summary::-webkit-details-marker {
   display: none;
 }
 
 body[data-page="session-detail"] .session-gm-history-summary::after,
-body[data-page="session-detail"] .session-gm-contact-summary::after {
+body[data-page="session-detail"] .session-gm-contact-summary::after,
+body[data-page="session-detail"] .session-gm-template-summary::after {
   content: "+";
   flex: 0 0 auto;
   display: inline-flex;
@@ -2698,12 +2703,14 @@ body[data-page="session-detail"] .session-gm-contact-summary::after {
 }
 
 body[data-page="session-detail"] .session-gm-history-details[open] .session-gm-history-summary::after,
-body[data-page="session-detail"] .session-gm-contact-details[open] .session-gm-contact-summary::after {
+body[data-page="session-detail"] .session-gm-contact-details[open] .session-gm-contact-summary::after,
+body[data-page="session-detail"] .session-gm-template-details[open] .session-gm-template-summary::after {
   content: "-";
 }
 
 body[data-page="session-detail"] .session-gm-history-body,
-body[data-page="session-detail"] .session-gm-contact-body {
+body[data-page="session-detail"] .session-gm-contact-body,
+body[data-page="session-detail"] .session-gm-template-body {
   display: grid;
   gap: 12px;
   min-width: 0;
@@ -2900,6 +2907,97 @@ body[data-page="session-detail"] .session-gm-contact-actions {
 }
 
 body[data-page="session-detail"] .session-gm-contact-copy-button {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 0.78rem;
+}
+
+body[data-page="session-detail"] .session-gm-template-field,
+body[data-page="session-detail"] .session-gm-template-variables {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-gm-template-label,
+body[data-page="session-detail"] .session-gm-template-subtitle {
+  margin: 0;
+  color: var(--soot);
+  font-size: 0.82rem;
+  font-weight: 900;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-gm-template-textarea,
+body[data-page="session-detail"] .session-gm-template-output {
+  width: 100%;
+  min-width: 0;
+  min-height: 132px;
+  padding: 10px 12px;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 250, 0.82);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+body[data-page="session-detail"] .session-gm-template-output {
+  min-height: 154px;
+  background: rgba(250, 252, 247, 0.82);
+}
+
+body[data-page="session-detail"] .session-gm-template-variable-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+}
+
+body[data-page="session-detail"] .session-gm-template-variable-list div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(86, 96, 106, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 250, 0.62);
+}
+
+body[data-page="session-detail"] .session-gm-template-variable-list dt,
+body[data-page="session-detail"] .session-gm-template-variable-list dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-gm-template-variable-list dt {
+  color: var(--ink);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+body[data-page="session-detail"] .session-gm-template-variable-list dd {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+body[data-page="session-detail"] .session-gm-template-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-gm-template-copy-button {
   min-height: 34px;
   padding: 0 12px;
   font-size: 0.78rem;

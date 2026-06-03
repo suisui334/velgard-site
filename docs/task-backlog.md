@@ -950,3 +950,14 @@
 - PC名未登録は `PC名：PC名未登録`、Discord未登録・形式不正は `Discord：登録されていません`。形式不正の `discord_handle` 生値は表示・コピーしない。
 - raw user_id / email / token / selected_character_id / application_id は表示しない。
 - SQL Editor未実行、DB構造変更なし、RPC変更なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。
+
+## M-15H GM向けテンプレ変数置換UI
+- session-detailのGM/admin管理領域に、呼び出し文用のテンプレ変数置換UIを追加した。
+- UIはGM/admin権限確認後のみ表示し、通常PLには表示しない。配置はGM向け申請履歴、承認済み参加者連絡先の並び。
+- 対応変数は `{{session_title}}`、`{{approved_call_list}}`、`{{approved_pc_names}}`。
+- `{{approved_call_list}}` はM-15G確定の `Discord：discord_mention｜ユーザー名：display_name｜PC名：pc_name` 形式を既存 `formatGmContactLine` 経由で出力する。
+- `{{approved_pc_names}}` はPC名だけを `、` 区切りで出力し、PC名未登録は `PC名未登録` とする。承認済み参加者がいない場合は空扱い。
+- 承認済み参加者がいない場合の `{{approved_call_list}}` は既存連絡先UIに合わせて `承認済み参加者はまだいません` とする。
+- 第一段階のためテンプレート保存、DB保存、localStorage保存は実装しない。
+- raw user_id / email / token / selected_character_id / application_id は表示・DOM・console・docsに出さない。
+- SQL Editor未実行、DB構造変更なし、RPC変更なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。

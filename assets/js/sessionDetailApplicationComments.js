@@ -19,6 +19,8 @@ const DISCORD_USER_ID_PATTERN = /^\d{17,20}$/;
 const DISCORD_MENTION_PATTERN = /^<@(\d{17,20})>$/;
 const DISCORD_CONTACT_MISSING_MESSAGE = "登録されていません";
 const PC_NAME_MISSING_MESSAGE = "PC名未登録";
+const GM_ACCEPTED_CONTACTS_EMPTY_MESSAGE = "承認済み参加者はまだいません";
+const GM_TEMPLATE_DEFAULT_TEXT = "{{session_title}} 参加者呼び出し\n\n{{approved_call_list}}\n\nPC一覧：\n{{approved_pc_names}}";
 const POST_ALLOWED_STATUSES = new Set(["recruiting", "tentative"]);
 const COMMENT_UPDATE_ERROR_MESSAGE = "コメントを保存できませんでした。時間をおいて再度お試しください。";
 const COMMENT_UPDATE_PERMISSION_MESSAGE = "編集権限がないか、コメントの状態が変更された可能性があります。";
@@ -108,6 +110,21 @@ const GM_CONTACT_FIELD_NAMES = new Set([
   "discord_mention",
   "pc_name",
   "pc_name_missing"
+]);
+
+const GM_TEMPLATE_VARIABLES = Object.freeze([
+  {
+    name: "{{session_title}}",
+    description: "現在のセッション名"
+  },
+  {
+    name: "{{approved_call_list}}",
+    description: "承認済み参加者のDiscord・ユーザー名・PC名"
+  },
+  {
+    name: "{{approved_pc_names}}",
+    description: "承認済み参加者のPC名一覧"
+  }
 ]);
 
 const GM_APPLICATION_STATUS_ACTION_COPY = Object.freeze({
@@ -1344,10 +1361,54 @@ function formatGmContactCopyText(rows) {
     .join("\n");
 }
 
+function formatGmApprovedCallList(rows) {
+  return rows.length ? formatGmContactCopyText(rows) : GM_ACCEPTED_CONTACTS_EMPTY_MESSAGE;
+}
+
+function formatGmApprovedPcNames(rows) {
+  return rows
+    .map((row) => row.pcNameCopyText)
+    .filter((text) => text)
+    .join("、");
+}
+
+function formatGmTemplateText(templateText, options = {}) {
+  const template = String(templateText ?? "");
+  const contactRows = Array.isArray(options.contactRows) ? options.contactRows : [];
+  const sessionTitle = toSingleLineText(redactSensitiveText(options.sessionTitle)) || "セッション名未設定";
+
+  return template
+    .replaceAll("{{session_title}}", sessionTitle)
+    .replaceAll("{{approved_call_list}}", formatGmApprovedCallList(contactRows))
+    .replaceAll("{{approved_pc_names}}", formatGmApprovedPcNames(contactRows));
+}
+
+function createGmAcceptedContactsLoader(options = {}) {
+  let cachedRows = null;
+  let loadingPromise = null;
+
+  return async () => {
+    if (cachedRows) return cachedRows;
+    if (!loadingPromise) {
+      loadingPromise = (async () => {
+        const rows = await queryGmSessionAcceptedContacts(options.client, options.sessionId);
+        const filteredRows = await filterOutSessionOwnerDisplayNameRows(options.client, rows, options.gmUserId);
+        cachedRows = filteredRows;
+        return filteredRows;
+      })().catch((error) => {
+        loadingPromise = null;
+        throw error;
+      });
+    }
+    return loadingPromise;
+  };
+}
+
 async function writeClipboardText(text) {
-  if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+  const clipboard = typeof navigator !== "undefined" ? navigator.clipboard : null;
+  if (clipboard && typeof clipboard.writeText === "function") {
     try {
-      await navigator.clipboard.writeText(text);
+      await clipboard.writeText(text);
       return;
     } catch {
       // Fall through to the textarea copy path for browsers without clipboard permission.
@@ -1366,7 +1427,7 @@ async function writeClipboardText(text) {
   textarea.select();
 
   try {
-    if (!document.execCommand("copy")) {
+    if (typeof document.execCommand !== "function" || !document.execCommand("copy")) {
       throw new Error("clipboard-copy-failed");
     }
   } finally {
@@ -1808,9 +1869,10 @@ function createGmContactControl(options = {}) {
     setGmContactState(body, "読み込み中", "is-warn");
 
     try {
-      const rows = await queryGmSessionAcceptedContacts(options.client, options.sessionId);
-      const filteredRows = await filterOutSessionOwnerDisplayNameRows(options.client, rows, options.gmUserId);
-      renderGmContactRows(body, filteredRows);
+      const rows = typeof options.loadGmAcceptedContacts === "function"
+        ? await options.loadGmAcceptedContacts()
+        : await createGmAcceptedContactsLoader(options)();
+      renderGmContactRows(body, rows);
       hasLoaded = true;
     } catch {
       setGmContactState(body, "連絡先を取得できませんでした", "is-error");
@@ -1827,12 +1889,170 @@ function createGmContactControl(options = {}) {
   return details;
 }
 
+function createGmTemplateVariableList() {
+  const list = document.createElement("dl");
+  list.className = "session-gm-template-variable-list";
+
+  for (const variable of GM_TEMPLATE_VARIABLES) {
+    const group = document.createElement("div");
+    const term = document.createElement("dt");
+    const description = document.createElement("dd");
+
+    term.textContent = variable.name;
+    description.textContent = variable.description;
+    group.append(term, description);
+    list.append(group);
+  }
+
+  return list;
+}
+
+function createGmTemplateControl(options = {}) {
+  const details = document.createElement("details");
+  details.className = "session-gm-template-details";
+
+  const summary = document.createElement("summary");
+  summary.className = "session-gm-template-summary";
+  summary.textContent = "GM向け：呼び出しテンプレート";
+
+  const body = document.createElement("div");
+  body.className = "session-gm-template-body";
+
+  const field = document.createElement("label");
+  field.className = "session-gm-template-field";
+
+  const labelText = document.createElement("span");
+  labelText.className = "session-gm-template-label";
+  labelText.textContent = "テンプレ文";
+
+  const input = document.createElement("textarea");
+  input.className = "session-gm-template-textarea";
+  input.rows = 7;
+  input.value = GM_TEMPLATE_DEFAULT_TEXT;
+  input.spellcheck = false;
+
+  field.append(labelText, input);
+
+  const variables = document.createElement("section");
+  variables.className = "session-gm-template-variables";
+
+  const variablesTitle = document.createElement("h4");
+  variablesTitle.className = "session-gm-template-subtitle";
+  variablesTitle.textContent = "利用可能な変数";
+  variables.append(variablesTitle, createGmTemplateVariableList());
+
+  const resultField = document.createElement("label");
+  resultField.className = "session-gm-template-field";
+
+  const resultLabel = document.createElement("span");
+  resultLabel.className = "session-gm-template-label";
+  resultLabel.textContent = "置換結果";
+
+  const output = document.createElement("textarea");
+  output.className = "session-gm-template-output";
+  output.rows = 8;
+  output.readOnly = true;
+  output.spellcheck = false;
+
+  resultField.append(resultLabel, output);
+
+  const actions = document.createElement("div");
+  actions.className = "session-gm-template-actions";
+
+  const copyButton = document.createElement("button");
+  copyButton.className = "session-application-button session-comment-button session-gm-template-copy-button";
+  copyButton.type = "button";
+  copyButton.textContent = "置換結果をコピー";
+  copyButton.disabled = true;
+
+  const status = document.createElement("p");
+  status.setAttribute("aria-live", "polite");
+  setInlineStatus(status, "承認済み参加者情報を読み込んでいます。", "is-warn");
+
+  actions.append(copyButton, status);
+  body.append(field, variables, resultField, actions);
+
+  let contactRows = [];
+  let hasLoaded = false;
+  let isLoading = false;
+
+  const updateResult = () => {
+    if (!hasLoaded) {
+      output.value = "";
+      copyButton.disabled = true;
+      return;
+    }
+    output.value = formatGmTemplateText(input.value, {
+      sessionTitle: options.sessionTitle,
+      contactRows
+    });
+    copyButton.disabled = output.value.length === 0;
+  };
+
+  const loadTemplateData = async () => {
+    if (!details.open || hasLoaded || isLoading) return;
+
+    isLoading = true;
+    setInlineStatus(status, "承認済み参加者情報を読み込んでいます。", "is-warn");
+    updateResult();
+
+    try {
+      const rows = typeof options.loadGmAcceptedContacts === "function"
+        ? await options.loadGmAcceptedContacts()
+        : await createGmAcceptedContactsLoader(options)();
+      contactRows = normalizeGmContactRows(rows);
+      hasLoaded = true;
+      updateResult();
+      setInlineStatus(status, "");
+    } catch {
+      output.value = "";
+      copyButton.disabled = true;
+      setInlineStatus(status, "テンプレ変数の取得に失敗しました。", "is-error");
+    } finally {
+      isLoading = false;
+    }
+  };
+
+  input.addEventListener("input", () => {
+    updateResult();
+    if (hasLoaded) setInlineStatus(status, "");
+  });
+
+  copyButton.addEventListener("click", async () => {
+    if (!hasLoaded || !output.value) return;
+
+    copyButton.disabled = true;
+    setInlineStatus(status, "");
+
+    try {
+      await writeClipboardText(output.value);
+      setInlineStatus(status, "コピーしました", "is-ok");
+    } catch {
+      setInlineStatus(status, "コピーできませんでした", "is-error");
+    } finally {
+      copyButton.disabled = output.value.length === 0;
+    }
+  });
+
+  details.addEventListener("toggle", () => {
+    void loadTemplateData();
+  });
+
+  details.append(summary, body);
+  return details;
+}
+
 function renderGmHistoryControl(target, canView, options = {}) {
   if (!target) return;
   target.replaceChildren();
   target.hidden = !canView;
 
   if (!canView) return;
+
+  const gmSharedOptions = {
+    ...options,
+    loadGmAcceptedContacts: createGmAcceptedContactsLoader(options)
+  };
 
   const details = document.createElement("details");
   details.className = "session-gm-history-details";
@@ -1893,7 +2113,7 @@ function renderGmHistoryControl(target, canView, options = {}) {
   });
 
   details.append(summary, body);
-  target.append(details, createGmContactControl(options));
+  target.append(details, createGmContactControl(gmSharedOptions), createGmTemplateControl(gmSharedOptions));
 
   if (options.openOnLoad) {
     details.open = true;
@@ -2301,6 +2521,7 @@ function renderComments(target, rows, options = {}) {
 async function refreshPanel(panel, sessionId, options = {}) {
   const panelContext = panelSessionContexts.get(panel) || {};
   const gmUserId = normalizeInternalId(options.gmUserId || panelContext.gmUserId);
+  const sessionTitle = toSingleLineText(options.sessionTitle || panelContext.sessionTitle);
   const countsTarget = panel.querySelector("[data-session-comment-counts]");
   const commentsTarget = panel.querySelector("[data-session-comment-list]");
   const authNote = panel.querySelector("[data-session-comment-auth-note]");
@@ -2379,6 +2600,7 @@ async function refreshPanel(panel, sessionId, options = {}) {
       client,
       panel,
       sessionId,
+      sessionTitle,
       gmUserId,
       authState: authContext.state,
       publicCommentRows: commentsResult.status === "fulfilled" ? commentsResult.value : [],
@@ -2430,7 +2652,8 @@ export function initSessionDetailApplicationComments(root, options = {}) {
     panel.dataset.sessionApplicationInitialized = "true";
     const sessionId = String(options.sessionId || panel.dataset.sessionId || "").trim();
     panelSessionContexts.set(panel, {
-      gmUserId: normalizeInternalId(options.gmUserId)
+      gmUserId: normalizeInternalId(options.gmUserId),
+      sessionTitle: toSingleLineText(options.sessionTitle)
     });
     refreshPanel(panel, sessionId);
   }
