@@ -144,3 +144,18 @@ APPLY専用SQL末尾には、関数本数、signature、`security_definer`、`se
 戻り値には `display_name` / `discord_handle` / `discord_mention` / `pc_name` / `pc_name_missing` が含まれる。既存列 `display_name` / `discord_handle` は維持し、`pc_name` は `session_applications.pc_name_snapshot` を正とする。PC名未登録時は `PC名未登録`、DiscordユーザーID未登録・形式不正時は `登録されていません` とし、raw user_id / email / token は返さない方針を維持する。
 
 実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更は行っていない。今回CodexはSQL Editor追加実行、DB構造変更、RPC再作成、GRANT / REVOKE再実行、commit / pushを行っていない。
+
+## M-15G フロント実装
+
+M-15Gとして、`session-detail.html` のGM/admin向け承認済み参加者連絡先表示にPC名を追加した。フロント側では `get_gm_session_accepted_contacts(text)` の `discord_mention` / `pc_name` / `pc_name_missing` を受け取り、既存の `display_name` / `discord_handle` 互換も維持する。
+
+画面表示とコピー出力は同じラベル付き1人1行形式とし、内部列名 `display_name` は画面上では「ユーザー名」と表示する。PC名未登録時は `PC名：PC名未登録`、DiscordユーザーID未登録・形式不正時は `Discord：登録されていません` とする。
+
+```text
+Discord：<@123456789012345678>｜ユーザー名：ゼウス｜PC名：ハリーポッター
+Discord：登録されていません｜ユーザー名：ボボボーボ・ボーボボ｜PC名：PC名未登録
+```
+
+この形式を後続の `{{approved_call_list}}` の原型とする。フロント側でも形式不正の `discord_handle` 生値は表示・コピーせず、raw user_id / email / token / selected_character_id / application_id は表示しない。
+
+この工程ではSQL Editor未実行、DB構造変更なし、RPC変更なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。

@@ -762,7 +762,7 @@
 - 保存成功後は、RPC返却が空でも保存に使った正規化済みDiscordユーザーIDで本人画面の表示を即時更新する。登録済み値が形式不正の場合は自動変換せず、再登録を促す。
 - GM向け承認済み参加者連絡先表示では、保存された数字IDから `<@DiscordユーザーID>` を生成して表示・コピーする。未登録または形式不正の場合は生表示を避けて `登録されていません` に丸める。
 - 呼び出し用テンプレートではGMが承認済み参加者を一人ずつ選ぶ方式にせず、現在のセッションに紐付く承認済み参加者全員を対象にしてコピー時に変数をまとめて置換する。
-- 初期実装で優先する変数は `{{session_title}}`、`{{approved_call_list}}`、`{{approved_pc_names}}` とする。`{{approved_call_list}}` はDiscordメンション、ユーザー名、PC名を1人1行で出力し、DiscordユーザーID未登録/形式不正は `登録されていません`、PC名未登録は `PC名未登録` と出す方針を推奨する。
+- 初期実装で優先する変数は `{{session_title}}`、`{{approved_call_list}}`、`{{approved_pc_names}}` とする。`{{approved_call_list}}` は `Discord：<@DiscordユーザーID>｜ユーザー名：ユーザー名｜PC名：PC名` のラベル付き1人1行で出力し、DiscordユーザーID未登録/形式不正は `Discord：登録されていません`、PC名未登録は `PC名：PC名未登録` と出す方針を推奨する。
 - `{{approved_discord_mentions}}` はDiscordメンションだけをまとめて出す変数として残してよいが、`{{approved_discord_ids}}` とGMが一人ずつ選ぶ方式は初期実装では見送る。
 - 方針docs `docs/discord-mention-registration-plan.md` を追加した。この工程ではSQL Editor実行、DB構造変更、RPC変更、GRANT/REVOKE実行、Discord実送信、Edge Function deploy、テンプレート保存テーブル作成、テンプレート生成UI、`{{approved_call_list}}` の実際の置換処理、テンプレート保存機能本体、PC名登録機能、mypage予定プルダウン化、`updates.json` 変更、secret類の出力、commit / pushは行っていない。
 
@@ -942,3 +942,11 @@
 - DiscordユーザーID未登録・形式不正時は `登録されていません`。raw user_id / email / token は返さない。
 - 実データ投入なし、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。
 - 今回CodexはSQL Editor追加実行なし、DB構造変更なし、RPC再作成なし、GRANT / REVOKE再実行なし、commit / pushなし。
+
+## M-15G GM向け承認済み参加者PC名表示フロント実装
+- session-detailのGM/admin向け承認済み参加者連絡先表示にPC名を追加した。
+- `get_gm_session_accepted_contacts(text)` の `discord_mention` / `pc_name` / `pc_name_missing` を利用し、既存の `display_name` / `discord_handle` 互換も維持する。
+- 画面表示とコピー出力は `Discord：discord_mention｜ユーザー名：display_name｜PC名：pc_name` のラベル付き1人1行。後続 `{{approved_call_list}}` の原型とする。
+- PC名未登録は `PC名：PC名未登録`、Discord未登録・形式不正は `Discord：登録されていません`。形式不正の `discord_handle` 生値は表示・コピーしない。
+- raw user_id / email / token / selected_character_id / application_id は表示しない。
+- SQL Editor未実行、DB構造変更なし、RPC変更なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。

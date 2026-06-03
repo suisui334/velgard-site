@@ -289,7 +289,7 @@ DB列名 `profiles.discord_handle` と既存RPC名 `update_my_discord_id(new_dis
 
 呼び出し用テンプレートでは、GMが承認済み参加者を一人ずつ選ぶ方式にはしない。現在のセッションに紐付く承認済み参加者全員を対象にし、コピー時にテンプレート内の変数をまとめて置換する。
 
-初期実装で優先する変数は `{{session_title}}`、`{{approved_call_list}}`、`{{approved_pc_names}}` とする。`{{approved_call_list}}` は承認済み参加者のDiscordメンション、表示名、PC名を1人1行で出力し、DiscordユーザーIDが未登録または形式不正の場合は `登録されていません`、PC名未登録の場合は `PC名未登録` を出す方針を推奨する。
+初期実装で優先する変数は `{{session_title}}`、`{{approved_call_list}}`、`{{approved_pc_names}}` とする。`{{approved_call_list}}` は `Discord：<@DiscordユーザーID>｜ユーザー名：ユーザー名｜PC名：PC名` のラベル付き1人1行で出力し、DiscordユーザーIDが未登録または形式不正の場合は `Discord：登録されていません`、PC名未登録の場合は `PC名：PC名未登録` を出す方針を推奨する。
 
 `{{approved_discord_mentions}}` はDiscordメンションだけをまとめて出す変数として残してよいが、呼び出し文で実用性が高いのは `{{approved_call_list}}` とする。`{{approved_discord_ids}}` は初期実装では見送る。
 

@@ -179,8 +179,8 @@ pc_name_snapshot
 出力:
 
 ```text
-<@DiscordユーザーID> 表示名 PC名
-登録されていません 表示名 PC名未登録
+Discord：<@DiscordユーザーID>｜ユーザー名：表示名｜PC名：PC名
+Discord：登録されていません｜ユーザー名：表示名｜PC名：PC名未登録
 ```
 
 `{{approved_pc_names}}` に必要なデータ:
@@ -492,3 +492,11 @@ APPLY専用SQLには、`security definer`、`set search_path = ''`、`authentica
 権限は `authenticated EXECUTEあり`、`anon EXECUTEなし`、`public EXECUTEなし`。`pc_name` は `session_applications.pc_name_snapshot` を正とし、PC名未登録時は `PC名未登録`。DiscordユーザーID未登録・形式不正時は `登録されていません`。raw user_id / email / token は返さない。実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更は行っていない。
 
 今回CodexはSQL Editor追加実行、DB構造変更、RPC再作成、GRANT / REVOKE再実行、commit / pushを行っていない。
+
+## M-15G フロント実装
+
+session-detailのGM/admin向け承認済み参加者連絡先表示で、RPC戻り値の `discord_mention` / `pc_name` / `pc_name_missing` を扱うようにした。既存列 `display_name` / `discord_handle` は互換のため維持し、画面では `display_name` を「ユーザー名」として表示する。
+
+PC名は `session_applications.pc_name_snapshot` 由来の `pc_name` を表示し、未登録時は `PC名：PC名未登録`。DiscordユーザーID未登録・形式不正時は `Discord：登録されていません`。画面表示とコピー内容は `Discord：discord_mention｜ユーザー名：display_name｜PC名：pc_name` のラベル付き1人1行とする。
+
+raw user_id / email / token / selected_character_id / application_id は画面・DOM・console・コピーに出さない。SQL Editor未実行、DB構造変更なし、RPC変更なし、Discord実送信なし、Edge Function deployなし。

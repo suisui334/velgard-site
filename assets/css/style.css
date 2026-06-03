@@ -2873,9 +2873,7 @@ body[data-page="session-detail"] .session-gm-contact-list {
 
 body[data-page="session-detail"] .session-gm-contact-item {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 8px 12px;
-  align-items: center;
+  gap: 6px;
   min-width: 0;
   padding: 10px 12px;
   border: 1px solid rgba(86, 96, 106, 0.14);
@@ -2883,30 +2881,14 @@ body[data-page="session-detail"] .session-gm-contact-item {
   background: rgba(255, 255, 250, 0.7);
 }
 
-body[data-page="session-detail"] .session-gm-contact-name,
-body[data-page="session-detail"] .session-gm-contact-value {
+body[data-page="session-detail"] .session-gm-contact-line {
   min-width: 0;
+  margin: 0;
   overflow-wrap: anywhere;
-}
-
-body[data-page="session-detail"] .session-gm-contact-name {
   color: var(--soot);
   font-size: 0.9rem;
-}
-
-body[data-page="session-detail"] .session-gm-contact-value {
-  color: var(--ink);
-  font-size: 0.86rem;
   font-weight: 800;
-  line-height: 1.55;
-}
-
-body[data-page="session-detail"] .session-gm-contact-value.is-missing {
-  color: var(--muted);
-}
-
-body[data-page="session-detail"] .session-gm-contact-value.is-invalid {
-  color: var(--rust);
+  line-height: 1.6;
 }
 
 body[data-page="session-detail"] .session-gm-contact-actions {

@@ -18,6 +18,7 @@ const COMMENT_MAX_LENGTH = 4000;
 const DISCORD_USER_ID_PATTERN = /^\d{17,20}$/;
 const DISCORD_MENTION_PATTERN = /^<@(\d{17,20})>$/;
 const DISCORD_CONTACT_MISSING_MESSAGE = "登録されていません";
+const PC_NAME_MISSING_MESSAGE = "PC名未登録";
 const POST_ALLOWED_STATUSES = new Set(["recruiting", "tentative"]);
 const COMMENT_UPDATE_ERROR_MESSAGE = "コメントを保存できませんでした。時間をおいて再度お試しください。";
 const COMMENT_UPDATE_PERMISSION_MESSAGE = "編集権限がないか、コメントの状態が変更された可能性があります。";
@@ -103,7 +104,10 @@ const GM_HISTORY_FIELD_NAMES = new Set([
 
 const GM_CONTACT_FIELD_NAMES = new Set([
   "display_name",
-  "discord_handle"
+  "discord_handle",
+  "discord_mention",
+  "pc_name",
+  "pc_name_missing"
 ]);
 
 const GM_APPLICATION_STATUS_ACTION_COPY = Object.freeze({
@@ -1259,6 +1263,14 @@ function getDiscordUserId(value) {
 
 function getGmDiscordMentionState(value) {
   const text = toSingleLineText(value);
+  if (text === DISCORD_CONTACT_MISSING_MESSAGE) {
+    return {
+      copyText: DISCORD_CONTACT_MISSING_MESSAGE,
+      displayText: DISCORD_CONTACT_MISSING_MESSAGE,
+      state: "missing"
+    };
+  }
+
   const userId = getDiscordUserId(text);
   if (!text) {
     return {
@@ -1284,21 +1296,51 @@ function getGmDiscordMentionState(value) {
   };
 }
 
+function getGmPcNameState(value, missingFlag) {
+  const text = redactSensitiveText(toSingleLineText(value));
+  if (missingFlag || !text) {
+    return {
+      displayText: PC_NAME_MISSING_MESSAGE,
+      copyText: PC_NAME_MISSING_MESSAGE,
+      state: "missing"
+    };
+  }
+
+  return {
+    displayText: text,
+    copyText: text,
+    state: "valid"
+  };
+}
+
 function normalizeGmContactRows(rows) {
   return rows.map((row) => {
-    const mention = getGmDiscordMentionState(row?.discord_handle);
+    const mentionSource = toSingleLineText(row?.discord_mention) || row?.discord_handle;
+    const mention = getGmDiscordMentionState(mentionSource);
+    const pcName = getGmPcNameState(row?.pc_name, toBooleanFlag(row?.pc_name_missing));
     return {
-      displayName: redactSensitiveText(row?.display_name).trim() || "名前未設定",
+      displayName: toSingleLineText(redactSensitiveText(row?.display_name)) || "名前未設定",
       discordCopyText: mention.copyText,
       discordMention: mention.displayText,
-      discordState: mention.state
+      discordState: mention.state,
+      pcName: pcName.displayText,
+      pcNameCopyText: pcName.copyText,
+      pcNameState: pcName.state
     };
   }).sort((a, b) => a.displayName.localeCompare(b.displayName, "ja"));
 }
 
+function formatGmContactLine(row) {
+  return [
+    `Discord：${row.discordCopyText}`,
+    `ユーザー名：${row.displayName}`,
+    `PC名：${row.pcNameCopyText}`
+  ].join("｜");
+}
+
 function formatGmContactCopyText(rows) {
   return rows
-    .map((row) => `${row.displayName}: ${row.discordCopyText}`)
+    .map(formatGmContactLine)
     .join("\n");
 }
 
@@ -1672,15 +1714,11 @@ function createGmContactItem(row) {
   const item = document.createElement("li");
   item.className = "session-gm-contact-item";
 
-  const name = document.createElement("strong");
-  name.className = "session-gm-contact-name";
-  name.textContent = row.displayName;
+  const line = document.createElement("span");
+  line.className = `session-gm-contact-line is-discord-${row.discordState} is-pc-${row.pcNameState}`;
+  line.textContent = formatGmContactLine(row);
 
-  const value = document.createElement("span");
-  value.className = `session-gm-contact-value is-${row.discordState}`;
-  value.textContent = row.discordMention;
-
-  item.append(name, value);
+  item.append(line);
   return item;
 }
 
@@ -1755,7 +1793,7 @@ function createGmContactControl(options = {}) {
 
   const summary = document.createElement("summary");
   summary.className = "session-gm-contact-summary";
-  summary.textContent = "GM向け：承認済み参加者Discord連絡先";
+  summary.textContent = "GM向け：承認済み参加者連絡先";
 
   const body = document.createElement("div");
   body.className = "session-gm-contact-body";
