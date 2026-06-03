@@ -521,3 +521,11 @@ M-15Gとして `docs/supabase/sql/022_gm_accepted_contacts_pc_name_apply_reviewe
 PC名は `session_applications.pc_name_snapshot` を正とし、PC名未登録時は `PC名未登録`。DiscordユーザーID未登録・形式不正時は `登録されていません`。GM本人は一覧から除外し、raw user_id / email / token は返さない。
 
 既存RPCの戻り値型が変わるため、APPLY専用SQLはdrop/recreate方針を採用した。今回はSQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし。
+
+## M-15G APPLY結果
+
+M-15Gとして `022_gm_accepted_contacts_pc_name_apply_reviewed.sql` をSQL Editorに適用済み。`get_gm_session_accepted_contacts(text)` のdrop/recreateは成功した。
+
+確認結果は `function_count = 1`、`security_definer = true`、`search_path` 設定あり。権限は `authenticated EXECUTEあり`、`anon` / `public EXECUTEなし`。戻り値には既存列 `display_name` / `discord_handle` を維持したうえで、`discord_mention` / `pc_name` / `pc_name_missing` が含まれる。
+
+`pc_name` は `session_applications.pc_name_snapshot` を正とし、未登録時は `PC名未登録`。DiscordユーザーID未登録・形式不正時は `登録されていません`。raw user_id / email / token は返さない。実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更は行っていない。

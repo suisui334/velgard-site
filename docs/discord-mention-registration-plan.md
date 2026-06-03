@@ -136,3 +136,11 @@ M-15Gで `docs/supabase/sql/022_gm_accepted_contacts_pc_name_apply_reviewed.sql`
 DiscordユーザーIDは17〜20桁の数字のみ `<@ID>` に変換する。未登録・空欄・形式不正時は `discord_mention` を `登録されていません` とし、生の不正値は返さない。PC名は `session_applications.pc_name_snapshot` を正とし、未登録時は `PC名未登録`。
 
 APPLY専用SQLは戻り値型変更のためdrop/recreate方針を採用した。今回はAPPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし。
+
+## M-15G APPLY結果との接続
+
+`022_gm_accepted_contacts_pc_name_apply_reviewed.sql` がSQL Editorに適用され、`get_gm_session_accepted_contacts(text)` のdrop/recreateが成功した。戻り値には既存列 `display_name` / `discord_handle` に加えて、`discord_mention` / `pc_name` / `pc_name_missing` が含まれる。
+
+権限は `authenticated EXECUTEあり`、`anon` / `public EXECUTEなし`。`security_definer = true`、`search_path` 設定あり。DiscordユーザーID未登録・形式不正時は `登録されていません` とし、生の不正値は返さない方針を維持する。PC名未登録時は `PC名未登録`。
+
+raw user_id / email / token は返さない。実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更は行っていない。今回CodexはSQL Editor追加実行、DB構造変更、RPC再作成、GRANT / REVOKE再実行を行っていない。

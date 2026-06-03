@@ -345,3 +345,13 @@ APPLY後の戻り値は `display_name` / `discord_handle` / `discord_mention` / 
 対象は承認済み申請のみで、GM本人は除外する。権限方針は未ログイン拒否、GM/adminのみ、`security definer`、`set search_path = ''`、`authenticated` のみEXECUTE。実行後確認SELECTとして関数本数、signature、戻り値列、権限状態を確認する内容を含めた。
 
 今回CodexはAPPLY未実行、SQL Editor未実行、DB構造変更なし、RPC作成/置換未実行、GRANT / REVOKE未実行、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更。
+
+## M-15G GM向け承認済み参加者PC名表示RPC APPLY結果
+
+ユーザーがSupabase SQL Editorで `docs/supabase/sql/022_gm_accepted_contacts_pc_name_apply_reviewed.sql` を適用し、`get_gm_session_accepted_contacts(text)` のdrop/recreateが成功した。
+
+確認結果は `function_count = 1`、`all_security_definer = true`、`has_search_path_config = true`、signature `get_gm_session_accepted_contacts(text)`。戻り値列 `display_name` / `discord_handle` / `discord_mention` / `pc_name` / `pc_name_missing` はすべて存在確認済み。
+
+権限は `authenticated EXECUTEあり`、`anon EXECUTEなし`、`public EXECUTEなし` で、すべて `ok = true`。既存列 `display_name` / `discord_handle` は維持し、`pc_name` は `session_applications.pc_name_snapshot` を正とする。PC名未登録時は `PC名未登録`、DiscordユーザーID未登録・形式不正時は `登録されていません`。raw user_id / email / token は返さない。
+
+実データ投入、フロントUI実装、Discord実送信、Edge Function deploy、`updates.json` 変更は行っていない。今回CodexはSQL Editor追加実行、DB構造変更、RPC再作成、GRANT / REVOKE再実行、commit / pushを行っていない。
