@@ -56,6 +56,18 @@
 --   {{session_title}}, {{approved_call_list}}, and {{approved_pc_names}}.
 -- - Future multiple-PC selection should use a dedicated application PC
 --   selection UI/RPC, separate from the free-text comment body.
+--
+-- M-15F preflight result reviewed:
+-- - The revised 020 select-only preflight ran successfully.
+-- - player_characters, selected_character_id, pc_name_snapshot, and the
+--   existing create_application_comment(text, text) entry point exist.
+-- - session_applications.status allows pending / accepted / rejected /
+--   waitlisted / canceled, so the pending and canceled paths below fit the DB
+--   constraint.
+-- - Main RPCs and helpers are security definer; authenticated EXECUTE is
+--   present and anon/public EXECUTE did not appear in the reviewed result.
+-- - table_privileges may show REFERENCES / TRIGGER / TRUNCATE privilege rows
+--   in catalog output, but frontend mutation must still go through RPCs.
 
 -- Stop before applying if:
 -- - public.player_characters is missing.

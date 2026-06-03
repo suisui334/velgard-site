@@ -459,3 +459,11 @@ M-15F以降へ進む前の補正として、SELECT-only preflight `docs/supabase
 小型確認SQLで、`player_characters`、`selected_character_id`、`pc_name_snapshot`、`create_application_comment(text,text)`、`cancel_my_session_application(text)`、`get_gm_session_accepted_contacts(text)`、`get_my_player_characters()` の存在を確認済み。status許可値は `pending` / `accepted` / `rejected` / `waitlisted` / `canceled` で、参加申請PC名snapshot草案と矛盾しない。
 
 主要RPCは `security_definer = true`、`authenticated EXECUTE` ありで、`anon` / `public` EXECUTEは確認結果画面に出ていない。preflight SQLは `pg_get_functiondef` と不要な集約表示を外し、必要な関数契約と権限確認に絞った。M-15FのRPC草案は、PC名未登録許可、GMコメント非申請扱い、新規PL申請時snapshot、再申請時snapshot更新、コメント編集時snapshot維持の方針を満たしている。
+
+## M-15F preflight再実行成功
+
+修正版 `020_application_pc_snapshot_preflight_select_only.sql` のSQL Editor実行は成功し、前回の `array_agg` aggregate function エラーは解消済み。`player_characters`、`selected_character_id`、`pc_name_snapshot`、`UNIQUE(session_id, user_id)`、`create_application_comment(text,text)`、`cancel_my_session_application(text)`、`get_gm_session_accepted_contacts(text)`、`get_my_player_characters()` の存在を確認済み。
+
+status許可値は `pending` / `accepted` / `rejected` / `waitlisted` / `canceled`。主要RPCとhelper関数は `security_definer = true`、対象RPCは `authenticated EXECUTE` ありで、確認画面では `anon` / `public` EXECUTEは出ていない。
+
+`table_privileges` では `REFERENCES` / `TRIGGER` / `TRUNCATE` などの権限表示が確認されたが、これは権限一覧の読み取り結果であり、preflightがそれらを実行したものではない。後続もフロントからDB直操作せずRPC経由を維持する。

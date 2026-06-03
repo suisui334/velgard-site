@@ -271,3 +271,13 @@ M-15Fへ進む前に補正する方針として、`docs/supabase/sql/021_fix_sel
 `cancel_my_session_application(text)`、`create_application_comment(text,text)`、`get_gm_session_accepted_contacts(text)`、`get_my_player_characters()`、`has_role(text)`、`is_admin()`、`is_session_gm(text)` は `security_definer = true`。対象RPCは `authenticated EXECUTE` ありで、確認画面では `anon` / `public` EXECUTEなしの方向。
 
 preflight SQLは `pg_get_functiondef` を使わず、必要なRPCだけをsignature / arguments / result / `prosecdef` / `proconfig` / routine privilegesで確認する形に修正した。RPC草案は既存signatureと一致し、PC名未登録でも申請可能、GMコメントでは申請行やsnapshotを保存しない、新規PL申請/再申請時にactive default PCをsnapshotする方針と矛盾しない。
+
+## M-15F preflight再実行成功
+
+修正版 `020_application_pc_snapshot_preflight_select_only.sql` はSupabase SQL Editorで実行成功した。前回の `ERROR: 42809: "array_agg" is an aggregate function` は解消済み。
+
+`public.player_characters`、`session_applications.selected_character_id`、`session_applications.pc_name_snapshot`、`session_applications UNIQUE(session_id, user_id)`、`create_application_comment(text,text)`、`cancel_my_session_application(text)`、`get_gm_session_accepted_contacts(text)`、`get_my_player_characters()` は存在確認済み。`session_applications.status` 許可値は `pending` / `accepted` / `rejected` / `waitlisted` / `canceled`。
+
+主要RPCとhelper関数は `security_definer = true`。対象RPCは `authenticated EXECUTE` ありで、確認結果画面では `anon` / `public` EXECUTEは出ていない。`table_privileges` の `REFERENCES` / `TRIGGER` / `TRUNCATE` 表示は権限一覧の読み取り結果であり、SQLが実行した操作ではない。後続実装ではDB直操作ではなくRPC経由方針を維持する。
+
+`020_application_pc_snapshot_rpc_draft.sql` は、既存signature、security definer、`set search_path = ''`、status許可値、PC名未登録許可、GMコメント非申請扱い、新規PL申請時snapshot、再申請時snapshot更新、コメント編集時snapshot維持の点でpreflight結果と矛盾しない。

@@ -858,3 +858,13 @@
 - 020 preflight SQLから `pg_get_functiondef` と不要な集約表示を外し、signature / arguments / result / security definer / privileges確認に絞った。
 - 020 RPC草案は既存signature、PC名未登録許可、GMコメント非申請扱い、新規PL申請時snapshot、再申請時snapshot更新、コメント編集時snapshot維持の方針と一致する。
 - SQL Editor追加実行なし、DB構造変更なし、RPC作成なし、GRANT / REVOKE未実行、APPLY専用SQL作成なし、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。
+
+## M-15F application PC snapshot preflight成功
+- 修正版 `020_application_pc_snapshot_preflight_select_only.sql` をSupabase SQL Editorで実行し、preflightは成功した。前回の `array_agg` aggregate function エラーは解消済み。
+- `player_characters`、`selected_character_id`、`pc_name_snapshot`、`UNIQUE(session_id, user_id)`、`create_application_comment(text,text)`、`cancel_my_session_application(text)`、`get_gm_session_accepted_contacts(text)`、`get_my_player_characters()` の存在を確認済み。
+- `session_applications.status` 許可値は `pending` / `accepted` / `rejected` / `waitlisted` / `canceled`。
+- 主要RPCとhelper関数は `security_definer = true`。対象RPCは `authenticated EXECUTE` ありで、確認画面では `anon` / `public` EXECUTEなしの方向。
+- `table_privileges` で `REFERENCES` / `TRIGGER` / `TRUNCATE` 等の表示を確認したが、これは権限一覧の読み取り結果であり、今回SQLがTRUNCATE等を実行したものではない。
+- 後続実装ではフロントからDB直操作を行わず、RPC経由方針を維持する。
+- `020_application_pc_snapshot_rpc_draft.sql` はpreflight結果と矛盾しない。
+- SQL Editor追加実行なし、DB構造変更なし、RPC作成なし、GRANT / REVOKE未実行、APPLY専用SQL作成なし、フロントUI実装なし、Discord実送信なし、Edge Function deployなし、`updates.json` 未変更、commit / pushなし。
