@@ -1034,3 +1034,12 @@
 - M-15K時点ではPL申請コメントテンプレート内の変数置換は行わない。未対応変数はそのまま本文へ反映し、`application` 用変数ヘルプや実セッション文脈での置換は後続候補として扱う。
 - 参加希望コメント投稿、辞退、再申請、GMコメント、PC名snapshot保存挙動は既存導線を維持する。フロントからDB直INSERT / UPDATE / DELETEはしない。
 - この工程ではSQL Editor実行、DB構造変更、RPC変更、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-15L テンプレート機能 統合QA・仕様締め
+- `docs/template-feature-qa-result.md` を作成し、テンプレート機能全体の現状仕様、種別ごとの用途、表示先、保存形式、画面別QA観点、確認済み事項、未確認・残課題、後続候補を整理した。
+- 種別は `call` がGM向け呼び出し、`result` がGM向けリザルト、`session_post` が依頼書フォーム、`application` がPL参加申請コメント、`other` が補助用途。自由本文系と依頼書フォームJSON系を分けて扱う。
+- 表示先は、mypageが全種別管理、session-detail GM/adminが `call` / `result` / `other`、session-postが `session_post` / `other`、session-detail 通常PL申請コメント欄が `application` / `other`。
+- QA観点として、画面ごとの種別絞り込み、変数ヘルプ、依頼書フォームJSON、上書き確認、GM/admin UIと通常PL UIの分離、内部情報を出さないこと、console error 0件を整理した。
+- `other` は文脈をまたいで混線しやすいため、現時点では画面ごとの表示対象制御と保存形式の判定で抑える。混線が運用上問題になる場合のみ、利用文脈の追加設計を後続候補とする。
+- 次工程候補は、統合実ブラウザQA、QA結果の小修正、PL申請コメント向け変数ヘルプ、PL申請コメントでの変数置換検討、`other` 利用文脈整理、検索・絞り込み、admin共通 / 共有テンプレート。
+- この工程ではdocs整理のみ。SQL Editor実行、DB構造変更、RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。

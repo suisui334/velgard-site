@@ -537,7 +537,23 @@ UIと挙動:
 
 この工程ではSQL Editor実行、DB構造変更、RPC変更、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
 
-## 22. M-15I-1で行わなかったこと
+## 22. M-15L テンプレート機能 統合QA・仕様締め
+
+M-15Lでは、テンプレート機能全体の現状仕様、画面別QA観点、確認済み事項、未確認・残課題、`other` 混線リスク、次工程候補を `docs/template-feature-qa-result.md` に整理した。
+
+仕様締めの要点:
+
+- mypageは全種別の横断管理を担う。
+- session-detail GM/adminは `call` / `result` / `other` を扱う。
+- session-postは `session_post` / `other` を扱う。
+- session-detail 通常PL申請コメント欄は `application` / `other` を扱う。
+- 自由本文系と依頼書フォームJSON系を明確に分ける。
+- `other` は文脈依存のため、画面ごとの表示対象制御で混線を抑える。
+- 保存系操作は既存RPC経由の方針を維持する。
+
+M-15Lではdocs整理のみを行い、SQL Editor実行、DB構造変更、RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## 23. M-15I-1で行わなかったこと
 
 - SQLファイル作成
 - SQL Editor実行
