@@ -545,3 +545,19 @@ dry-run実行確認では、`dry_run = true` のpayloadで、Edge Functionが投
 Deno単体起動は、Supabase Edge Functionの実行構造との差異が出る可能性があるため第二候補とする。deploy後dry-run限定確認は、本番に近い確認ができる一方で、deploy前確認を飛ばさない前提にする。
 
 この追記ではdocs整理のみ行い、Edge Functionコード変更、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
+## M-14E-6F ローカルserve dry-run確認準備
+
+Supabase CLIはPowerShellの `npx` では実行ポリシーにより止まるが、`npx.cmd supabase --version` では `2.105.0` を確認できた。ローカルserve確認では、PowerShell上は `npx.cmd` 経由を候補にする。
+
+実行前候補:
+
+```powershell
+npx.cmd supabase functions serve sync-session-post-to-discord
+```
+
+この候補はまだ実行しない。実行前に、対象依頼書ID相当の値、認証文脈、Edge Function用環境変数をユーザー手元で準備し、実値をdocsへ残さないことを確認する。
+
+dry-run確認では `dry_run = true` のみを扱う。`dry_run = false` は実行せず、Discord実送信なし、DB更新なし、レスポンスとログの安全性を重点確認する。
+
+この追記ではdocs整理のみ行い、Supabase CLI導入、`supabase functions serve` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。

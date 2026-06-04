@@ -494,3 +494,32 @@ Deno単体起動は、Edge Function実行環境との差異が出る可能性が
 3. deploy手順整理を先に行う場合も、実送信へ進まず、deploy後は `dry_run = true` 限定確認から始める。
 
 この追記では利用可否確認とdocs記録のみ行い、Supabase CLI導入、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
+## M-14E-6E / 6F npx.cmd経由確認とローカルserve準備
+
+ユーザー確認により、Node.jsは利用可能で、PowerShellの `npx` は実行ポリシーにより止まる。一方で、`npx.cmd supabase --version` ではSupabase CLI `2.105.0` を確認できた。
+
+判断:
+
+- Supabase CLIはグローバル導入済みではなく、`npx.cmd` 経由で利用可能な状態として扱う。
+- PowerShellで今後Supabase CLIを使う場合は `npx.cmd` 経由を候補にする。
+- ローカルserve dry-run確認の実行候補は `npx.cmd supabase functions serve sync-session-post-to-discord`。
+- この工程ではserve、start、deploy、Discord実送信、`dry_run = false` 実行には進まない。
+
+ローカルserve dry-run確認の準備方針:
+
+- 必要情報はユーザーの手元だけで用意し、docsへ実値を書かない。
+- `dry_run = true` のみ確認対象にする。
+- Discord実送信とDB更新が発生しないことを確認する。
+- レスポンスとログに秘匿値の実値、認証系の生値、内部識別子が出ないことを確認する。
+- 初期dry-runではDiscord投稿先credentialは原則不要。
+
+次工程候補:
+
+1. M-14E-6F: `npx.cmd` 経由ローカルserve dry-run確認。
+2. M-14E-7: deploy手順整理。
+3. M-14E-8: deploy判断。
+4. M-14E-9: 再同期UI。
+5. M-14E-10: 実送信QA。
+
+この追記ではdocs整理のみ行い、Supabase CLI導入、`supabase functions serve` 実行、`supabase start` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。

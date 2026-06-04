@@ -1213,3 +1213,13 @@
 - Supabase CLIローカルserve dry-run確認は未実施。Supabase CLI導入も行っていない。
 - 次工程候補は、ユーザー確認のうえでSupabase CLIを導入する案、Supabase CLIが利用できる別環境で確認する案、deploy手順整理を先に行いdeploy後は `dry_run = true` 限定確認から始める案。
 - この工程では利用可否確認とdocs記録のみ。Supabase CLI導入、SQL Editor実行、DB/RPC変更、Edge Function deploy、Discord実送信、`dry_run = false` 実行、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-6E / 6F Supabase CLI利用可否確認結果とローカルserve準備
+- ユーザー確認で `node --version` は `v24.16.0`、`where.exe npx` はNode.js配下の `npx` / `npx.cmd` を確認済み。
+- PowerShellの `npx supabase --version` は実行ポリシーで `npx.ps1` が止まる。一方、`npx.cmd supabase --version` では `supabase@2.105.0` の利用確認後、`2.105.0` が表示された。
+- Supabase CLIはグローバル導入済みではなく、PowerShellでは `npx.cmd` 経由で利用可能な状態として記録した。
+- ローカルserve dry-run確認の候補コマンドは `npx.cmd supabase functions serve sync-session-post-to-discord`。ただしこの工程では実行していない。
+- ローカルserve準備では、Supabase接続先、認証文脈、Edge Function実行用環境変数、確認対象依頼書ID相当の値をユーザー手元だけで扱い、docsへ実値を書かない方針を整理した。
+- `dry_run = true` のみ確認対象にし、Discord実送信なし、DB更新なし、ログ安全性、通常PL拒否、GM/admin許可を重点確認する。`dry_run = false` は実行しない。
+- 次工程候補は、M-14E-6F `npx.cmd` 経由ローカルserve dry-run確認、M-14E-7 deploy手順整理、M-14E-8 deploy判断、M-14E-9 再同期UI、M-14E-10 実送信QA。
+- この工程ではdocs整理のみ。Supabase CLI導入、`supabase functions serve` 実行、`supabase start` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。
