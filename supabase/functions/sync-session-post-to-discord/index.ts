@@ -47,6 +47,12 @@ interface SessionRow {
   discord_post_url: string | null;
 }
 
+type BooleanRpcResult = Promise<{ data: boolean | null; error: unknown }>;
+type IsSessionGmRpc = (
+  functionName: "is_session_gm",
+  args: { target_session_id: string }
+) => BooleanRpcResult;
+
 interface SyncTargetJudgment {
   isTarget: boolean;
   reason: string;
@@ -295,13 +301,21 @@ function createCallerSupabaseClient(authHeader: string): { ok: true; client: Ret
   };
 }
 
+function callIsSessionGmRpc(
+  supabase: ReturnType<typeof createClient>,
+  sessionId: string
+): BooleanRpcResult {
+  const rpc = supabase.rpc as unknown as IsSessionGmRpc;
+  return rpc("is_session_gm", { target_session_id: sessionId });
+}
+
 async function verifyManagementPermission(
   supabase: ReturnType<typeof createClient>,
   sessionId: string
 ): Promise<{ ok: true; allowed: boolean } | { ok: false }> {
   const [adminResult, gmResult] = await Promise.all([
     supabase.rpc("is_admin"),
-    supabase.rpc("is_session_gm", { target_session_id: sessionId })
+    callIsSessionGmRpc(supabase, sessionId)
   ]);
 
   if (adminResult.error || gmResult.error) {

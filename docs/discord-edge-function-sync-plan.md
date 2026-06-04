@@ -435,3 +435,23 @@ M-14E-6でDeno未導入により構文確認が未完了だったため、deploy
 - 次工程候補は、Deno導入、Supabase CLI環境、CIまたは別環境のいずれかで確認する案をユーザー確認のうえ選ぶこと。
 
 この工程ではdocs記録のみ。Deno導入、Supabase CLI導入、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-6C Deno導入後の構文確認・型エラー修正結果
+
+ユーザーのローカルWindows環境でDeno導入後、`deno --version` と `deno check supabase/functions/sync-session-post-to-discord/index.ts` が成功した。
+
+過去に `is_session_gm` RPC呼び出しで、`target_session_id` 引数が型定義上 `undefined` と衝突するTypeScript型エラーが出た。これは `is_session_gm` 呼び出し専用の薄い型緩和helperで修正済み。
+
+同期Edge Functionの基本方針は維持する。
+
+- 作成者GMまたはアプリ内adminのみ許可する。
+- 通常PLを許可しない。
+- `dry_run = true` はpreview専用。
+- `dry_run = false` は拒否する。
+- Discord実送信なし。
+- DB更新なし。
+- `fetch(`、DB書き込み系メソッド、`console.` は追加しない。
+
+deploy前の残確認として、dry-run実レスポンス、拒否応答、ログ安全性、secret実値や内部識別子の非露出確認を残す。
+
+この追記ではdocs記録のみ行い、Edge Functionコード変更、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、secret実値設定、commit / pushは行っていない。

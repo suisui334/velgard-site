@@ -189,3 +189,36 @@ deno はコマンドレット、関数、スクリプトファイル、または
 いずれの案でも、secret実値、認証系の生値、内部識別子はdocsやログへ残さない。
 
 今回のM-14E-6Cではdocs記録のみ行い、Deno導入、Supabase CLI導入、Edge Function起動、deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、secret実値設定、commit / pushは行っていない。
+
+## M-14E-6C Deno導入後の構文確認・型エラー修正結果
+
+ユーザーのローカルWindows環境でDeno導入後、以下を実行し、どちらも成功した。
+
+```text
+deno --version
+deno check supabase/functions/sync-session-post-to-discord/index.ts
+```
+
+途中で、`is_session_gm` RPC呼び出しの引数まわりにTypeScript型エラーが出た。
+
+```text
+TS2345: Argument of type '{ target_session_id: string; }' is not assignable to parameter of type 'undefined'.
+```
+
+対応結果:
+
+- `is_session_gm` 呼び出し専用の薄い型緩和helperを追加し、Supabase client全体の型を崩さない形で修正済み。
+- 権限判定は、作成者GMまたはアプリ内adminのみ許可する方針を維持している。
+- 通常PLを許可する方向の変更はしていない。
+- `dry_run = true` はpreview専用、`dry_run = false` は拒否する方針を維持している。
+- Discord実送信なし、DB更新なしの方針を維持している。
+- `fetch(`、DB書き込み系メソッド、`console.` は追加していない。
+
+deploy前にまだ残す確認:
+
+- `dry_run = true` の実レスポンス確認。
+- `dry_run = false` の拒否確認。
+- レスポンスとログにsecret実値、認証系の生値、内部識別子が出ないことの確認。
+- Discord実送信とDB更新が発生しないことの確認。
+
+この記録工程ではdocs記録のみ行い、Edge Functionコード変更、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、secret実値設定、commit / pushは行っていない。

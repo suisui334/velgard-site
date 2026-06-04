@@ -1187,3 +1187,12 @@
 - Deno確認前にdeployへ進まない方針、dry-run実行確認前にDiscord実送信へ進まない方針を維持する。
 - 次工程候補は、ユーザー確認のうえでローカルWindows環境にDenoを導入して確認する案、Supabase CLI環境で確認する案、CIまたは別環境で確認する案。
 - この工程ではdocs記録のみ。Deno導入、Supabase CLI導入、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-6C Discord同期Edge Function Deno構文確認・型エラー修正結果
+- ユーザーのローカルWindows環境でDeno導入後、`deno --version` と `deno check supabase/functions/sync-session-post-to-discord/index.ts` が成功した。
+- 過去に `is_session_gm` RPC呼び出しの `target_session_id` 引数まわりでTypeScript型エラーが出たが、`is_session_gm` 呼び出し専用の薄い型緩和helperで修正済み。
+- Supabase client全体の型を崩さず、作成者GMまたはアプリ内adminのみ許可する権限判定方針を維持している。通常PLを許可する方向の変更はしていない。
+- `dry_run = true` preview専用、`dry_run = false` 拒否、Discord実送信なし、DB更新なしの方針を維持している。
+- `fetch(`、DB書き込み系メソッド、`console.` は追加していない。
+- deploy前の残確認は、dry-run実レスポンス、拒否応答、ログ安全性、secret実値や内部識別子の非露出確認。
+- この工程ではdocs記録のみ。Edge Functionコード変更、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、secret実値設定、`updates.json` 変更、commit / pushは行っていない。
