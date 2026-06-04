@@ -454,3 +454,60 @@ dry-run成功時:
 - `updates.json` 変更
 - commit / push
 
+## M-14E-4 draft実装結果
+
+`supabase/functions/sync-session-post-to-discord/index.ts` に、Discord同期Edge Functionのdraftを追加した。
+
+実装した範囲:
+
+- `POST` / `OPTIONS` のみを受け付ける。
+- 入力は `session_id` / `action` / `dry_run` / 任意の `request_source` に限定する。
+- `action` は `create` / `update` / `close` / `delete` / `resync` のみ許可する。
+- `dry_run` は未指定時も安全側で `true` とみなす。
+- `dry_run = false` は `real_send_not_enabled` として明示的に拒否する。
+- 認証ヘッダーがない場合は拒否する。
+- 既存helper `is_admin()` / `is_session_gm(target_session_id)` により、作成者GMまたはアプリ内adminだけを許可する。
+- `public.sessions` から公開投稿本文に必要な依頼書情報と同期状態列だけを取得する。
+- `visibility = public` かつ `status = tentative / recruiting / full / closed / finished` を同期対象候補にする。
+- `draft` / `private` / `hidden` / `canceled` は同期対象外として扱う。
+- `update` / `close` / `delete` は既存投稿参照情報がない場合に拒否する。
+- `resync` は既存投稿参照情報があれば `update` 相当、なければ `create` 相当のpreviewとして扱う。
+- 投稿本文preview、同期対象判定、状態更新予定、警告だけを返す。
+- dry-runではDB更新も外部送信も行わない。
+
+返す情報:
+
+- `ok`
+- `dry_run`
+- `action`
+- `sync_target`
+- `message_preview`
+- `planned_db_update`
+- `warnings`
+
+返さない情報:
+
+- 秘匿値の実値
+- 認証系の生値
+- ユーザー内部識別子
+- 参加申請やPC選択関連の内部キー
+- 外部投稿参照情報そのもの
+- 外部サービス応答の生全文
+
+未実装として残した範囲:
+
+- 外部投稿APIの呼び出し。
+- `dry_run = false` の実送信処理。
+- 同期成功 / 失敗時のDB状態更新。
+- 外部投稿参照情報の保存更新。
+- retry / mock / deploy手順。
+- GM/admin向け再同期UI。
+- M-15テンプレート機能との本文連携。
+
+権限方針:
+
+- draftでは呼び出しユーザーの認証文脈で既存helperを呼び、作成者GMまたはアプリ内adminだけに限定する。
+- アプリ内admin権限とサーバ側高権限credentialは別物として扱う。
+- 将来DB状態更新が必要になった場合も、レビュー済みRPC経由案と安全なサーバ側更新案を比較してから進める。
+
+この工程ではSQL Editor実行、DB/RPC変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。

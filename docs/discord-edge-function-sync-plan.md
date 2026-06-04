@@ -327,3 +327,40 @@ Discord投稿本文テンプレートは、M-15のテンプレート保存機能
 - GM個人テンプレートをDiscord投稿本文に使う場合、どのテンプレートを同期に使うかの選択UIと権限が必要になる。
 - `call` / `result` / `session_post` / `application` / `other` の既存種別だけでDiscord投稿本文を表すと混線しやすい。
 - 必要になった場合のみ、投稿文脈専用の種別または利用文脈の追加設計を検討する。
+
+## M-14E-4 Edge Function draft実装結果
+
+M-14E-2で既存DB列が概ねそろっていること、M-14E-3で入出力とdry-run方針を整理できたことを受け、DB列追加draftを挟まずに既存列前提のEdge Function draftを追加した。
+
+作成ファイル:
+
+- `supabase/functions/sync-session-post-to-discord/index.ts`
+
+draftの性質:
+
+- dry-run preview専用。
+- `dry_run = true` では外部送信もDB更新も行わず、投稿本文preview、同期対象判定、状態更新予定、警告を返す。
+- `dry_run = false` は明示的に未実装エラーとして拒否する。
+- 入力payloadは `session_id` / `action` / `dry_run` / 任意の `request_source` に限定する。
+- `request_source` は補助値であり、権限根拠にはしない。
+- 作成者GMまたはアプリ内adminのみを既存helperで確認する。
+- 外部投稿credential実値は読み出し・表示・記録しない。
+
+action preview:
+
+- `create`: 同期対象の依頼書から新規投稿previewを作る。既存投稿参照情報がある場合は警告を返す。
+- `update`: 既存投稿参照情報がある場合だけ更新previewを返す。
+- `close`: 既存投稿参照情報がある場合だけ終了表示previewを返す。
+- `delete`: 既存投稿参照情報がある場合だけ削除相当処理previewを返す。DB完全削除前に外部投稿側処理が必要という警告を返す。
+- `resync`: 既存投稿参照情報があれば `update` 相当、なければ `create` 相当のpreviewとして扱う。
+
+後続で確認すること:
+
+- dry-runのローカル / 手動確認。
+- 権限helper呼び出しがEdge Function実行環境で期待どおり通るか。
+- 返却previewに秘匿値や内部情報が混ざらないこと。
+- `delete_session_post(text)` の完全削除前に外部投稿側処理を呼ぶ運用順。
+- 実送信を有効化する前の外部投稿credential設定手順。
+- 実送信時のDB状態更新経路。
+
+この工程ではSQL Editor実行、DB/RPC変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。

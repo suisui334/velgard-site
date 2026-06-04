@@ -1143,3 +1143,14 @@
 - 権限は未ログイン、通常PL、他GMを拒否し、作成者GMまたはアプリ内adminのみを許可する方針。サーバ側DB更新権限はアプリ内admin権限と混同せず、後続でレビュー済みRPC経由案と安全なサーバ側更新案を比較する。
 - 後続候補は、M-14E-4 Edge Function draft実装、M-14E-5 管理設定手順docs、M-14E-6 dry-run確認、M-14E-7 deploy手順整理、M-14E-8 deploy実施判断、M-14E-9 再同期UI、M-14E-10 実送信QA。
 - この工程ではdocs設計のみ。SQLファイル作成、SQL Editor実行、DB/RPC変更、Edge Function実装、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-4 Discord同期Edge Function draft実装
+- `supabase/functions/sync-session-post-to-discord/index.ts` を追加し、既存DB列を前提にしたdry-run preview専用のEdge Function draftを実装した。
+- 入力payloadは `session_id` / `action` / `dry_run` / 任意の `request_source` に限定し、`action` は `create` / `update` / `close` / `delete` / `resync` のみ許可する。
+- `dry_run = true` では外部送信もDB更新も行わず、投稿本文preview、同期対象判定、状態更新予定、警告を返す。`dry_run = false` は実送信未実装として明示的に拒否する。
+- 権限は呼び出しユーザーの認証文脈で `is_admin()` / `is_session_gm(target_session_id)` を呼び、作成者GMまたはアプリ内adminだけを許可する。`request_source` は権限根拠にしない。
+- `public.sessions` から取得する情報は依頼書本文生成と同期判定に必要な公開系フィールドと同期状態列に限定する。秘匿値、認証系の生値、ユーザー内部識別子、参加申請やPC選択関連の内部キー、外部投稿参照情報そのものは返さない。
+- 同期対象は `visibility = public` かつ `status = tentative / recruiting / full / closed / finished` の候補に限定し、`draft` / `private` / `hidden` / `canceled` は同期対象外として扱う。
+- `update` / `close` / `delete` は既存投稿参照情報がない場合に拒否し、`resync` は参照情報の有無で `update` 相当または `create` 相当に解釈する。
+- 後続候補は、M-14E-5 管理設定手順docs、M-14E-6 dry-runローカル / 手動確認、M-14E-7 deploy手順整理、M-14E-8 deploy実施判断、M-14E-9 GM/admin再同期UI、M-14E-10 実送信QA。
+- この工程ではSQL Editor実行、DB/RPC変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
