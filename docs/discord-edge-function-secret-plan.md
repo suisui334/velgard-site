@@ -193,3 +193,19 @@ deploy後の確認はM-14E-6以降で行う。M-14E-5では手順整理のみ。
 - フロント実装
 - `updates.json` 変更
 - commit / push
+
+## M-14E-6 Deno構文確認 / dry-run確認準備結果
+
+確認結果は `docs/discord-edge-function-dry-run-check-result.md` に分離した。
+
+要約:
+
+- 作業前の作業ツリーはclean。
+- 最新commitは `fdbdfd6 Document Discord sync secret and dry run checks`。
+- `deno --version` は `deno not found`。
+- Deno未導入のため `deno check supabase/functions/sync-session-post-to-discord/index.ts` は未実施。
+- Edge Function draftに `fetch(`、DB書き込み系メソッド、`console.` は検出されなかった。
+- 関連ファイルにsecret実値らしき文字列は検出されなかった。
+- Edge Function起動、dry-run呼び出し、secret実値設定、deploy、Discord実送信は行っていない。
+
+後続では、DenoまたはSupabase Edge Functionのローカル確認環境を用意してから、構文確認と `dry_run = true` のpreview確認へ進む。

@@ -1163,3 +1163,12 @@
 - 残課題は、完全削除前の外部投稿側処理順、DB削除後に既存投稿参照情報を参照できない問題、実送信時のDB状態更新経路、resync専用RPC未作成、M-15テンプレート機能との接続時期。
 - 後続候補は、M-14E-6 Deno構文確認 / dry-run確認、M-14E-7 deploy手順整理、M-14E-8 deploy実施判断、M-14E-9 GM/admin再同期UI、M-14E-10 Discord実送信QA。
 - この工程ではdocs整理のみ。SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-6 Discord同期Edge Function Deno構文確認 / dry-run確認準備
+- `docs/discord-edge-function-dry-run-check-result.md` を追加し、Edge Function draftのDeno利用可否、安全検索、dry-run確認準備を記録した。
+- 作業前の作業ツリーはclean、最新commitは `fdbdfd6 Document Discord sync secret and dry run checks`。
+- この環境ではDenoが見つからず、`deno check supabase/functions/sync-session-post-to-discord/index.ts` は未実施。後続でDenoまたはSupabase Edge Functionローカル確認環境を用意して実施する。
+- 安全検索では、Edge Function draft内に `fetch(`、DB書き込み系メソッド、`console.` は0件。関連ファイルにsecret実値らしき文字列も検出されなかった。
+- dry-run確認は手順準備までで、Edge Function起動、`dry_run = true` 呼び出し、`dry_run = false` 呼び出し、secret実値設定、deploy、Discord実送信は行っていない。
+- 残課題はDeno構文確認、dry-run実レスポンス確認、権限helperの実行環境確認、CORS再確認、実送信時のDB状態更新経路、完全削除前の外部投稿側処理順。
+- この工程では確認・docs記録のみ。SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。

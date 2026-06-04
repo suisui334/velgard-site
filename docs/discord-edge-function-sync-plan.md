@@ -388,3 +388,18 @@ action preview:
 - M-14E-10: Discord実送信QA。
 
 この工程ではdocs整理のみ。SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-6 Deno構文確認 / dry-run確認準備
+
+`docs/discord-edge-function-dry-run-check-result.md` を追加し、Edge Function draftのdeploy前確認結果を記録した。
+
+確認結果:
+
+- Denoはこの環境で利用できず、`deno check` は未実施。
+- Edge Function draftに外部送信処理、DB書き込み処理、console出力は検出されなかった。
+- 関連ファイルにsecret実値らしき文字列は検出されなかった。
+- dry-run実行、Edge Function起動、deploy、secret実値設定、Discord実送信は行っていない。
+
+次工程では、DenoまたはSupabase Edge Functionのローカル確認環境を用意し、構文確認と `dry_run = true` のpreview確認を行う。
+
+この工程では確認・docs記録のみ。SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
