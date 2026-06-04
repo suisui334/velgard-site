@@ -517,3 +517,94 @@ dry_run=true確認:
 4. レスポンスとログに秘匿値の実値、認証系の生値、内部識別子が出ないことを確認する。
 
 この工程では、ローカルserveは未実行、`dry_run = true` も未実行。Edge Function deploy、Discord実送信、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
+## M-14E-6H dry-run実行条件整理・ローカル実行手順確定
+
+ローカルserve dry-run確認の実行条件を再確認した。
+
+事前確認結果:
+
+| 確認 | 結果 |
+| --- | --- |
+| `git status --short` | clean |
+| `git log --oneline -1` | `48597b3 Record Supabase CLI dry run preparation` |
+| `npx.cmd supabase --version` | `2.105.0` |
+| `deno check supabase/functions/sync-session-post-to-discord/index.ts` | PATH上の `deno` は未認識。ユーザー領域のDeno実行ファイルをフルパス実行し成功 |
+
+Edge Functionが参照する環境変数名:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `PUBLIC_SITE_BASE_URL`
+
+認証文脈:
+
+- `Authorization` ヘッダーが必要。
+- 値はBearer形式の認証文脈として扱われる。
+- 実値はdocs、報告、チャットへ書かない。
+- Codex側では値を要求せず、ユーザー手元で用意する前提にする。
+
+この作業環境での状態:
+
+| 項目 | 状態 |
+| --- | --- |
+| `SUPABASE_URL` | 未設定 |
+| `SUPABASE_ANON_KEY` | 未設定 |
+| `PUBLIC_SITE_BASE_URL` | 未設定 |
+| 認証文脈 | 未用意 |
+
+ローカルserve候補:
+
+```powershell
+npx.cmd supabase functions serve sync-session-post-to-discord
+```
+
+実行判断:
+
+- ローカルserveは実行しなかった。
+- 理由は、必須の `SUPABASE_URL` / `SUPABASE_ANON_KEY` が未設定で、Authorizationヘッダー用の認証文脈も未用意のため。
+- 秘匿値の実値や認証系の生値をCodex側で扱う必要が出るため、実行せず停止した。
+- `supabase start`、Edge Function deploy、Discord実送信には進んでいない。
+
+dry_run=true確認:
+
+- 実行しなかった。
+- 理由は、ローカルserveを起動しておらず、必要な環境変数と認証文脈も未用意のため。
+- 実行する場合のpayload例はダミー値のみを使う。
+
+```json
+{
+  "session_id": "example-session-id",
+  "action": "create",
+  "dry_run": true
+}
+```
+
+dry_run=false:
+
+- 実行していない。
+- 将来確認項目として、draft段階では `real_send_not_enabled` で拒否されることを残す。
+
+安全検索結果:
+
+| 検索対象 | 件数 |
+| --- | ---: |
+| `fetch(` | 0 |
+| `.insert(` | 0 |
+| `.update(` | 0 |
+| `.delete(` | 0 |
+| `.upsert(` | 0 |
+| `console.` | 0 |
+| Discord webhook URL形式 | 0 |
+| bot token風文字列 | 0 |
+| service-role系credential風文字列 | 0 |
+
+次工程候補:
+
+1. ユーザー手元で必要な環境変数と認証文脈を用意する。
+2. ローカルserveを起動する。
+3. `dry_run = true` のみを呼ぶ。
+4. 権限エラーの場合は認証文脈不足または権限不足として一般化して記録する。
+5. レスポンスとログに秘匿値の実値、認証系の生値、内部識別子が出ないことを確認する。
+
+この工程では、ローカルserve未実行、`dry_run = true` 未実行、`dry_run = false` 未実行。Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。

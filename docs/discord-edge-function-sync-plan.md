@@ -524,6 +524,34 @@ Deno単体起動は、Edge Function実行環境との差異が出る可能性が
 
 この追記ではdocs整理のみ行い、Supabase CLI導入、`supabase functions serve` 実行、`supabase start` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-6H dry-run実行条件整理とローカル実行可否
+
+確認結果:
+
+- `npx.cmd supabase --version` は `2.105.0`。
+- Deno構文確認はユーザー領域のDeno実行ファイルをフルパス実行して成功。
+- Edge Functionが参照する環境変数名は `SUPABASE_URL`、`SUPABASE_ANON_KEY`、`PUBLIC_SITE_BASE_URL`。
+- Bearer形式のAuthorizationヘッダーが必要。
+- この作業環境では環境変数が未設定で、認証文脈も未用意。
+
+判断:
+
+- ローカルserveは実行しない。
+- `dry_run = true` 実レスポンス確認も未実行。
+- `dry_run = false` は実行しない。
+- 秘匿値の実値や認証系の生値をCodex側で扱わない。
+
+安全検索では、外部送信処理、DB書き込み系メソッド、console出力、外部投稿URL形式、bot token風文字列、service-role系credential風文字列はいずれも0件。
+
+次工程候補:
+
+1. ユーザー手元で必要な環境変数と認証文脈を安全に用意する。
+2. ローカルserveを起動する。
+3. `dry_run = true` のみを確認する。
+4. 結果は実値を伏せ、成功 / 権限エラー / 同期対象外など一般化して記録する。
+
+この追記ではdocs整理のみ行い、`supabase functions serve` 実行、`supabase start` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
 ## M-14E-6G ローカルserve dry-run実行可否確認
 
 確認結果:

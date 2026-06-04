@@ -575,3 +575,17 @@ Edge Functionが参照する環境変数は `SUPABASE_URL`、`SUPABASE_ANON_KEY`
 次工程では、ユーザー手元で必要な環境変数と認証文脈を安全に用意したうえで、`dry_run = true` だけを確認する。
 
 この追記ではdocs整理のみ行い、`supabase functions serve` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
+## M-14E-6H dry-run実行可否と停止判断
+
+`npx.cmd supabase --version` は `2.105.0`。Deno構文確認はユーザー領域のDeno実行ファイルをフルパス実行して成功した。
+
+Edge Functionは `SUPABASE_URL`、`SUPABASE_ANON_KEY`、`PUBLIC_SITE_BASE_URL` を参照し、呼び出し時にはBearer形式のAuthorizationヘッダーを要求する。
+
+今回の作業環境では環境変数が未設定で、認証文脈も未用意だったため、`npx.cmd supabase functions serve sync-session-post-to-discord` は実行していない。ローカルserve未起動のため、`dry_run = true` の実レスポンス確認も未実行。
+
+安全検索では `fetch(`、DB書き込み系メソッド、`console.`、外部投稿URL形式、bot token風文字列、service-role系credential風文字列はいずれも0件。
+
+次工程では、ユーザー手元で必要な環境変数と認証文脈を用意し、`dry_run = true` のみを確認する。`dry_run = false` は実行しない。
+
+この追記ではdocs整理のみ行い、`supabase functions serve` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。

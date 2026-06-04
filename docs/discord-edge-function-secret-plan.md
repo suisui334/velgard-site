@@ -291,6 +291,18 @@ npx.cmd supabase functions serve sync-session-post-to-discord
 
 この追記ではdocs整理のみ行い、Supabase CLI導入、`supabase functions serve` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-6H dry-run実行条件と認証文脈
+
+Edge Functionは `SUPABASE_URL`、`SUPABASE_ANON_KEY`、`PUBLIC_SITE_BASE_URL` を参照する。また、呼び出し時にはBearer形式のAuthorizationヘッダーが必要。
+
+今回の作業環境では、`SUPABASE_URL` / `SUPABASE_ANON_KEY` / `PUBLIC_SITE_BASE_URL` が未設定で、認証文脈も未用意だった。そのため、ローカルserveと `dry_run = true` 呼び出しは実行していない。
+
+認証文脈や環境変数の実値はCodex側で要求しない。次工程で確認する場合も、ユーザー手元の環境変数、ブラウザ、ローカル設定で扱い、docsや報告には実値を書かない。
+
+`dry_run = false` は引き続き実行しない。Discord実送信なし、DB更新なし、レスポンスとログの安全性確認を優先する。
+
+この追記ではdocs整理のみ行い、`supabase functions serve` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
 ## M-14E-6G ローカルserve前の環境変数確認
 
 Edge Functionコードが参照している環境変数名:
