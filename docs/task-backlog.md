@@ -1088,3 +1088,18 @@
 - バリデーションは下書き状態の公開化、不正な募集状態 / 公開状態、募集人数の上下逆転、終了日時逆転、タイトル / 概要空欄、一般化されたエラー表示を確認候補にした。
 - 後続候補はM-14D-15D手動ブラウザsmoke test実施、M-14D-15E結果記録、必要なら軽微修正。その後はDiscord Edge Function設計再開または静的JSON退役へ進む想定。
 - この工程ではdocs整理のみ。SQL Editor実行、DB/RPC変更、フロント実装、実データ作成・更新・削除、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14D-15D 依頼書RPC smoke test 手動実施サポート
+- `docs/session-posting-rpc-smoke-manual-test.md` に、ユーザー実ブラウザ確認用の簡易チェックリストと結果記録準備欄を追加した。
+- 確認対象は作成者GMでの作成・編集、公開状態 / 募集状態変更、ガード確認、通常PL / 他GM拒否、admin管理、削除専用テスト依頼書での完全削除、削除後の非表示、静的JSON由来の編集不可 / 削除不可、内部情報非露出、console errorなし。
+- 実施時の注意として、既存本番寄りデータではなくテスト用依頼書を使うこと、完全削除確認は削除専用データで行うこと、参加申請 / コメントCASCADE確認はさらに専用データで行うこと、Discord実送信確認は行わないことを整理した。
+- M-14D-15D時点では手動実施サポートと結果記録欄準備までを行った。ユーザー実ブラウザでの結果は、後続のM-14D-15Eとして記録済み。
+- この工程ではdocs整理のみ。SQL Editor実行、DB/RPC変更、フロント実装、実データ作成・更新・削除、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14D-15E 依頼書RPC smoke test結果記録
+- ユーザー実ブラウザで依頼書RPC smoke testを実施済みとして、結果を `docs/session-posting-rpc-smoke-manual-test.md`、`docs/session-posting-rpc-smoke-test-plan.md`、`docs/session-posting-management-qa-result.md` に記録した。
+- 成功項目は、作成者GMでのテスト用依頼書新規作成・編集保存、公開状態 / 募集状態変更、下書き状態の公開化などのガード、通常PLの管理UI非表示、他GMの編集不可または管理対象外、admin管理、削除専用テスト依頼書の完全削除、削除後の非表示、静的JSON由来の編集不可 / 削除不可、内部情報非露出、console error 0件。
+- 未確認項目は、参加申請 / コメントを含むCASCADEの厳密確認と、静的JSONと同じ公開IDを持つSupabase側の非公開・下書き・中止状態によるfallback抑止の詳細確認。
+- 残課題は、CASCADE確認、他GM拒否確認の追加精査、エラー文言の一般化確認、Discord同期状態との連動確認、静的JSON退役後の再確認。
+- 削除済みテストデータは一般名でのみ記録し、実IDや内部キーは記録していない。
+- この記録工程でCodexはSQL Editor実行、DB/RPC変更、フロント実装、追加の実データ作成・更新・削除、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。

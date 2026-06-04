@@ -212,3 +212,40 @@
 - その後、Discord Edge Function設計再開または静的JSON退役へ進む。
 
 この工程ではdocs整理のみ。SQL Editor実行、DB/RPC変更、フロント実装、実データ作成・更新・削除、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14D-15D 手動実施サポート
+
+ユーザーが実ブラウザで依頼書RPC smoke testを行うため、`docs/session-posting-rpc-smoke-manual-test.md` に簡易チェックリストと結果記録準備欄を追加した。
+
+確認順は、作成者GMでの作成・編集、公開状態 / 募集状態変更、ガード確認、通常PL / 他GM拒否、admin管理、削除専用テスト依頼書での完全削除、削除後の非表示、静的JSON由来の編集不可 / 削除不可、内部情報非露出、console errorなしを中心にする。
+
+M-14D-15D時点では手動実施サポートと記録欄準備までを行った。
+ユーザー実ブラウザでの結果は、後続のM-14D-15Eとして記録済み。
+
+この工程ではSQL Editor実行、DB/RPC変更、フロント実装、実データ作成・更新・削除、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14D-15E 手動smoke test結果
+
+ユーザー実ブラウザで依頼書RPC smoke testを実施済みとして、結果を `docs/session-posting-rpc-smoke-manual-test.md` に記録した。
+
+成功項目:
+
+- 作成者GMでテスト用依頼書を新規作成し、編集保存できた。
+- 公開状態 / 募集状態変更と、下書き状態の公開化などのガードを確認できた。
+- 通常PLではGM/admin向け管理UIが表示されないことを確認できた。
+- 他GMでは編集不可または管理対象外として扱われることを確認できた。
+- adminではSupabase由来依頼書を管理対象として表示・編集できた。
+- 削除専用テスト依頼書で完全削除し、削除後にcalendar / session-detail / session-post管理対象から消えることを確認できた。
+- 静的JSON由来は編集不可 / 削除不可として扱われることを確認できた。
+- 画面 / DOM / console に内部情報が出ていないこと、console error 0件を確認できた。
+
+未確認項目:
+
+- 参加申請 / コメントを含むCASCADEの厳密確認。
+- 静的JSONと同じ公開IDを持つSupabase側の非公開・下書き・中止状態によるfallback抑止の詳細確認。
+
+残課題:
+
+- CASCADE確認、他GM拒否確認の追加精査、エラー文言の一般化確認、Discord同期状態との連動確認、静的JSON退役後の再確認を後続候補とする。
+
+この記録工程でCodexはSQL Editor実行、DB/RPC変更、フロント実装、追加の実データ作成・更新・削除、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
