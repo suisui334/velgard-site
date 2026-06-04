@@ -1103,3 +1103,13 @@
 - 残課題は、CASCADE確認、他GM拒否確認の追加精査、エラー文言の一般化確認、Discord同期状態との連動確認、静的JSON退役後の再確認。
 - 削除済みテストデータは一般名でのみ記録し、実IDや内部キーは記録していない。
 - この記録工程でCodexはSQL Editor実行、DB/RPC変更、フロント実装、追加の実データ作成・更新・削除、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-1 Discord同期Edge Function仕様整理
+- `docs/discord-edge-function-sync-plan.md` を作成し、依頼書DBを正本、Discord投稿を同期先として扱うEdge Function仕様を整理した。
+- 秘匿値はEdge Function側の管理設定だけで扱い、フロント、docs、DB、GitHub、チャットへ実値を書かない方針を明記した。adminはアプリ内権限として扱い、サーバ高権限とは混同しない。
+- 同期アクションは `create` / `update` / `close` / `delete` / `resync`。Discord送信失敗時も依頼書保存自体は成功扱いにし、同期状態を `failed` として短い一般化エラー要約を残し、再同期できる設計にする。
+- DB状態管理は `discord_sync_status` / `discord_last_action` / `discord_sync_requested_at` / `discord_synced_at` / `discord_sync_error` を中心に整理した。既存投稿の更新・終了表示・削除相当処理には外部投稿識別子が必要になるため、M-14E-2 preflightで既存列の有無と運用可否を確認する。
+- フロントからDiscordへ直接送らず、後続のGM/admin再同期UIもEdge Functionまたは同期要求経路を呼ぶ方針にした。画面・DOM・consoleには内部キーや外部投稿識別子を出さない。
+- 実装前の必須確認として、dry-run / mock、権限判定、同期対象判定、失敗時状態遷移、ログの安全性、完全削除時の外部投稿扱いを整理した。
+- 後続候補は、M-14E-2 既存DB列 / 不足列 SELECT-only preflight、M-14E-3 必要時draft SQL、M-14E-4 apply_reviewed、M-14E-5 Edge Function draft、M-14E-6 管理設定手順docs、M-14E-7 dry-run / mock、M-14E-8 deploy手順、M-14E-9 再同期UI、M-14E-10 実送信QA。
+- この工程ではdocs設計のみ。SQLファイル作成、SQL Editor実行、DB構造変更、RPC変更、Edge Function実装、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
