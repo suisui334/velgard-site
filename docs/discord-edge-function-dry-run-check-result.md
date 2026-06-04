@@ -332,3 +332,36 @@ dry-run実行前に、Edge Function draft内で以下が増えていないこと
 6. M-14E-10: 実送信QA。
 
 この工程ではdocs整理のみ行い、Edge Functionコード変更、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
+## M-14E-6E Supabase CLI利用可否確認
+
+ローカルserve dry-run確認へ進む前に、ローカル環境でSupabase CLIが利用できるかを確認した。
+
+実行コマンド:
+
+```text
+supabase --version
+```
+
+結果:
+
+```text
+supabase はコマンドレット、関数、スクリプトファイル、または操作可能なプログラムの名前として認識されません。
+```
+
+判断:
+
+- この環境ではSupabase CLIは利用不可。
+- Supabase CLIローカルserveは、現時点では未実施。
+- Supabase CLI導入は今回行わない。
+- Edge Function deploy、Discord実送信、`dry_run = false` 実行には進まない。
+
+次工程候補:
+
+1. ユーザー確認のうえでSupabase CLIを導入し、ローカルserve dry-run確認準備へ進む。
+2. Supabase CLIが利用できる別環境でローカルserve dry-run確認を行う。
+3. deploy前ローカル確認が難しい場合でも、deploy手順整理と安全レビューを先に行い、deploy後は `dry_run = true` 限定確認から始める。
+
+いずれの案でも、秘匿値の実値、認証系の生値、内部識別子はdocsやログへ残さない。
+
+この工程では利用可否確認とdocs記録のみ行い、Supabase CLI導入、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。

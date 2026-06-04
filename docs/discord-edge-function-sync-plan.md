@@ -476,3 +476,21 @@ Deno単体起動は、Edge Function実行環境との差異が出る可能性が
 6. M-14E-10: 実送信QA。
 
 この追記ではdocs整理のみ行い、Edge Functionコード変更、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
+## M-14E-6E Supabase CLI利用可否確認結果
+
+`supabase --version` を確認した結果、この環境ではSupabase CLIは利用不可だった。
+
+判断:
+
+- Supabase CLIローカルserve dry-run確認は未実施。
+- Supabase CLI導入は今回行っていない。
+- Edge Function deploy、Discord実送信、`dry_run = false` 実行には進まない。
+
+次工程候補:
+
+1. ユーザー確認のうえでSupabase CLIを導入し、M-14E-6F ローカルserve dry-run確認準備へ進む。
+2. Supabase CLIが利用できる別環境でローカルserve dry-run確認を行う。
+3. deploy手順整理を先に行う場合も、実送信へ進まず、deploy後は `dry_run = true` 限定確認から始める。
+
+この追記では利用可否確認とdocs記録のみ行い、Supabase CLI導入、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。

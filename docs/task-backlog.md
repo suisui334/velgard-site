@@ -1206,3 +1206,10 @@
 - `dry_run = false` は今回実行しない。将来確認する場合も、draft段階では拒否され、Discord API呼び出しとDB更新がないことだけを確認する。
 - 次工程候補は、M-14E-6E Supabase CLI利用可否確認、M-14E-6F ローカルserve dry-run確認、M-14E-7 deploy手順整理、M-14E-8 deploy判断、M-14E-9 再同期UI、M-14E-10 実送信QA。
 - この工程ではdocs整理のみ。Edge Functionコード変更、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-6E Supabase CLI利用可否確認
+- 作業前の作業ツリーはclean、最新commitは `fed7032 Document Discord sync dry run execution plan`。
+- `supabase --version` を実行した結果、この環境ではSupabase CLIは認識されず、利用不可だった。
+- Supabase CLIローカルserve dry-run確認は未実施。Supabase CLI導入も行っていない。
+- 次工程候補は、ユーザー確認のうえでSupabase CLIを導入する案、Supabase CLIが利用できる別環境で確認する案、deploy手順整理を先に行いdeploy後は `dry_run = true` 限定確認から始める案。
+- この工程では利用可否確認とdocs記録のみ。Supabase CLI導入、SQL Editor実行、DB/RPC変更、Edge Function deploy、Discord実送信、`dry_run = false` 実行、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。
