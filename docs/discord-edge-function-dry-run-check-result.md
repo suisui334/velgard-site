@@ -442,3 +442,78 @@ npx.cmd supabase functions serve sync-session-post-to-discord
 5. M-14E-10: 実送信QA。
 
 この工程ではdocs整理のみ行い、Supabase CLI導入、`supabase functions serve` 実行、`supabase start` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
+## M-14E-6G ローカルserve dry-run実行準備・実行可否確認
+
+ローカルserve dry-run確認へ進む前に、作業環境とEdge Functionの前提を確認した。
+
+事前確認結果:
+
+| 確認 | 結果 |
+| --- | --- |
+| `git status --short` | clean |
+| `git log --oneline -1` | `70cd55d Record Supabase CLI dry run preparation` |
+| `npx.cmd supabase --version` | `2.105.0` |
+| `deno check supabase/functions/sync-session-post-to-discord/index.ts` | PATH上の `deno` は未認識。ユーザー領域のDeno実行ファイルをフルパス実行し成功 |
+
+Edge Functionが参照する環境変数名:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `PUBLIC_SITE_BASE_URL`
+
+このうち、呼び出しユーザーの認証文脈でSupabase RPCを呼ぶため、`SUPABASE_URL` と `SUPABASE_ANON_KEY` はローカルserve dry-run確認に必要。`PUBLIC_SITE_BASE_URL` は詳細URLpreview用の任意設定で、未設定時は相対URLになる。
+
+この作業環境での環境変数存在確認:
+
+| 環境変数名 | 状態 |
+| --- | --- |
+| `SUPABASE_URL` | 未設定 |
+| `SUPABASE_ANON_KEY` | 未設定 |
+| `PUBLIC_SITE_BASE_URL` | 未設定 |
+
+ローカルserve候補:
+
+```powershell
+npx.cmd supabase functions serve sync-session-post-to-discord
+```
+
+実行判断:
+
+- 上記候補コマンドは実行しなかった。
+- 理由は、ローカルserve dry-run確認に必要な `SUPABASE_URL` / `SUPABASE_ANON_KEY` がこの作業環境に未設定で、さらに認証文脈も未用意のため。
+- 秘匿値の実値や認証系の生値をdocsや報告へ出さない条件を優先し、無理にserveやdry-run呼び出しへ進まない判断にした。
+
+dry_run=true確認:
+
+- 実行しなかった。
+- 理由は、ローカルserveを起動しておらず、必要な環境変数と認証文脈も未用意のため。
+- payload例は引き続きダミー値のみをdocsに残す。
+
+```json
+{
+  "session_id": "example-session-id",
+  "action": "create",
+  "dry_run": true
+}
+```
+
+安全検索結果:
+
+| 検索対象 | 件数 |
+| --- | ---: |
+| `fetch(` | 0 |
+| `.insert(` | 0 |
+| `.update(` | 0 |
+| `.delete(` | 0 |
+| `.upsert(` | 0 |
+| `console.` | 0 |
+
+次工程候補:
+
+1. ユーザー手元で `SUPABASE_URL` / `SUPABASE_ANON_KEY` と認証文脈を安全に用意する。
+2. `npx.cmd supabase functions serve sync-session-post-to-discord` を実行する。
+3. `dry_run = true` のみを呼び、preview、権限判定、同期対象外、既存投稿参照情報不足時の挙動を確認する。
+4. レスポンスとログに秘匿値の実値、認証系の生値、内部識別子が出ないことを確認する。
+
+この工程では、ローカルserveは未実行、`dry_run = true` も未実行。Edge Function deploy、Discord実送信、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。

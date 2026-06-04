@@ -290,3 +290,19 @@ npx.cmd supabase functions serve sync-session-post-to-discord
 - レスポンスとログに秘匿値の実値、認証系の生値、内部識別子が出ないことを重点確認する。
 
 この追記ではdocs整理のみ行い、Supabase CLI導入、`supabase functions serve` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
+## M-14E-6G ローカルserve前の環境変数確認
+
+Edge Functionコードが参照している環境変数名:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `PUBLIC_SITE_BASE_URL`
+
+このうち `SUPABASE_URL` と `SUPABASE_ANON_KEY` は、呼び出しユーザーの認証文脈でSupabase RPCを呼ぶために必要。`PUBLIC_SITE_BASE_URL` は詳細URLpreview用で、未設定時は相対URLになる。
+
+今回の作業環境では、上記3つの環境変数はいずれも未設定だった。認証文脈も未用意のため、`npx.cmd supabase functions serve sync-session-post-to-discord` は実行していない。`dry_run = true` 呼び出しも未実行。
+
+次工程でローカルserveを行う場合は、必要な値をユーザー手元だけで用意し、docsや報告には実値を書かない。`dry_run = false` は実行せず、Discord実送信なし、DB更新なし、ログ安全性を確認する。
+
+この追記ではdocs整理のみ行い、Supabase CLI導入、`supabase functions serve` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。

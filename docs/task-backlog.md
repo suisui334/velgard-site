@@ -1223,3 +1223,13 @@
 - `dry_run = true` のみ確認対象にし、Discord実送信なし、DB更新なし、ログ安全性、通常PL拒否、GM/admin許可を重点確認する。`dry_run = false` は実行しない。
 - 次工程候補は、M-14E-6F `npx.cmd` 経由ローカルserve dry-run確認、M-14E-7 deploy手順整理、M-14E-8 deploy判断、M-14E-9 再同期UI、M-14E-10 実送信QA。
 - この工程ではdocs整理のみ。Supabase CLI導入、`supabase functions serve` 実行、`supabase start` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-6G Discord同期Edge Function ローカルserve dry-run実行準備・実行可否確認
+- 作業前の作業ツリーはclean、最新commitは `70cd55d Record Supabase CLI dry run preparation`。
+- `npx.cmd supabase --version` は `2.105.0`。`deno check supabase/functions/sync-session-post-to-discord/index.ts` はPATH上の `deno` が未認識だったため、ユーザー領域のDeno実行ファイルをフルパスで実行して成功した。
+- Edge Functionが参照する環境変数名は `SUPABASE_URL`、`SUPABASE_ANON_KEY`、`PUBLIC_SITE_BASE_URL`。この作業環境では3つとも未設定だった。
+- `SUPABASE_URL` / `SUPABASE_ANON_KEY` と認証文脈が未用意のため、`npx.cmd supabase functions serve sync-session-post-to-discord` は実行していない。
+- ローカルserveを起動していないため、`dry_run = true` の実レスポンス確認も未実行。`dry_run = false` は実行していない。
+- 安全検索では `fetch(`、DB書き込み系メソッド、`console.` は0件。
+- 次工程候補は、ユーザー手元で必要な環境変数と認証文脈を用意し、ローカルserve起動後に `dry_run = true` のみを確認すること。
+- この工程ではdocs整理のみ。Supabase CLI導入、`supabase functions serve` 実行、`supabase start` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。

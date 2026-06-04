@@ -523,3 +523,31 @@ Deno単体起動は、Edge Function実行環境との差異が出る可能性が
 5. M-14E-10: 実送信QA。
 
 この追記ではdocs整理のみ行い、Supabase CLI導入、`supabase functions serve` 実行、`supabase start` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
+## M-14E-6G ローカルserve dry-run実行可否確認
+
+確認結果:
+
+- `npx.cmd supabase --version` は `2.105.0`。
+- `deno check supabase/functions/sync-session-post-to-discord/index.ts` は、ユーザー領域のDeno実行ファイルをフルパス実行して成功。
+- Edge Functionが参照する環境変数名は `SUPABASE_URL`、`SUPABASE_ANON_KEY`、`PUBLIC_SITE_BASE_URL`。
+- この作業環境では上記環境変数が未設定。
+- 認証文脈も未用意。
+
+判断:
+
+- `npx.cmd supabase functions serve sync-session-post-to-discord` は実行しない。
+- `dry_run = true` 実レスポンス確認も未実行。
+- `dry_run = false` は引き続き実行しない。
+- Discord実送信なし、DB更新なし、秘匿値の実値記録なしの方針を維持する。
+
+安全検索では `fetch(`、DB書き込み系メソッド、`console.` は0件。
+
+次工程候補:
+
+1. ユーザー手元で必要な環境変数と認証文脈を用意する。
+2. ローカルserveを起動する。
+3. `dry_run = true` のみ確認する。
+4. レスポンスとログの安全性を確認する。
+
+この追記ではdocs整理のみ行い、Supabase CLI導入、`supabase functions serve` 実行、`supabase start` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
