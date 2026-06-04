@@ -14,6 +14,15 @@
   const DISCORD_USER_ID_RECHECK_MESSAGE = `登録形式を確認してください。今後は ${DISCORD_USER_ID_EXAMPLE} のように17〜20桁の数字で登録してください。`;
   const SESSIONS_DATA_URL = "data/sessions.json?v=20260531-mypage-applications";
   const APPLICATION_SELECT_COLUMNS = "session_id,status,comment_id,created_at,updated_at,canceled_at";
+  const TEMPLATE_PRESETS_RPC = "get_my_template_presets";
+  const TEMPLATE_CREATE_RPC = "create_template_preset";
+  const TEMPLATE_UPDATE_RPC = "update_template_preset";
+  const TEMPLATE_DEACTIVATE_RPC = "deactivate_template_preset";
+  const TEMPLATE_NAME_MAX_LENGTH = 80;
+  const TEMPLATE_BODY_MAX_LENGTH = 5000;
+  const SESSION_POST_TEMPLATE_FORMAT = "velgard.session_post_template.v1";
+  const SESSION_POST_TITLE_MAX_LENGTH = 120;
+  const SESSION_POST_SUMMARY_MAX_LENGTH = 1000;
   const APPLICATION_STATUSES = ["pending", "waitlisted", "accepted"];
   const APPLICATION_STATUS_GROUPS = Object.freeze({
     pending: "pending",
@@ -37,6 +46,93 @@
     archived: "アーカイブ"
   });
   const ENDED_SESSION_STATUSES = new Set(["closed", "finished", "canceled", "cancelled", "archived"]);
+  const TEMPLATE_TYPE_OPTIONS = Object.freeze([
+    { value: "call", label: "呼び出し用", note: "GM向け呼び出し用の自由本文テンプレートです。" },
+    { value: "result", label: "リザルト用", note: "GM向けリザルト用の自由本文テンプレートです。" },
+    { value: "session_post", label: "依頼書用", note: "依頼書フォーム用テンプレートです。この画面ではフォーム項目として編集します。" },
+    { value: "application", label: "申請用", note: "PL向け参加申請コメント用の自由本文テンプレートです。" },
+    { value: "other", label: "その他", note: "補助用途です。利用先に合わせて内容を確認してください。" }
+  ]);
+  const TEMPLATE_TYPE_VALUES = new Set(TEMPLATE_TYPE_OPTIONS.map((option) => option.value));
+  const GM_TEMPLATE_VARIABLE_HELP = Object.freeze([
+    {
+      name: "{{session_title}}",
+      substitution: "現在開いているセッションのタイトル",
+      example: "灰壁線異常調査",
+      note: "mypage上では置換されません。session-detailなど、実セッション文脈がある画面で置換されます。"
+    },
+    {
+      name: "{{approved_call_list}}",
+      substitution: "承認済み参加者のDiscordメンション、ユーザー名、PC名の一覧",
+      example: [
+        "Discord：<@123456789012345678>｜ユーザー名：マルフォイ｜PC名：ハリーポッター",
+        "Discord：登録されていません｜ユーザー名：ボボボーボ・ボーボボ｜PC名：PC名未登録"
+      ].join("\n"),
+      note: "Discord未登録時は「登録されていません」、PC名未登録時は「PC名未登録」と表示されます。"
+    },
+    {
+      name: "{{approved_pc_names}}",
+      substitution: "承認済み参加者のPC名一覧",
+      example: "ハリーポッター、軍艦、PC名未登録",
+      note: "PC名未登録の参加者は「PC名未登録」として出力されます。"
+    }
+  ]);
+  const TEMPLATE_VARIABLE_HELP_BY_TYPE = Object.freeze({
+    call: GM_TEMPLATE_VARIABLE_HELP,
+    result: GM_TEMPLATE_VARIABLE_HELP
+  });
+  const SESSION_POST_TEMPLATE_FIELD_KEYS = Object.freeze([
+    "p_title",
+    "p_start_at",
+    "p_end_at",
+    "p_application_deadline",
+    "p_session_type",
+    "p_player_min",
+    "p_player_max",
+    "p_visibility",
+    "p_status",
+    "p_summary"
+  ]);
+  const SESSION_POST_TEMPLATE_DEFAULT_FIELDS = Object.freeze({
+    p_title: "",
+    p_start_at: "",
+    p_end_at: "",
+    p_application_deadline: "",
+    p_session_type: "one-shot",
+    p_player_min: "",
+    p_player_max: "",
+    p_visibility: "hidden",
+    p_status: "draft",
+    p_summary: ""
+  });
+  const SESSION_POST_TYPE_OPTIONS = Object.freeze([
+    { value: "one-shot", label: "単発シナリオ" },
+    { value: "campaign", label: "キャンペーン" },
+    { value: "special", label: "特殊" },
+    { value: "other", label: "その他" }
+  ]);
+  const SESSION_POST_VISIBILITY_OPTIONS = Object.freeze([
+    { value: "hidden", label: "非公開" },
+    { value: "private", label: "限定" },
+    { value: "public", label: "公開" }
+  ]);
+  const SESSION_POST_STATUS_OPTIONS = Object.freeze([
+    { value: "draft", label: "下書き" },
+    { value: "tentative", label: "仮予定" },
+    { value: "recruiting", label: "募集中" },
+    { value: "closed", label: "募集終了" },
+    { value: "finished", label: "開催終了" },
+    { value: "canceled", label: "中止" }
+  ]);
+  const TEMPLATE_PRESET_FIELD_NAMES = new Set([
+    "template_id",
+    "template_name",
+    "template_type",
+    "template_body",
+    "is_active",
+    "created_at",
+    "updated_at"
+  ]);
 
   function getConfig() {
     const config = window.VELGARD_SUPABASE_CONFIG || {};
@@ -502,6 +598,333 @@
       valid: true,
       value: pcName
     };
+  }
+
+  function redactSensitiveText(value) {
+    return String(value ?? "")
+      .replace(/\b(?:application_id|owner_user_id|selected_character_id|user_id|email|token|secret)\b/gi, "[非表示]")
+      .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[非表示]")
+      .replace(/\beyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\b/g, "[非表示]")
+      .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi, "[非表示]")
+      .replace(/https:\/\/[a-z0-9.-]+\.supabase\.co/gi, "[非表示]")
+      .replace(/\b[A-Za-z0-9_-]{80,}\b/g, "[非表示]");
+  }
+
+  function normalizeTemplateType(value) {
+    const templateType = String(value || "").trim().toLowerCase();
+    return TEMPLATE_TYPE_VALUES.has(templateType) ? templateType : "";
+  }
+
+  function getTemplateTypeLabel(value) {
+    const templateType = normalizeTemplateType(value);
+    const option = TEMPLATE_TYPE_OPTIONS.find((item) => item.value === templateType);
+    return option?.label || "その他";
+  }
+
+  function getTemplateTypeNote(value) {
+    const templateType = normalizeTemplateType(value);
+    const option = TEMPLATE_TYPE_OPTIONS.find((item) => item.value === templateType);
+    return option?.note || "";
+  }
+
+  function getTemplateVariableHelpItems(value) {
+    const templateType = normalizeTemplateType(value);
+    return TEMPLATE_VARIABLE_HELP_BY_TYPE[templateType] || [];
+  }
+
+  function normalizeTemplateName(value) {
+    return redactSensitiveText(value).replace(/[\r\n]+/g, " ").trim();
+  }
+
+  function normalizeTemplateBody(value) {
+    return redactSensitiveText(value);
+  }
+
+  function countTemplateCharacters(value) {
+    return Array.from(String(value || "")).length;
+  }
+
+  function isValueInOptions(value, options) {
+    return options.some((option) => option.value === value);
+  }
+
+  function normalizeSessionPostSelectValue(value, options, fallback) {
+    const text = String(value || "").trim();
+    return isValueInOptions(text, options) ? text : fallback;
+  }
+
+  function normalizeSessionPostIntegerText(value) {
+    const text = String(value ?? "").trim();
+    if (!text) return "";
+    const number = Number(text);
+    return Number.isInteger(number) && number >= 0 ? String(number) : text;
+  }
+
+  function normalizeDateTimeLocalText(value) {
+    const text = String(value ?? "").trim().replace(" ", "T");
+    const match = text.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+    return match ? `${match[1]}T${match[2]}` : text;
+  }
+
+  function createDefaultSessionPostTemplateFields() {
+    return { ...SESSION_POST_TEMPLATE_DEFAULT_FIELDS };
+  }
+
+  function normalizeSessionPostTemplateFields(source = {}) {
+    const fields = createDefaultSessionPostTemplateFields();
+    fields.p_title = redactSensitiveText(source.p_title).replace(/[\r\n]+/g, " ").trim();
+    fields.p_start_at = normalizeDateTimeLocalText(source.p_start_at);
+    fields.p_end_at = normalizeDateTimeLocalText(source.p_end_at);
+    fields.p_application_deadline = normalizeDateTimeLocalText(source.p_application_deadline);
+    fields.p_session_type = normalizeSessionPostSelectValue(source.p_session_type, SESSION_POST_TYPE_OPTIONS, fields.p_session_type);
+    fields.p_player_min = normalizeSessionPostIntegerText(source.p_player_min);
+    fields.p_player_max = normalizeSessionPostIntegerText(source.p_player_max);
+    fields.p_visibility = normalizeSessionPostSelectValue(source.p_visibility, SESSION_POST_VISIBILITY_OPTIONS, fields.p_visibility);
+    fields.p_status = normalizeSessionPostSelectValue(source.p_status, SESSION_POST_STATUS_OPTIONS, fields.p_status);
+    fields.p_summary = redactSensitiveText(source.p_summary).trim();
+    return fields;
+  }
+
+  function parseSessionPostTemplateBody(value) {
+    const text = normalizeTemplateBody(value).trim();
+    if (!text) return null;
+
+    try {
+      const parsed = JSON.parse(text);
+      const sourceFields = parsed
+        && parsed.format === SESSION_POST_TEMPLATE_FORMAT
+        && parsed.fields
+        && typeof parsed.fields === "object"
+        ? parsed.fields
+        : null;
+      return sourceFields ? normalizeSessionPostTemplateFields(sourceFields) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function isSessionPostTemplateBody(value) {
+    return Boolean(parseSessionPostTemplateBody(value));
+  }
+
+  function buildSessionPostTemplateBody(fields) {
+    return JSON.stringify({
+      format: SESSION_POST_TEMPLATE_FORMAT,
+      fields: normalizeSessionPostTemplateFields(fields)
+    });
+  }
+
+  function validateSessionPostTemplateFields(fields) {
+    const normalized = normalizeSessionPostTemplateFields(fields);
+
+    if (countTemplateCharacters(normalized.p_title) > SESSION_POST_TITLE_MAX_LENGTH) {
+      return { valid: false, message: `タイトルは${SESSION_POST_TITLE_MAX_LENGTH}文字以内で入力してください。` };
+    }
+    if (countTemplateCharacters(normalized.p_summary) > SESSION_POST_SUMMARY_MAX_LENGTH) {
+      return { valid: false, message: `概要は${SESSION_POST_SUMMARY_MAX_LENGTH}文字以内で入力してください。` };
+    }
+
+    const dateTimePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+    const dateTimeValues = [
+      ["開始日時", normalized.p_start_at],
+      ["終了日時", normalized.p_end_at],
+      ["申請締切", normalized.p_application_deadline]
+    ];
+    for (const [label, value] of dateTimeValues) {
+      if (value && !dateTimePattern.test(value)) {
+        return { valid: false, message: `${label}の形式を確認してください。` };
+      }
+    }
+    if (normalized.p_start_at && normalized.p_end_at && normalized.p_end_at <= normalized.p_start_at) {
+      return { valid: false, message: "終了日時は開始日時より後にしてください。" };
+    }
+
+    const playerMin = normalized.p_player_min ? Number(normalized.p_player_min) : null;
+    const playerMax = normalized.p_player_max ? Number(normalized.p_player_max) : null;
+    if (
+      (normalized.p_player_min && (!Number.isInteger(playerMin) || playerMin < 0))
+      || (normalized.p_player_max && (!Number.isInteger(playerMax) || playerMax < 0))
+    ) {
+      return { valid: false, message: "募集人数は0以上の整数で入力してください。" };
+    }
+    if (Number.isInteger(playerMin) && Number.isInteger(playerMax) && playerMin > playerMax) {
+      return { valid: false, message: "募集人数の範囲を確認してください。" };
+    }
+
+    return { valid: true, fields: normalized };
+  }
+
+  function assertOnlyTemplatePresetFields(rows) {
+    const list = Array.isArray(rows) ? rows : rows ? [rows] : [];
+    for (const row of list) {
+      if (!row || typeof row !== "object") continue;
+      for (const key of Object.keys(row)) {
+        if (!TEMPLATE_PRESET_FIELD_NAMES.has(String(key).toLowerCase())) {
+          throw new Error("template-preset-field-returned");
+        }
+      }
+    }
+  }
+
+  function normalizeTemplatePresetRow(row) {
+    const templateType = normalizeTemplateType(row && row.template_type);
+    return {
+      templateId: String(row && row.template_id ? row.template_id : "").trim(),
+      templateName: normalizeTemplateName(row && row.template_name) || "名称未設定",
+      templateType: templateType || "other",
+      templateBody: normalizeTemplateBody(row && row.template_body),
+      createdAt: String(row && row.created_at ? row.created_at : "").trim(),
+      updatedAt: String(row && row.updated_at ? row.updated_at : "").trim()
+    };
+  }
+
+  function normalizeTemplatePresetRows(rows) {
+    return (Array.isArray(rows) ? rows : [])
+      .map(normalizeTemplatePresetRow)
+      .filter((row) => row.templateId && row.templateType);
+  }
+
+  function validateTemplatePresetInput(nameValue, typeValue, bodyValue) {
+    const rawName = String(nameValue || "");
+    const templateName = normalizeTemplateName(rawName);
+    const templateType = normalizeTemplateType(typeValue);
+    const templateBody = normalizeTemplateBody(bodyValue);
+    const trimmedBody = templateBody.trim();
+
+    if (!templateName) {
+      return { valid: false, message: "テンプレート名を入力してください。" };
+    }
+    if (hasLineBreak(rawName)) {
+      return { valid: false, message: "テンプレート名に改行は使えません。" };
+    }
+    if (countTemplateCharacters(templateName) > TEMPLATE_NAME_MAX_LENGTH) {
+      return { valid: false, message: `テンプレート名は${TEMPLATE_NAME_MAX_LENGTH}文字以内で入力してください。` };
+    }
+    if (!templateType) {
+      return { valid: false, message: "テンプレート種別を選んでください。" };
+    }
+    if (!trimmedBody) {
+      return { valid: false, message: "テンプレート本文を入力してください。" };
+    }
+    if (countTemplateCharacters(templateBody) > TEMPLATE_BODY_MAX_LENGTH) {
+      return { valid: false, message: `テンプレート本文は${TEMPLATE_BODY_MAX_LENGTH}文字以内で入力してください。` };
+    }
+    if (templateType === "session_post" && !isSessionPostTemplateBody(templateBody)) {
+      return {
+        valid: false,
+        message: "依頼書用テンプレートとして保存できない内容です。"
+      };
+    }
+
+    return {
+      valid: true,
+      templateName,
+      templateType,
+      templateBody
+    };
+  }
+
+  function collectSessionPostTemplateFields(panel) {
+    const fields = panel.sessionPostFields || {};
+    return {
+      p_title: fields.titleInput?.value || "",
+      p_start_at: fields.startAtInput?.value || "",
+      p_end_at: fields.endAtInput?.value || "",
+      p_application_deadline: fields.applicationDeadlineInput?.value || "",
+      p_session_type: fields.sessionTypeSelect?.value || "",
+      p_player_min: fields.playerMinInput?.value || "",
+      p_player_max: fields.playerMaxInput?.value || "",
+      p_visibility: fields.visibilitySelect?.value || "",
+      p_status: fields.statusSelect?.value || "",
+      p_summary: fields.summaryTextarea?.value || ""
+    };
+  }
+
+  function buildTemplatePresetInput(panel) {
+    const templateType = normalizeTemplateType(panel.typeSelect.value);
+
+    if (templateType === "session_post") {
+      const fieldsValidation = validateSessionPostTemplateFields(collectSessionPostTemplateFields(panel));
+      if (!fieldsValidation.valid) {
+        return fieldsValidation;
+      }
+
+      const templateBody = buildSessionPostTemplateBody(fieldsValidation.fields);
+      return validateTemplatePresetInput(panel.nameInput.value, templateType, templateBody);
+    }
+
+    return validateTemplatePresetInput(panel.nameInput.value, templateType, panel.bodyTextarea.value);
+  }
+
+  function getTemplateOperationErrorMessage(error) {
+    const text = [
+      error && error.message,
+      error && error.code,
+      error && error.details,
+      error && error.hint
+    ].filter(Boolean).join(" ").toLowerCase();
+
+    if (text.includes("login_required") || text.includes("28000")) {
+      return "ログインが必要です。";
+    }
+    if (text.includes("template_not_found") || text.includes("not_found") || text.includes("p0002")) {
+      return "対象のテンプレートが見つかりません。";
+    }
+    if (text.includes("not_allowed") || text.includes("42501") || text.includes("permission")) {
+      return "このテンプレートを操作する権限がありません。";
+    }
+    if (
+      text.includes("template_name") ||
+      text.includes("template_body") ||
+      text.includes("template_type") ||
+      text.includes("22023")
+    ) {
+      return "テンプレートの入力内容を確認してください。";
+    }
+    return "テンプレートの保存に失敗しました。";
+  }
+
+  async function queryTemplatePresets(client) {
+    const { data, error } = await client.rpc(TEMPLATE_PRESETS_RPC);
+    if (error) throw error;
+    const rows = Array.isArray(data) ? data : [];
+    assertOnlyTemplatePresetFields(rows);
+    return rows;
+  }
+
+  async function createTemplatePreset(client, preset) {
+    const { data, error } = await client.rpc(TEMPLATE_CREATE_RPC, {
+      p_template_name: preset.templateName,
+      p_template_type: preset.templateType,
+      p_template_body: preset.templateBody
+    });
+    if (error) throw error;
+    assertOnlyTemplatePresetFields(data);
+    return Array.isArray(data) ? data[0] || null : data || null;
+  }
+
+  async function updateTemplatePreset(client, preset) {
+    const { data, error } = await client.rpc(TEMPLATE_UPDATE_RPC, {
+      p_template_id: preset.templateId,
+      p_template_name: preset.templateName,
+      p_template_type: preset.templateType,
+      p_template_body: preset.templateBody,
+      p_is_active: true
+    });
+    if (error) throw error;
+    assertOnlyTemplatePresetFields(data);
+    return Array.isArray(data) ? data[0] || null : data || null;
+  }
+
+  async function deactivateTemplatePreset(client, templateId) {
+    const targetTemplateId = String(templateId || "").trim();
+    if (!targetTemplateId) throw new Error("template-preset-target-missing");
+
+    const { data, error } = await client.rpc(TEMPLATE_DEACTIVATE_RPC, {
+      p_template_id: targetTemplateId
+    });
+    if (error) throw error;
+    assertOnlyTemplatePresetFields(data);
   }
 
   function getPlayerCharacterErrorMessage(error) {
@@ -1555,6 +1978,628 @@
     }
   }
 
+  function appendTemplateSelectOptions(select, options, selectedValue = "") {
+    options.forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item.value;
+      option.textContent = item.label;
+      option.selected = item.value === selectedValue;
+      select.append(option);
+    });
+  }
+
+  function createTemplateVariableHelpPanel() {
+    const container = document.createElement("section");
+    container.className = "mypage-template-variable-help";
+    container.dataset.mypageTemplateVariableHelp = "";
+    container.hidden = true;
+
+    const title = document.createElement("h4");
+    title.textContent = "利用できる変数";
+
+    const description = document.createElement("p");
+    description.className = "mypage-template-variable-help-description";
+    description.textContent = "本文に以下の変数を書くと、セッション詳細画面などでコピーするときに実際の値へ置き換えられます。mypage上では保存用の説明として表示しています。";
+
+    const list = document.createElement("div");
+    list.className = "mypage-template-variable-help-list";
+    list.dataset.mypageTemplateVariableHelpList = "";
+
+    container.append(title, description, list);
+    return { container, list };
+  }
+
+  function renderTemplateVariableHelp(panel) {
+    const items = getTemplateVariableHelpItems(panel.typeSelect.value);
+    panel.variableHelpList.replaceChildren();
+
+    items.forEach((item) => {
+      const card = document.createElement("article");
+      card.className = "mypage-template-variable-card";
+
+      const code = document.createElement("code");
+      code.textContent = item.name;
+
+      const detailList = document.createElement("dl");
+      [
+        ["代入内容", item.substitution],
+        ["出力例", item.example],
+        ["補足", item.note]
+      ].forEach(([label, value]) => {
+        const row = document.createElement("div");
+        const term = document.createElement("dt");
+        term.textContent = label;
+        const description = document.createElement("dd");
+        description.textContent = value;
+        if (label === "出力例") description.className = "mypage-template-variable-example";
+        row.append(term, description);
+        detailList.append(row);
+      });
+
+      card.append(code, detailList);
+      panel.variableHelpList.append(card);
+    });
+
+    panel.variableHelp.hidden = !items.length;
+  }
+
+  function createSessionPostTemplateEditor() {
+    const container = document.createElement("section");
+    container.className = "mypage-template-session-post-editor";
+    container.dataset.mypageTemplateSessionPostEditor = "";
+    container.hidden = true;
+
+    const title = document.createElement("h4");
+    title.textContent = "依頼書用フォーム";
+
+    const description = document.createElement("p");
+    description.className = "mypage-template-session-post-note";
+    description.textContent = "依頼書用テンプレートはフォーム内容を保存します。保存時は既存の依頼書テンプレートJSON形式へ変換します。";
+
+    const grid = document.createElement("div");
+    grid.className = "mypage-template-session-post-grid";
+
+    const titleInput = document.createElement("input");
+    titleInput.type = "text";
+    titleInput.maxLength = SESSION_POST_TITLE_MAX_LENGTH;
+    titleInput.autocomplete = "off";
+    titleInput.placeholder = "例：灰壁線異常調査";
+
+    const startAtInput = document.createElement("input");
+    startAtInput.type = "datetime-local";
+
+    const endAtInput = document.createElement("input");
+    endAtInput.type = "datetime-local";
+
+    const applicationDeadlineInput = document.createElement("input");
+    applicationDeadlineInput.type = "datetime-local";
+
+    const sessionTypeSelect = document.createElement("select");
+    appendTemplateSelectOptions(sessionTypeSelect, SESSION_POST_TYPE_OPTIONS, "one-shot");
+
+    const playerMinInput = document.createElement("input");
+    playerMinInput.type = "number";
+    playerMinInput.min = "0";
+    playerMinInput.step = "1";
+    playerMinInput.inputMode = "numeric";
+
+    const playerMaxInput = document.createElement("input");
+    playerMaxInput.type = "number";
+    playerMaxInput.min = "0";
+    playerMaxInput.step = "1";
+    playerMaxInput.inputMode = "numeric";
+
+    const visibilitySelect = document.createElement("select");
+    appendTemplateSelectOptions(visibilitySelect, SESSION_POST_VISIBILITY_OPTIONS, "hidden");
+
+    const statusSelect = document.createElement("select");
+    appendTemplateSelectOptions(statusSelect, SESSION_POST_STATUS_OPTIONS, "draft");
+
+    const summaryTextarea = document.createElement("textarea");
+    summaryTextarea.maxLength = SESSION_POST_SUMMARY_MAX_LENGTH;
+    summaryTextarea.rows = 5;
+    summaryTextarea.placeholder = "依頼書の概要を入力します。";
+
+    const summaryField = createInputField("概要", summaryTextarea);
+    summaryField.classList.add("mypage-template-session-post-field-wide");
+
+    grid.append(
+      createInputField("タイトル", titleInput),
+      createInputField("開始日時", startAtInput),
+      createInputField("終了日時", endAtInput),
+      createInputField("申請締切", applicationDeadlineInput),
+      createInputField("種別", sessionTypeSelect),
+      createInputField("募集人数 min", playerMinInput),
+      createInputField("募集人数 max", playerMaxInput),
+      createInputField("公開状態", visibilitySelect),
+      createInputField("募集状態", statusSelect),
+      summaryField
+    );
+
+    container.append(title, description, grid);
+
+    return {
+      container,
+      fields: {
+        titleInput,
+        startAtInput,
+        endAtInput,
+        applicationDeadlineInput,
+        sessionTypeSelect,
+        playerMinInput,
+        playerMaxInput,
+        visibilitySelect,
+        statusSelect,
+        summaryTextarea
+      }
+    };
+  }
+
+  function setSessionPostTemplateFields(panel, fields) {
+    const normalized = normalizeSessionPostTemplateFields(fields);
+    const controls = panel.sessionPostFields || {};
+    if (controls.titleInput) controls.titleInput.value = normalized.p_title;
+    if (controls.startAtInput) controls.startAtInput.value = normalized.p_start_at;
+    if (controls.endAtInput) controls.endAtInput.value = normalized.p_end_at;
+    if (controls.applicationDeadlineInput) controls.applicationDeadlineInput.value = normalized.p_application_deadline;
+    if (controls.sessionTypeSelect) controls.sessionTypeSelect.value = normalized.p_session_type;
+    if (controls.playerMinInput) controls.playerMinInput.value = normalized.p_player_min;
+    if (controls.playerMaxInput) controls.playerMaxInput.value = normalized.p_player_max;
+    if (controls.visibilitySelect) controls.visibilitySelect.value = normalized.p_visibility;
+    if (controls.statusSelect) controls.statusSelect.value = normalized.p_status;
+    if (controls.summaryTextarea) controls.summaryTextarea.value = normalized.p_summary;
+  }
+
+  function resetSessionPostTemplateFields(panel) {
+    setSessionPostTemplateFields(panel, createDefaultSessionPostTemplateFields());
+  }
+
+  function updateTemplateMode(panel) {
+    const templateType = normalizeTemplateType(panel.typeSelect.value);
+    const isSessionPost = templateType === "session_post";
+    panel.bodyField.hidden = isSessionPost;
+    panel.sessionPostEditor.hidden = !isSessionPost;
+    renderTemplateVariableHelp(panel);
+  }
+
+  function setTemplatePanelState(panel, message, options = {}) {
+    panel.state.textContent = message || "";
+    panel.state.hidden = !message;
+    panel.state.classList.toggle("is-error", Boolean(options.error));
+    panel.state.classList.toggle("is-warn", Boolean(options.warn));
+  }
+
+  function setTemplatePanelBusy(panel, busy) {
+    panel.isBusy = Boolean(busy);
+    panel.container.querySelectorAll("input, select, textarea, button").forEach((control) => {
+      control.disabled = Boolean(busy);
+    });
+    updateTemplateControls(panel);
+  }
+
+  function createTemplateManagementPanel(client, elements, session) {
+    const container = document.createElement("section");
+    container.className = "mypage-profile-panel mypage-template-panel";
+    container.dataset.mypageTemplatePanel = "";
+
+    const head = document.createElement("div");
+    head.className = "mypage-profile-panel-head";
+
+    const title = document.createElement("h3");
+    title.textContent = "テンプレート管理";
+
+    const description = document.createElement("p");
+    description.textContent = "呼び出し、リザルト、依頼書、申請コメントなどの個人テンプレートを管理できます。";
+
+    head.append(title, description);
+
+    const note = document.createElement("p");
+    note.className = "mypage-profile-note";
+    note.textContent = "テンプレート本文に秘匿情報や認証情報を入れないでください。依頼書用はフォーム内容として保存します。";
+
+    const form = document.createElement("form");
+    form.className = "calendar-form mypage-template-form";
+    form.dataset.mypageTemplateForm = "";
+    form.noValidate = true;
+
+    const savedSelect = document.createElement("select");
+    savedSelect.dataset.mypageTemplateSelect = "";
+    savedSelect.disabled = true;
+    const loadingOption = document.createElement("option");
+    loadingOption.value = "";
+    loadingOption.textContent = "読み込み中";
+    savedSelect.append(loadingOption);
+
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.name = "templateName";
+    nameInput.autocomplete = "off";
+    nameInput.maxLength = TEMPLATE_NAME_MAX_LENGTH;
+    nameInput.placeholder = "例：卓前呼び出し";
+
+    const typeSelect = document.createElement("select");
+    typeSelect.name = "templateType";
+    typeSelect.dataset.mypageTemplateType = "";
+    TEMPLATE_TYPE_OPTIONS.forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item.value;
+      option.textContent = item.label;
+      typeSelect.append(option);
+    });
+    typeSelect.value = "call";
+
+    const bodyTextarea = document.createElement("textarea");
+    bodyTextarea.name = "templateBody";
+    bodyTextarea.dataset.mypageTemplateBody = "";
+    bodyTextarea.maxLength = TEMPLATE_BODY_MAX_LENGTH;
+    bodyTextarea.rows = 8;
+    bodyTextarea.placeholder = "{{session_title}} などの変数を含めた本文を入力できます。";
+    bodyTextarea.spellcheck = false;
+
+    const typeNote = document.createElement("p");
+    typeNote.className = "mypage-template-type-note";
+    typeNote.dataset.mypageTemplateTypeNote = "";
+    typeNote.textContent = getTemplateTypeNote(typeSelect.value);
+
+    const actions = document.createElement("div");
+    actions.className = "mypage-template-actions";
+
+    const createButton = document.createElement("button");
+    createButton.type = "button";
+    createButton.className = "button primary";
+    createButton.dataset.mypageTemplateCreate = "";
+    createButton.textContent = "新規保存";
+    createButton.disabled = true;
+
+    const updateButton = document.createElement("button");
+    updateButton.type = "button";
+    updateButton.className = "button";
+    updateButton.dataset.mypageTemplateUpdate = "";
+    updateButton.textContent = "変更を保存";
+    updateButton.disabled = true;
+
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "button danger";
+    deleteButton.dataset.mypageTemplateDelete = "";
+    deleteButton.textContent = "削除";
+    deleteButton.disabled = true;
+
+    const clearButton = document.createElement("button");
+    clearButton.type = "button";
+    clearButton.className = "button";
+    clearButton.dataset.mypageTemplateClear = "";
+    clearButton.textContent = "新規入力に戻す";
+
+    actions.append(createButton, updateButton, deleteButton, clearButton);
+
+    const bodyField = createInputField("本文", bodyTextarea);
+    bodyField.classList.add("mypage-template-body-field");
+
+    const variableHelp = createTemplateVariableHelpPanel();
+    const sessionPostEditor = createSessionPostTemplateEditor();
+
+    form.append(
+      createInputField("保存済みテンプレート", savedSelect),
+      createInputField("テンプレート名", nameInput),
+      createInputField("種別", typeSelect),
+      typeNote,
+      bodyField,
+      sessionPostEditor.container,
+      variableHelp.container,
+      actions
+    );
+
+    const state = document.createElement("p");
+    state.className = "mypage-profile-state";
+    state.dataset.mypageTemplateState = "";
+    state.setAttribute("role", "status");
+    state.setAttribute("aria-live", "polite");
+    state.hidden = true;
+
+    const panel = {
+      container,
+      form,
+      savedSelect,
+      nameInput,
+      typeSelect,
+      bodyTextarea,
+      bodyField,
+      typeNote,
+      variableHelp: variableHelp.container,
+      variableHelpList: variableHelp.list,
+      sessionPostEditor: sessionPostEditor.container,
+      sessionPostFields: sessionPostEditor.fields,
+      createButton,
+      updateButton,
+      deleteButton,
+      clearButton,
+      state,
+      client,
+      records: [],
+      keyToTemplate: new Map(),
+      selectedTemplateId: "",
+      session,
+      isBusy: false
+    };
+
+    savedSelect.addEventListener("change", () => {
+      const template = panel.keyToTemplate.get(savedSelect.value) || null;
+      if (!template) {
+        resetTemplateForm(panel, { preserveInputs: true });
+        return;
+      }
+      const result = applyTemplateToForm(panel, template);
+      setTemplatePanelState(panel, result.message, { warn: result.warn });
+    });
+
+    nameInput.addEventListener("input", () => {
+      updateTemplateControls(panel);
+      setTemplatePanelState(panel, "");
+    });
+
+    typeSelect.addEventListener("change", () => {
+      panel.typeNote.textContent = getTemplateTypeNote(typeSelect.value);
+      updateTemplateMode(panel);
+      updateTemplateControls(panel);
+      setTemplatePanelState(panel, "");
+    });
+
+    bodyTextarea.addEventListener("input", () => {
+      updateTemplateControls(panel);
+      setTemplatePanelState(panel, "");
+    });
+
+    sessionPostEditor.container.querySelectorAll("input, select, textarea").forEach((control) => {
+      control.addEventListener("input", () => {
+        updateTemplateControls(panel);
+        setTemplatePanelState(panel, "");
+      });
+      control.addEventListener("change", () => {
+        updateTemplateControls(panel);
+        setTemplatePanelState(panel, "");
+      });
+    });
+
+    createButton.addEventListener("click", () => {
+      handleTemplateCreate(client, elements, panel);
+    });
+
+    updateButton.addEventListener("click", () => {
+      handleTemplateUpdate(panel);
+    });
+
+    deleteButton.addEventListener("click", () => {
+      handleTemplateDelete(panel);
+    });
+
+    clearButton.addEventListener("click", () => {
+      resetTemplateForm(panel);
+      setTemplatePanelState(panel, "");
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (getSelectedTemplate(panel)) {
+        handleTemplateUpdate(panel);
+      } else {
+        handleTemplateCreate(client, elements, panel);
+      }
+    });
+
+    container.append(head, note, form, state);
+    resetSessionPostTemplateFields(panel);
+    updateTemplateMode(panel);
+    updateTemplateControls(panel);
+    return panel;
+  }
+
+  function renderTemplateOptions(panel) {
+    panel.savedSelect.replaceChildren();
+    panel.keyToTemplate = new Map();
+
+    const blankOption = document.createElement("option");
+    blankOption.value = "";
+    blankOption.textContent = panel.records.length
+      ? "新規テンプレートとして編集"
+      : "保存済みテンプレートはありません";
+    panel.savedSelect.append(blankOption);
+
+    panel.records.forEach((template, index) => {
+      const localKey = `template-${index}`;
+      panel.keyToTemplate.set(localKey, template);
+
+      const option = document.createElement("option");
+      option.value = localKey;
+      option.textContent = `${template.templateName}（${getTemplateTypeLabel(template.templateType)}）`;
+      option.selected = template.templateId === panel.selectedTemplateId;
+      panel.savedSelect.append(option);
+    });
+  }
+
+  function getSelectedTemplate(panel) {
+    return panel.selectedTemplateId
+      ? panel.records.find((template) => template.templateId === panel.selectedTemplateId) || null
+      : null;
+  }
+
+  function resetTemplateForm(panel, options = {}) {
+    panel.selectedTemplateId = "";
+    panel.savedSelect.value = "";
+    if (!options.preserveInputs) {
+      panel.nameInput.value = "";
+      panel.typeSelect.value = "call";
+      panel.bodyTextarea.value = "";
+      resetSessionPostTemplateFields(panel);
+      panel.typeNote.textContent = getTemplateTypeNote("call");
+    }
+    updateTemplateMode(panel);
+    updateTemplateControls(panel);
+  }
+
+  function applyTemplateToForm(panel, template) {
+    panel.selectedTemplateId = template.templateId;
+    panel.nameInput.value = template.templateName;
+    const templateType = normalizeTemplateType(template.templateType) || "other";
+    panel.typeSelect.value = templateType;
+    if (templateType === "session_post") {
+      panel.bodyTextarea.value = "";
+      const fields = parseSessionPostTemplateBody(template.templateBody);
+      if (fields) {
+        setSessionPostTemplateFields(panel, fields);
+      } else {
+        resetSessionPostTemplateFields(panel);
+        panel.typeNote.textContent = getTemplateTypeNote(panel.typeSelect.value);
+        updateTemplateMode(panel);
+        updateTemplateControls(panel);
+        return {
+          message: "依頼書用テンプレートの形式を確認できませんでした。フォームには反映していません。",
+          warn: true
+        };
+      }
+    } else {
+      panel.bodyTextarea.value = template.templateBody;
+      resetSessionPostTemplateFields(panel);
+    }
+    panel.typeNote.textContent = getTemplateTypeNote(panel.typeSelect.value);
+    updateTemplateMode(panel);
+    updateTemplateControls(panel);
+    return { message: "保存済みテンプレートを読み込みました。", warn: false };
+  }
+
+  function updateTemplateControls(panel) {
+    const validation = buildTemplatePresetInput(panel);
+    const selectedTemplate = getSelectedTemplate(panel);
+    const busy = Boolean(panel.isBusy);
+
+    panel.savedSelect.disabled = busy || !panel.records.length;
+    panel.nameInput.disabled = busy;
+    panel.typeSelect.disabled = busy;
+    panel.bodyTextarea.disabled = busy;
+    panel.createButton.disabled = busy || !validation.valid;
+    panel.updateButton.disabled = busy || !selectedTemplate || !validation.valid;
+    panel.deleteButton.disabled = busy || !selectedTemplate;
+    panel.clearButton.disabled = busy;
+  }
+
+  async function loadTemplatePresets(client, panel, options = {}) {
+    setTemplatePanelState(panel, options.loadingMessage || "読み込み中");
+
+    try {
+      const session = await getActiveSession(client, panel.session);
+      if (!session) {
+        setTemplatePanelState(panel, "ログインが必要です。", { error: true });
+        return;
+      }
+
+      const rows = await queryTemplatePresets(client);
+      panel.records = normalizeTemplatePresetRows(rows);
+      panel.selectedTemplateId = panel.records.some((template) => template.templateId === options.preferredTemplateId)
+        ? options.preferredTemplateId
+        : "";
+      renderTemplateOptions(panel);
+
+      const selectedTemplate = getSelectedTemplate(panel);
+      let selectedState = null;
+      if (selectedTemplate) {
+        selectedState = applyTemplateToForm(panel, selectedTemplate);
+      } else {
+        resetTemplateForm(panel, { preserveInputs: Boolean(options.preserveInputs) });
+      }
+
+      setTemplatePanelState(
+        panel,
+        options.successMessage || selectedState?.message || (panel.records.length ? "" : "保存済みテンプレートはありません。"),
+        { warn: Boolean(!options.successMessage && selectedState?.warn) }
+      );
+    } catch (error) {
+      panel.records = [];
+      panel.selectedTemplateId = "";
+      renderTemplateOptions(panel);
+      updateTemplateControls(panel);
+      setTemplatePanelState(panel, getTemplateOperationErrorMessage(error), { error: true });
+    }
+  }
+
+  async function handleTemplateCreate(client, elements, panel) {
+    const validation = buildTemplatePresetInput(panel);
+    if (!validation.valid) {
+      setTemplatePanelState(panel, validation.message, { error: true });
+      return;
+    }
+
+    try {
+      setMessage(elements, "");
+      setTemplatePanelState(panel, "保存中");
+      setTemplatePanelBusy(panel, true);
+      const created = normalizeTemplatePresetRow(await createTemplatePreset(client, validation));
+      await loadTemplatePresets(client, panel, {
+        preferredTemplateId: created.templateId,
+        successMessage: "テンプレートを保存しました。"
+      });
+    } catch (error) {
+      setTemplatePanelState(panel, getTemplateOperationErrorMessage(error), { error: true });
+    } finally {
+      if (panel.container.isConnected) setTemplatePanelBusy(panel, false);
+    }
+  }
+
+  async function handleTemplateUpdate(panel) {
+    const template = getSelectedTemplate(panel);
+    if (!template) {
+      setTemplatePanelState(panel, "保存済みテンプレートを選んでください。", { error: true });
+      return;
+    }
+
+    const validation = buildTemplatePresetInput(panel);
+    if (!validation.valid) {
+      setTemplatePanelState(panel, validation.message, { error: true });
+      return;
+    }
+
+    try {
+      setTemplatePanelState(panel, "保存中");
+      setTemplatePanelBusy(panel, true);
+      const updated = normalizeTemplatePresetRow(await updateTemplatePreset(panel.client, {
+        ...validation,
+        templateId: template.templateId
+      }));
+      await loadTemplatePresets(panel.client, panel, {
+        preferredTemplateId: updated.templateId || template.templateId,
+        successMessage: "変更を保存しました。"
+      });
+    } catch (error) {
+      setTemplatePanelState(panel, getTemplateOperationErrorMessage(error), { error: true });
+    } finally {
+      if (panel.container.isConnected) setTemplatePanelBusy(panel, false);
+    }
+  }
+
+  async function handleTemplateDelete(panel) {
+    const template = getSelectedTemplate(panel);
+    if (!template) {
+      setTemplatePanelState(panel, "保存済みテンプレートを選んでください。", { error: true });
+      return;
+    }
+
+    const confirmed = window.confirm("このテンプレートを削除します。テンプレートは一覧から外れます。続けますか？");
+    if (!confirmed) return;
+
+    try {
+      setTemplatePanelState(panel, "削除中");
+      setTemplatePanelBusy(panel, true);
+      await deactivateTemplatePreset(panel.client, template.templateId);
+      await loadTemplatePresets(panel.client, panel, {
+        preferredTemplateId: "",
+        successMessage: "テンプレートを削除しました。"
+      });
+    } catch (error) {
+      setTemplatePanelState(panel, getTemplateOperationErrorMessage(error), { error: true });
+    } finally {
+      if (panel.container.isConnected) setTemplatePanelBusy(panel, false);
+    }
+  }
+
   function renderAuthenticated(client, elements, message, session) {
     ensureAuthElements(elements);
     setStatus(
@@ -1567,6 +2612,7 @@
     const displayNameEditor = createDisplayNameEditor(client, elements, session);
     const playerCharacterPanel = createPlayerCharacterPanel(client, elements, session);
     const discordIdEditor = createDiscordIdEditor(client, elements, session);
+    const templatePanel = createTemplateManagementPanel(client, elements, session);
     const applicationsPanel = createApplicationsPanel();
 
     const actions = document.createElement("div");
@@ -1595,6 +2641,7 @@
       displayNameEditor.container,
       playerCharacterPanel.container,
       discordIdEditor.container,
+      templatePanel.container,
       actions,
       applicationsPanel.container
     );
@@ -1602,6 +2649,7 @@
     loadDisplayName(client, displayNameEditor);
     loadPlayerCharacters(client, playerCharacterPanel);
     loadProfileContact(client, discordIdEditor);
+    loadTemplatePresets(client, templatePanel);
     loadApplications(client, applicationsPanel, session);
   }
 

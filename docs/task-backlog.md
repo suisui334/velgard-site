@@ -1012,4 +1012,15 @@
 - PL申請コメントテンプレートは、session-detailの参加希望コメントフォーム付近にテンプレートselectを置き、`application` / `other` を呼び出してコメント本文へ反映する案を候補にした。既に本文入力済みの場合は上書き確認を出し、初期は保存・編集をmypage側に寄せる。
 - `other` は文脈をまたいで混線しやすいため、session-detail、session-post、PL申請コメント、mypageで表示対象を慎重に分ける。必要になった場合のみ、将来の利用文脈追加設計を検討する。
 - 追加DB/RPCは急がず、まず既存RPC 4本で本人テンプレートの管理と呼び出しに足りるかを見る。admin共通テンプレート、共有テンプレート、説明文、並び順、利用文脈の厳密分離は後続候補。
-- 次工程候補は、M-15K mypageテンプレート管理UI設計、M-15L mypage自由本文系テンプレ接続、M-15M PL参加希望コメント欄テンプレ呼び出し、M-15N `session_post` テンプレ管理UI、M-15O 利用文脈追加検討。
+- 次工程候補は、M-15J-1 mypageテンプレート管理UI、M-15M PL参加希望コメント欄テンプレ呼び出し、M-15N `session_post` フォーム風編集UI、M-15O 利用文脈追加検討。
+
+## M-15J-1 mypageテンプレート管理UI
+- `mypage.html` のログイン済み表示内に「テンプレート管理」セクションを追加し、本人テンプレートを横断的に一覧、作成、編集、削除できるUIを実装した。未ログイン時は既存の認証表示どおり描画しない。
+- UIは保存済みテンプレートselect、テンプレート名入力、種別select、本文textarea、新規保存、変更を保存、削除、新規入力に戻す、状態メッセージで構成する。select値は表示用の一時キーのみで、実IDや所有者識別子を画面やDOMへ出さない。
+- 対象種別は `call` / `result` / `session_post` / `application` / `other`。`call` / `result` / `application` / `other` は自由本文として扱い、`session_post` は依頼書フォーム用JSON形式のみ保存できるようにした。
+- 一覧取得は `get_my_template_presets()`、新規保存は `create_template_preset(text, text, text)`、更新は `update_template_preset(uuid, text, text, text, boolean)`、削除表示の内部処理は `deactivate_template_preset(uuid)` をRPC経由で呼ぶ。フロントからDB直INSERT / UPDATE / DELETEはしない。
+- バリデーションはテンプレート名trim後1〜80文字・改行不可、本文trim後空欄不可・最大5000文字・改行可、種別は固定候補のみ。依頼書用テンプレートはmypage上ではフォーム項目として編集する。
+- 追加改修として、`call` / `result` 選択時のみ「利用できる変数」ヘルプを表示する。変数名、代入内容、出力例、補足を表示し、mypage上では置換プレビューを行わない。`application` 用変数ヘルプはPL申請コメントUIの後続工程で検討する。
+- 追加改修として、`session_post` 選択時は通常本文textareaではなく依頼書用フォーム編集UIを表示する。タイトル、開始日時、終了日時、申請締切、種別、募集人数min/max、公開状態、募集状態、概要を編集し、保存時に既存の依頼書テンプレートJSON形式へ変換して `template_body` に保存する。
+- 保存済み `session_post` テンプレート選択時はJSONを読み取ってフォームへ反映する。想定形式として読めない場合は一般的な注意表示にし、フォームへ無理に反映しない。
+- この工程ではSQL Editor実行、DB構造変更、RPC変更、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。

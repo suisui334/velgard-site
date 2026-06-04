@@ -3380,13 +3380,15 @@ body[data-page="mypage"] [data-mypage-auth-content],
 body[data-page="mypage"] [data-mypage-display-name-panel],
 body[data-page="mypage"] [data-mypage-discord-id-panel],
 body[data-page="mypage"] [data-mypage-player-character-panel],
+body[data-page="mypage"] [data-mypage-template-panel],
 body[data-page="mypage"] .mypage-applications {
   display: grid;
   gap: 16px;
 }
 
 body[data-page="mypage"] [data-mypage-discord-id-panel],
-body[data-page="mypage"] [data-mypage-player-character-panel] {
+body[data-page="mypage"] [data-mypage-player-character-panel],
+body[data-page="mypage"] [data-mypage-template-panel] {
   gap: 10px;
   padding-top: 16px;
   border-top: 1px solid rgba(86, 96, 106, 0.18);
@@ -3512,6 +3514,172 @@ body[data-page="mypage"] .mypage-pc-actions {
 }
 
 body[data-page="mypage"] .mypage-pc-actions .button {
+  min-height: 34px;
+  padding: 6px 11px;
+  font-size: 0.82rem;
+}
+
+body[data-page="mypage"] .mypage-template-form {
+  align-items: stretch;
+}
+
+body[data-page="mypage"] .mypage-template-form .calendar-date-label input,
+body[data-page="mypage"] .mypage-template-form .calendar-date-label select,
+body[data-page="mypage"] .mypage-template-form .calendar-date-label textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(86, 96, 106, 0.22);
+  border-radius: 7px;
+  color: var(--ink);
+  background: rgba(255, 255, 250, 0.96);
+  box-shadow: inset 0 1px 2px rgba(40, 32, 20, 0.04);
+  font: inherit;
+}
+
+body[data-page="mypage"] .mypage-template-form .calendar-date-label input,
+body[data-page="mypage"] .mypage-template-form .calendar-date-label select {
+  min-height: 42px;
+  padding: 8px 10px;
+}
+
+body[data-page="mypage"] .mypage-template-form .calendar-date-label textarea {
+  min-height: 160px;
+  padding: 10px;
+  line-height: 1.65;
+  resize: vertical;
+}
+
+body[data-page="mypage"] .mypage-template-body-field,
+body[data-page="mypage"] .mypage-template-type-note,
+body[data-page="mypage"] .mypage-template-variable-help,
+body[data-page="mypage"] .mypage-template-session-post-editor,
+body[data-page="mypage"] .mypage-template-actions {
+  flex-basis: 100%;
+}
+
+body[data-page="mypage"] .mypage-template-type-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+body[data-page="mypage"] .mypage-template-variable-help,
+body[data-page="mypage"] .mypage-template-session-post-editor {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(75, 63, 99, 0.16);
+  border-radius: 7px;
+  background: rgba(184, 162, 207, 0.08);
+}
+
+body[data-page="mypage"] .mypage-template-variable-help[hidden],
+body[data-page="mypage"] .mypage-template-session-post-editor[hidden],
+body[data-page="mypage"] .mypage-template-body-field[hidden] {
+  display: none;
+}
+
+body[data-page="mypage"] .mypage-template-variable-help h4,
+body[data-page="mypage"] .mypage-template-variable-help p,
+body[data-page="mypage"] .mypage-template-session-post-editor h4,
+body[data-page="mypage"] .mypage-template-session-post-editor p {
+  margin: 0;
+}
+
+body[data-page="mypage"] .mypage-template-variable-help h4,
+body[data-page="mypage"] .mypage-template-session-post-editor h4 {
+  color: var(--soot);
+  font-size: 0.95rem;
+}
+
+body[data-page="mypage"] .mypage-template-variable-help-description,
+body[data-page="mypage"] .mypage-template-session-post-note {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+body[data-page="mypage"] .mypage-template-variable-help-list {
+  display: grid;
+  gap: 8px;
+}
+
+body[data-page="mypage"] .mypage-template-variable-card {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(86, 96, 106, 0.14);
+  border-radius: 7px;
+  background: rgba(255, 255, 250, 0.72);
+}
+
+body[data-page="mypage"] .mypage-template-variable-card code {
+  width: fit-content;
+  max-width: 100%;
+  padding: 2px 6px;
+  border-radius: 5px;
+  color: var(--deep);
+  background: rgba(75, 63, 99, 0.1);
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="mypage"] .mypage-template-variable-card dl {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+body[data-page="mypage"] .mypage-template-variable-card dl div {
+  display: grid;
+  gap: 2px;
+}
+
+body[data-page="mypage"] .mypage-template-variable-card dt,
+body[data-page="mypage"] .mypage-template-variable-card dd {
+  margin: 0;
+}
+
+body[data-page="mypage"] .mypage-template-variable-card dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+body[data-page="mypage"] .mypage-template-variable-card dd {
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+body[data-page="mypage"] .mypage-template-variable-example {
+  white-space: pre-line;
+}
+
+body[data-page="mypage"] .mypage-template-session-post-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+body[data-page="mypage"] .mypage-template-session-post-field-wide {
+  grid-column: 1 / -1;
+}
+
+body[data-page="mypage"] .mypage-template-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+body[data-page="mypage"] .mypage-template-actions .button {
   min-height: 34px;
   padding: 6px 11px;
   font-size: 0.82rem;
@@ -4645,6 +4813,20 @@ body.is-modal-open .back-to-top {
   body[data-page="mypage"] .mypage-application-detail-link {
     width: 100%;
     justify-content: center;
+  }
+
+  body[data-page="mypage"] .mypage-template-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  body[data-page="mypage"] .mypage-template-actions .button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  body[data-page="mypage"] .mypage-template-session-post-grid {
+    grid-template-columns: 1fr;
   }
 
   body[data-page="session-post"] .session-post-auth-panel,
