@@ -1024,3 +1024,13 @@
 - 追加改修として、`session_post` 選択時は通常本文textareaではなく依頼書用フォーム編集UIを表示する。タイトル、開始日時、終了日時、申請締切、種別、募集人数min/max、公開状態、募集状態、概要を編集し、保存時に既存の依頼書テンプレートJSON形式へ変換して `template_body` に保存する。
 - 保存済み `session_post` テンプレート選択時はJSONを読み取ってフォームへ反映する。想定形式として読めない場合は一般的な注意表示にし、フォームへ無理に反映しない。
 - この工程ではSQL Editor実行、DB構造変更、RPC変更、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-15K PL申請コメントテンプレート呼び出しUI
+- `session-detail.html` の通常PL向け参加希望コメントフォーム付近に、申請コメントテンプレート呼び出しUIを追加した。GM本人として管理中のGMコメントフォームやGM/admin向けテンプレート管理UIには混ぜない。
+- UIは保存済みテンプレートselect、反映ボタン、mypageのテンプレート管理への導線で構成する。テンプレート作成・編集・削除はこの画面では行わず、mypage側に寄せる。
+- 一覧取得は既存RPC `get_my_template_presets()` のみを使い、表示対象は `application` / `other` に絞る。`call` / `result` / `session_post` はPL申請コメント欄には表示しない。
+- select値には表示用の一時キーだけを使い、内部識別子を画面やDOMへ出さない。RPC結果の生データをconsole出力しない。
+- テンプレートを選択して「反映」すると `template_body` をコメント本文欄へ入れる。本文がすでに入力済みの場合は上書き確認を出し、キャンセル時は本文を保持する。
+- M-15K時点ではPL申請コメントテンプレート内の変数置換は行わない。未対応変数はそのまま本文へ反映し、`application` 用変数ヘルプや実セッション文脈での置換は後続候補として扱う。
+- 参加希望コメント投稿、辞退、再申請、GMコメント、PC名snapshot保存挙動は既存導線を維持する。フロントからDB直INSERT / UPDATE / DELETEはしない。
+- この工程ではSQL Editor実行、DB構造変更、RPC変更、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。

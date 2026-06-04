@@ -39,6 +39,7 @@ const GM_TEMPLATE_DETAIL_TYPE_VALUES = new Set(["call", "result", "other"]);
 const GM_TEMPLATE_DETAIL_TYPE_OPTIONS = Object.freeze(
   GM_TEMPLATE_TYPE_OPTIONS.filter((option) => GM_TEMPLATE_DETAIL_TYPE_VALUES.has(option.value))
 );
+const PL_APPLICATION_TEMPLATE_TYPE_VALUES = new Set(["application", "other"]);
 const POST_ALLOWED_STATUSES = new Set(["recruiting", "tentative"]);
 const COMMENT_UPDATE_ERROR_MESSAGE = "コメントを保存できませんでした。時間をおいて再度お試しください。";
 const COMMENT_UPDATE_PERMISSION_MESSAGE = "編集権限がないか、コメントの状態が変更された可能性があります。";
@@ -891,7 +892,7 @@ function setRenderedOperationButtonsDisabled(panel, disabled) {
 
 function setRenderedPostFormControlsDisabled(panel, disabled) {
   if (!panel) return;
-  panel.querySelectorAll(".session-comment-form textarea, .session-comment-form button").forEach((control) => {
+  panel.querySelectorAll(".session-comment-form textarea, .session-comment-form select, .session-comment-form button").forEach((control) => {
     control.disabled = disabled;
   });
 }
@@ -900,6 +901,155 @@ function rerenderPanelComments(panel) {
   const context = panelCommentRenderContexts.get(panel);
   if (!context) return;
   renderComments(context.target, context.rows, context.options);
+}
+
+function createPlApplicationTemplateControl(options = {}) {
+  const wrapper = document.createElement("section");
+  wrapper.className = "session-pl-template-control";
+  wrapper.dataset.sessionPlTemplateControl = "";
+
+  const head = document.createElement("div");
+  head.className = "session-pl-template-head";
+
+  const title = document.createElement("h4");
+  title.textContent = "申請コメントテンプレート";
+
+  const note = document.createElement("p");
+  note.textContent = "mypageで保存した申請用テンプレートをコメント欄へ反映できます。";
+
+  head.append(title, note);
+
+  const controls = document.createElement("div");
+  controls.className = "session-pl-template-controls";
+
+  const field = document.createElement("label");
+  field.className = "session-pl-template-field";
+
+  const labelText = document.createElement("span");
+  labelText.textContent = "保存済みテンプレート";
+
+  const select = document.createElement("select");
+  select.className = "session-comment-select session-pl-template-select";
+  select.disabled = true;
+
+  const initialOption = document.createElement("option");
+  initialOption.value = "";
+  initialOption.textContent = "読み込み中";
+  select.append(initialOption);
+
+  field.append(labelText, select);
+
+  const applyButton = document.createElement("button");
+  applyButton.className = "session-application-button session-comment-button session-pl-template-apply-button";
+  applyButton.type = "button";
+  applyButton.textContent = "反映";
+  applyButton.disabled = true;
+
+  const mypageLink = document.createElement("a");
+  mypageLink.className = "session-pl-template-mypage-link";
+  mypageLink.href = "mypage.html";
+  mypageLink.textContent = "テンプレート管理";
+
+  controls.append(field, applyButton, mypageLink);
+
+  const status = document.createElement("p");
+  status.setAttribute("aria-live", "polite");
+  setInlineStatus(status, "申請用テンプレートを読み込んでいます。", "is-warn");
+
+  wrapper.append(head, controls, status);
+
+  let presetRows = [];
+  let presetsByKey = new Map();
+  let hasLoaded = false;
+  let isLoading = false;
+
+  const getSelectedPreset = () => presetsByKey.get(select.value) || null;
+
+  const renderOptions = () => {
+    presetsByKey = new Map();
+    select.replaceChildren();
+
+    const blankOption = document.createElement("option");
+    blankOption.value = "";
+    blankOption.textContent = presetRows.length
+      ? "テンプレートを選択"
+      : "申請用テンプレートはまだありません";
+    select.append(blankOption);
+
+    presetRows.forEach((preset, index) => {
+      const optionKey = `pl-template-${index}`;
+      presetsByKey.set(optionKey, preset);
+
+      const option = document.createElement("option");
+      option.value = optionKey;
+      option.textContent = `${preset.templateName}（${getGmTemplateTypeLabel(preset.templateType)}）`;
+      select.append(option);
+    });
+  };
+
+  const updateControls = () => {
+    const busy = Boolean(isLoading || options.isBusy?.());
+    const selectedPreset = getSelectedPreset();
+    select.disabled = busy || !hasLoaded || !presetRows.length;
+    applyButton.disabled = busy || !selectedPreset;
+  };
+
+  const loadPresets = async () => {
+    if (isLoading || hasLoaded) return;
+
+    isLoading = true;
+    updateControls();
+    setInlineStatus(status, "申請用テンプレートを読み込んでいます。", "is-warn");
+
+    try {
+      const rows = await queryGmTemplatePresets(options.client);
+      presetRows = normalizeGmTemplatePresetRows(rows, PL_APPLICATION_TEMPLATE_TYPE_VALUES);
+      hasLoaded = true;
+      renderOptions();
+      setInlineStatus(status, presetRows.length ? "" : "申請用テンプレートはまだありません。mypageで作成できます。");
+    } catch {
+      presetRows = [];
+      hasLoaded = false;
+      renderOptions();
+      setInlineStatus(status, "申請用テンプレートを取得できませんでした。", "is-error");
+    } finally {
+      isLoading = false;
+      updateControls();
+    }
+  };
+
+  select.addEventListener("change", () => {
+    updateControls();
+    if (getSelectedPreset()) {
+      setInlineStatus(status, "");
+    }
+  });
+
+  applyButton.addEventListener("click", () => {
+    const preset = getSelectedPreset();
+    if (!preset || !options.textarea) return;
+
+    const currentBody = String(options.textarea.value || "");
+    if (currentBody.trim()) {
+      const confirmed = window.confirm("入力中のコメントをテンプレート本文で上書きします。続けますか？");
+      if (!confirmed) {
+        setInlineStatus(status, "テンプレート反映をキャンセルしました。", "is-warn");
+        return;
+      }
+    }
+
+    options.textarea.value = preset.templateBody;
+    options.textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    setInlineStatus(status, "テンプレートをコメント欄へ反映しました。", "is-ok");
+  });
+
+  void loadPresets();
+  updateControls();
+
+  return {
+    element: wrapper,
+    updateControls
+  };
 }
 
 function appendCommentForm(target, options = {}) {
@@ -941,12 +1091,20 @@ function appendCommentForm(target, options = {}) {
   setInlineStatus(status, "");
 
   let isSubmitting = false;
+  const templateControl = !isGmComment
+    ? createPlApplicationTemplateControl({
+      client: options.client,
+      textarea,
+      isBusy: () => isSubmitting || isPanelBusy(options.panel)
+    })
+    : null;
   const baseContextError = getPostContextError(options);
 
   const updateAvailability = (showValidation = false) => {
     const validation = validateCommentBody(textarea.value);
     const busy = isPanelBusy(options.panel);
     button.disabled = isSubmitting || busy || Boolean(baseContextError) || !validation.ok;
+    templateControl?.updateControls();
 
     if (baseContextError) {
       setInlineStatus(status, baseContextError, "is-error");
@@ -994,6 +1152,7 @@ function appendCommentForm(target, options = {}) {
     form.setAttribute("aria-busy", "true");
     textarea.disabled = true;
     button.disabled = true;
+    templateControl?.updateControls();
     setInlineStatus(status, "送信中です。", "is-warn");
 
     try {
@@ -1029,7 +1188,11 @@ function appendCommentForm(target, options = {}) {
   }
 
   updateAvailability(false);
-  form.append(field, guidance, button, status);
+  if (templateControl) {
+    form.append(field, templateControl.element, guidance, button, status);
+  } else {
+    form.append(field, guidance, button, status);
+  }
   target.append(form);
 }
 

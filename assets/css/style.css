@@ -2510,6 +2510,84 @@ body[data-page="session-detail"] .session-comment-form {
   min-width: 0;
 }
 
+body[data-page="session-detail"] .session-pl-template-control {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(75, 63, 99, 0.16);
+  border-radius: 8px;
+  background: rgba(184, 162, 207, 0.1);
+}
+
+body[data-page="session-detail"] .session-pl-template-head {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-pl-template-head h4,
+body[data-page="session-detail"] .session-pl-template-head p {
+  margin: 0;
+}
+
+body[data-page="session-detail"] .session-pl-template-head h4 {
+  color: var(--soot);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+body[data-page="session-detail"] .session-pl-template-head p {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+body[data-page="session-detail"] .session-pl-template-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: end;
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-pl-template-field {
+  display: grid;
+  flex: 1 1 220px;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+body[data-page="session-detail"] .session-pl-template-apply-button {
+  min-height: 42px;
+  padding-inline: 14px;
+}
+
+body[data-page="session-detail"] .session-pl-template-mypage-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 10px;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 8px;
+  color: var(--deep);
+  background: rgba(255, 255, 250, 0.58);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+body[data-page="session-detail"] .session-pl-template-mypage-link:hover,
+body[data-page="session-detail"] .session-pl-template-mypage-link:focus-visible {
+  border-color: rgba(75, 63, 99, 0.36);
+  background: rgba(255, 255, 250, 0.88);
+}
+
 body[data-page="session-detail"] .session-application-withdraw {
   display: grid;
   gap: 8px;
@@ -4889,6 +4967,17 @@ body.is-modal-open .back-to-top {
   }
 
   body[data-page="session-detail"] .session-detail-actions .button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  body[data-page="session-detail"] .session-pl-template-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  body[data-page="session-detail"] .session-pl-template-apply-button,
+  body[data-page="session-detail"] .session-pl-template-mypage-link {
     justify-content: center;
     width: 100%;
   }
