@@ -422,3 +422,16 @@ M-14E-6でDeno未導入により構文確認が未完了だったため、deploy
 - M-14E-7 deploy手順整理へ進む前に、Deno確認の実施環境を決める。
 
 この工程ではdocs整理のみ。Deno導入、Supabase CLI導入、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-6C ユーザーローカルWindows Deno確認結果
+
+ユーザーのローカルWindows PowerShellでも `deno --version` は認識されず、Deno未導入であることを確認した。これにより、`deno check supabase/functions/sync-session-post-to-discord/index.ts` は引き続き未実施。
+
+判断:
+
+- Edge FunctionのDeno構文確認は未完了。
+- Deno確認前にdeployへ進まない方針を維持する。
+- dry-run実行確認前にDiscord実送信へ進まない方針を維持する。
+- 次工程候補は、Deno導入、Supabase CLI環境、CIまたは別環境のいずれかで確認する案をユーザー確認のうえ選ぶこと。
+
+この工程ではdocs記録のみ。Deno導入、Supabase CLI導入、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。

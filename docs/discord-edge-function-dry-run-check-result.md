@@ -161,3 +161,31 @@ deploy前必須確認:
 - M-14E-7 deploy手順整理へ進む前に、どの環境でDeno確認を実施するかを決めるのが安全。
 
 今回のM-14E-6Bでは方針整理のみ行い、Deno導入、Supabase CLI導入、Edge Function起動、deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、secret実値設定、commit / pushは行っていない。
+
+## M-14E-6C ユーザーローカルWindows Deno確認結果
+
+ユーザーがローカルWindows PowerShellで `deno --version` を実行した。
+
+結果:
+
+```text
+deno はコマンドレット、関数、スクリプトファイル、または操作可能なプログラムの名前として認識されません。
+```
+
+判断:
+
+- ユーザーのローカルWindows環境でもDenoは未導入。
+- `deno check supabase/functions/sync-session-post-to-discord/index.ts` は未実施。
+- 現時点でEdge FunctionのDeno構文確認は未完了。
+- Deno確認前にdeployへ進まない方針を維持する。
+- dry-run実行確認前にDiscord実送信へ進まない方針を維持する。
+
+次工程候補:
+
+1. ユーザー確認のうえでローカルWindows環境にDenoを導入して構文確認する。
+2. Supabase CLI環境を用意し、Edge Functionローカル実行に近い形で確認する。
+3. CIまたは別環境で `deno check` を先に通す。
+
+いずれの案でも、secret実値、認証系の生値、内部識別子はdocsやログへ残さない。
+
+今回のM-14E-6Cではdocs記録のみ行い、Deno導入、Supabase CLI導入、Edge Function起動、deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、secret実値設定、commit / pushは行っていない。

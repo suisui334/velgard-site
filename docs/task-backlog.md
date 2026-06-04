@@ -1180,3 +1180,10 @@
 - 進行判断は、Deno確認前にdeployへ進まない、dry-run実行確認前にDiscord実送信へ進まない、secret設定方針を再確認する前に実送信コードへ進まない。
 - M-14E-7 deploy手順整理へ進む前に、Deno確認の実施環境を決めるのが安全。
 - この工程ではdocs整理のみ。Deno導入、Supabase CLI導入、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-6C Discord同期Edge Function ローカルDeno確認結果記録
+- ユーザーのローカルWindows PowerShellで `deno --version` を実行した結果、Denoは認識されず、ローカルWindows環境でもDeno未導入であることを確認した。
+- `deno check supabase/functions/sync-session-post-to-discord/index.ts` は未実施のまま。Edge FunctionのDeno構文確認は未完了として残す。
+- Deno確認前にdeployへ進まない方針、dry-run実行確認前にDiscord実送信へ進まない方針を維持する。
+- 次工程候補は、ユーザー確認のうえでローカルWindows環境にDenoを導入して確認する案、Supabase CLI環境で確認する案、CIまたは別環境で確認する案。
+- この工程ではdocs記録のみ。Deno導入、Supabase CLI導入、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
