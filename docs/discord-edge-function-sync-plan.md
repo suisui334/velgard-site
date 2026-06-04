@@ -455,3 +455,24 @@ M-14E-6でDeno未導入により構文確認が未完了だったため、deploy
 deploy前の残確認として、dry-run実レスポンス、拒否応答、ログ安全性、secret実値や内部識別子の非露出確認を残す。
 
 この追記ではdocs記録のみ行い、Edge Functionコード変更、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、secret実値設定、commit / pushは行っていない。
+
+## M-14E-6D dry-run実行確認方法整理
+
+Deno構文確認は通ったため、次はdry-run実レスポンス確認へ進む。ただし、現時点でEdge Function deployやDiscord実送信には進まない。
+
+確認方法は、Supabase CLIのローカルserveを第一候補とする。Supabase Edge Functionに近い形で、`dry_run = true` のpreview、権限拒否、同期対象外、既存投稿参照情報不足時の拒否を確認できるため。
+
+Deno単体起動は、Edge Function実行環境との差異が出る可能性があるため慎重に扱う。deploy後dry-run限定確認は、deploy前のローカル確認や手順レビューを経てから判断する。
+
+必要情報は、Supabase接続先、呼び出しユーザーの認証文脈、Edge Function実行用の環境変数、確認対象の依頼書ID相当の値。いずれも実値をdocsへ書かない。初期dry-runではDiscord投稿先credentialは原則不要とする。
+
+次工程候補:
+
+1. M-14E-6E: Supabase CLI利用可否確認。
+2. M-14E-6F: ローカルserve dry-run確認。
+3. M-14E-7: deploy手順整理。
+4. M-14E-8: deploy判断。
+5. M-14E-9: 再同期UI。
+6. M-14E-10: 実送信QA。
+
+この追記ではdocs整理のみ行い、Edge Functionコード変更、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。

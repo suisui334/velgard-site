@@ -1196,3 +1196,13 @@
 - `fetch(`、DB書き込み系メソッド、`console.` は追加していない。
 - deploy前の残確認は、dry-run実レスポンス、拒否応答、ログ安全性、secret実値や内部識別子の非露出確認。
 - この工程ではdocs記録のみ。Edge Functionコード変更、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、secret実値設定、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-6D Discord同期Edge Function dry-run実行確認方法整理
+- `docs/discord-edge-function-dry-run-check-result.md` を中心に、dry-run実レスポンス確認の目的、実行方法候補、推奨案、必要情報、payload例、確認項目、事前安全検索、まだやらないこと、次工程案を整理した。
+- 実行方法候補は、Supabase CLIローカルserve、Deno単体起動、deploy後dry-run限定確認、CI/別環境確認。deploy前の第一候補はSupabase CLIローカルserveとした。
+- 必要情報はSupabase接続先、呼び出しユーザーの認証文脈、Edge Function実行用の環境変数、確認対象依頼書ID相当の値。ただし実値はdocsへ書かない。
+- 初期dry-runではDiscord投稿先credentialは原則不要。サーバ側高権限credentialが必要になる場合も、アプリ内admin権限と混同せず後続レビューで判断する。
+- `dry_run = true` では `create` / `update` / `close` / `delete` / `resync`、同期対象外、既存投稿参照情報不足、通常PL拒否、GM/admin許可を確認する。
+- `dry_run = false` は今回実行しない。将来確認する場合も、draft段階では拒否され、Discord API呼び出しとDB更新がないことだけを確認する。
+- 次工程候補は、M-14E-6E Supabase CLI利用可否確認、M-14E-6F ローカルserve dry-run確認、M-14E-7 deploy手順整理、M-14E-8 deploy判断、M-14E-9 再同期UI、M-14E-10 実送信QA。
+- この工程ではdocs整理のみ。Edge Functionコード変更、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。

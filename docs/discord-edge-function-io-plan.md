@@ -527,3 +527,21 @@ Edge Function draftをdeploy前に安全確認するための手順を `docs/dis
 - CORS、認証、GM/admin限定、通常PL拒否の確認観点。
 
 この工程ではEdge Functionコード変更、SQL Editor実行、DB/RPC変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-6D dry-run実行確認方法
+
+dry-run実行確認では、`dry_run = true` のpayloadで、Edge Functionが投稿本文preview、同期対象判定、状態更新予定、警告だけを返すことを確認する。
+
+推奨する確認順:
+
+1. 事前安全検索で `fetch(`、DB書き込み系メソッド、`console.` が増えていないことを確認する。
+2. Supabase CLIのローカルserve利用可否を確認する。
+3. ローカルserveが使える場合、ダミーではないがdocsへ実値を書かない対象依頼書ID相当の値と認証文脈を作業者環境だけで扱い、`dry_run = true` を呼ぶ。
+4. `create` / `update` / `close` / `delete` / `resync` のpreview、同期対象外、既存投稿参照情報不足、権限拒否を確認する。
+5. レスポンスとログに秘匿値の実値、認証系の生値、内部識別子、外部投稿参照情報そのものが出ないことを確認する。
+
+`dry_run = false` は今回実行しない。将来確認する場合も、draft段階では `real_send_not_enabled` で拒否され、Discord API呼び出しとDB更新が発生しないことを確認する。
+
+Deno単体起動は、Supabase Edge Functionの実行構造との差異が出る可能性があるため第二候補とする。deploy後dry-run限定確認は、本番に近い確認ができる一方で、deploy前確認を飛ばさない前提にする。
+
+この追記ではdocs整理のみ行い、Edge Functionコード変更、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。

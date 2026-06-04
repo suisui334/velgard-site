@@ -222,3 +222,113 @@ deploy前にまだ残す確認:
 - Discord実送信とDB更新が発生しないことの確認。
 
 この記録工程ではdocs記録のみ行い、Edge Functionコード変更、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、secret実値設定、commit / pushは行っていない。
+
+## M-14E-6D dry-run実行確認方法整理
+
+### 目的
+
+dry-run実レスポンス確認では、Edge Functionが安全なpreview専用挙動を保っていることを確認する。
+
+- `dry_run = true` でpreviewを返す。
+- `dry_run = false` が `real_send_not_enabled` で拒否される。
+- Discord実送信が発生しない。
+- DB更新が発生しない。
+- レスポンスやログに秘匿値の実値、認証系の生値、内部識別子が出ない。
+- 作成者GMまたはアプリ内adminのみ許可され、通常PLは拒否される。
+
+### 実行方法候補
+
+| 方法 | 内容 | 利点 | 注意 |
+| --- | --- | --- | --- |
+| Supabase CLIのローカルserve | Supabase Edge Functionに近い形でローカル起動し、`dry_run = true` を呼ぶ | deploy前に実行時挙動を確認しやすい | Supabase CLI利用可否確認が必要。秘匿値の実値はdocsへ残さない |
+| Deno単体起動 | Denoで `index.ts` を直接起動できるか検討する | 追加ツールが少ない可能性がある | Edge Functionの実行構造や環境変数前提に依存するため慎重に判断する |
+| deploy後dry-run限定確認 | deploy後に `dry_run = true` だけを呼ぶ | 本番に近い環境で確認できる | deploy前確認を飛ばさない。`dry_run = false` 実行や実送信へ進まない |
+| CI / 別環境 | DenoやSupabase CLIがある別環境で確認する | ローカル環境差分を避けられる | 実行ログに秘匿値の実値や内部識別子を残さない |
+
+### 推奨案
+
+deploy前確認としては、Supabase CLIのローカルserveで `dry_run = true` を確認する案を第一候補にする。
+
+ただし、Supabase CLIが未導入の場合は導入判断が必要。Deno単体起動は可能性があるものの、Edge Function形式の実行環境との差異が出やすいため、まずはSupabase CLI利用可否確認を次工程に分ける。
+
+現時点で無理にdeployへ進まない。`dry_run = true` の実レスポンス確認とログ安全性確認が終わるまで、Discord実送信には進まない。
+
+### 必要になりそうな環境情報
+
+実行時に必要になりうる情報は、実値を書かず、作業者のローカル環境またはEdge Function側の環境変数管理で扱う。
+
+- Supabase URL相当の接続先情報。
+- 呼び出しユーザーの認証文脈を表す値。
+- Edge Function実行用の環境変数。
+- `dry_run = true` 確認用の対象依頼書ID相当の値。
+
+初期dry-runではDiscord実送信しないため、Discord投稿先credentialは原則不要。将来DB状態更新を行う段階でサーバ側高権限credentialが必要になる可能性はあるが、アプリ内admin権限とは別物として扱い、実値をdocsへ書かず、方式レビュー後に判断する。
+
+### payload例
+
+payload例はダミー値だけを使う。
+
+```json
+{
+  "session_id": "example-session-id",
+  "action": "create",
+  "dry_run": true
+}
+```
+
+実在ID、秘匿値の実値、認証系の生値はdocsへ書かない。
+
+### dry_run = true 確認項目
+
+- `create` previewが返る。
+- `update` previewが返る。
+- `close` previewが返る。
+- `delete` previewが返る。
+- `resync` previewが返る。
+- 同期対象外状態では安全に拒否またはskip相当の結果になる。
+- 既存投稿参照情報がない場合、`update` / `close` / `delete` は拒否される。
+- 作成者GMまたはアプリ内adminだけがpreviewできる。
+- 通常PLはpreviewできない。
+- レスポンスに秘匿値の実値、認証系の生値、内部識別子、外部投稿参照情報そのものが含まれない。
+
+### dry_run = false 確認項目
+
+`dry_run = false` は今回実行しない。将来確認する場合も、実送信コードを有効化する前のdraft状態で `real_send_not_enabled` により拒否されることだけを確認対象にする。
+
+- `real_send_not_enabled` で拒否される。
+- Discord APIを呼ばない。
+- DB更新しない。
+- ログに秘匿値の実値や内部識別子を出さない。
+
+### 事前安全検索
+
+dry-run実行前に、Edge Function draft内で以下が増えていないことを確認する。
+
+- `fetch(`
+- `.insert(`
+- `.update(`
+- `.delete(`
+- `.upsert(`
+- `console.`
+
+これらが増えている場合は、dry-run確認へ進む前に安全レビューを行う。
+
+### まだやらないこと
+
+- Edge Function deploy。
+- Discord実送信。
+- 秘匿値の実値設定。
+- `dry_run = false` 実行。
+- DB更新。
+- フロント接続。
+
+### 次工程案
+
+1. M-14E-6E: Supabase CLI利用可否確認。
+2. M-14E-6F: ローカルserve dry-run確認。
+3. M-14E-7: deploy手順整理。
+4. M-14E-8: deploy判断。
+5. M-14E-9: 再同期UI。
+6. M-14E-10: 実送信QA。
+
+この工程ではdocs整理のみ行い、Edge Functionコード変更、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
