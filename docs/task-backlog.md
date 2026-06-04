@@ -1053,3 +1053,13 @@
 - 指定の内部識別子、認証系の生値、PC選択・申請関連の内部キーが画面、DOM、consoleに出ていないことを確認済み。
 - 残課題は、`application` 用変数ヘルプ、`application` テンプレートでの変数置換対応検討、`other` 混線が強くなった場合の利用文脈追加検討、admin共通 / 共有テンプレート、テンプレート検索・絞り込み、説明文 / 並び順、`session_post` JSON破損時UI改善。
 - この工程ではQA記録のみ。SQL Editor実行、DB/RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14D-15 依頼書編集・公開・募集終了・削除のRLS / RPC smoke test整理
+- `docs/session-posting-rpc-smoke-test-plan.md` を作成し、依頼書の作成、編集、公開状態変更、募集状態変更、中止、完全削除に関する既存RPC / RLS / 権限のsmoke test観点を整理した。
+- 対象RPC候補は `create_session_post(...)`、`update_session_post(...)`、`delete_session_post(text)`。対象機能は依頼書新規作成、既存依頼書編集、公開 / 非公開 / 下書き、募集中 / 満員 / 募集終了 / 開催終了 / 中止、完全削除、session-detailからの編集導線、admin管理、静的JSON由来の編集不可 / 削除不可、Supabase由来優先のマージ表示。
+- 権限ロール別には、未ログイン、通常PL、作成者GM、他GM、admin、静的JSON由来の期待動作を表で整理した。adminはアプリ内権限として扱い、サーバ高権限とは混同しない方針を維持する。
+- バリデーション観点として、`draft + public`、不正な `status` / `visibility`、人数範囲、終了日時逆転、タイトル / 概要空欄、エラー表示の一般化を整理した。
+- 完全削除は `delete_session_post(text)`、中止として残す場合は `status = canceled`、募集終了 / 開催終了は募集状態変更として扱う。完全削除時は参加申請と参加希望コメントへの影響を確認文に出す観点を残した。
+- 静的JSON由来はDB RPCの編集 / 削除対象にせず、同IDのSupabase由来がある場合はSupabase側を優先する。非公開 / 下書き / 中止のSupabase由来が静的JSON fallbackで復活しないことを後続QA候補にした。
+- 後続候補は、M-14D-15A SELECT-only preflight SQL作成、M-14D-15B 手動ブラウザsmoke test手順書、M-14D-15C ユーザー実ブラウザQA結果記録、M-14D-15D 軽微修正、M-14D-15E Discord同期状態との連動確認。
+- この工程ではdocs整理のみ。SQLファイル作成、SQL Editor実行、DB構造変更、RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
