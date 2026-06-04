@@ -511,3 +511,19 @@ dry-run成功時:
 - 将来DB状態更新が必要になった場合も、レビュー済みRPC経由案と安全なサーバ側更新案を比較してから進める。
 
 この工程ではSQL Editor実行、DB/RPC変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-5 secret管理・dry-run確認手順
+
+Edge Function draftをdeploy前に安全確認するための手順を `docs/discord-edge-function-secret-plan.md` に分離した。
+
+整理内容:
+
+- Edge Function側secret管理の方針。
+- 初期dry-runに必要な設定候補と、実送信時まで不要な設定候補の切り分け。
+- `dry_run = true` のpayload例。
+- `dry_run = false` が `real_send_not_enabled` で拒否されることの確認手順。
+- `create` / `update` / `close` / `delete` / `resync` のaction別dry-run確認観点。
+- deploy前チェックリスト。
+- CORS、認証、GM/admin限定、通常PL拒否の確認観点。
+
+この工程ではEdge Functionコード変更、SQL Editor実行、DB/RPC変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。

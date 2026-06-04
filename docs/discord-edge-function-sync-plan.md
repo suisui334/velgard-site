@@ -364,3 +364,27 @@ action preview:
 - 実送信時のDB状態更新経路。
 
 この工程ではSQL Editor実行、DB/RPC変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-5 secret管理・dry-run確認手順docs
+
+`docs/discord-edge-function-secret-plan.md` を追加し、Edge Function draftを安全にdry-run確認・deploy準備するための手順を整理した。
+
+整理した方針:
+
+- 外部投稿credentialやサーバ側高権限credentialの実値は、Edge Function側のsecret管理だけで扱う。
+- docs、GitHub、フロント、DB、チャットへ実値を書かない。
+- 初期dry-runではDiscord系secretを必須にしない。
+- `dry_run = true` ではpreview確認だけを行う。
+- `dry_run = false` は現draftでは拒否されることを確認する。
+- DB更新、Discord実送信、外部投稿credential設定は後続工程まで行わない。
+- app内admin権限とサーバ側高権限credentialを混同しない。
+
+次工程候補:
+
+- M-14E-6: Deno構文確認 / dry-run確認。
+- M-14E-7: deploy手順整理。
+- M-14E-8: deploy実施判断。
+- M-14E-9: GM/admin向け再同期UI。
+- M-14E-10: Discord実送信QA。
+
+この工程ではdocs整理のみ。SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。

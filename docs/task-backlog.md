@@ -1154,3 +1154,12 @@
 - `update` / `close` / `delete` は既存投稿参照情報がない場合に拒否し、`resync` は参照情報の有無で `update` 相当または `create` 相当に解釈する。
 - 後続候補は、M-14E-5 管理設定手順docs、M-14E-6 dry-runローカル / 手動確認、M-14E-7 deploy手順整理、M-14E-8 deploy実施判断、M-14E-9 GM/admin再同期UI、M-14E-10 実送信QA。
 - この工程ではSQL Editor実行、DB/RPC変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-5 Discord同期Edge Function secret管理・dry-run確認手順docs
+- `docs/discord-edge-function-secret-plan.md` を追加し、secret管理方針、dry-run確認手順、payload例、action別期待結果、deploy前チェックリスト、後続工程、懸念点を整理した。
+- 初期dry-runで必要な設定候補と、実送信・DB状態更新に進む後続で検討する設定候補を分けた。実値は記録していない。
+- `dry_run = true` のpreview確認、`dry_run = false` の拒否確認、Discord実送信なし、DB更新なし、レスポンス安全性、GM/admin限定、通常PL拒否を確認観点にした。
+- deploy前チェックリストには、Deno / TypeScript構文確認、外部送信処理なし、DB書き込みなし、ログ安全性、CORS、認証、静的JSON由来対象外を含めた。
+- 残課題は、完全削除前の外部投稿側処理順、DB削除後に既存投稿参照情報を参照できない問題、実送信時のDB状態更新経路、resync専用RPC未作成、M-15テンプレート機能との接続時期。
+- 後続候補は、M-14E-6 Deno構文確認 / dry-run確認、M-14E-7 deploy手順整理、M-14E-8 deploy実施判断、M-14E-9 GM/admin再同期UI、M-14E-10 Discord実送信QA。
+- この工程ではdocs整理のみ。SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
