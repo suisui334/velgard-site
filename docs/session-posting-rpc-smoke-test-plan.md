@@ -141,3 +141,50 @@
 - M-14D-15C: ユーザー実ブラウザQA結果記録。
 - M-14D-15D: QAで見つかった軽微な表示 / 文言修正。
 - M-14D-15E: Discord同期状態との連動確認を別工程で整理。
+
+## M-14D-15B preflight SELECT-only SQL
+
+依頼書RPC smoke testの前段として、SELECT-only preflight SQL `docs/supabase/sql/024_session_posting_rpc_smoke_preflight_select_only.sql` を作成した。
+
+このSQLは、SQL Editorで1つの結果表として確認できるよう、`sort_order` / `section` / `check_name` / `expected` / `status` / `result_value` / `notes` の列に統一している。
+
+確認対象:
+
+- `create_session_post(...)` / `update_session_post(...)` / `delete_session_post(text)` の存在、signature、戻り値概要。
+- 対象RPCの `security_definer` と `search_path` 設定。
+- 対象RPCの `authenticated` / `anon` / `PUBLIC` 向けEXECUTE状態。
+- `public.sessions` の存在と主要列。
+- `status` / `visibility` / `session_type` のCHECK制約。
+- `session_applications` / `session_comments` から `sessions` へのFKとON DELETE方針。
+- admin / GM / role helperの存在。
+- `user_roles` テーブル存在。
+- `sessions` / `session_applications` / `session_comments` / `profiles` / `user_roles` のRLS有効状態とpolicy概要。
+- 静的JSON由来がDB RPC対象外であることは、SQLではなくフロント表示・マージロジック側の確認観点として残す。
+
+この工程ではSQLファイル作成のみ。SQL Editor実行、DB構造変更、RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14D-15B preflight実行結果
+
+ユーザーがSupabase SQL Editorで `docs/supabase/sql/024_session_posting_rpc_smoke_preflight_select_only.sql` を手動実行し、エラーなしで単一結果セットが表示された。
+
+確認結果:
+
+- `create_session_post(...)` / `update_session_post(...)` / `delete_session_post(text)` はpublic schemaに存在し、いずれもstatus ok。
+- 対象RPC 3本はいずれも `security_definer = true`、`search_path` 明示ありでstatus ok。
+- EXECUTE権限は、対象RPC 3本すべてで `authenticated = true`、`anon = false`、`PUBLIC = false` と確認でき、status ok。
+- `public.sessions` は存在し、status ok。
+- `sessions` の主要列として、公開ID、タイトル、開催日、開始/終了時刻、終了日時、GM表示名、募集状態、依頼書種別、申請締切、募集人数、概要、公開状態、作成/更新日時、Discord同期メタデータ列を確認でき、いずれもstatus ok。
+- `status` / `visibility` / `session_type` のCHECK制約はstatus ok。`status` 制約では募集状態候補とDiscord同期状態候補の制約が見えているため、各状態値の実動作は後続smoke test候補として残す。
+- `session_applications` と `session_comments` は `sessions` へのFKがあり、いずれも `ON DELETE CASCADE` でstatus ok。完全削除時に関連申請・コメントもDB制約上CASCADEされる前提を再確認した。
+- `has_role(text)` / `is_admin()` / `is_session_gm(text)` と `public.user_roles` は存在し、status ok。adminはアプリ内権限として扱い、サーバ高権限とは混同しない。
+- `sessions` / `session_applications` / `session_comments` / `profiles` / `user_roles` はRLS enabledでstatus ok。
+- policy summaryはinfoとして確認できた。policy名や式の詳細展開は今回のpreflightでは省略しているため、必要なら後続の詳細smoke test候補にする。
+- 静的JSON由来はDB catalog項目ではないためinfo。DB RPC対象外として、フロント表示・マージロジック側の確認観点に残す。
+
+判断:
+
+- M-14D-15B preflightは成功扱いでよい。
+- 既存RPC 3本の存在、`security_definer`、`search_path`、`authenticated` のみEXECUTE、`anon` / `PUBLIC` 不可、`sessions` 主要列、関連FK CASCADE、helper、RLS enabled の前提が確認できた。
+- 次工程は、このpreflight SQLと結果記録をcommit / pushしたうえで、後続の手動smoke test設計または実ブラウザQAへ進める。
+
+この記録工程でCodexはSQL Editor実行、DB/RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。

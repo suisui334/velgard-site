@@ -1063,3 +1063,19 @@
 - 静的JSON由来はDB RPCの編集 / 削除対象にせず、同IDのSupabase由来がある場合はSupabase側を優先する。非公開 / 下書き / 中止のSupabase由来が静的JSON fallbackで復活しないことを後続QA候補にした。
 - 後続候補は、M-14D-15A SELECT-only preflight SQL作成、M-14D-15B 手動ブラウザsmoke test手順書、M-14D-15C ユーザー実ブラウザQA結果記録、M-14D-15D 軽微修正、M-14D-15E Discord同期状態との連動確認。
 - この工程ではdocs整理のみ。SQLファイル作成、SQL Editor実行、DB構造変更、RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14D-15B 依頼書RPC smoke test preflight SELECT-only SQL
+- `docs/supabase/sql/024_session_posting_rpc_smoke_preflight_select_only.sql` を作成した。SQL Editorで1つの結果表として確認できるよう、`sort_order` / `section` / `check_name` / `expected` / `status` / `result_value` / `notes` へ統一している。
+- 確認対象は `create_session_post(...)` / `update_session_post(...)` / `delete_session_post(text)` の存在、signature、`security_definer`、`search_path`、EXECUTE状態、`public.sessions` の存在と主要列、`status` / `visibility` / `session_type` のCHECK制約、`session_applications` / `session_comments` のFKとON DELETE方針、admin / GM / role helper、`user_roles`、RLS有効状態、policy概要。
+- 権限確認はACL/OIDベースのカタログ確認に寄せ、実データ行は読まない。静的JSON由来がDB RPC対象外であることはSQLでは確認せず、フロント表示・マージロジック側の確認観点として残した。
+- この工程ではSELECT-only SQL作成のみ。SQL Editor実行、DB構造変更、RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14D-15B 依頼書RPC smoke preflight実行結果
+- ユーザーが `docs/supabase/sql/024_session_posting_rpc_smoke_preflight_select_only.sql` をSupabase SQL Editorで手動実行し、エラーなしで単一結果セットを確認した。
+- `create_session_post(...)` / `update_session_post(...)` / `delete_session_post(text)` はすべて存在し、`security_definer = true`、`search_path` 明示あり、`authenticated` EXECUTEあり、`anon` / `PUBLIC` EXECUTEなしでstatus ok。
+- `public.sessions` と主要列は存在し、`status` / `visibility` / `session_type` のCHECK制約もstatus ok。`status` 制約の実動作は後続smoke test候補として残す。
+- `session_applications` / `session_comments` から `sessions` へのFKはどちらも `ON DELETE CASCADE`。完全削除時に関連申請・コメントもDB制約上CASCADEされる前提を再確認した。
+- `has_role(text)` / `is_admin()` / `is_session_gm(text)` と `public.user_roles` は存在し、`sessions` / `session_applications` / `session_comments` / `profiles` / `user_roles` はRLS enabled。adminはアプリ内権限として扱い、サーバ高権限とは混同しない。
+- policy summaryはinfoとして確認済み。静的JSON由来はDB catalog項目ではないため、DB RPC対象外としてフロント表示・マージロジック側の確認観点に残す。
+- M-14D-15B preflightは成功扱い。次工程はpreflight SQLと結果記録をcommit / pushしたうえで、手動smoke test設計または実ブラウザQAへ進める想定。
+- この記録工程でCodexはSQL Editor実行、DB/RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
