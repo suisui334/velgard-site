@@ -1036,10 +1036,20 @@
 - この工程ではSQL Editor実行、DB構造変更、RPC変更、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
 
 ## M-15L テンプレート機能 統合QA・仕様締め
-- `docs/template-feature-qa-result.md` を作成し、テンプレート機能全体の現状仕様、種別ごとの用途、表示先、保存形式、画面別QA観点、確認済み事項、未確認・残課題、後続候補を整理した。
+- `docs/template-feature-qa-result.md` を作成し、テンプレート機能全体の現状仕様、種別ごとの用途、表示先、保存形式、画面別QA観点、確認済み事項、残課題、後続候補を整理した。
 - 種別は `call` がGM向け呼び出し、`result` がGM向けリザルト、`session_post` が依頼書フォーム、`application` がPL参加申請コメント、`other` が補助用途。自由本文系と依頼書フォームJSON系を分けて扱う。
 - 表示先は、mypageが全種別管理、session-detail GM/adminが `call` / `result` / `other`、session-postが `session_post` / `other`、session-detail 通常PL申請コメント欄が `application` / `other`。
 - QA観点として、画面ごとの種別絞り込み、変数ヘルプ、依頼書フォームJSON、上書き確認、GM/admin UIと通常PL UIの分離、内部情報を出さないこと、console error 0件を整理した。
 - `other` は文脈をまたいで混線しやすいため、現時点では画面ごとの表示対象制御と保存形式の判定で抑える。混線が運用上問題になる場合のみ、利用文脈の追加設計を後続候補とする。
 - 次工程候補は、統合実ブラウザQA、QA結果の小修正、PL申請コメント向け変数ヘルプ、PL申請コメントでの変数置換検討、`other` 利用文脈整理、検索・絞り込み、admin共通 / 共有テンプレート。
 - この工程ではdocs整理のみ。SQL Editor実行、DB構造変更、RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-15L-2 テンプレート機能 統合実ブラウザQA
+- Codex側ブラウザではChrome連携不可とアプリ内ブラウザ接続タイムアウトにより未確認だったが、ユーザー実ブラウザ確認により、テンプレート機能の横断QAは確認済み扱いへ更新した。
+- mypageでは、テンプレート管理UI表示、全種別の横断管理、保存、更新、削除、`call` / `result` 選択時の変数ヘルプ表示、`session_post` 選択時の依頼書フォーム編集UI、`session_post` JSON保存・反映、内部情報非露出、console errorなしを確認済み。
+- session-detail GM/adminでは、「GM向け：テンプレート」UI、`call` / `result` / `other` のみ表示、`application` / `session_post` 混入なし、承認済み参加者連絡先UI削除済み、`{{approved_call_list}}` / `{{approved_pc_names}}` の置換維持、コピー機能維持、console errorなしを確認済み。
+- session-postでは、依頼書テンプレートUI、`session_post` / `other` のみ表示、依頼書テンプレート反映、既存依頼書編集中の確認ポップアップ、キャンセル時の入力保持、console errorなしを確認済み。
+- session-detail 通常PLでは、申請コメントテンプレートUI、`application` / `other` のみ表示、`call` / `result` / `session_post` 混入なし、本文空欄時の反映、本文入力済み時の上書き確認、キャンセル時の本文保持、GMコメントフォームには表示しないこと、console errorなしを確認済み。
+- 指定の内部識別子、認証系の生値、PC選択・申請関連の内部キーが画面、DOM、consoleに出ていないことを確認済み。
+- 残課題は、`application` 用変数ヘルプ、`application` テンプレートでの変数置換対応検討、`other` 混線が強くなった場合の利用文脈追加検討、admin共通 / 共有テンプレート、テンプレート検索・絞り込み、説明文 / 並び順、`session_post` JSON破損時UI改善。
+- この工程ではQA記録のみ。SQL Editor実行、DB/RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。

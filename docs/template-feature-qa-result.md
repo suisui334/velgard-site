@@ -112,13 +112,12 @@ JSONフォーム系:
 - M-15J-1追加改修で、`call` / `result` 向け変数ヘルプと `session_post` フォーム型編集UIが完了済み。
 - M-15KでPL申請コメントテンプレート呼び出しUIが完了済み。
 - 各UIは、画面文脈ごとに表示種別を絞る方針で整理済み。
+- M-15L-2で、Codex側ブラウザでは未確認だった統合実ブラウザQAを、ユーザー実ブラウザ確認で補完済み。
 
-M-15Lでは新しい実ブラウザQAは行わず、確認項目をdocsとして整理する。
+M-15LではQA観点をdocsとして整理し、M-15L-2でユーザー実ブラウザ確認結果を追記した。
 
-## 6. 未確認・残課題
+## 6. 残課題
 
-- mypage、session-detail GM/admin、session-post、session-detail 通常PLの4画面を通した統合実ブラウザQA。
-- 各画面でのconsole error 0件確認。
 - `application` 用変数ヘルプを追加するかどうか。
 - `application` テンプレート内で `{{session_title}}` などを置換するかどうか。
 - `other` の混線が運用上問題になるかどうか。
@@ -149,10 +148,46 @@ M-15Lでは新しい実ブラウザQAは行わず、確認項目をdocsとして
 
 ## 8. 次工程候補
 
-- M-15L-1: テンプレート機能の統合実ブラウザQA。
-- M-15L-2: 統合QAで見つかったUI不具合の小修正。
+- M-15L-3候補: 統合QA後の追加微修正が必要になった場合の小修正。
 - M-15M候補: PL申請コメントテンプレートの変数ヘルプ設計。
 - M-15N候補: PL申請コメントテンプレートで実セッション文脈の変数置換を行うか検討。
 - M-15O候補: `other` の利用文脈整理と、必要時の追加設計。
 - M-15P候補: テンプレート一覧の検索・絞り込み、説明文、並び順の検討。
 - M-15Q候補: admin共通テンプレート、共有テンプレートの仕様設計。
+
+## 9. M-15L-2 統合実ブラウザQA結果
+
+M-15L-2では、mypage、session-detail GM/admin、session-post、session-detail 通常PL申請コメント欄を横断して実ブラウザQAを確認した。
+
+作業前状態:
+
+- `git status --short` はclean。
+- 最新commitは `84441d0 Document template feature QA`。
+
+補足:
+
+- Codex側ブラウザでは、Chrome連携不可とアプリ内ブラウザ接続タイムアウトにより、認証済み統合QAを完走できなかった。
+- その後、ユーザー実ブラウザ確認により、統合実ブラウザQAは補完確認済み。
+
+ユーザー実ブラウザで確認済み:
+
+- mypage: テンプレート管理UI表示、全種別の横断管理、保存、更新、削除、`call` / `result` 選択時の変数ヘルプ表示、`session_post` 選択時の依頼書フォーム編集UI、`session_post` JSON保存・反映、内部情報非露出、console errorなし。
+- session-detail GM/admin: 「GM向け：テンプレート」UI、`call` / `result` / `other` のみ表示、`application` / `session_post` の混入なし、承認済み参加者連絡先UI削除済み、`{{approved_call_list}}` / `{{approved_pc_names}}` の置換維持、コピー機能維持、console errorなし。
+- session-post: 依頼書テンプレートUI、`session_post` / `other` のみ表示、依頼書テンプレート反映、既存依頼書編集中の確認ポップアップ、キャンセル時の入力保持、console errorなし。
+- session-detail 通常PL: 申請コメントテンプレートUI、`application` / `other` のみ表示、`call` / `result` / `session_post` の混入なし、本文空欄時の反映、本文入力済み時の上書き確認、キャンセル時の本文保持、GMコメントフォームには表示しないこと、console errorなし。
+- 内部情報非露出: 指定の内部識別子、認証系の生値、PC選択・申請関連の内部キーが画面、DOM、consoleに出ていないこと。
+
+判断:
+
+- M-15L-2の統合実ブラウザQAは、ユーザー実ブラウザ確認により確認済み扱いへ更新する。
+- 今回はQA記録のみとし、SQL Editor実行、DB/RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+残課題:
+
+- `application` 用変数ヘルプの将来追加。
+- `application` テンプレートでの変数置換対応検討。
+- `other` 混線が強くなった場合の利用文脈追加検討。
+- admin共通 / 共有テンプレート。
+- テンプレート検索・絞り込み。
+- テンプレート説明文 / 並び順。
+- `session_post` JSON破損時UI改善。
