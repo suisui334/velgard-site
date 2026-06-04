@@ -209,3 +209,15 @@ deploy後の確認はM-14E-6以降で行う。M-14E-5では手順整理のみ。
 - Edge Function起動、dry-run呼び出し、secret実値設定、deploy、Discord実送信は行っていない。
 
 後続では、DenoまたはSupabase Edge Functionのローカル確認環境を用意してから、構文確認と `dry_run = true` のpreview確認へ進む。
+
+## M-14E-6B Deno確認方針
+
+M-14E-6Bでは、Deno構文確認とdry-run実行確認をどの環境で行うかを整理した。詳細は `docs/discord-edge-function-dry-run-check-result.md` のM-14E-6B節に記録する。
+
+方針:
+
+- Deno確認前にdeployへ進まない。
+- dry-run実行確認前にDiscord実送信へ進まない。
+- secret設定方針を再確認する前に実送信コードへ進まない。
+- 確認環境の候補は、ローカルWindows環境でのDeno確認、Supabase CLI環境での確認、CIまたは別環境での確認とする。
+- 今回はDeno導入、Supabase CLI導入、Edge Function起動、deploy、Discord実送信、secret実値設定は行わない。

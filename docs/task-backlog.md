@@ -1172,3 +1172,11 @@
 - dry-run確認は手順準備までで、Edge Function起動、`dry_run = true` 呼び出し、`dry_run = false` 呼び出し、secret実値設定、deploy、Discord実送信は行っていない。
 - 残課題はDeno構文確認、dry-run実レスポンス確認、権限helperの実行環境確認、CORS再確認、実送信時のDB状態更新経路、完全削除前の外部投稿側処理順。
 - この工程では確認・docs記録のみ。SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-6B Discord同期Edge Function Deno確認方針整理
+- `docs/discord-edge-function-dry-run-check-result.md`、`docs/discord-edge-function-secret-plan.md`、`docs/discord-edge-function-sync-plan.md` に、Deno構文確認とdry-run確認を今後どの環境で行うかの方針を追記した。
+- 現状はDeno未導入、`deno check` 未実施、dry-run実行未実施。Edge Functionコード変更なし、安全検索は `fetch(` / DB書き込み系メソッド / `console.` が0件、secret実値らしき文字列も検出なし。
+- 確認方法の候補は、ローカルWindows環境でのDeno確認、Supabase CLI環境での確認、CIまたは別環境での確認。
+- 進行判断は、Deno確認前にdeployへ進まない、dry-run実行確認前にDiscord実送信へ進まない、secret設定方針を再確認する前に実送信コードへ進まない。
+- M-14E-7 deploy手順整理へ進む前に、Deno確認の実施環境を決めるのが安全。
+- この工程ではdocs整理のみ。Deno導入、Supabase CLI導入、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。

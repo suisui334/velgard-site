@@ -403,3 +403,22 @@ action preview:
 次工程では、DenoまたはSupabase Edge Functionのローカル確認環境を用意し、構文確認と `dry_run = true` のpreview確認を行う。
 
 この工程では確認・docs記録のみ。SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-6B Deno確認方針整理
+
+M-14E-6でDeno未導入により構文確認が未完了だったため、deploy前にどの環境でDeno確認とdry-run確認を行うかを整理した。
+
+確認方法の候補:
+
+- ローカルWindows環境でDenoを用意し、`deno check supabase/functions/sync-session-post-to-discord/index.ts` を実行する。
+- Supabase CLI環境でEdge Functionローカル起動に近い形で確認する。
+- CIまたは別環境でDeno構文確認を先に通す。
+
+進行判断:
+
+- Deno確認前にdeployへ進まない。
+- dry-run実行確認前にDiscord実送信へ進まない。
+- secret設定方針を再確認する前に実送信コードへ進まない。
+- M-14E-7 deploy手順整理へ進む前に、Deno確認の実施環境を決める。
+
+この工程ではdocs整理のみ。Deno導入、Supabase CLI導入、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
