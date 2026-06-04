@@ -201,15 +201,15 @@ mock確認で確認すること:
 ## 後続工程案
 
 1. M-14E-1: Discord同期Edge Function仕様整理。
-2. M-14E-2: 既存DB列 / 不足列 preflight SELECT-only SQL作成。
-3. M-14E-3: DB列追加が必要な場合のみdraft SQL作成。
-4. M-14E-4: apply_reviewed SQL作成・レビュー・ユーザー手動SQL Editor適用。
-5. M-14E-5: Edge Function draft実装。
-6. M-14E-6: Edge Function側の管理設定手順docs整理。
-7. M-14E-7: dry-run / mock確認。
-8. M-14E-8: deploy手順整理・実施判断。
+2. M-14E-2: 既存DB列 / 不足列 preflight SELECT-only SQL作成・実行結果記録。
+3. M-14E-3: Edge Function入出力・dry-run仕様整理。
+4. M-14E-4: Edge Function draft実装。
+5. M-14E-5: Edge Function側の管理設定手順docs整理。
+6. M-14E-6: dry-runローカル / 手動確認。
+7. M-14E-7: deploy手順整理。
+8. M-14E-8: deploy実施判断。
 9. M-14E-9: GM/admin向け再同期UI。
-10. M-14E-10: 実送信QA。
+10. M-14E-10: Discord実送信QA。
 
 ## やらないこと
 
@@ -290,6 +290,32 @@ M-14E-2では `docs/supabase/sql/025_discord_sync_preflight_select_only.sql` を
 - adminはアプリ内権限として扱い、サーバ高権限とは混同しない方針を維持する。
 
 この記録工程でCodexはSQL Editor実行、DB/RPC変更、Edge Function実装、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushを行っていない。
+
+## M-14E-3 入出力・dry-run仕様整理
+
+M-14E-2で既存同期列と外部投稿識別子がそろっていることを確認できたため、DB列追加draftを急がず、既存列を前提にしたEdge Function入出力仕様を `docs/discord-edge-function-io-plan.md` に整理した。
+
+整理内容:
+
+- Edge Functionの想定名称は `sync-session-post-to-discord` を初期推奨、`discord-session-sync` を比較候補とした。
+- 入力payloadは `session_id`、`action`、`dry_run` を最小候補にし、`request_source` は補助値として扱う。権限判定の根拠にはしない。
+- `create` / `update` / `close` / `delete` / `resync` のaction別挙動を整理した。
+- dry-runはDiscord実送信せず、投稿本文プレビュー、同期対象判定、状態更新予定を返す方針にした。
+- 初期投稿本文は固定フォーマットを第一候補にし、M-15テンプレート機能との接続は後続候補にした。
+- 状態更新は `discord_sync_status` / `discord_last_action` / `discord_sync_requested_at` / `discord_synced_at` / `discord_sync_error` と、外部投稿識別子・投稿先・投稿URL相当列を使う方針にした。
+- 失敗時は `failed` と一般化した短いエラー要約を残し、秘匿値や外部サービス応答の生全文は保存しない。
+- 権限は未ログイン、通常PL、他GMを拒否し、作成者GMまたはアプリ内adminのみを許可する方針にした。
+- Edge Function内部でDB更新に必要な権限は、アプリ内admin権限と混同せず、レビュー済みRPC経由案と安全なサーバ側更新案を後続で比較する。
+
+懸念点:
+
+- `delete_session_post(text)` の完全削除前にDiscord側delete/削除相当処理をどう呼ぶか。
+- DB削除後に外部投稿識別子を参照できなくなる問題。
+- resync専用RPCが未作成であること。
+- GM/admin再同期UIの呼び出し先をEdge Function直呼びにするか、同期要求RPC経由にするか。
+- M-15テンプレート機能との接続時期。
+
+この工程ではdocs設計のみ。SQL Editor実行、DB/RPC変更、Edge Function実装、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
 
 ## M-15テンプレート機能との接続候補
 
