@@ -1243,3 +1243,13 @@
 - 安全検索では `fetch(`、DB書き込み系メソッド、`console.`、外部投稿URL形式、bot token風文字列、service-role系credential風文字列はいずれも0件。
 - 次工程候補は、ユーザー手元で必要な環境変数と認証文脈を用意し、ローカルserve起動後に `dry_run = true` のみを確認すること。
 - この工程ではdocs整理のみ。`supabase functions serve` 実行、`supabase start` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-6I Discord同期Edge Function ローカルdry-run手元実行ガイド
+- 作業前の作業ツリーはclean、最新commitは `d7bab80 Record Discord sync local dry run readiness`。
+- `npx.cmd supabase --version` は `2.105.0`。Deno構文確認はPATH上の `deno` が未認識だったため、ユーザー領域のDeno実行ファイルをフルパスで実行して成功した。
+- `docs/discord-edge-function-dry-run-check-result.md` に、PowerShell用の手元実行ガイド、プレースホルダーだけの環境変数設定例、ローカルserve候補、`Invoke-RestMethod` 候補、payload例、結果記録テンプレートを追加した。
+- 必要な環境変数名は `SUPABASE_URL`、`SUPABASE_ANON_KEY`、`PUBLIC_SITE_BASE_URL`。認証文脈は `Authorization: Bearer <USER_JWT>` として扱い、実値はユーザー手元だけで扱う方針。
+- 初回確認は `create` の `dry_run = true` のみに絞る。`update` / `close` / `delete` / `resync` は後続候補。
+- 結果記録テンプレートは、成功 / 権限不足 / 同期対象外 / 対象なし等の一般化結果、message_preview要約、planned_db_update予定情報、Discord実送信なし、DB更新なし、秘匿値非露出、ログ安全性、残課題を記録する形式。
+- 安全検索では `fetch(`、DB書き込み系メソッド、`console.`、外部投稿URL形式、bot token風文字列、service-role系credential風文字列はいずれも0件。
+- この工程ではCodex側でローカルserve実行、`dry_run = true` 実行、`dry_run = false` 実行は行っていない。Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、`updates.json` 変更、commit / pushも行っていない。

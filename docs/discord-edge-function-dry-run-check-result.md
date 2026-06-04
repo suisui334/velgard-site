@@ -608,3 +608,178 @@ dry_run=false:
 5. レスポンスとログに秘匿値の実値、認証系の生値、内部識別子が出ないことを確認する。
 
 この工程では、ローカルserve未実行、`dry_run = true` 未実行、`dry_run = false` 未実行。Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
+## M-14E-6I ローカルdry-run手元実行ガイド・結果記録テンプレート
+
+Codex側では秘匿値の実値、認証系の生値、実在する依頼書ID相当の値を扱わない。dry-run実レスポンス確認は、ユーザーが手元のPowerShell環境だけで必要値を設定して行う。
+
+### 事前確認結果
+
+| 確認 | 結果 |
+| --- | --- |
+| `git status --short` | clean |
+| `git log --oneline -1` | `d7bab80 Record Discord sync local dry run readiness` |
+| `npx.cmd supabase --version` | `2.105.0` |
+| `deno check supabase/functions/sync-session-post-to-discord/index.ts` | PATH上の `deno` は未認識。ユーザー領域のDeno実行ファイルをフルパス実行し成功 |
+
+Edge Functionが参照する環境変数名:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `PUBLIC_SITE_BASE_URL`
+
+必要な認証文脈:
+
+- `Authorization: Bearer <USER_JWT>`
+- 実値はdocs、報告、チャットへ書かない。
+- Codexは値を要求しない。
+- ユーザーが手元のPowerShell、ブラウザ、ローカルメモだけで扱う。
+
+確認対象:
+
+- `<SESSION_ID_FOR_DRY_RUN>`
+- 実在する値はdocs、報告、チャットへ書かない。
+
+### 実行前チェック
+
+手元実行前に必ず確認する。
+
+- Edge Function draftがDiscord実送信なし、DB更新なしのdry-run preview専用である。
+- `dry_run = true` のみ実行する。
+- `dry_run = false` は実行しない。
+- Discord投稿先credentialは初期dry-runでは不要。
+- 秘匿値の実値、認証系の生値、実在する依頼書ID相当の値をチャットへ貼らない。
+- ログやレスポンスに秘匿値の実値、認証系の生値、内部識別子が出た場合、そのまま共有しない。
+
+### PowerShell手順案
+
+値はすべてプレースホルダー。実行時はユーザー手元でのみ実値に置き換える。
+
+```powershell
+$env:SUPABASE_URL = "<YOUR_SUPABASE_URL>"
+$env:SUPABASE_ANON_KEY = "<YOUR_SUPABASE_ANON_KEY>"
+$env:PUBLIC_SITE_BASE_URL = "<YOUR_PUBLIC_SITE_BASE_URL>"
+```
+
+ローカルserve候補:
+
+```powershell
+npx.cmd supabase functions serve sync-session-post-to-discord
+```
+
+別PowerShellで、`dry_run = true` のみを呼ぶ候補:
+
+```powershell
+$headers = @{
+  "Authorization" = "Bearer <USER_JWT>"
+  "Content-Type" = "application/json"
+}
+
+$body = @{
+  session_id = "<SESSION_ID_FOR_DRY_RUN>"
+  action = "create"
+  dry_run = $true
+} | ConvertTo-Json
+
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://127.0.0.1:54321/functions/v1/sync-session-post-to-discord" `
+  -Headers $headers `
+  -Body $body
+```
+
+payload例:
+
+```json
+{
+  "session_id": "<SESSION_ID_FOR_DRY_RUN>",
+  "action": "create",
+  "dry_run": true
+}
+```
+
+docsに残すpayload例はダミー値だけにする。
+
+```json
+{
+  "session_id": "example-session-id",
+  "action": "create",
+  "dry_run": true
+}
+```
+
+### 初回確認の優先度
+
+初回は `create` の `dry_run = true` だけに絞る。
+
+`update` / `close` / `delete` / `resync` は既存投稿参照情報や依頼書状態に依存するため、初回でまとめて実行しない。`create` のレスポンス安全性と権限判定を確認した後、後続工程で必要に応じて扱う。
+
+### dry_run=trueで期待する結果
+
+結果は次のいずれかでよい。実値を含む生レスポンスをdocsへ貼らない。
+
+- 成功し、`message_preview` と `planned_db_update` が返る。
+- 権限不足として拒否される。
+- 同期対象外として拒否またはskip相当になる。
+- 対象依頼書が見つからない等の一般化エラーになる。
+
+確認すること:
+
+- `message_preview` が返る場合、公開情報だけで構成されている。
+- `planned_db_update` が返る場合、予定情報だけで、実DB更新は行われない。
+- 秘匿値の実値、認証系の生値、内部識別子がレスポンスに出ない。
+- Discord実送信なし。
+- DB更新なし。
+- ログに秘匿値の実値、認証系の生値、内部識別子が出ない。
+
+### dry_run=false
+
+実行しない。
+
+将来確認項目として、draft段階では `real_send_not_enabled` で拒否されることを残す。
+
+### 結果記録テンプレート
+
+手元実行後、実値を抜いて以下の形式で記録する。
+
+```markdown
+## M-14E-6J dry_run=true 手元実行結果
+
+- 実施日:
+- 実施者:
+- 対象環境:
+- action: create
+- dry_run: true
+- 結果: 成功 / 権限不足 / 同期対象外 / 対象なし / その他
+- message_preview: 実値を含まない要約のみ
+- planned_db_update: 予定情報のみ / なし
+- Discord実送信なし確認: 済 / 未確認
+- DB更新なし確認: 済 / 未確認
+- 秘匿値・認証系の生値非露出確認: 済 / 未確認
+- 内部識別子非露出確認: 済 / 未確認
+- console / serve log安全性: 問題なし / 要確認
+- 残課題:
+```
+
+記録時の注意:
+
+- 認証系の生値を貼らない。
+- 実在する依頼書ID相当の値を貼らない。
+- レスポンス全文を貼る場合は、秘匿値の実値、認証系の生値、内部識別子、外部投稿参照情報そのものを除去してからにする。
+- ログに危険な値が含まれる場合は共有しない。
+
+### 安全検索結果
+
+| 検索対象 | 件数 |
+| --- | ---: |
+| `fetch(` | 0 |
+| `.insert(` | 0 |
+| `.update(` | 0 |
+| `.delete(` | 0 |
+| `.upsert(` | 0 |
+| `console.` | 0 |
+| Discord webhook URL形式 | 0 |
+| bot token風文字列 | 0 |
+| service-role系credential風文字列 | 0 |
+
+この工程では、Codex側でローカルserve実行、`dry_run = true` 実行、`dry_run = false` 実行は行っていない。Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、commit / pushも行っていない。

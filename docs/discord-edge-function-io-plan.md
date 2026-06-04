@@ -576,6 +576,18 @@ Edge Functionが参照する環境変数は `SUPABASE_URL`、`SUPABASE_ANON_KEY`
 
 この追記ではdocs整理のみ行い、`supabase functions serve` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-6I ローカルdry-run手元実行ガイド
+
+手元実行では、PowerShell上で環境変数とAuthorizationヘッダーを用意し、ローカルserveへ `dry_run = true` のpayloadを送る。docsに残す手順はプレースホルダーのみとし、実値は書かない。
+
+初回の確認対象は `create` のみにする。`update` / `close` / `delete` / `resync` は既存投稿参照情報や依頼書状態に依存するため、後続工程で必要に応じて扱う。
+
+期待結果は、成功してpreviewが返る、権限不足、同期対象外、対象なし等の一般化結果。`message_preview` は公開情報のみ、`planned_db_update` は予定情報のみで、実DB更新は行わない。
+
+結果記録テンプレートは `docs/discord-edge-function-dry-run-check-result.md` に置いた。記録時は、秘匿値の実値、認証系の生値、内部識別子、外部投稿参照情報そのものを含めない。
+
+この追記ではdocs整理のみ行い、ローカルserve実行、`dry_run = true` 実行、`dry_run = false` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
+
 ## M-14E-6H dry-run実行可否と停止判断
 
 `npx.cmd supabase --version` は `2.105.0`。Deno構文確認はユーザー領域のDeno実行ファイルをフルパス実行して成功した。

@@ -552,6 +552,29 @@ Deno単体起動は、Edge Function実行環境との差異が出る可能性が
 
 この追記ではdocs整理のみ行い、`supabase functions serve` 実行、`supabase start` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-6I ローカルdry-run手元実行ガイド
+
+dry-run確認はユーザー手元で行う。Codexは秘匿値の実値、認証系の生値、実在する依頼書ID相当の値を扱わない。
+
+手元実行の方針:
+
+- PowerShell手順はプレースホルダーのみで記録する。
+- 必要値はユーザー手元の環境変数、ブラウザ、ローカルメモだけで扱う。
+- 初回は `create` の `dry_run = true` のみ確認する。
+- `dry_run = false` は実行しない。
+- Discord実送信なし、DB更新なしを確認する。
+- レスポンスとログに秘匿値の実値、認証系の生値、内部識別子が出ないことを確認する。
+
+手元実行後は、成功 / 権限不足 / 同期対象外 / 対象なし等に一般化して記録する。実値を含むレスポンス全文やログはそのままdocsへ貼らない。
+
+次工程候補:
+
+1. M-14E-6J: ユーザー手元dry_run=true実行結果記録。
+2. 必要なら権限エラーや同期対象外の追加確認。
+3. M-14E-7: deploy手順整理。
+
+この追記ではdocs整理のみ行い、ローカルserve実行、`dry_run = true` 実行、`dry_run = false` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
+
 ## M-14E-6G ローカルserve dry-run実行可否確認
 
 確認結果:
