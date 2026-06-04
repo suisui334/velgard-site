@@ -1113,3 +1113,21 @@
 - 実装前の必須確認として、dry-run / mock、権限判定、同期対象判定、失敗時状態遷移、ログの安全性、完全削除時の外部投稿扱いを整理した。
 - 後続候補は、M-14E-2 既存DB列 / 不足列 SELECT-only preflight、M-14E-3 必要時draft SQL、M-14E-4 apply_reviewed、M-14E-5 Edge Function draft、M-14E-6 管理設定手順docs、M-14E-7 dry-run / mock、M-14E-8 deploy手順、M-14E-9 再同期UI、M-14E-10 実送信QA。
 - この工程ではdocs設計のみ。SQLファイル作成、SQL Editor実行、DB構造変更、RPC変更、Edge Function実装、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-2 Discord同期 既存DB列・不足列 preflight SELECT-only SQL
+- `docs/supabase/sql/025_discord_sync_preflight_select_only.sql` を作成した。Supabase SQL Editorで1つの結果表として確認できるよう、`sort_order` / `section` / `check_name` / `expected` / `status` / `result_value` / `notes` へ統一している。
+- 確認対象は `public.sessions` の存在、依頼書主要列、Discord同期状態列、`discord_message_id` 相当列、投稿先・投稿URL相当列、CHECK制約、RLS、policy概要、依頼書RPC 3本、同期関連RPC名スキャン、admin / GM helper、静的JSON由来の扱い。
+- `discord_message_id` 相当列が不足する場合は、既存投稿の更新、終了表示、削除相当処理、再同期に支障があるため、M-14E-3でDB列追加draftを検討する。
+- 既存の状態管理列と外部投稿識別子がそろっている場合は、結果記録後にEdge Function draftへ進める可能性がある。
+- SQLはカタログ確認のみで、実データ行は読まない。秘匿値や内部情報の実値は出さず、外部投稿credentialをDBに保存する設計にもしていない。
+- この工程ではSELECT-only SQL作成のみ。SQL Editor実行、DB構造変更、RPC変更、Edge Function実装、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-2 Discord同期 preflight実行結果
+- ユーザーが `docs/supabase/sql/025_discord_sync_preflight_select_only.sql` をSupabase SQL Editorで手動実行し、エラーなしで単一結果セットを確認した。
+- `public.sessions` と依頼書主要列はstatus ok。Discord同期状態列 `discord_sync_status` / `discord_last_action` / `discord_sync_requested_at` / `discord_synced_at` / `discord_sync_error` もすべてstatus ok。
+- 外部投稿識別子・投稿先関連列として、`discord_message_id` 相当、`discord_channel_id` 相当、`discord_thread_id` 相当、`discord_post_url` 相当が存在し、status ok。baseline state columnsは `5/5 present`、message identifier readinessは `has_message_identifier=true`。
+- CHECK制約は、同期状態、同期action、募集状態、公開状態、依頼書種別がstatus ok。public draft guardはDB制約ではなくRPC/UI側確認候補としてinfoに残す。
+- `sessions` / `user_roles` のRLS enabled、policy summary、依頼書RPC 3本の存在・`security_definer`・`search_path`・EXECUTE状態、admin / GM helperは期待どおり確認できた。
+- 同期関連RPC名スキャンではpublic関数1件をinfoとして確認した一方、resync専用public関数は未作成。GM/admin向け再同期ボタンを作る場合は、RPCまたはEdge Function呼び出し方針を後続で検討する。
+- M-14E-2 preflightは成功扱い。現時点ではDB列追加が必須とは限らないため、M-14E-3の列追加draftを急がず、既存列を前提にしたEdge Function draft設計へ進めるか検討できる。
+- この記録工程でCodexはSQL Editor実行、DB/RPC変更、Edge Function実装、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushを行っていない。

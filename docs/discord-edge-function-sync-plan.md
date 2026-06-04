@@ -237,6 +237,60 @@ M-14E-2ではSELECT-only SQLで以下を確認する。
 - RLS / EXECUTE方針。
 - 完全削除時に同期情報が残らないことによる影響。
 
+## M-14E-2 preflight SQL作成メモ
+
+M-14E-2では `docs/supabase/sql/025_discord_sync_preflight_select_only.sql` を作成し、Supabase SQL Editorでユーザーが手動確認できる単一結果セット形式にする。
+
+確認項目:
+
+- `public.sessions` の存在。
+- Discord同期状態列の存在、型、nullable。
+- `discord_message_id` 相当、投稿先、投稿URLに相当する列の存在有無。
+- `discord_sync_status` / `discord_last_action` のCHECK制約。
+- 依頼書の `status` / `visibility` / `session_type` のCHECK制約。
+- 依頼書同期に関係する既存RPCの存在、`security_definer`、`search_path`、EXECUTE状態。
+- 同期状態更新用または再同期用RPCが既にあるかどうかの関数名スキャン。
+- admin / GM helper、RLS、policy概要。
+- 静的JSON由来はDB catalog項目ではないため、同期対象外としてフロント表示・マージロジック側の確認観点に残す。
+
+判断方針:
+
+- 状態管理列と外部投稿識別子がそろっていれば、M-14E-5 Edge Function draftへ進める可能性がある。
+- 状態管理列はあるが `discord_message_id` 相当列が不足する場合は、既存投稿の更新、終了表示、削除相当処理、再同期に支障があるため、M-14E-3でDB列追加draftを検討する。
+- 既存列の不足が見つかっても、M-14E-2ではSQL Editor実行とDB変更は行わない。結果記録後にM-14E-3以降で扱う。
+
+## M-14E-2 preflight実行結果
+
+ユーザーが `docs/supabase/sql/025_discord_sync_preflight_select_only.sql` をSupabase SQL Editorで手動実行し、エラーなしで単一結果セットを確認した。
+
+確認済み:
+
+- `public.sessions` は存在し、status ok。
+- 依頼書主要列として、公開ID、タイトル、概要、募集状態、公開状態、依頼書種別、開催日、開始/終了時刻、終了日時、申請締切、募集人数、GM表示名がすべてstatus ok。
+- Discord同期状態列として、`discord_sync_status` / `discord_last_action` / `discord_sync_requested_at` / `discord_synced_at` / `discord_sync_error` がすべて存在し、status ok。
+- 外部投稿識別子・投稿先関連列として、`discord_message_id` 相当、`discord_channel_id` 相当、`discord_thread_id` 相当、`discord_post_url` 相当が存在し、status ok。
+- baseline state columns は `5/5 present` でstatus ok。
+- message identifier readiness は `has_message_identifier=true` でstatus ok。
+- CHECK制約は、`discord_sync_status`、`discord_last_action`、募集状態、公開状態、依頼書種別がstatus ok。
+- public draft guard はinfo / not found。DB制約ではなくRPC/UI側で扱う可能性があるため、後続実装・QA観点に残す。
+- `sessions` / `user_roles` のRLS enabled はstatus ok。policy summaryはinfoとして確認済み。
+- 既存依頼書RPC 3本は存在し、`security_definer=true`、`search_path=true`、`authenticated` EXECUTEあり、`anon` / `public` EXECUTEなしでstatus ok。
+- 同期関連RPCスキャンでは、Discord/sync/resync系の名前を持つpublic関数が1件infoとして確認された。resync専用public関数は0件でmissing。
+- `has_role(text)` / `is_admin()` / `is_session_gm(text)` と `public.user_roles` は存在し、status ok。
+- server-side DB update path はinfo。Edge Function実装時に安全なサーバ側DB更新経路を選ぶ必要がある。
+- 静的JSON由来はDB catalog項目ではないためinfo。Discord同期対象外として扱う確認観点を維持する。
+- initial readiness judgment はstatus ok。既存同期列と外部投稿識別子が確認できており、初期Discord同期実装に必要なDB状態は概ね整っている可能性が高い。
+
+判断:
+
+- M-14E-2 preflightは成功扱いでよい。
+- `discord_message_id` 相当列が既に存在するため、M-14E-3でDB列追加draftを急ぐ必要は低い。
+- まず既存列を前提にしたEdge Function draft設計へ進めるかを検討できる。
+- ただし再同期専用RPCとGM/admin向け再同期UIは未実装のため、後続工程に残す。
+- adminはアプリ内権限として扱い、サーバ高権限とは混同しない方針を維持する。
+
+この記録工程でCodexはSQL Editor実行、DB/RPC変更、Edge Function実装、Edge Function deploy、Discord実送信、フロント実装、`updates.json` 変更、commit / pushを行っていない。
+
 ## M-15テンプレート機能との接続候補
 
 Discord投稿本文テンプレートは、M-15のテンプレート保存機能と接続できる可能性がある。
@@ -247,4 +301,3 @@ Discord投稿本文テンプレートは、M-15のテンプレート保存機能
 - GM個人テンプレートをDiscord投稿本文に使う場合、どのテンプレートを同期に使うかの選択UIと権限が必要になる。
 - `call` / `result` / `session_post` / `application` / `other` の既存種別だけでDiscord投稿本文を表すと混線しやすい。
 - 必要になった場合のみ、投稿文脈専用の種別または利用文脈の追加設計を検討する。
-
