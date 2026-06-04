@@ -1079,3 +1079,12 @@
 - policy summaryはinfoとして確認済み。静的JSON由来はDB catalog項目ではないため、DB RPC対象外としてフロント表示・マージロジック側の確認観点に残す。
 - M-14D-15B preflightは成功扱い。次工程はpreflight SQLと結果記録をcommit / pushしたうえで、手動smoke test設計または実ブラウザQAへ進める想定。
 - この記録工程でCodexはSQL Editor実行、DB/RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14D-15C 依頼書RPC smoke test 手動実行手順・テストデータ設計
+- `docs/session-posting-rpc-smoke-manual-test.md` を作成し、依頼書RPC smoke testの目的、推奨テスト方式、テストデータ設計、ロール別確認、バリデーション、完全削除 / CASCADE、静的JSON由来、実行順、結果記録フォーマットを整理した。
+- 推奨方式は実ブラウザ操作中心。SQL Editorでの直接RPC確認は必要最小限にし、既存本番寄りデータを触らず、テスト用依頼書を明示的に作成してから使う方針にした。
+- テストデータは基本確認用、完全削除用、CASCADE確認用を分ける。完全削除確認は削除専用の依頼書だけで行い、参加申請 / コメントのCASCADE確認も専用データに限定する。
+- ロール別には未ログイン、通常PL、作成者GM、他GM、admin、静的JSON由来を整理した。adminはアプリ内権限としてのみ扱い、サーバ高権限とは混同しない。
+- バリデーションは下書き状態の公開化、不正な募集状態 / 公開状態、募集人数の上下逆転、終了日時逆転、タイトル / 概要空欄、一般化されたエラー表示を確認候補にした。
+- 後続候補はM-14D-15D手動ブラウザsmoke test実施、M-14D-15E結果記録、必要なら軽微修正。その後はDiscord Edge Function設計再開または静的JSON退役へ進む想定。
+- この工程ではdocs整理のみ。SQL Editor実行、DB/RPC変更、フロント実装、実データ作成・更新・削除、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。

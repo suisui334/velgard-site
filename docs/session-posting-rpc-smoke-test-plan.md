@@ -188,3 +188,27 @@
 - 次工程は、このpreflight SQLと結果記録をcommit / pushしたうえで、後続の手動smoke test設計または実ブラウザQAへ進める。
 
 この記録工程でCodexはSQL Editor実行、DB/RPC変更、フロント実装、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14D-15C 手動実行手順・テストデータ設計
+
+依頼書RPC smoke testを実施する前の手動実行手順とテストデータ設計を `docs/session-posting-rpc-smoke-manual-test.md` に整理した。
+
+整理内容:
+
+- smoke testの目的は、`create_session_post(...)` / `update_session_post(...)` / `delete_session_post(text)` の実動作、権限ロール別の成功 / 拒否、入力バリデーション、完全削除時のCASCADE、内部情報非露出を確認すること。
+- 推奨方式は実ブラウザ操作中心。SQL Editorでの直接RPC確認は必要最小限にし、既存本番寄りデータは触らない。
+- テスト用依頼書は明示的に作成し、基本確認用、完全削除用、CASCADE確認用を分ける。削除確認は必ず削除専用のテスト依頼書で行う。
+- ロール別には、未ログイン、通常PL、作成者GM、他GM、admin、静的JSON由来について、作成 / 更新 / 完全削除 / 管理対象表示 / UI表示の期待動作を整理した。
+- バリデーションは、下書き状態の公開化、不正な募集状態、不正な公開状態、募集人数の上下逆転、終了日時逆転、タイトル / 概要空欄、一般化されたエラー表示を確認候補にした。
+- 完全削除は `delete_session_post(text)`、中止として残す場合は `status = canceled` と分ける。CASCADE確認は削除されてもよい専用データでのみ行う。
+- 静的JSON由来はDB RPC対象外として、編集不可 / 削除不可表示、Supabase由来優先、fallback復活なしをブラウザ表示・マージロジック側で確認する。
+- 結果記録フォーマットとして、実施日、確認者、対象環境、確認アカウント種別、確認項目、結果、残課題、削除したテストデータ、console error有無、内部情報非露出を用意した。
+
+次工程候補:
+
+- M-14D-15D: 手動ブラウザsmoke test実施。
+- M-14D-15E: smoke test結果記録。
+- 必要なら軽微な表示・文言修正。
+- その後、Discord Edge Function設計再開または静的JSON退役へ進む。
+
+この工程ではdocs整理のみ。SQL Editor実行、DB/RPC変更、フロント実装、実データ作成・更新・削除、Discord実送信、Edge Function deploy、`updates.json` 変更、commit / pushは行っていない。
