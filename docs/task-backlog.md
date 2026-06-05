@@ -1378,3 +1378,13 @@
 - DB更新は、実送信成功後に外部投稿識別子相当の値と同期状態を反映する案を第一候補にする。送信失敗時は依頼書保存自体を壊さず、同期失敗として扱う。
 - 次工程候補は、M-14E-14B 実送信draft設計、M-14E-14C 実送信コード実装前レビュー、M-14E-14D secret設定手順整理、M-14E-14E 実送信確認。
 - この工程ではdocs整理のみ。secret実値設定、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、Edge Functionコード変更、deploy、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-14B/C Discord同期Edge Function 実送信draft設計
+- 初期実送信は単一募集チャンネル向けWebhook方式の `create` から始める方針として整理した。GM別、依頼書種別別、セッション別の投稿先分岐は初期実装に含めず、将来拡張候補に残す。
+- Webhook secretはEdge Function側で解決し、payload、フロント、docsに投稿先実値を持たせない。secret未設定時は一般化エラーで拒否し、Discord送信もDB更新も行わない。
+- `dry_run = true` はpreview専用、`dry_run = false` は実送信有効化条件が揃うまで拒否を維持する。
+- DB更新はDiscord送信成功後のみ行う案を第一候補にした。送信失敗時は依頼書保存自体を壊さず、同期失敗として一般化した理由だけを扱う。
+- action別には、`create` を先行し、`update` / `close` / `delete` / `resync` は外部投稿識別子と状態遷移の設計を追加レビューしてから扱う。
+- 実装前レビュー項目として、secret未設定時の拒否、dry-run境界、二重投稿防止、既存外部投稿識別子がある場合の `create` 挙動、送信成功後DB更新失敗時の扱い、ログ安全性を整理した。
+- 次工程候補は、M-14E-14C 実送信コードdraft実装前レビュー、M-14E-14D secret設定手順整理、M-14E-14E secret設定後dry-run再確認、M-14E-14F テスト投稿確認、M-14E-14G DB更新連携、M-14E-14H フロント管理UI接続。
+- この工程ではdocs整理のみ行い、secret実値設定、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、Edge Functionコード変更、deploy、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。

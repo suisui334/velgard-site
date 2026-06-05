@@ -1373,3 +1373,17 @@ deploy済み `sync-session-post-to-discord` について、`dry_run = false` を
 - レスポンスとログにsecret、認証情報、確認対象依頼書ID相当の値、Supabase接続先全文、Discord投稿先実値、`message_preview` 本文全文を出さない。
 
 今回の追記ではdocs整理のみ行い、`dry_run = true` / `dry_run = false` の再実行、Discord実送信、Edge Functionコード変更、deploy、SQL Editor実行、DB/RPC変更、フロント実装は行っていない。
+
+## M-14E-14B/C 実送信draft実装前レビュー記録
+`create / dry_run = true` はHTTP 200で成功済み、`create / dry_run = false` はHTTP 501および `real_send_not_enabled` で拒否済みである。この確認済み境界を、実送信draft設計でも維持する。
+
+実送信コードを追加する前のレビュー観点:
+
+- `dry_run = true` は今後もDiscord送信なし・DB更新なしでpreviewだけを返す。
+- `dry_run = false` は、Webhook secret、送信処理、DB更新経路、安全レビューが揃うまで拒否を維持する。
+- secret未設定時は一般化エラーで拒否し、Discord送信もDB更新も行わない。
+- Discord失敗レスポンス全文、投稿先実値、認証情報、確認対象依頼書ID相当の実値、`message_preview` 本文全文をdocsやログへ残さない。
+- 送信成功後にDB更新が失敗した場合の再実行・二重投稿防止策を実装前に確認する。
+- `create` 実行時に外部投稿識別子相当が既にある場合の挙動を、実送信前に明示する。
+
+次工程では、実送信コードdraftを追加する場合でも、最初は `dry_run = false` 拒否を維持したままレビューできる形を優先する。secret設定、実送信確認、DB更新連携、フロント接続は別工程に分ける。
