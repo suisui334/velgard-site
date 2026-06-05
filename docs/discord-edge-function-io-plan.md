@@ -1106,3 +1106,41 @@ Edge Functionを変更する工程では、次を確認する。
 - 開催場所未設定時に `未定` へ丸められる。
 - ISO/UTC表記が出ない。
 - 実値や秘匿値がレスポンス、ログ、docsへ出ない。
+
+## M-14E-15B session_tool DB/RPC IO設計
+Discord投稿本文の `開催場所【...】` に使う値として、依頼書データへ `session_tool` を追加する方針を整理した。この工程ではSELECT-only preflight SQL draftとdocs整理のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、deploy、Discord追加実送信、dry-run再実行、フロント実装は行わない。
+
+preflight:
+
+- `docs/supabase/sql/026_session_tool_preflight_select_only.sql`
+- 単一結果セット形式。
+- `public.sessions`、類似列、RPC signature、RLS、EXECUTE権限、helper存在をcatalogから確認する。
+- 実データ値、認証情報、外部投稿先実値は扱わない。
+
+DB IO候補:
+
+- 入力列候補は `public.sessions.session_tool text`。
+- NULL許容を第一候補にする。
+- DB上はNULLを未設定の正規値とし、空文字はRPCでtrim後NULLへ丸める。
+- 初期実装では固定候補CHECKを置かず、自由入力を優先する。
+- 将来、UI側で候補selectに寄せる場合も、DB値の固定化は別工程で検討する。
+
+RPC IO候補:
+
+- 作成入力: `create_session_post(...)` に `p_session_tool text default null` を追加する候補。
+- 更新入力: `update_session_post(...)` に `p_session_tool text default null` を追加する候補。
+- 詳細/list出力: session-detail、calendar、session-post管理一覧、Edge Function本文生成で使う範囲に `session_tool` を含める。
+- 削除RPC: `delete_session_post(text)` は `session_tool` を扱わない。
+
+互換性注意:
+
+- `p_end_at` 対応時と同様、PostgREST RPCのdefault引数overload曖昧化に注意する。
+- preflightで既存signatureが1本か、類似RPCがあるかを確認してから、旧signatureをdrop/recreateするか、別RPCに分けるかを決める。
+- 返却値に raw user_id、email、token、認証情報、外部投稿先実値、Discord message id相当の実値は含めない。
+
+Discord出力:
+
+- `session_tool` がある場合は `開催場所【<値>】` として使う。
+- NULLまたは空文字は `開催場所【未定】` へ丸める。
+- `dry_run = true` previewと実送信本文は同じ丸め結果を使う。
+- Discord本文にはサイト詳細URLやクエリ付き詳細導線を入れない。

@@ -1266,3 +1266,103 @@ M-14E-15は安全に以下へ分割する。
 6. M-14E-15F: Edge Function preview/実送信フォーマット変更。
 7. M-14E-15G: `dry_run = true` QA。
 8. M-14E-15H: テスト用チャンネル実送信QA。
+
+## M-14E-15B session_tool追加に向けたDB/RPC preflight・SQL draft設計
+M-14E-15Bでは、Discord投稿新フォーマットの `開催場所【...】` に使う依頼書データとして `session_tool` を追加できるかを確認するため、SELECT-onlyのpreflight SQL draftを作成した。この工程ではSQL Editor実行、DB/RPC変更、Edge Functionコード変更、deploy、Discord追加実送信、dry-run再実行、フロント実装は行わない。
+
+作成したpreflight:
+
+- `docs/supabase/sql/026_session_tool_preflight_select_only.sql`
+- 単一結果セット形式。
+- 出力列は `sort_order` / `section` / `check_name` / `expected` / `status` / `result_value` / `notes`。
+- 実データ値ではなく、catalog上のテーブル、列、RPC signature、権限、RLS、policy概要だけを確認する。
+
+preflight確認対象:
+
+- `public.sessions` が依頼書の正本テーブルとして存在するか。
+- `public.session_posts` のような別テーブルが存在し、設計判断に影響しないか。
+- `public.sessions.session_tool` が既に存在するか。
+- `play_location` / `venue` / `session_place` など類似列が既に存在しないか。
+- public schema全体に `tool` / `place` / `location` / `venue` 系の類似列がないか。
+- `create_session_post(...)` / `update_session_post(...)` / `delete_session_post(text)` の存在、signature、`security_definer`、`search_path`、EXECUTE権限。
+- session_tool相当の引数または戻り値を既存RPCが既に持っているか。
+- detail/list系に相当するpublic functionが存在するか。
+- `has_role(text)` / `is_admin()` / `is_session_gm(text)` の存在。
+- `public.sessions` のRLS enabled状態とpolicy概要。
+- session_tool相当のCHECK制約が既に存在しないか。
+
+### session_tool列追加案
+列名は `session_tool` を第一候補にする。日本語ラベルは「開催場所」だが、意味は物理的な場所ではなく、Tekey、ココフォリア、ユドナリウムリリィ、Discordボイスなどのセッションツール/開催環境とする。
+
+初期列案:
+
+- `session_tool text`
+- NULL許容。
+- 既存データには値を入れず、未設定として扱う。
+- RPC側ではtrim後に空文字をNULLへ丸める。
+- 表示時はNULLまたは空文字を `未定` へ丸める。
+- 固定候補のCHECK制約は初期実装では入れない。
+
+NULL許容を第一候補にする理由:
+
+- 既存依頼書を一括補正しなくても追加できる。
+- 現行依頼書の表示・編集・Discord同期へ段階的に反映できる。
+- セッションツール名は表記揺れや新ツールが出やすく、初期から固定値制約を置くと運用に詰まりやすい。
+
+空文字の扱い:
+
+- DB列としてはNULLを正とする。
+- フロント入力やRPC引数で空文字が来た場合は、RPC側でtrimしNULLへ丸める案を第一候補にする。
+- UI、session-detail、Discord投稿ではNULL/空文字を `未定` と表示する。
+
+文字数制限:
+
+- 初期案では自由入力を優先する。
+- apply draft作成時に、`length(session_tool) <= 80` 程度の軽い制約を入れるか再検討する。
+- 固定候補制約ではなく、過度な長文や改行だけを避ける方向が安全。
+
+### RPC変更方針
+`session_tool` は依頼書の作成・更新・表示・Discord投稿本文生成で必要になるため、RPCと取得処理へ段階的に反映する。
+
+作成RPC:
+
+- `create_session_post(...)` に `p_session_tool text default null` を追加する候補。
+- 既存の `p_end_at` と同様、末尾引数に追加する案を第一候補にする。
+- ただしPostgREST RPCはdefault引数つきoverloadで曖昧化しやすいため、preflightで既存signatureを確認してから、旧signature drop/recreateまたは別RPC化を判断する。
+
+更新RPC:
+
+- `update_session_post(...)` に `p_session_tool text default null` を追加する候補。
+- 既存編集保存と同じ権限判定、入力検証、戻り値最小化方針を維持する。
+- `session_tool` の戻り値を含めるかは、フロント更新後の再描画要件に合わせて決める。
+
+詳細/list取得:
+
+- 既存がRLS付きの直接SELECTであれば、フロント取得列へ `session_tool` を追加する。
+- detail/list RPCが存在する場合は、戻り値に `session_tool` を含める必要がある。
+- raw user_id、email、token、内部ID、Discord投稿先実値は返さない既存方針を維持する。
+
+削除RPC:
+
+- `delete_session_post(text)` は物理削除専用であり、`session_tool` の引数追加は不要。
+- 戻り値に `session_tool` を含める必要もない。
+
+互換性:
+
+- 既存フロントが現行RPC signatureを呼んでいるため、SQL applyとフロント実装の順序を分ける。
+- 過去の `p_end_at` 対応では、overload曖昧化を避けるため旧signatureをdropし、新signatureを1本だけ残した。`session_tool` でも同じ方針が候補になる。
+- apply draft作成時は、既存signature、EXECUTE権限、PostgREST RPC呼び出しの互換性を再レビューする。
+
+### 次工程
+次工程は以下に分ける。
+
+1. M-14E-15C: ユーザー手元で `026_session_tool_preflight_select_only.sql` をSQL Editor実行。
+2. M-14E-15D: preflight結果にもとづくDB/RPC apply draft作成。
+3. M-14E-15E: apply前レビュー。
+4. M-14E-15F: ユーザー手動SQL Editor適用。
+5. M-14E-15G: 依頼書編集UIへ開催場所入力を追加。
+6. M-14E-15H: session-detail表示とGM/admin管理配置調整。
+7. M-14E-15I: Edge Function preview/実送信フォーマット変更。
+8. M-14E-15J: `dry_run = true` QA。
+
+この工程ではSQL draft作成とdocs整理のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、deploy、Discord追加実送信、dry-run再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。

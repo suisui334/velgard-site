@@ -1501,3 +1501,15 @@
 - Edge Functionでは、`dry_run = true` previewと実送信本文で同じ新フォーマットを使う。日時はISO/UTC表記ではなく、曜日入りの短い日本語形式へ整形する。
 - 次工程候補は、M-14E-15B DB/RPC変更SQL draft、M-14E-15C SQL apply前レビュー、M-14E-15D UIフィールド追加、M-14E-15E session-detail表示調整、M-14E-15F Edge Functionフォーマット変更、M-14E-15G dry_run QA、M-14E-15H テスト用チャンネル実送信QA。
 - この工程では設計docs整理のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15B 開催場所/session_tool追加DB/RPC preflight・SQL draft設計
+- `開催場所` は物理会場ではなくセッションツール/開催環境を指す項目として、内部名 `session_tool` を第一候補にする方針を維持する。
+- SELECT-only preflight SQL draft `docs/supabase/sql/026_session_tool_preflight_select_only.sql` を作成した。単一結果セットで、`sort_order` / `section` / `check_name` / `expected` / `status` / `result_value` / `notes` を返す。
+- preflightでは `public.sessions` と `public.session_posts` 候補、`session_tool` / `play_location` / `venue` / `session_place` 類似列、public schema内のtool/location系列、`create_session_post(...)` / `update_session_post(...)` / `delete_session_post(text)` のsignature・security・EXECUTE権限、session関連function scan、helper、RLS、policy概要を確認する。
+- `session_tool` 列案は `text` / NULL許容を第一候補にする。既存データは未設定扱いで保持し、RPC側で空文字をtrim後NULLへ丸め、表示時は `未定` にする。
+- 初期実装では固定候補CHECKを置かず、自由入力を優先する。必要なら後続apply draftで文字数上限や改行拒否など軽い制約だけ検討する。
+- RPC変更は、`create_session_post(...)` と `update_session_post(...)` へ `p_session_tool text default null` を追加する候補。ただしPostgREST RPCのdefault引数overload曖昧化を避けるため、preflight結果後に旧signature drop/recreateか別RPC化をレビューする。
+- 詳細/list取得が直接SELECTなら取得列に `session_tool` を追加する。detail/list RPCが存在する場合は戻り値へ含める。`delete_session_post(text)` は `session_tool` を扱わない。
+- Discord新フォーマットでは `開催場所【session_toolまたは未定】` を使い、サイト詳細URLや内部ID、認証情報、外部投稿先実値は本文へ入れない。
+- 次工程候補は、M-14E-15C preflight SQL手動実行、M-14E-15D preflight結果にもとづくapply draft、M-14E-15E apply前レビュー、M-14E-15F ユーザー手動SQL Editor適用、M-14E-15G フロントUI実装、M-14E-15H session-detail表示調整、M-14E-15I Edge Functionフォーマット変更、M-14E-15J dry_run QA。
+- この工程では調査・SQL draft・docs整理のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。
