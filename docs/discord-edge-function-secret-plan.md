@@ -673,3 +673,38 @@ secret設定後もすぐに実送信しない。まず `dry_run = true` がprevi
 6. M-14E-14L: テスト用チャンネルで初回実送信確認。
 
 この工程ではdocs整理のみ行い、実Webhook作成、secret実値設定、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、Edge Functionコード変更、deploy、SQL Editor実行、DB/RPC変更、フロント実装は行わない。
+
+## M-14E-14G/H/I/J テスト用Webhook secret設定とdry-run再確認結果
+ユーザー手元で、テスト用チャンネル向けWebhook secret設定と、secret設定後の `dry_run = true` preview維持確認、`dry_run = false` 拒否維持確認を実施済みとして記録する。Webhook URL、投稿先実値、認証情報、確認対象依頼書ID相当の実値、Supabase接続先全文は記録しない。
+
+### secret設定結果
+
+- テスト用チャンネル向けWebhook URLをユーザー手元で取得した。
+- Webhook URL本体はチャット、docs、GitHubへ出していない。
+- PowerShell待機方式でWebhook URLを環境変数へ取り込んだ。
+- Supabase secret `DISCORD_SESSION_POST_WEBHOOK_URL` へ設定した。
+- secret設定は実行済みで、終了コードは成功扱い。
+- Webhook URL値は環境変数から削除済み。
+- 一度、Webhook URL検査失敗後に誤った値を設定した可能性があったため、正しいテスト用Webhook URLで上書き設定した。
+- Webhook URL実値は記録しない。
+
+### secret設定後の `dry_run = true` 確認
+
+ユーザー手元で `create` / `dry_run = true` を再確認し、HTTP 200で成功した。レスポンスはJSONとしてparse可能で、`ok = true`、`dry_run = true`、`action = create` を確認した。`message_preview`、`planned_db_update`、`warnings` は返却されたが、`message_preview` 本文全文は記録しない。previewは12行、212文字相当として記録する。
+
+### secret設定後の `dry_run = false` 拒否維持確認
+
+ユーザー手元で `create` / `dry_run = false` を再確認し、HTTP 501で想定どおり拒否された。レスポンスはJSONとしてparse可能で、`ok = false`、`error_code = real_send_not_enabled`、`dry_run = false` を確認した。拒否メッセージは一般化された内容で、実送信はdraftでは有効化されていないことを案内するものだった。
+
+### Discord側確認
+
+ユーザー目視により、テスト用チャンネルに新規投稿が増えていないことを確認済みとして記録する。secret設定だけではDiscord投稿は発生せず、実送信はまだ有効化していない。
+
+### 次工程案
+
+1. M-14E-14K: 実送信有効化コード変更案の詳細レビュー。
+2. M-14E-14L: テスト用チャンネルで初回実送信確認の手順整理。
+3. M-14E-14M: 実送信有効化コード実装。ただしDB更新連携は分離するか検討する。
+4. M-14E-14N: テスト用チャンネルで初回実送信確認。
+
+この記録工程でCodexはsecret実値設定、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、Edge Functionコード変更、deploy、SQL Editor実行、DB/RPC変更、フロント実装を行わない。

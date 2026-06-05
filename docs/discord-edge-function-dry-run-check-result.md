@@ -1456,3 +1456,55 @@ M-14E-14Dではこのテンプレートと確認観点だけを追加する。se
 | 次工程判断 | 継続 / 停止 |
 
 停止条件に該当した場合は、Webhook削除または再作成、secret再設定、ログ安全性確認へ戻る。M-14E-14Fではこのテンプレートと手順整理のみ行い、実Webhook作成、secret実値設定、`dry_run = true` / `dry_run = false` 再実行、Discord実送信、Edge Functionコード変更、deploy、DB/RPC変更は行わない。
+
+## M-14E-14G/H/I/J テスト用Webhook secret設定後dry-run確認結果
+ユーザー手元でテスト用チャンネル向けWebhook secret設定と、設定後のdry-run確認を実施済み。Webhook URL、投稿先実値、認証情報、確認対象依頼書ID相当の実値、Supabase接続先全文、`message_preview` 本文全文は記録しない。
+
+### secret設定
+
+| 項目 | 結果 |
+| --- | --- |
+| secret名 | `DISCORD_SESSION_POST_WEBHOOK_URL` |
+| secret設定 | 実施済み |
+| secret設定結果 | 成功 |
+| secret値 | 記録しない |
+| 環境変数上の値 | 削除済み |
+| 補足 | 誤った値を設定した可能性があったため、正しいテスト用Webhook URLで上書き済み |
+
+### `dry_run = true` 確認
+
+| 項目 | 結果 |
+| --- | --- |
+| action | `create` |
+| HTTP status | 200 |
+| JSON parse | 成功 |
+| `ok` | `true` |
+| `dry_run` | `true` |
+| `action` | `create` |
+| `message_preview` | 返却あり。本文全文は記録しない |
+| preview length | 212 |
+| preview lines | 12 |
+| `planned_db_update` | 返却あり |
+| `warnings` | 返却あり |
+| 確認結果 | preview専用維持 |
+
+### `dry_run = false` 拒否維持確認
+
+| 項目 | 結果 |
+| --- | --- |
+| action | `create` |
+| HTTP status | 501 |
+| JSON parse | 成功 |
+| `ok` | `false` |
+| `dry_run` | `false` |
+| `error_code` | `real_send_not_enabled` |
+| 拒否メッセージ | 実送信はdraftでは有効化されていない旨の一般化メッセージ |
+| 確認結果 | 想定どおり拒否維持 |
+
+### Discord側確認
+
+- テスト用チャンネルに新規投稿が増えていないことをユーザーが目視確認済み。
+- Discord実送信はまだ有効化していない。
+- secret設定だけではDiscord投稿は発生しない方針を再確認した。
+
+次工程候補は、M-14E-14K 実送信有効化コード変更案レビュー、M-14E-14L テスト用チャンネル初回実送信確認手順整理、M-14E-14M 実送信有効化コード実装、M-14E-14N テスト用チャンネル初回実送信確認。

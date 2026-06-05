@@ -892,3 +892,30 @@ secret設定後に確認するIO:
 - git差分にsecret実値が出ていない。
 
 これらの確認が終わるまでは、実送信有効化コード変更や本番募集チャンネルへの切り替えに進まない。
+
+## M-14E-14G/H/I/J secret設定後dry-run IO確認結果
+ユーザー手元でテスト用チャンネル向けsecret設定後のIO確認を実施済み。入力に使った認証情報、確認対象依頼書ID相当の実値、Supabase接続先全文、Webhook URL、投稿先実値はdocsへ記録しない。
+
+`dry_run = true`:
+
+- `create` / `dry_run = true` はHTTP 200で成功した。
+- JSON parseは成功した。
+- `ok = true`、`dry_run = true`、`action = create` を確認した。
+- `message_preview`、`planned_db_update`、`warnings` が返却された。
+- `message_preview` 本文全文は記録しない。
+- Discord送信なし、DB更新なしのpreview境界を維持した。
+
+`dry_run = false`:
+
+- `create` / `dry_run = false` はHTTP 501で拒否された。
+- JSON parseは成功した。
+- `ok = false`、`error_code = real_send_not_enabled`、`dry_run = false` を確認した。
+- 拒否レスポンスは一般化されており、実送信はdraftでは有効化されていないことを示した。
+- Discord API送信とDB更新には進んでいない。
+
+Discord側:
+
+- テスト用チャンネルに新規投稿が増えていないことをユーザーが目視確認済み。
+- secret設定だけでは投稿が発生しないことを再確認した。
+
+次のIO設計では、実送信有効化コードを追加する前に、DB更新連携を同時に入れるか分離するか、送信成功後DB更新失敗時の扱い、二重投稿防止を追加レビューする。

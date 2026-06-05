@@ -1029,3 +1029,20 @@ secret設定後の同期境界:
 - secret設定後のdry-run確認が未完了。
 
 次工程候補は、M-14E-14G テスト用チャンネルWebhook作成、M-14E-14H Supabase secret設定、M-14E-14I secret設定後 `dry_run = true` 再確認、M-14E-14J `dry_run = false` 拒否維持確認、M-14E-14K 実送信有効化コード変更案、M-14E-14L テスト用チャンネル初回実送信確認とする。
+
+## M-14E-14G/H/I/J テスト用Webhook secret設定後の同期確認結果
+ユーザー手元で、テスト用チャンネル向けWebhook secret設定、secret設定後 `create` / `dry_run = true` 再確認、secret設定後 `create` / `dry_run = false` 拒否維持確認を実施済み。
+
+結果:
+
+- Supabase secret `DISCORD_SESSION_POST_WEBHOOK_URL` をテスト用チャンネル向けWebhookで設定した。
+- Webhook URL本体、投稿先実値、認証情報、確認対象依頼書ID相当の実値は記録しない。
+- 設定時に誤った値を設定した可能性があったため、正しいテスト用Webhook URLで上書き済み。
+- `dry_run = true` はHTTP 200で成功し、preview専用のまま維持された。
+- `dry_run = true` レスポンスでは `ok = true`、`dry_run = true`、`action = create`、`message_preview`、`planned_db_update`、`warnings` を確認した。`message_preview` 本文全文は記録しない。
+- `dry_run = false` はHTTP 501で拒否され、`ok = false`、`error_code = real_send_not_enabled`、`dry_run = false` を確認した。
+- テスト用チャンネルに新規投稿は増えていないことをユーザーが目視確認済み。
+- secret設定だけではDiscord投稿は発生せず、実送信はまだ有効化していない。
+- DB/RPC変更、SQL Editor実行、Edge Functionコード変更、deploy、フロント実装は行っていない。
+
+次工程候補は、M-14E-14K 実送信有効化コード変更案レビュー、M-14E-14L 初回実送信確認手順整理、M-14E-14M 実送信有効化コード実装、M-14E-14N テスト用チャンネル初回実送信確認とする。
