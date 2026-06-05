@@ -999,3 +999,33 @@ secret設定後の同期境界:
 - secret、Webhook URL、認証情報、投稿先実値、確認対象依頼書ID相当の実値が露出するおそれがある。
 
 次工程候補は、M-14E-14F ユーザー手元でのsecret設定、M-14E-14G secret設定後 `dry_run = true` 再確認、M-14E-14H `dry_run = false` 拒否維持確認、M-14E-14I 実送信有効化コード変更案、M-14E-14J 初回テスト投稿確認とする。
+
+## M-14E-14F テスト用チャンネル前提のsecret設定直前整理
+初回のDiscord実送信確認は、本番募集チャンネルではなくテスト用チャンネルを先に使う方針に確定する。初期同期方針は「全依頼書を1つの募集チャンネルへ投稿」のままだが、最初のWebhook secretはテスト用チャンネル向けに設定する。テスト用チャンネル名、チャンネルID、Webhook URL、投稿先実値はdocsへ記録しない。
+
+手順概要:
+
+1. Discord側でテスト用チャンネルを用意する。
+2. テスト用チャンネルにWebhookを作成する。
+3. Webhook URLはユーザー手元だけで扱い、チャット、docs、GitHub、consoleへ出さない。
+4. Supabase secret `DISCORD_SESSION_POST_WEBHOOK_URL` にWebhook URLを設定する。
+5. secret設定後も実送信は有効化せず、`dry_run = true` preview維持と `dry_run = false` 拒否維持を確認する。
+6. テスト用チャンネルでの確認完了後、本番募集チャンネルへ切り替えるかは別工程で判断する。
+
+同期境界:
+
+- secret設定だけでは実送信しない。
+- Webhook helperは現行リクエスト経路から呼ばれず、`dry_run = false` は `real_send_not_enabled` 相当で拒否される。
+- secret設定後もDiscord投稿なし、DB更新なし、Function Logsのsecret非露出を確認する。
+- 本番募集チャンネルへの切り替えは、テスト用チャンネルでの確認結果を記録してから行う。
+
+停止条件:
+
+- Webhook URLがdocs、GitHub、チャット、ログ、consoleに出た可能性がある。
+- テスト用チャンネルではないWebhookを設定した可能性がある。
+- `dry_run = false` が拒否されない。
+- Function LogsにWebhook URLまたは認証情報が出た。
+- Discordに意図しない投稿が出た。
+- secret設定後のdry-run確認が未完了。
+
+次工程候補は、M-14E-14G テスト用チャンネルWebhook作成、M-14E-14H Supabase secret設定、M-14E-14I secret設定後 `dry_run = true` 再確認、M-14E-14J `dry_run = false` 拒否維持確認、M-14E-14K 実送信有効化コード変更案、M-14E-14L テスト用チャンネル初回実送信確認とする。

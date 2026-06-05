@@ -1435,3 +1435,24 @@ M-14E-14Dではこのテンプレートと確認観点だけを追加する。se
 | 停止判断 | 進行可 / 停止 |
 
 停止条件に該当する場合は、secret設定や実送信有効化へ進まず、結果だけを一般化して記録する。この工程ではsecret実値設定、`dry_run = true` / `dry_run = false` の再実行、Discord実送信、Edge Functionコード変更、deploy、DB/RPC変更は行わない。
+
+## M-14E-14F テスト用チャンネルsecret設定前後の記録テンプレート
+初回確認はテスト用チャンネルで行う方針に確定した。記録時も、テスト用チャンネル名、チャンネルID、Webhook URL、確認対象依頼書ID相当の実値、認証情報、レスポンス本文全文は残さない。
+
+| 項目 | 記録内容 |
+| --- | --- |
+| 初回確認先 | テスト用チャンネル |
+| Discord側Webhook | 作成済み / 未作成 / 作成失敗 |
+| Webhook URL実値 | 記録しない |
+| secret名 | `DISCORD_SESSION_POST_WEBHOOK_URL` |
+| Supabase secret設定 | 設定済み / 未設定 / 設定失敗 |
+| 設定方法 | CLI / Dashboard / その他 |
+| git差分のsecret混入 | なし / 要確認 / 停止 |
+| `dry_run = true` | preview維持 / 未確認 |
+| `dry_run = false` | `real_send_not_enabled` 拒否維持 / 未確認 |
+| Discord投稿 | 増加なし / 未確認 / 停止 |
+| DB更新 | なし / 未確認 / 停止 |
+| Function Logs | Webhook URL非露出 / 未確認 / 停止 |
+| 次工程判断 | 継続 / 停止 |
+
+停止条件に該当した場合は、Webhook削除または再作成、secret再設定、ログ安全性確認へ戻る。M-14E-14Fではこのテンプレートと手順整理のみ行い、実Webhook作成、secret実値設定、`dry_run = true` / `dry_run = false` 再実行、Discord実送信、Edge Functionコード変更、deploy、DB/RPC変更は行わない。

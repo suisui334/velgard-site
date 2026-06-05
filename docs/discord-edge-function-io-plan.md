@@ -872,3 +872,23 @@ secret設定前に決めること:
 - 二重投稿防止、外部投稿識別子既存時の `create` 挙動、Discord成功後DB更新失敗時の扱い。
 
 これらが未確定の場合は、実送信有効化コード変更へ進まない。
+
+## M-14E-14F テスト用チャンネル前提のIO確認
+初回の実送信確認はテスト用チャンネルを先に使う。IO設計上は、テスト用チャンネルであっても投稿先実値をpayload、docs、レスポンス、Function Logsへ出さない方針を維持する。
+
+secret設定前後のIO境界:
+
+- Webhook URLは `DISCORD_SESSION_POST_WEBHOOK_URL` としてEdge Function側secretに設定するが、リクエストpayloadでは受け取らない。
+- docsには `<WEBHOOK_URL>` のようなプレースホルダーだけを使い、実値は記録しない。
+- `dry_run = true` はpreviewのみを返し、Discord送信とDB更新を行わない。
+- `dry_run = false` は実送信有効化コード変更まで `real_send_not_enabled` 相当で拒否する。
+- レスポンスとFunction LogsにはWebhook URL、認証情報、投稿先実値、確認対象依頼書ID相当の実値、`message_preview` 本文全文を含めない。
+
+secret設定後に確認するIO:
+
+- Discord側に投稿が増えていない。
+- DB同期状態が更新されていない。
+- Function LogsにWebhook URLが出ていない。
+- git差分にsecret実値が出ていない。
+
+これらの確認が終わるまでは、実送信有効化コード変更や本番募集チャンネルへの切り替えに進まない。

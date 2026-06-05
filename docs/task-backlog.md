@@ -1417,3 +1417,14 @@
 - 実送信有効化前の停止条件は、投稿先未確定、テスト/本番判断未確定、誤投稿時対応未確定、二重投稿防止未整理、既存外部投稿識別子がある場合の `create` 挙動未整理、Discord成功後DB更新失敗時の扱い未整理、secret実値や投稿先実値の露出リスク。
 - 次工程候補は、M-14E-14F ユーザー手元でsecret設定、M-14E-14G secret設定後dry_run=true再確認、M-14E-14H secret設定後もdry_run=false拒否維持確認、M-14E-14I 実送信有効化コード変更案作成、M-14E-14J 初回テスト投稿確認。
 - この工程ではdocs整理のみ行い、secret実値設定、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、Edge Functionコード変更、deploy、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-14F Discord同期Edge Function テスト用チャンネルsecret設定直前手順
+- 初回実送信確認は、本番募集チャンネルではなくテスト用チャンネルを先に使う方針に確定した。
+- テスト用チャンネル名、チャンネルID、Webhook URL、Discord投稿先実値はdocsへ記録せず、「テスト用チャンネル」という抽象名だけを使う。
+- Discord側ではテスト用チャンネルを用意し、そのチャンネルにWebhookを作成する。Webhook URLはユーザー手元だけで扱い、チャット、docs、GitHub、Issue、README、console、ログへ貼らない。
+- Supabase secret名は `DISCORD_SESSION_POST_WEBHOOK_URL` を使う。CLI手順は `npx.cmd supabase secrets set DISCORD_SESSION_POST_WEBHOOK_URL="<WEBHOOK_URL>"` のようにプレースホルダーのみで記録する。
+- Dashboard設定時も対象project、対象Function環境、secret名、値欄非共有を確認する。PowerShell履歴、画面共有、スクリーンショットにWebhook URLが残らないよう注意する。
+- secret設定後もすぐ実送信しない。まず `dry_run = true` preview維持、次に `dry_run = false` の `real_send_not_enabled` 拒否維持、Discord投稿増加なし、DB更新なし、Function LogsのWebhook URL非露出、git status cleanを確認する。
+- 停止条件は、Webhook URLをdocs等へ貼った可能性、テスト用チャンネルではないWebhook設定、`dry_run = false` 拒否境界の崩れ、Function LogsへのWebhook URL露出、意図しないDiscord投稿、secret設定後dry-run確認未完了。
+- 次工程候補は、M-14E-14G テスト用チャンネルWebhook作成、M-14E-14H Supabase secret設定、M-14E-14I secret設定後dry_run=true再確認、M-14E-14J dry_run=false拒否維持確認、M-14E-14K 実送信有効化コード変更案、M-14E-14L テスト用チャンネル初回実送信確認。
+- この工程ではdocs整理のみ行い、実Webhook作成、secret実値設定、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、Edge Functionコード変更、deploy、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。
