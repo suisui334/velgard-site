@@ -576,6 +576,28 @@ Edge Functionが参照する環境変数は `SUPABASE_URL`、`SUPABASE_ANON_KEY`
 
 この追記ではdocs整理のみ行い、`supabase functions serve` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-8 deploy前IOレビューとdeploy後dry-run確認
+
+deploy対象は `sync-session-post-to-discord`、対象ファイルは `supabase/functions/sync-session-post-to-discord/index.ts`。現状はdry-run preview専用draftで、`dry_run = true` はpreviewのみ、`dry_run = false` は `real_send_not_enabled` で拒否する。
+
+deploy前IOレビュー:
+
+- Discord API送信処理は未接続。
+- DB書き込み処理は未接続。
+- `fetch(`、DB書き込み系メソッド、`console.` は0件を維持する。
+- レスポンスに秘匿値の実値、認証系の生値、内部識別子、外部投稿参照情報そのものを含めない。
+- Function名と対象パスを明確にしたうえで、ユーザー確認なしにdeployしない。
+
+deployコマンド候補:
+
+```powershell
+npx.cmd supabase functions deploy sync-session-post-to-discord
+```
+
+このコマンドは候補として整理するだけで、M-14E-8では実行しない。deploy後確認を行う場合は、最初に `create` / `dry_run = true` のみを確認し、`message_preview`、`planned_db_update`、Discord実送信なし、DB更新なし、レスポンスとログの安全性を一般化して記録する。`dry_run = false` はまだ実行しない。
+
+この追記ではdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
 ## M-14E-6I ローカルdry-run手元実行ガイド
 
 手元実行では、PowerShell上で環境変数とAuthorizationヘッダーを用意し、ローカルserveへ `dry_run = true` のpayloadを送る。docsに残す手順はプレースホルダーのみとし、実値は書かない。

@@ -916,3 +916,118 @@ payload例はダミー値だけで記載する。
 6. またはDocker Desktop導入後にローカルserve dry-runへ戻る。
 
 この工程ではdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
+## M-14E-8 dry-run専用deploy実施前レビュー・コマンド整理
+
+Docker導入を保留したまま、将来deploy後dry-run確認へ進むためのdeploy前安全レビューと、実行コマンド候補を整理する。この工程ではdeployしない。
+
+### deploy対象
+
+- Edge Function名: `sync-session-post-to-discord`
+- 対象ファイル: `supabase/functions/sync-session-post-to-discord/index.ts`
+- 性質: dry-run preview専用draft
+- `dry_run = true`: previewのみ
+- `dry_run = false`: `real_send_not_enabled` で拒否
+- Discord実送信なし
+- DB更新なし
+
+### deploy前安全レビュー
+
+確認済み:
+
+| 確認 | 結果 |
+| --- | --- |
+| `git status --short` | clean |
+| `git log --oneline -1` | `9919119 Document Discord sync deploy dry run review` |
+| `npx.cmd supabase --version` | `2.105.0` |
+| `deno check supabase/functions/sync-session-post-to-discord/index.ts` | PATH上の `deno` は未認識。ユーザー領域のDeno実行ファイルをフルパス実行し成功 |
+| `fetch(` | 0 |
+| `.insert(` / `.update(` / `.delete(` / `.upsert(` | 0 |
+| `console.` | 0 |
+| Discord webhook URL形式 | 0 |
+| bot token風文字列 | 0 |
+| service-role系credential風文字列 | 0 |
+| `deno.lock` | なし |
+| `updates.json`差分 | なし |
+
+deploy前に再確認すること:
+
+- Discord API送信処理が未接続である。
+- DB書き込み処理が未接続である。
+- 秘匿値の実値がコード、docs、GitHub差分にない。
+- `dry_run = false` 拒否が崩れていない。
+- Function名と対象パスが明確である。
+- ユーザーのdeploy実施確認がある。
+
+### deployコマンド候補
+
+PowerShellでは `npx` ではなく `npx.cmd` を使う。
+
+```powershell
+npx.cmd supabase functions deploy sync-session-post-to-discord
+```
+
+このコマンドは候補として整理するだけで、M-14E-8では実行しない。deploy実施時はユーザー確認を必須にする。
+
+### secret設定
+
+- 初期dry-run段階ではDiscord投稿先credentialは不要な方針を維持する。
+- 必要になる場合も、Supabase側のsecret管理で扱い、docsやチャットへ実値を書かない。
+- Authorization Bearerや認証系の生値はユーザー手元だけで扱う。
+- サーバ側高権限credentialをアプリ内admin権限と混同しない。
+
+### deploy後dry_run=true確認手順
+
+最初は `create` / `dry_run = true` のみ確認する。
+
+payload例:
+
+```json
+{
+  "session_id": "<SESSION_ID_FOR_DRY_RUN>",
+  "action": "create",
+  "dry_run": true
+}
+```
+
+確認項目:
+
+- Functionに到達する。
+- `ok = true` または一般化エラーが返る。
+- `message_preview` の有無。
+- `planned_db_update` の有無。
+- Discord実送信なし。
+- DB更新なし。
+- 秘匿値の実値、認証系の生値、内部識別子がレスポンスやログに出ない。
+- ログ安全性。
+
+結果は実値を除いて一般化して記録する。
+
+### dry_run=false
+
+- 今回も実行しない。
+- 将来確認する場合でも、`real_send_not_enabled` の拒否確認だけに分ける。
+- Discord実送信コード追加前に実送信へ進まない。
+
+### deployを止める条件
+
+以下がある場合はdeployしない。
+
+- `git status --short` がdirty。
+- Deno構文確認が失敗する。
+- `fetch(`、DB書き込み系メソッド、`console.` が増えている。
+- 秘匿値の実値がコードまたはdocsに混入している。
+- `dry_run = false` 拒否が崩れている。
+- Function名または対象パスが曖昧。
+- ユーザーのdeploy実施確認がない。
+
+### 次工程候補
+
+1. M-14E-9: deploy実施判断。
+2. M-14E-10: deploy後 create / dry_run=true 確認。
+3. M-14E-11: dry_run=false拒否確認。
+4. M-14E-12: real_send createのみ実装検討。
+5. M-14E-13: Discord実送信QA。
+6. またはDocker Desktop導入後にローカルserve dry-runへ戻る。
+
+この工程ではdocs整理とdeploy前レビューのみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。

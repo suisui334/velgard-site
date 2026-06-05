@@ -1272,3 +1272,15 @@
 - deploy後確認では、実値をdocsや報告へ書かず、`message_preview` と `planned_db_update`、Discord実送信なし、DB更新なし、レスポンスとログの安全性を一般化して記録する。
 - 次工程候補は、M-14E-8 deploy手順・事前確認、M-14E-9 deploy実施判断、M-14E-10 deploy後dry_run=true確認、M-14E-11 real_send createのみ実装検討、M-14E-12 Discord実送信QA、またはDocker Desktop導入後にローカルserve dry-runへ戻る案。
 - この工程ではdocs整理のみ。Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-8 Discord同期Edge Function dry-run専用deploy実施前レビュー
+- 作業前の作業ツリーはclean、最新commitは `9919119 Document Discord sync deploy dry run review`。
+- deploy対象は Function名 `sync-session-post-to-discord`、対象ファイル `supabase/functions/sync-session-post-to-discord/index.ts`。
+- 現状はdry-run preview専用draftで、`dry_run = true` はpreviewのみ、`dry_run = false` は `real_send_not_enabled` で拒否する。
+- `npx.cmd supabase --version` は `2.105.0`。Deno構文確認はPATH上の `deno` が未認識だったため、ユーザー領域のDeno実行ファイルをフルパスで実行して成功した。
+- 安全検索では `fetch(`、DB書き込み系メソッド、`console.`、外部投稿URL形式、bot token風文字列、service-role系credential風文字列はいずれも0件。
+- deployコマンド候補は `npx.cmd supabase functions deploy sync-session-post-to-discord`。この工程では実行していない。deploy実施時はユーザー確認を必須にする。
+- deploy後確認は、最初に `create` / `dry_run = true` のみに絞り、`message_preview` と `planned_db_update`、Discord実送信なし、DB更新なし、レスポンスとログの安全性を一般化して記録する。
+- deployを止める条件は、dirtyな作業ツリー、Deno構文確認失敗、外部送信処理やDB書き込みやconsole出力の増加、秘匿値実値混入、`dry_run = false` 拒否の崩れ、Function名や対象パスの曖昧さ、ユーザー確認なし。
+- 次工程候補は、M-14E-9 deploy実施判断、M-14E-10 deploy後 create / dry_run=true 確認、M-14E-11 dry_run=false拒否確認、M-14E-12 real_send createのみ実装検討、M-14E-13 Discord実送信QA、またはDocker Desktop導入後にローカルserve dry-runへ戻る案。
+- この工程ではdocs整理とdeploy前レビューのみ。Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。

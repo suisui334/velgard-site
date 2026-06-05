@@ -347,6 +347,22 @@ deploy後dry-run確認を行う場合も、最初は `create` / `dry_run = true`
 
 この追記ではdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-8 dry-run専用deploy前のsecret確認
+
+dry-run専用draftを将来deployする場合でも、初期確認ではDiscord投稿先credentialは不要とする。必要になる場合もSupabase側のsecret管理で扱い、docs、GitHub、フロント、DB、チャットには実値を書かない。
+
+deploy前に確認すること:
+
+- コード、docs、GitHub差分に秘匿値の実値がない。
+- Authorization Bearerや認証系の生値はユーザー手元だけで扱う。
+- サーバ側高権限credentialをアプリ内admin権限と混同しない。
+- `dry_run = false` が `real_send_not_enabled` で拒否される。
+- Discord API送信処理とDB書き込み処理が未接続である。
+
+deploy候補コマンドは `npx.cmd supabase functions deploy sync-session-post-to-discord` とするが、この工程では実行しない。deploy後確認も最初は `create` / `dry_run = true` のみに絞り、結果は実値を除いて一般化して記録する。
+
+この追記ではdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
 ## M-14E-6G ローカルserve前の環境変数確認
 
 Edge Functionコードが参照している環境変数名:

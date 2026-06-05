@@ -524,6 +524,34 @@ Deno単体起動は、Edge Function実行環境との差異が出る可能性が
 
 この追記ではdocs整理のみ行い、Supabase CLI導入、`supabase functions serve` 実行、`supabase start` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-8 dry-run専用deploy実施前レビュー
+
+Docker未導入によりローカルserve確認が保留になっているため、将来deploy後にdry-runだけを確認する前提で、deploy実施前レビューとコマンド候補を整理した。この工程ではdeployしない。
+
+対象:
+
+- Function名: `sync-session-post-to-discord`
+- 対象ファイル: `supabase/functions/sync-session-post-to-discord/index.ts`
+- 現状: dry-run preview専用draft
+- `dry_run = true`: previewのみ
+- `dry_run = false`: `real_send_not_enabled` で拒否
+
+deploy前に止める条件:
+
+- 作業ツリーがdirty。
+- Deno構文確認が失敗する。
+- `fetch(`、DB書き込み系メソッド、`console.` が増えている。
+- 秘匿値の実値がコードまたはdocsに混入している。
+- `dry_run = false` 拒否が崩れている。
+- Function名または対象パスが曖昧。
+- ユーザーのdeploy実施確認がない。
+
+deploy候補コマンドは `npx.cmd supabase functions deploy sync-session-post-to-discord`。PowerShellでは `npx` ではなく `npx.cmd` を使う。deploy後確認は `create` / `dry_run = true` のみに絞り、Discord実送信なし、DB更新なし、レスポンスとログの安全性を確認する。
+
+次工程候補は、M-14E-9 deploy実施判断、M-14E-10 deploy後 `create` / `dry_run = true` 確認、M-14E-11 `dry_run = false` 拒否確認、M-14E-12 real_send createのみ実装検討、M-14E-13 Discord実送信QA、またはDocker Desktop導入後にローカルserve dry-runへ戻る案。
+
+この追記ではdocs整理とdeploy前レビューのみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
 ## M-14E-6H dry-run実行条件整理とローカル実行可否
 
 確認結果:
