@@ -588,6 +588,20 @@ Edge Functionが参照する環境変数は `SUPABASE_URL`、`SUPABASE_ANON_KEY`
 
 この追記ではdocs整理のみ行い、ローカルserve実行、`dry_run = true` 実行、`dry_run = false` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
 
+## M-14E-6J ローカルserve不可結果
+
+ユーザー手元で `npx.cmd supabase functions serve sync-session-post-to-discord` を試したが、Docker Desktop / Docker daemonへ接続できず失敗した。`docker --version` もPowerShellで認識されなかったため、Docker CLI / Docker Desktopが未導入、またはPATH上で利用不可と判断する。
+
+このため、Edge Functionのローカルserveは未実行扱い。ローカルserveが起動していないため、`dry_run = true` の実レスポンス確認も未実行。`dry_run = false` は実行していない。
+
+IO確認の次工程候補:
+
+- Docker Desktopを導入してローカルserve dry-run確認へ進む。
+- Docker導入を保留し、deploy前手順整理と安全レビューへ進む。
+- deploy後確認を選ぶ場合でも、まず `dry_run = true` 限定確認から始める。
+
+この追記ではdocs記録のみ行い、Docker Desktop導入、Supabase CLI追加導入、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
+
 ## M-14E-6H dry-run実行可否と停止判断
 
 `npx.cmd supabase --version` は `2.105.0`。Deno構文確認はユーザー領域のDeno実行ファイルをフルパス実行して成功した。

@@ -783,3 +783,42 @@ docsに残すpayload例はダミー値だけにする。
 | service-role系credential風文字列 | 0 |
 
 この工程では、Codex側でローカルserve実行、`dry_run = true` 実行、`dry_run = false` 実行は行っていない。Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、commit / pushも行っていない。
+
+## M-14E-6J ローカルserve不可結果記録
+
+ユーザー手元で、ローカルserveに必要な前提を確認した。
+
+確認結果:
+
+| 確認 | 結果 |
+| --- | --- |
+| `npx.cmd supabase --version` | `2.105.0` |
+| `deno check supabase/functions/sync-session-post-to-discord/index.ts` | 成功 |
+| `SUPABASE_URL` / `SUPABASE_ANON_KEY` / `PUBLIC_SITE_BASE_URL` | ユーザー手元で設定済み。実値は記録しない |
+| `npx.cmd supabase functions serve sync-session-post-to-discord` | 失敗 |
+| `docker --version` | PowerShellで `docker` が認識されない |
+
+ローカルserve失敗の概要:
+
+- Docker Desktopがローカル開発の前提として必要、というエラーが出た。
+- Docker daemonへ接続できない旨のエラーが出た。
+- Docker engine pipeが見つからない、またはDocker clientが接続できない状態。
+- ユーザー環境ではDocker CLI / Docker Desktopが未導入、またはPATH上で利用不可と判断する。
+
+判断:
+
+- ローカルserveはDocker未導入またはDocker daemon利用不可により未実行扱い。
+- `dry_run = true` は未実行。
+- `dry_run = false` も未実行。
+- Discord実送信なし。
+- DB更新なし。
+- Edge Function deployなし。
+- 秘匿値の実値、認証系の生値、実在する依頼書ID相当の値はdocsへ記録していない。
+
+次工程候補:
+
+1. ユーザー判断でDocker Desktopを導入し、ローカルserve dry-run確認へ進む。
+2. Docker導入を保留し、deploy前手順整理と安全レビューへ進む。
+3. deploy後に確認する場合でも、まず `dry_run = true` 限定確認から始め、実送信へ進まない。
+
+今回の記録工程では、Docker Desktop導入、Supabase CLI追加導入、ローカルserve再実行、`dry_run = true` 実行、`dry_run = false` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、commit / pushは行っていない。

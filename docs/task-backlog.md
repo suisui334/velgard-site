@@ -1253,3 +1253,12 @@
 - 結果記録テンプレートは、成功 / 権限不足 / 同期対象外 / 対象なし等の一般化結果、message_preview要約、planned_db_update予定情報、Discord実送信なし、DB更新なし、秘匿値非露出、ログ安全性、残課題を記録する形式。
 - 安全検索では `fetch(`、DB書き込み系メソッド、`console.`、外部投稿URL形式、bot token風文字列、service-role系credential風文字列はいずれも0件。
 - この工程ではCodex側でローカルserve実行、`dry_run = true` 実行、`dry_run = false` 実行は行っていない。Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、`updates.json` 変更、commit / pushも行っていない。
+
+## M-14E-6J Discord同期Edge Function ローカルserve不可結果記録
+- ユーザー手元で `npx.cmd supabase --version` は `2.105.0`、Deno構文確認は成功。必要環境変数はユーザー手元で設定済みだが、実値は記録していない。
+- `npx.cmd supabase functions serve sync-session-post-to-discord` は、Docker Desktop / Docker daemonへ接続できず失敗した。
+- `docker --version` もPowerShellで認識されず、ユーザー環境ではDocker CLI / Docker Desktopが未導入、またはPATH上で利用不可と判断する。
+- ローカルserveはDocker未導入またはDocker daemon利用不可により未実行扱い。`dry_run = true` も未実行。
+- Discord実送信なし、DB更新なし、`dry_run = false` 未実行、Edge Function deployなし。
+- 次工程候補は、Docker Desktopを導入してローカルserve dry-runへ進む案、またはローカルserveを保留してdeploy前手順整理と安全レビューへ進む案。
+- この工程ではdocs記録のみ。Docker Desktop導入、Supabase CLI追加導入、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、`updates.json` 変更、commit / pushは行っていない。
