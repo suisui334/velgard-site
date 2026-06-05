@@ -971,3 +971,30 @@ DB更新連携:
 - Discord APIレスポンス全文、Webhook URL、投稿先実値、認証情報、確認対象依頼書ID相当の実値、`message_preview` 本文全文は返さない。
 
 DB更新IOは追加していない。外部投稿識別子保存、同期状態更新、失敗状態記録は後続工程に分離する。
+
+## M-14E-14M deploy前IO安全確認
+`create` 実送信経路のdeploy前に、入出力境界を再確認した。この工程ではdeploy、Discord実送信、dry-run再実行、DB/RPC変更、フロント実装は行っていない。
+
+入力境界:
+
+- `dry_run = true` は従来どおりpreview専用。
+- `dry_run = false` で実送信候補になるのは `action = create` のみ。
+- `update` / `close` / `delete` / `resync` は拒否維持。
+- Authorization、GM/admin権限確認、対象依頼書取得、同期対象判定、action検証を通過しない限りWebhook helperへ進まない。
+- secret未設定、空、不正時はfetch前に拒否する。
+
+出力境界:
+
+- 成功時レスポンスは最小限にし、Discord APIレスポンス全文は返さない。
+- 外部投稿識別子相当の実値はレスポンスへ返さない。
+- Webhook URL、投稿先実値、認証情報、確認対象依頼書ID相当の値、`message_preview` 本文全文は返さない。
+- DB更新結果は返さない。初回実装ではDB更新自体を行わない。
+
+deploy前確認:
+
+- Deno構文確認は成功。
+- `fetch(` はWebhook helper内の想定箇所のみ。
+- DB書き込み系メソッドと `console.*` は追加なし。
+- `deno.lock` と `supabase/.temp` はcommit対象にしない。
+
+初回実送信後のIO確認は、テスト用チャンネルへの1件投稿とFunctionレスポンスの一般化情報に絞る。本文全文、投稿先実値、認証情報、確認対象依頼書ID相当の値は記録しない。

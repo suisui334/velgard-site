@@ -1554,3 +1554,47 @@ M-14E-14Dではこのテンプレートと確認観点だけを追加する。se
 - Discord APIレスポンス全文、Webhook URL、投稿先実値、認証情報、確認対象依頼書ID相当の実値、`message_preview` 本文全文を返さない。
 
 次工程では `deno check`、安全検索、deploy前レビューを実施する。実送信確認はdeploy後に別工程で1回だけ行う。
+
+## M-14E-14M deploy前最終安全確認
+M-14E-14Lで接続したテスト用チャンネル向け `create` 実送信経路について、deploy前の最終安全確認を実施した。この工程ではEdge Function deploy、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、SQL Editor実行、DB/RPC変更、フロント実装は行っていない。
+
+確認結果:
+
+- 作業前の最新commitは `feb9f24 Enable Discord create send path for test webhook`。
+- 作業前の `git status --short` はclean。
+- Codex側シェルでは `deno` がPATH上に見つからなかったため、既存Deno実行ファイルを直接指定して `deno check supabase/functions/sync-session-post-to-discord/index.ts` を実行し、成功した。
+- `fetch(` はWebhook helper内の想定箇所のみ。
+- `.insert(` / `.update(` / `.delete(` / `.upsert(` は0件。
+- `console.` は0件。
+- `deno.lock` はDeno確認時に生成されたが、commit対象外として削除済み。
+- `supabase/.temp` は存在しない。
+- `updates.json` の差分はない。
+
+コード上の確認:
+
+- `dry_run = true` はWebhook helperを呼ばず、previewと予定情報だけを返す。
+- `dry_run = false` かつ `action = create` の場合のみ、権限確認、対象依頼書取得、同期対象判定、action検証を通過した後にWebhook helperへ進む。
+- `update` / `close` / `delete` / `resync` は初回実装では拒否維持。
+- secret未設定、空、不正時はfetch前に一般化エラーで拒否する。
+- Webhook URL、投稿先実値、認証情報、確認対象依頼書ID相当の値、`message_preview` 本文全文、Discord APIレスポンス全文はレスポンスに含めない方針を維持する。
+- DB更新処理、外部投稿識別子保存、同期状態更新は追加していない。
+
+deploy前停止条件:
+
+- `git status --short` がcleanでない。
+- `deno check` が失敗する。
+- `fetch(` が想定外に増えている。
+- DB書き込み系メソッドが追加されている。
+- `console.*` が追加されている。
+- Webhook URL実値、token風文字列、認証情報、投稿先実値がコード/docs/logへ混入している。
+- 投稿先がテスト用チャンネルでない可能性がある。
+- 初回実送信に使う検証用依頼書が未確定。
+- 初回実送信を1回だけにする運用が崩れている。
+
+次工程候補:
+
+1. M-14E-14N: Edge Function deploy。
+2. M-14E-14O: deploy後 `dry_run = true` preview維持確認。
+3. M-14E-14P: テスト用チャンネルで `create` / `dry_run = false` 初回実送信1回確認。
+4. M-14E-14Q: 実送信結果docs記録。
+5. M-14E-14R: DB更新連携設計。

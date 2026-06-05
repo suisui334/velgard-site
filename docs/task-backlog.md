@@ -1463,3 +1463,15 @@
 - 成功時レスポンスは最小限にし、外部投稿識別子相当の実値、Discord APIレスポンス全文、Webhook URL、投稿先実値、認証情報、確認対象依頼書ID相当の実値、`message_preview` 本文全文は返さない。
 - DB更新処理、外部投稿識別子保存、同期状態更新は追加していない。
 - この工程ではコード実装とdocs記録のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-14M Discord同期Edge Function deploy前最終安全確認
+- 最新commitは `feb9f24 Enable Discord create send path for test webhook`、作業開始時の `git status --short` はclean。
+- `deno check supabase/functions/sync-session-post-to-discord/index.ts` は成功。Codex側シェルでは `deno` がPATH上にないため、既存Deno実行ファイルを直接指定して確認した。
+- 安全検索では、`fetch(` はWebhook helper内の想定箇所のみ。DB書き込み系メソッドと `console.*` は0件。
+- `dry_run = true` はpreview専用維持。`dry_run = false` で実送信候補になるのは `action = create` のみ。
+- `update` / `close` / `delete` / `resync` は拒否維持。secret未設定、空、不正時はfetch前に一般化エラーで拒否する。
+- 初回実送信はテスト用チャンネル、検証用依頼書、手動1回のみを前提にする。本番募集チャンネルにはまだ送らない。
+- DB更新、外部投稿識別子保存、同期状態更新は未実装のまま。恒久的な二重投稿防止は後続のDB更新連携工程で扱う。
+- deploy前停止条件は、git dirty、Deno確認失敗、想定外fetch、DB書き込み、`console.*`、秘匿値や投稿先実値の混入、テスト用チャンネル/検証用依頼書/1回実行運用の未確定。
+- 次工程候補は、M-14E-14N Edge Function deploy、M-14E-14O deploy後 `dry_run = true` preview維持確認、M-14E-14P テスト用チャンネルで `create` 実送信1回確認、M-14E-14Q 結果記録、M-14E-14R DB更新連携設計。
+- この工程では確認とdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。

@@ -1093,3 +1093,39 @@ secret設定後の同期境界:
 5. 成功時は最小レスポンスを返し、DB更新は行わない。
 
 DB更新連携、外部投稿識別子保存、同期状態更新は未実装のまま維持する。二重投稿防止は初回テストでは手動1回運用とし、恒久対策は外部投稿識別子保存工程で扱う。deploy、Discord実送信、dry-run再実行はこの工程では行っていない。
+
+## M-14E-14M deploy前最終安全確認
+テスト用チャンネル向け `create` 実送信経路をdeployする前に、コード静的確認と運用停止条件を再整理した。この工程ではdeploy、Discord実送信、dry-run再実行、SQL Editor実行、DB/RPC変更、フロント実装は行っていない。
+
+確認済み:
+
+- 最新commitは `feb9f24 Enable Discord create send path for test webhook`。
+- 作業開始時の作業ツリーはclean。
+- Deno構文確認は成功。
+- `fetch(` はWebhook helper内の想定箇所のみ。
+- DB書き込み系メソッドと `console.*` は追加されていない。
+- `dry_run = true` はpreview専用で、Webhook helperへ到達しない。
+- 実送信経路は `dry_run = false` かつ `action = create` のみに限定される。
+- `update` / `close` / `delete` / `resync` は拒否維持。
+- secret未設定または不正時はfetch前で拒否する。
+- DB更新、外部投稿識別子保存、同期状態更新はまだ行わない。
+
+初回実送信前の運用前提:
+
+- 投稿先はテスト用チャンネルであり、本番募集チャンネルではない。
+- 初回実送信に使う依頼書は検証用に限定する。
+- 初回実送信は1回だけ行い、二重実行しない。
+- 二重投稿防止の恒久対策は、外部投稿識別子保存とDB更新連携の後続工程で扱う。
+- 実送信後に確認するのは、テスト用チャンネルへの1件投稿とFunctionレスポンスの一般化情報のみ。
+
+deployを止める条件:
+
+- gitがcleanでない。
+- Deno構文確認が失敗する。
+- `fetch(` が想定外に増える。
+- DB書き込み系メソッドまたは `console.*` が追加される。
+- secret実値、Webhook URL実値、投稿先実値、認証情報、確認対象依頼書ID相当の値が露出している。
+- テスト用チャンネルでない可能性がある。
+- 検証用依頼書や1回だけ実行する運用が未確定。
+
+次工程は、Edge Function deploy、deploy後 `dry_run = true` preview維持確認、テスト用チャンネルで `create` 実送信1回確認、結果記録、DB更新連携設計の順に分割する。
