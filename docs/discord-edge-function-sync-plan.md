@@ -615,6 +615,29 @@ deploy時にCLIログイン、project link、project ref相当、Supabase access
 
 この追記では最終安全確認とdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-11 dry-run専用deploy結果
+
+ユーザー手元で `sync-session-post-to-discord` のEdge Function deployを実施し、成功した。Docker未起動に関するWARNINGは表示されたが、deploy自体は成功し、Supabaseプロジェクトへのアップロード・deployは完了している。
+
+deploy後に `supabase/.temp/` がCLI生成物として未追跡生成されたが、ユーザーが削除済み。削除後の作業ツリーはclean。
+
+現在の状態:
+
+- Edge Function deploy済み。
+- `dry_run = true` は未実行。
+- `dry_run = false` は未実行。
+- Discord実送信なし。
+- DB更新なし。
+- SQL Editor未実行。
+- DB/RPC変更なし。
+- フロント実装なし。
+- 秘匿値の実値設定なし。
+- `updates.json` 変更なし。
+
+次工程は deploy後 `create` / `dry_run = true` 確認。Authorization Bearer、確認対象依頼書ID相当の値、Supabase接続先等はユーザー手元だけで扱い、docsや報告には実値を書かない。`dry_run = false`、Discord実送信、Discord投稿先credential設定、DB更新、フロント接続はまだ行わない。
+
+この追記ではdeploy結果のdocs記録のみ行い、Codex側でEdge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
 ## M-14E-6H dry-run実行条件整理とローカル実行可否
 
 確認結果:

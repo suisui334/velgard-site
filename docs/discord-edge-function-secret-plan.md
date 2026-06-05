@@ -347,6 +347,16 @@ deploy後dry-run確認を行う場合も、最初は `create` / `dry_run = true`
 
 この追記ではdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-11 deploy後のsecret状態
+
+ユーザー手元でdry-run専用Edge Function deployは成功したが、この段階ではDiscord投稿先credentialや追加secretの実値設定は行っていない。deploy後の確認も、まず `create` / `dry_run = true` のみに絞る。
+
+deploy後dry-run確認時に必要になるAuthorization Bearer、確認対象依頼書ID相当の値、Supabase接続先等はユーザー手元だけで扱い、docsやチャットへ書かない。`dry_run = false`、Discord実送信、Discord投稿先credential設定、DB更新、フロント接続はまだ行わない。
+
+`supabase/.temp/` はCLI生成物として未追跡生成されたが、ユーザーが削除済みでcommit対象外。
+
+この追記ではdocs記録のみ行い、Codex側でEdge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
 ## M-14E-10 手動deploy直前の認証・secret注意
 
 dry-run専用deployをユーザー手元で行う場合、Supabase CLIログイン、project link、project ref相当、Supabase access token相当の入力が必要になる可能性がある。これらの実値はdocs、GitHub、DB、フロント、チャットへ書かない。

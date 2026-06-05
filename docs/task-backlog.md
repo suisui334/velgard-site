@@ -1310,3 +1310,13 @@
 - 現時点の確認結果では、ユーザーが明示確認したうえで手動deployへ進むための直前安全条件は満たしている。ただし、deploy後確認は `create` / `dry_run = true` のみに絞り、`dry_run = false` はまだ実行しない。
 - 次工程候補は、ユーザー手動deploy実施、deploy後 create / dry_run=true 確認、dry_run=false拒否確認、real_send createのみ実装検討、Discord実送信QA、またはDocker Desktop導入後にローカルserve dry-runへ戻る案。
 - この工程では最終安全確認とdocs整理のみ。Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-11 Discord同期Edge Function dry-run専用deploy結果記録
+- 作業前の作業ツリーはclean、最新commitは `439eb10 Document Discord sync deploy final safety check`。
+- ユーザー手元で `npx.cmd supabase functions deploy sync-session-post-to-discord` を実行し、対象Function `sync-session-post-to-discord` のdeployに成功した。
+- Docker未起動に関するWARNINGは表示されたが、Supabaseプロジェクトへのアップロード・deploy自体は完了している。
+- deploy後に `supabase/.temp/` がCLI生成物として未追跡生成されたが、ユーザーが削除済み。削除後の `git status --short` はclean。
+- 現在の状態は、Edge Function deploy済み、`dry_run = true` 未実行、`dry_run = false` 未実行、Discord実送信なし、DB更新なし、SQL Editor未実行、DB/RPC変更なし、フロント実装なし、秘匿値の実値設定なし、`updates.json` 変更なし。
+- 次工程は deploy後 `create` / `dry_run = true` 確認。Authorization Bearer、確認対象依頼書ID相当の値、Supabase接続先等はユーザー手元だけで扱い、docsや報告には実値を書かない。
+- `dry_run = false`、Discord実送信、Discord投稿先credential設定、DB更新、フロント接続はまだ行わない。
+- この工程ではdeploy結果のdocs記録のみ。Codex側でEdge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。

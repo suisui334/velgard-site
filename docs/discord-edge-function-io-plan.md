@@ -598,6 +598,25 @@ npx.cmd supabase functions deploy sync-session-post-to-discord
 
 この追記ではdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-11 deploy結果と次のIO確認
+
+ユーザー手元で `sync-session-post-to-discord` のdeployは成功した。Docker未起動に関するWARNINGは表示されたが、Supabaseプロジェクトへのアップロード・deploy自体は完了した。
+
+deploy後に `supabase/.temp/` がCLI生成物として未追跡生成されたが、ユーザーが削除済み。削除後の作業ツリーはclean。
+
+IO観点の現在地:
+
+- Edge Functionはdeploy済み。
+- `dry_run = true` は未実行。
+- `dry_run = false` は未実行。
+- Discord実送信なし。
+- DB更新なし。
+- フロント接続なし。
+
+次工程では、`create` / `dry_run = true` のみを確認する。レスポンスでは `message_preview` と `planned_db_update` の有無、Discord実送信なし、DB更新なし、レスポンスとログの安全性を確認する。実値はユーザー手元だけで扱い、結果は一般化して記録する。
+
+この追記ではdocs記録のみ行い、Codex側でEdge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
 ## M-14E-10 deploy直前IO最終確認
 
 最終確認では、`sync-session-post-to-discord` がdry-run preview専用draftのままであることを確認した。Deno構文確認は成功し、Supabase CLIは `npx.cmd` 経由で利用可能。`fetch(`、DB書き込み系メソッド、`console.` は0件で、Discord API送信処理とDB書き込み処理は未接続のまま。
