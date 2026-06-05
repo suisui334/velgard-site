@@ -1475,3 +1475,17 @@
 - deploy前停止条件は、git dirty、Deno確認失敗、想定外fetch、DB書き込み、`console.*`、秘匿値や投稿先実値の混入、テスト用チャンネル/検証用依頼書/1回実行運用の未確定。
 - 次工程候補は、M-14E-14N Edge Function deploy、M-14E-14O deploy後 `dry_run = true` preview維持確認、M-14E-14P テスト用チャンネルで `create` 実送信1回確認、M-14E-14Q 結果記録、M-14E-14R DB更新連携設計。
 - この工程では確認とdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-14Q Discord同期Edge Function テスト用チャンネル初回実送信結果
+- ユーザー手元で、deploy済み `sync-session-post-to-discord` の `create` / `dry_run = false` 初回実送信を1回だけ実施した。
+- 対象は検証用依頼書 `TEST_1`。確認対象ID相当の実値、Webhook URL、投稿先実値、認証情報、Supabase接続先全文、Discord message id相当の実値、`message_preview` 本文全文は記録しない。
+- HTTP statusは200。レスポンスはJSONとしてparse成功。
+- レスポンスキーは `ok` / `dry_run` / `action` / `sync_target` / `discord_send` / `db_update` / `warnings`。
+- `ok = true`、`dry_run = false`、`action = create` を確認。
+- 外部投稿識別子相当の実値はレスポンスに返っていない。
+- テスト用チャンネルに依頼書通知が1件作成されたことを確認済み。本番募集チャンネルへの投稿はなし。
+- DB更新連携、外部投稿識別子保存、同期状態更新は未実装のため、今回のFunction処理ではDB更新を行わない設計。
+- 今回、PowerShellの確認入力で意図した確認語を入力していないにもかかわらず、貼り付け済みの後続行が実行され、実送信が行われた。結果はテスト用チャンネルへの1件投稿に留まり、重大事故には至っていない。
+- 今後の実送信系手順では、対話プロンプト依存にせず、確認コマンドと送信コマンドを明確に分離する。同じ検証用依頼書での再実行は禁止。
+- 次工程候補は、M-14E-14R DB更新連携設計、M-14E-14S 外部投稿識別子保存と二重投稿防止方針整理、M-14E-14T 本番募集チャンネル切り替え判断。
+- この工程ではdocs記録のみ行い、追加実送信、`dry_run = true` / `dry_run = false` 再実行、Edge Function deploy、Edge Functionコード変更、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。
