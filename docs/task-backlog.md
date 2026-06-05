@@ -1489,3 +1489,15 @@
 - 今後の実送信系手順では、対話プロンプト依存にせず、確認コマンドと送信コマンドを明確に分離する。同じ検証用依頼書での再実行は禁止。
 - 次工程候補は、M-14E-14R DB更新連携設計、M-14E-14S 外部投稿識別子保存と二重投稿防止方針整理、M-14E-14T 本番募集チャンネル切り替え判断。
 - この工程ではdocs記録のみ行い、追加実送信、`dry_run = true` / `dry_run = false` 再実行、Edge Function deploy、Edge Functionコード変更、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15 Discord依頼書投稿フォーマット改善・開催場所フィールド追加設計
+- テスト用チャンネルへの初回実送信は成功したが、現行のDiscord投稿本文はDB項目列挙寄りで読みにくいため、参加者向けの依頼書形式へ改善する方針を整理した。
+- 新フォーマットは、冒頭に `＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝` を置き、`■依頼書【タイトル】`、GM、開催場所、日時、参加人数、参加締切、概要を並べる案を第一候補にする。
+- Discord本文には `詳細` 欄、サイト詳細URL、クエリ付き詳細導線、下部区切り線を入れない。URLを入れるとDiscord側のOGP/埋め込み表示で画面が散らかるため、本文は概要までで完結させる。
+- 「開催場所」は物理会場ではなく、Tekey、ココフォリア、ユドナリウムリリィ、Discordボイス等のセッションツール/開催環境を指す。内部名は `session_tool` を第一候補にした。
+- DB/RPC観点では、依頼書テーブルに `session_tool` 相当列があるかを後続preflightで確認し、なければ `create_session_post(...)` / `update_session_post(...)` / detail/list取得処理への追加を検討する。既存データはNULLまたは空文字を許容し、表示時は `未定` へ丸める案を第一候補にする。
+- 依頼書編集UIでは、募集人数min/maxを同じ行へまとめ、空いた位置に開催場所入力を置く案を第一候補にする。初期は自由入力を優先し、候補式にする場合もその他/自由入力の逃げ道を残す。
+- session-detailでは、参加者向け情報を上に、GM/admin管理操作を下に寄せる。開催場所を右側情報枠に表示し、管理ブロックは募集状態の下へ移動する案を検討する。
+- Edge Functionでは、`dry_run = true` previewと実送信本文で同じ新フォーマットを使う。日時はISO/UTC表記ではなく、曜日入りの短い日本語形式へ整形する。
+- 次工程候補は、M-14E-15B DB/RPC変更SQL draft、M-14E-15C SQL apply前レビュー、M-14E-15D UIフィールド追加、M-14E-15E session-detail表示調整、M-14E-15F Edge Functionフォーマット変更、M-14E-15G dry_run QA、M-14E-15H テスト用チャンネル実送信QA。
+- この工程では設計docs整理のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。
