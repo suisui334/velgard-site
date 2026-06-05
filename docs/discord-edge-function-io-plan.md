@@ -919,3 +919,37 @@ Discord側:
 - secret設定だけでは投稿が発生しないことを再確認した。
 
 次のIO設計では、実送信有効化コードを追加する前に、DB更新連携を同時に入れるか分離するか、送信成功後DB更新失敗時の扱い、二重投稿防止を追加レビューする。
+
+## M-14E-14K 実送信有効化時のIO変更案
+実送信有効化時のIO変更は、テスト用チャンネル向け `create` の1回確認に必要な最小範囲に限定する。`dry_run = true` はpreview専用のまま維持し、`dry_run = false` であっても `update` / `close` / `delete` / `resync` は拒否する。
+
+入力:
+
+- `action = create` のみ実送信候補にする。
+- Webhook URL、投稿先実値、チャンネル識別子相当、認証情報の実値はpayloadに含めない。
+- 確認対象依頼書ID相当の値はユーザー手元だけで扱い、docsやログへ記録しない。
+
+成功レスポンス:
+
+- `ok = true`、`dry_run = false`、`action = create`、一般化した送信結果だけを候補にする。
+- Discord message id相当は初回確認ではレスポンスへ返さず、DB更新連携設計後に内部保持する案を第一候補にする。
+- Discord APIレスポンス全文、Webhook URL、投稿先実値、確認対象依頼書ID相当の実値、認証情報は返さない。
+
+失敗レスポンス:
+
+- `webhook_secret_missing`、`unsupported_action`、`sync_target_not_allowed`、`discord_send_failed` などの一般化したerror_codeへ丸める。
+- Discord APIエラー本文や外部レスポンス全文は返さない。
+- 失敗時もDB更新を行わない。
+
+DB更新連携:
+
+- 初回実送信確認ではDB更新を分離する案を推奨する。
+- 理由は、Discord投稿成功後にDB更新が失敗すると、再実行時の二重投稿リスクと状態不整合が残るため。
+- 外部投稿識別子保存、同期状態更新、失敗状態記録は、送信成功後DB更新失敗時の扱いと二重投稿防止を固めてから別工程で扱う。
+
+ログ:
+
+- request body全文をログに出さない。
+- Webhook URL、JWT、Authorization、投稿先実値、確認対象依頼書ID相当の実値をログに出さない。
+- Discord APIレスポンス全文をログに出さない。
+- Function Logsでは、一般化した成功/失敗種別と処理段階のみを確認対象にする。

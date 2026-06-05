@@ -1439,3 +1439,16 @@
 - secret設定だけではDiscord投稿は発生せず、実送信はまだ有効化していない。DB/RPC変更、SQL Editor実行、Edge Functionコード変更、deploy、フロント実装は行っていない。
 - 次工程候補は、M-14E-14K 実送信有効化コード変更案レビュー、M-14E-14L テスト用チャンネル初回実送信確認手順整理、M-14E-14M 実送信有効化コード実装、M-14E-14N テスト用チャンネル初回実送信確認。
 - この工程ではdocs記録のみ行い、secret実値設定、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、Edge Functionコード変更、deploy、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-14K Discord同期Edge Function 実送信有効化コード変更案レビュー
+- 実送信有効化の最小範囲は、テスト用チャンネル向け `create` のみに限定する案を第一候補に整理した。
+- `dry_run = true` はpreview専用のまま維持し、Discord送信とDB更新を行わない。
+- `dry_run = false` の早期拒否解除は、`action = create`、GM/admin権限確認済み、同期対象確認済み、Webhook secret解決済み、直前dry-run確認済みの場合だけを候補にする。
+- `update` / `close` / `delete` / `resync` は初回実装では未対応または拒否維持とする。
+- 成功レスポンスは最小情報に丸め、Discord APIレスポンス全文、Webhook URL、投稿先実値、認証情報、確認対象依頼書ID相当の実値は返さない。message id相当は初回では返さず、DB更新連携設計後に内部保持する案を第一候補にする。
+- 初回実送信テストは、テスト用チャンネル、`create` のみ、検証用依頼書、実送信前dry_run=true再確認、テスト用チャンネルへ1件だけ投稿確認、二重実行なしを前提にする。
+- DB更新連携は初回実送信では分離推奨。Discord投稿成功後DB更新失敗時の二重投稿や状態不整合を避けるため、外部投稿識別子保存、同期状態更新、失敗状態記録は後続工程で扱う。
+- 二重投稿防止は、初回は手動1回のみで運用し、恒久対策として外部投稿識別子がある `create` の拒否または `update` / `resync` 誘導を後続設計に残す。
+- ログ安全性として、Webhook URL、request body全文、Discord APIエラー本文全文、JWT、投稿先実値、確認対象依頼書ID相当の実値をログやレスポンスに出さない方針を整理した。
+- 次工程候補は、M-14E-14L 実送信有効化コード実装、M-14E-14M deno check / 安全検索 / 差分レビュー、M-14E-14N deploy、M-14E-14O dry_run=true再確認、M-14E-14P テスト用チャンネルでcreate実送信1回確認、M-14E-14Q 結果docs記録。
+- この工程ではdocs整理のみ行い、Edge Functionコード変更、deploy、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。
