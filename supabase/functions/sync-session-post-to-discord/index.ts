@@ -52,6 +52,9 @@ type IsSessionGmRpc = (
   functionName: "is_session_gm",
   args: { target_session_id: string }
 ) => BooleanRpcResult;
+type IsSessionGmRpcClient = ReturnType<typeof createClient> & {
+  rpc: IsSessionGmRpc;
+};
 
 interface SyncTargetJudgment {
   isTarget: boolean;
@@ -305,8 +308,8 @@ function callIsSessionGmRpc(
   supabase: ReturnType<typeof createClient>,
   sessionId: string
 ): BooleanRpcResult {
-  const rpc = supabase.rpc as unknown as IsSessionGmRpc;
-  return rpc("is_session_gm", { target_session_id: sessionId });
+  const rpcClient = supabase as unknown as IsSessionGmRpcClient;
+  return rpcClient.rpc("is_session_gm", { target_session_id: sessionId });
 }
 
 async function verifyManagementPermission(

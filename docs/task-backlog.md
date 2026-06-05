@@ -1320,3 +1320,14 @@
 - 次工程は deploy後 `create` / `dry_run = true` 確認。Authorization Bearer、確認対象依頼書ID相当の値、Supabase接続先等はユーザー手元だけで扱い、docsや報告には実値を書かない。
 - `dry_run = false`、Discord実送信、Discord投稿先credential設定、DB更新、フロント接続はまだ行わない。
 - この工程ではdeploy結果のdocs記録のみ。Codex側でEdge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-12B Discord同期Edge Function dry-run 500エラー修正
+- deploy済み `sync-session-post-to-discord` の `create` / `dry_run = true` 確認でHTTP 500が発生した。
+- 原因は、`callIsSessionGmRpc` で `supabase.rpc` を分離して呼んでいたことによるSupabase client rpc method binding issueとして整理した。
+- `callIsSessionGmRpc` はclient本体を局所的に型緩和し、`rpcClient.rpc("is_session_gm", { target_session_id: sessionId })` として呼ぶ形へ修正した。
+- `is_admin()` / `is_session_gm(...)` によるGM/adminのみ許可する権限判定方針は維持。
+- Deno構文確認は成功。`rpc` のdestructureや `const rpc = ...` 形式は残っていない。
+- `fetch(`、DB書き込み系メソッド、`console.` は追加していない。
+- `dry_run = false` は有効化していない。Discord実送信処理、DB更新処理、フロント接続も追加していない。
+- 次工程は、ユーザー確認後に修正版Edge Functionをdeployし、deploy後 `create` / `dry_run = true` を再確認すること。
+- この工程ではFunctionコード修正とdocs記録のみ。SQL Editor実行、DB/RPC変更、Discord実送信、`dry_run = false` 実行、Edge Function deploy、フロント実装、秘匿値の実値記録、`updates.json` 変更、commit / pushは行っていない。

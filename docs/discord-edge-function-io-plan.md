@@ -617,6 +617,20 @@ IO観点の現在地:
 
 この追記ではdocs記録のみ行い、Codex側でEdge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-12B dry-run 500エラーのIO修正
+
+`create` / `dry_run = true` でHTTP 500が発生した原因は、Supabase clientのRPCメソッドを分離して呼んだことによるmethod binding不具合として整理する。外部送信やDB更新の問題ではない。
+
+IO上の修正方針:
+
+- RPC呼び出しはclient本体の `client.rpc(...)` として呼ぶ。
+- `is_session_gm` 用の型緩和はhelper内に限定する。
+- `dry_run = true` preview専用の入出力は維持する。
+- `dry_run = false` は引き続き拒否する。
+- Discord API送信処理、DB書き込み処理、console出力は追加しない。
+
+この追記ではdocs記録のみ行い、SQL Editor実行、DB/RPC変更、Discord実送信、`dry_run = false` 実行、Edge Function deploy、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
+
 ## M-14E-10 deploy直前IO最終確認
 
 最終確認では、`sync-session-post-to-discord` がdry-run preview専用draftのままであることを確認した。Deno構文確認は成功し、Supabase CLIは `npx.cmd` 経由で利用可能。`fetch(`、DB書き込み系メソッド、`console.` は0件で、Discord API送信処理とDB書き込み処理は未接続のまま。
