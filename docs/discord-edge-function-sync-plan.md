@@ -1080,3 +1080,16 @@ secret設定後の同期境界:
 - 二重投稿が発生した。
 
 次工程候補は、M-14E-14L 実送信有効化コード実装、M-14E-14M 構文確認と安全検索、M-14E-14N deploy、M-14E-14O `dry_run = true` 再確認、M-14E-14P テスト用チャンネルで `create` 実送信1回確認、M-14E-14Q 結果記録とする。
+
+## M-14E-14L create実送信経路の実装記録
+テスト用チャンネル向けWebhook secretを使う `create` 実送信経路をEdge Functionに接続した。接続範囲は `dry_run = false` かつ `action = create` のみで、他actionは初回実装では拒否を維持する。
+
+同期フロー:
+
+1. payload検証後、`dry_run = false` かつ `action` が `create` 以外なら拒否する。
+2. Authorization、GM/admin権限、対象依頼書取得、同期対象判定、action検証を行う。
+3. `dry_run = true` なら従来どおりpreviewと予定情報だけを返す。
+4. `dry_run = false` かつ `create` なら、preview本文相当をWebhook payloadとして送信する。
+5. 成功時は最小レスポンスを返し、DB更新は行わない。
+
+DB更新連携、外部投稿識別子保存、同期状態更新は未実装のまま維持する。二重投稿防止は初回テストでは手動1回運用とし、恒久対策は外部投稿識別子保存工程で扱う。deploy、Discord実送信、dry-run再実行はこの工程では行っていない。

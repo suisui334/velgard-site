@@ -766,3 +766,19 @@ DB更新連携を行う場合は、外部投稿識別子保存、同期状態更
 4. M-14E-14O: deploy後 `dry_run = true` 再確認。
 5. M-14E-14P: テスト用チャンネルで `create` 実送信1回確認。
 6. M-14E-14Q: 結果docs記録。
+
+## M-14E-14L テスト用チャンネル向けcreate実送信コード実装メモ
+`sync-session-post-to-discord` に、テスト用チャンネルWebhook secretを使う `action = create` の実送信経路を接続した。ただし、この工程ではdeploy、Discord実送信、`dry_run = true` / `dry_run = false` 再実行は行わない。
+
+実装範囲:
+
+- `dry_run = true` は従来どおりpreview専用で、Webhook helperを呼ばない。
+- `dry_run = false` かつ `action = create` の場合のみ、権限確認、対象依頼書取得、同期対象判定、action検証を通過した後にWebhook helperを呼ぶ。
+- `update` / `close` / `delete` / `resync` は `unsupported_action` 相当で拒否を維持する。
+- Webhook secret `DISCORD_SESSION_POST_WEBHOOK_URL` が未設定、空、不正な場合は一般化エラーで拒否し、fetchを呼ばない。
+- Webhook payloadは既存preview本文相当を `content` とし、`allowed_mentions.parse = []` で意図しないメンション展開を抑止する。
+- Discord API成功時もレスポンス全文は返さない。
+- 成功時レスポンスは最小限にし、外部投稿識別子相当は実値として返さない。
+- DB更新、外部投稿識別子保存、同期状態更新は追加していない。
+
+実装後も、Webhook URL実値、投稿先実値、認証情報、確認対象依頼書ID相当の実値、Supabase接続先全文、`message_preview` 本文全文はdocsやレスポンスへ出さない方針を維持する。二重投稿防止は初回テストでは手動1回運用とし、恒久対策は外部投稿識別子保存とあわせて後続工程で扱う。

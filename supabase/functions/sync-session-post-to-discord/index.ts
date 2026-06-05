@@ -12,7 +12,11 @@ type ErrorCode =
   | "not_allowed"
   | "not_sync_target"
   | "real_send_not_enabled"
-  | "session_not_found";
+  | "session_not_found"
+  | "unsupported_action"
+  | "webhook_config_missing"
+  | "webhook_response_invalid"
+  | "webhook_send_failed";
 
 interface ValidPayload {
   sessionId: string;
@@ -68,12 +72,17 @@ interface DiscordWebhookPayload {
   };
 }
 
+type DiscordWebhookErrorCode =
+  | "webhook_config_missing"
+  | "webhook_send_failed"
+  | "webhook_response_invalid";
+
 type DiscordWebhookDraftResult =
   | { ok: true; messageId: string | null }
   | {
     ok: false;
     status: number;
-    errorCode: "webhook_config_missing" | "webhook_send_failed" | "webhook_response_invalid";
+    errorCode: DiscordWebhookErrorCode;
   };
 
 const ALLOWED_ACTIONS = new Set<SyncAction>(["create", "update", "close", "delete", "resync"]);
@@ -155,12 +164,13 @@ Deno.serve(async (request: Request) => {
     return jsonError(payload.status, payload.errorCode, payload.message, payload.dryRun);
   }
 
-  if (!payload.value.dryRun) {
+  if (!payload.value.dryRun && payload.value.action !== "create") {
     return jsonError(
       501,
-      "real_send_not_enabled",
-      "実送信はこのdraftでは有効化していません。dry_run=trueで確認してください。",
-      false
+      "unsupported_action",
+      "この同期アクションの実送信はまだ有効化していません。",
+      false,
+      { action: payload.value.action }
     );
   }
 
@@ -206,16 +216,57 @@ Deno.serve(async (request: Request) => {
     });
   }
 
+  const messagePreview = buildMessagePreview(session, payload.value.action);
+
+  if (payload.value.dryRun) {
+    return jsonOk({
+      ok: true,
+      dry_run: true,
+      action: payload.value.action,
+      sync_target: {
+        eligible: syncTarget.isTarget,
+        reason: syncTarget.reason
+      },
+      message_preview: messagePreview,
+      planned_db_update: buildPlannedDbUpdate(payload.value.action, hasExternalPostReference),
+      warnings
+    });
+  }
+
+  const sendResult = await sendDiscordWebhookDraft(messagePreview);
+  if (!sendResult.ok) {
+    return jsonError(
+      sendResult.status,
+      sendResult.errorCode,
+      messageForWebhookError(sendResult.errorCode),
+      false,
+      {
+        action: payload.value.action,
+        sync_target: {
+          eligible: syncTarget.isTarget,
+          reason: syncTarget.reason
+        },
+        warnings
+      }
+    );
+  }
+
   return jsonOk({
     ok: true,
-    dry_run: true,
+    dry_run: false,
     action: payload.value.action,
     sync_target: {
       eligible: syncTarget.isTarget,
       reason: syncTarget.reason
     },
-    message_preview: buildMessagePreview(session, payload.value.action),
-    planned_db_update: buildPlannedDbUpdate(payload.value.action, hasExternalPostReference),
+    discord_send: {
+      status: "posted",
+      message_reference: sendResult.messageId ? "received" : "not_returned"
+    },
+    db_update: {
+      will_update: false,
+      reason: "db_update_deferred"
+    },
     warnings
   });
 });
@@ -320,11 +371,9 @@ function createCallerSupabaseClient(authHeader: string): { ok: true; client: Ret
   };
 }
 
-// Future real-send draft only. This helper is intentionally not wired into the
-// request flow while dry_run=false is guarded by real_send_not_enabled.
 async function sendDiscordWebhookDraft(messagePreview: string): Promise<DiscordWebhookDraftResult> {
-  const webhookUrl = Deno.env.get(DISCORD_SESSION_POST_WEBHOOK_URL_ENV);
-  if (!webhookUrl) {
+  const webhookUrl = readDiscordWebhookUrl();
+  if (!webhookUrl.ok) {
     return {
       ok: false,
       status: 500,
@@ -332,7 +381,7 @@ async function sendDiscordWebhookDraft(messagePreview: string): Promise<DiscordW
     };
   }
 
-  const response = await fetch(withDiscordWebhookWait(webhookUrl), {
+  const response = await fetch(withDiscordWebhookWait(webhookUrl.value), {
     method: "POST",
     headers: {
       "content-type": "application/json"
@@ -361,6 +410,26 @@ async function sendDiscordWebhookDraft(messagePreview: string): Promise<DiscordW
     ok: true,
     messageId: extractDiscordMessageId(responseBody.value)
   };
+}
+
+function readDiscordWebhookUrl(): { ok: true; value: string } | { ok: false } {
+  const rawUrl = normalizeText(Deno.env.get(DISCORD_SESSION_POST_WEBHOOK_URL_ENV), 2048);
+  if (!rawUrl) {
+    return { ok: false };
+  }
+
+  try {
+    const parsedUrl = new URL(rawUrl);
+    const isDiscordHost = parsedUrl.hostname === "discord.com" || parsedUrl.hostname === "discordapp.com";
+    const isWebhookPath = parsedUrl.pathname.startsWith("/api/webhooks/");
+    if (parsedUrl.protocol !== "https:" || !isDiscordHost || !isWebhookPath) {
+      return { ok: false };
+    }
+
+    return { ok: true, value: rawUrl };
+  } catch {
+    return { ok: false };
+  }
 }
 
 function buildDiscordWebhookPayload(messagePreview: string): DiscordWebhookPayload {
@@ -397,6 +466,18 @@ function extractDiscordMessageId(value: unknown): string | null {
 
 function truncateDiscordContent(value: string): string {
   return value.slice(0, 1900);
+}
+
+function messageForWebhookError(errorCode: DiscordWebhookErrorCode): string {
+  switch (errorCode) {
+    case "webhook_config_missing":
+      return "Discord投稿先の設定を確認できませんでした。";
+    case "webhook_response_invalid":
+      return "Discord投稿の結果を確認できませんでした。";
+    case "webhook_send_failed":
+    default:
+      return "Discord投稿に失敗しました。";
+  }
 }
 
 function callIsSessionGmRpc(

@@ -1452,3 +1452,14 @@
 - ログ安全性として、Webhook URL、request body全文、Discord APIエラー本文全文、JWT、投稿先実値、確認対象依頼書ID相当の実値をログやレスポンスに出さない方針を整理した。
 - 次工程候補は、M-14E-14L 実送信有効化コード実装、M-14E-14M deno check / 安全検索 / 差分レビュー、M-14E-14N deploy、M-14E-14O dry_run=true再確認、M-14E-14P テスト用チャンネルでcreate実送信1回確認、M-14E-14Q 結果docs記録。
 - この工程ではdocs整理のみ行い、Edge Functionコード変更、deploy、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-14L Discord同期Edge Function テスト用チャンネル向けcreate実送信コード
+- `sync-session-post-to-discord` に、テスト用チャンネルWebhook secretを使う `action = create` の実送信経路を接続した。
+- `dry_run = true` はpreview専用のまま維持し、Webhook helperを呼ばない。
+- `dry_run = false` かつ `action = create` の場合のみ、権限確認、対象依頼書取得、同期対象判定、action検証を通過した後にWebhook helperを呼ぶ。
+- `update` / `close` / `delete` / `resync` は初回実装では `unsupported_action` 相当で拒否維持。
+- secret `DISCORD_SESSION_POST_WEBHOOK_URL` が未設定、空、不正な場合は一般化エラーで拒否し、fetchを呼ばない。
+- Webhook payloadは既存preview本文相当を `content` とし、`allowed_mentions.parse = []` を維持する。
+- 成功時レスポンスは最小限にし、外部投稿識別子相当の実値、Discord APIレスポンス全文、Webhook URL、投稿先実値、認証情報、確認対象依頼書ID相当の実値、`message_preview` 本文全文は返さない。
+- DB更新処理、外部投稿識別子保存、同期状態更新は追加していない。
+- この工程ではコード実装とdocs記録のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。

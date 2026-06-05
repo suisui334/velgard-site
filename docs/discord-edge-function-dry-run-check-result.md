@@ -1538,3 +1538,19 @@ M-14E-14Dではこのテンプレートと確認観点だけを追加する。se
 - 想定外投稿、秘匿値露出、ログ露出、DB更新混入があれば停止する。
 
 このM-14E-14Kではレビュー記録テンプレートだけを追加し、`dry_run = true` / `dry_run = false` 再実行、Discord実送信、Edge Functionコード変更、deploy、DB/RPC変更は行わない。
+
+## M-14E-14L create実送信コード実装後の静的確認観点
+テスト用チャンネル向け `create` 実送信経路をコードへ接続した。ただし、この工程ではdeploy、Discord実送信、`dry_run = true` / `dry_run = false` 再実行は行わない。
+
+静的確認観点:
+
+- `dry_run = true` ではWebhook helperを呼ばない。
+- `dry_run = false` かつ `action = create` の場合のみWebhook helperを呼ぶ。
+- `update` / `close` / `delete` / `resync` は拒否維持。
+- secret未設定、空、不正時は送信前に拒否。
+- `allowed_mentions.parse = []` を維持。
+- DB更新処理、外部投稿識別子保存、同期状態更新は追加なし。
+- 成功レスポンスに外部投稿識別子相当の実値を含めない。
+- Discord APIレスポンス全文、Webhook URL、投稿先実値、認証情報、確認対象依頼書ID相当の実値、`message_preview` 本文全文を返さない。
+
+次工程では `deno check`、安全検索、deploy前レビューを実施する。実送信確認はdeploy後に別工程で1回だけ行う。

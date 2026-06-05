@@ -953,3 +953,21 @@ DB更新連携:
 - Webhook URL、JWT、Authorization、投稿先実値、確認対象依頼書ID相当の実値をログに出さない。
 - Discord APIレスポンス全文をログに出さない。
 - Function Logsでは、一般化した成功/失敗種別と処理段階のみを確認対象にする。
+
+## M-14E-14L create実送信経路のIO実装メモ
+`dry_run = false` かつ `action = create` の場合のみWebhook送信IOへ進む経路を追加した。`dry_run = true` ではWebhook送信IOを呼ばず、従来どおり `message_preview` と `planned_db_update` 相当を返す。
+
+入力境界:
+
+- payloadからWebhook URLや投稿先実値は受け取らない。
+- Webhook URLはEdge Function secret `DISCORD_SESSION_POST_WEBHOOK_URL` からのみ解決する。
+- secretが未設定、空、不正な場合は一般化エラーで拒否し、送信IOへ進まない。
+
+出力境界:
+
+- 成功時は `ok = true`、`dry_run = false`、`action = create`、一般化した送信結果、DB更新延期情報だけを返す。
+- Discord message id相当は実値として返さず、受け取れたかどうかだけを一般化する。
+- 失敗時は一般化したerror_codeとmessageだけを返す。
+- Discord APIレスポンス全文、Webhook URL、投稿先実値、認証情報、確認対象依頼書ID相当の実値、`message_preview` 本文全文は返さない。
+
+DB更新IOは追加していない。外部投稿識別子保存、同期状態更新、失敗状態記録は後続工程に分離する。
