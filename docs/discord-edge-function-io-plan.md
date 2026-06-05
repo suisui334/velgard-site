@@ -598,6 +598,26 @@ npx.cmd supabase functions deploy sync-session-post-to-discord
 
 この追記ではdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-9 deploy直前IO判断
+
+deploy直前のIO観点では、dry-run専用draftが外部送信にもDB書き込みにも進まないことを再確認する。
+
+確認済み:
+
+- Deno構文確認は成功。
+- Supabase CLIは `npx.cmd` 経由で利用可能。
+- `fetch(` は0件。
+- DB書き込み系メソッドは0件。
+- `console.` は0件。
+- `deno.lock` はなし。
+- `updates.json` 差分なし。
+
+deploy後の初回確認は `create` / `dry_run = true` のみ。レスポンスは `message_preview` と `planned_db_update` の有無、Discord実送信なし、DB更新なし、レスポンスとログの安全性を確認する。実値はユーザー手元だけで扱い、記録は一般化する。
+
+`dry_run = false` はまだ実行しない。将来確認する場合でも、`real_send_not_enabled` の拒否確認として別工程に分ける。
+
+この追記ではdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
 ## M-14E-6I ローカルdry-run手元実行ガイド
 
 手元実行では、PowerShell上で環境変数とAuthorizationヘッダーを用意し、ローカルserveへ `dry_run = true` のpayloadを送る。docsに残す手順はプレースホルダーのみとし、実値は書かない。

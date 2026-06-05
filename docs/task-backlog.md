@@ -1284,3 +1284,16 @@
 - deployを止める条件は、dirtyな作業ツリー、Deno構文確認失敗、外部送信処理やDB書き込みやconsole出力の増加、秘匿値実値混入、`dry_run = false` 拒否の崩れ、Function名や対象パスの曖昧さ、ユーザー確認なし。
 - 次工程候補は、M-14E-9 deploy実施判断、M-14E-10 deploy後 create / dry_run=true 確認、M-14E-11 dry_run=false拒否確認、M-14E-12 real_send createのみ実装検討、M-14E-13 Discord実送信QA、またはDocker Desktop導入後にローカルserve dry-runへ戻る案。
 - この工程ではdocs整理とdeploy前レビューのみ。Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-9 Discord同期Edge Function dry-run専用deploy実施判断・最終手順整理
+- 作業前の作業ツリーはclean、最新commitは `ff9ea72 Review Discord sync dry run deploy plan`。
+- deploy直前チェックとして、Deno構文確認成功、`npx.cmd supabase --version = 2.105.0`、`fetch(` 0件、DB書き込み系メソッド0件、`console.` 0件、`deno.lock` なし、`updates.json` 差分なしを確認した。
+- Function名は `sync-session-post-to-discord`、対象ファイルは `supabase/functions/sync-session-post-to-discord/index.ts`。
+- 現状はdry-run preview専用draftで、`dry_run = true` はpreviewのみ、`dry_run = false` は `real_send_not_enabled` で拒否する。
+- Supabase CLI認証、project link、project ref相当の情報はdeploy時に必要になる可能性があるが、実値はユーザー手元だけで扱う。認証やlinkが未設定、対象projectが不明、Codexへ実値を渡す必要がある場合はdeployを止める。
+- deploy候補コマンドは `npx.cmd supabase functions deploy sync-session-post-to-discord`。この工程では実行していない。
+- deployを止める条件は、dirtyな作業ツリー、Deno構文確認失敗、外部送信処理やDB書き込みやconsole出力の増加、秘匿値実値混入、CLI認証・project link・project ref相当の扱い不明、`dry_run = false` 拒否の崩れ、ユーザーの明示確認なし。
+- deploy後確認は、最初に `create` / `dry_run = true` のみに絞る。Authorization Bearer、確認対象依頼書ID相当の値、Supabase接続先等はユーザー手元だけで扱い、docsや報告には実値を書かない。
+- `dry_run = false` はまだ実行しない。将来確認する場合も拒否確認として別工程に分ける。
+- 次工程候補は、M-14E-10 ユーザー手動deploy実施、M-14E-11 deploy後 create / dry_run=true 確認、M-14E-12 dry_run=false拒否確認、M-14E-13 real_send createのみ実装検討、M-14E-14 Discord実送信QA、またはDocker Desktop導入後にローカルserve dry-runへ戻る案。
+- この工程ではdocs整理とdeploy直前レビューのみ。Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。

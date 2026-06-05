@@ -552,6 +552,41 @@ deploy候補コマンドは `npx.cmd supabase functions deploy sync-session-post
 
 この追記ではdocs整理とdeploy前レビューのみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-9 dry-run専用deploy実施判断・最終手順整理
+
+dry-run専用deployへ進む前に、deploy直前チェックとCLI認証・project link確認観点を整理した。この工程ではdeployしない。
+
+deploy直前チェック:
+
+- 作業ツリーがclean。
+- Deno構文確認が成功。
+- Supabase CLIは `npx.cmd` 経由で利用可能。
+- `fetch(`、DB書き込み系メソッド、`console.` は0件。
+- `deno.lock` なし。
+- `updates.json` 差分なし。
+- `dry_run = false` 拒否を維持。
+- Discord API送信なし。
+- DB書き込みなし。
+- 秘匿値の実値なし。
+
+CLI認証・project link確認:
+
+- deploy時にはCLIログイン、project link、project ref相当の確認が必要になる可能性がある。
+- これらの実値はdocsやチャットへ書かず、ユーザー手元だけで扱う。
+- 認証やlinkが未設定、対象projectが不明、または実値をCodexへ渡す必要がある場合はdeployを止める。
+
+deploy候補コマンド:
+
+```powershell
+npx.cmd supabase functions deploy sync-session-post-to-discord
+```
+
+deploy後確認は `create` / `dry_run = true` のみに絞る。`dry_run = false` はまだ実行しない。
+
+次工程候補は、M-14E-10 ユーザー手動deploy実施、M-14E-11 deploy後 create / dry_run=true 確認、M-14E-12 dry_run=false拒否確認、M-14E-13 real_send createのみ実装検討、M-14E-14 Discord実送信QA、またはDocker Desktop導入後にローカルserve dry-runへ戻る案。
+
+この追記ではdocs整理とdeploy直前レビューのみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
 ## M-14E-6H dry-run実行条件整理とローカル実行可否
 
 確認結果:
