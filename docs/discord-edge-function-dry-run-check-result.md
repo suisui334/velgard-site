@@ -1357,3 +1357,19 @@ deploy済み `sync-session-post-to-discord` について、`dry_run = false` を
 - レスポンス本文全文、確認対象依頼書ID相当の値、Supabase接続先全文、認証ヘッダー、Discord投稿先、`message_preview` 本文全文は記録しない。
 
 次工程候補は、Discord実送信実装前の追加安全レビュー、または `real_send` createのみの実装方針整理とする。実送信、DB更新、`dry_run = true` / `dry_run = false` の再実行、secret実値設定、フロント接続はまだ行わない。
+
+## M-14E-14 実送信前安全レビュー観点
+
+`create` / `dry_run = true` の成功確認と、`create` / `dry_run = false` の拒否確認は完了済み。次に実送信を有効化する場合も、dry-runの安全境界を崩さないことを前提にする。
+
+実送信前の確認項目:
+
+- secret実値がコード、docs、GitHub、フロント、DB、チャットにない。
+- 初期投稿先は単一募集チャンネルであり、投稿先はEdge Function側secretから解決する。
+- `dry_run = true` は引き続きpreview専用で、Discord送信もDB更新も行わない。
+- `dry_run = false` は、実送信コード、secret設定、失敗時挙動、ログ安全性レビューが揃うまで拒否を維持する。
+- 実送信有効化後も、secret未設定時は一般化エラーで拒否する。
+- Discord送信失敗時も依頼書保存自体を壊さない。
+- レスポンスとログにsecret、認証情報、確認対象依頼書ID相当の値、Supabase接続先全文、Discord投稿先実値、`message_preview` 本文全文を出さない。
+
+今回の追記ではdocs整理のみ行い、`dry_run = true` / `dry_run = false` の再実行、Discord実送信、Edge Functionコード変更、deploy、SQL Editor実行、DB/RPC変更、フロント実装は行っていない。
