@@ -1356,3 +1356,14 @@
 - 停止条件は、成功送信扱い、Discord投稿作成、DB同期状態変更、秘匿値実値や認証系の生値の露出、拒否確認として扱えない想定外エラー。
 - 停止条件に該当した場合は以後再実行せず、一般化した結果を記録して追加安全レビューへ戻る。
 - この工程では手順整理のみ。SQL Editor実行、DB/RPC変更、Discord実送信、`dry_run = false` 実行、Edge Functionコード変更、Edge Function deploy、フロント実装、秘匿値の実値記録、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-13C dry_run=false拒否確認結果と単一募集チャンネル方針
+
+- ユーザー手元でdeploy済み `sync-session-post-to-discord` の `create` / `dry_run = false` 拒否確認を実施済み。
+- HTTP statusは501。レスポンスはJSONとしてparse可能で、`ok = false`、`error_code = real_send_not_enabled`、`dry_run = false` を確認した。
+- `dry_run = false` は想定どおり実送信へ進まず拒否された。Discord実送信なし、DB/RPC変更なし、SQL Editor未実行、Edge Functionコード変更なし、Edge Function deployなし。
+- 確認に使った認証文脈、対象依頼書ID相当の値、Supabase接続先全文、Discord投稿先、レスポンス本文全文、`message_preview` 本文全文は記録しない。
+- M-14E-14の初期方針として、Discord依頼書同期の投稿先は「案A: 全依頼書を1つの募集チャンネルへ投稿」を採用する。
+- GM別投稿先、依頼書種別別投稿先、セッション別投稿先は初期実装では行わず、将来拡張候補として残す。
+- 投稿先の実値、外部送信用credential、チャンネル識別子相当の値はフロント、docs、GitHub、チャットに出さない。将来のsecret設定工程で扱う。
+- 次工程候補は、単一募集チャンネル向けの実送信create実装方針整理、secret設定手順整理、失敗時挙動レビュー、またはDiscord実送信前の追加安全レビュー。

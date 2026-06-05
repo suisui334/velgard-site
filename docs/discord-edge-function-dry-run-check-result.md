@@ -1322,3 +1322,38 @@ deploy済み `sync-session-post-to-discord` について、`dry_run = false` を
 停止条件に該当した場合は以後再実行せず、結果を一般化して記録し、追加安全レビューへ戻る。
 
 この工程では手順整理のみ行い、`dry_run = false` 実行、Discord実送信、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
+
+## M-14E-13C dry_run=false拒否確認結果
+
+ユーザー手元で、deploy済み `sync-session-post-to-discord` に対する `create` / `dry_run = false` の拒否確認を実施した。確認に必要な認証文脈と対象依頼書はユーザー手元だけで扱い、docsには実値を記録しない。
+
+確認結果:
+
+| 項目 | 結果 |
+| --- | --- |
+| 実行主体 | ユーザー手元 |
+| action | `create` |
+| `dry_run` | `false` |
+| HTTP status | 501 |
+| HTTP error | true |
+| error body | あり |
+| JSON parse | 成功 |
+| response keys | `ok`, `error_code`, `message`, `dry_run` |
+| `ok` | `false` |
+| `error_code` | `real_send_not_enabled` |
+| `dry_run` | `false` |
+| 拒否メッセージ | 一般化された実送信未有効化メッセージ |
+| Discord実送信 | なし |
+| DB/RPC変更 | なし |
+| SQL Editor | 未実行 |
+| Edge Functionコード変更 | なし |
+| Edge Function deploy | 今回なし |
+
+判断:
+
+- `dry_run = false` は想定どおり実送信へ進まず拒否された。
+- HTTP 501で拒否され、レスポンスはJSONとしてparse可能だった。
+- `real_send_not_enabled` により、dry-run専用draftの安全境界は維持されている。
+- レスポンス本文全文、確認対象依頼書ID相当の値、Supabase接続先全文、認証ヘッダー、Discord投稿先、`message_preview` 本文全文は記録しない。
+
+次工程候補は、Discord実送信実装前の追加安全レビュー、または `real_send` createのみの実装方針整理とする。実送信、DB更新、`dry_run = true` / `dry_run = false` の再実行、secret実値設定、フロント接続はまだ行わない。
