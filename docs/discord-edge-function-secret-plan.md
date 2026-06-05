@@ -516,3 +516,10 @@ Webhook方式の送信payloadは、既存dry-run previewで確認している公
 - 同じ依頼書に外部投稿識別子が既にある場合、`create` が二重投稿を作らないこと。
 
 この工程では設計整理のみ行い、secret実値設定、Discord実送信、`dry_run = true` / `dry_run = false` の再実行、Edge Functionコード変更、deploy、SQL Editor実行、DB/RPC変更、フロント実装は行わない。
+
+## M-14E-14C Webhook helper draft実装メモ
+`sync-session-post-to-discord` に、将来のWebhook実送信用draft helperを追加した。参照するsecret名候補は `DISCORD_SESSION_POST_WEBHOOK_URL` のみで、実値はコード、docs、GitHub、チャットに記録していない。
+
+このhelperは、secret未設定時に一般化した設定不足として扱う。Webhook payloadは既存preview本文をもとに `content` を作り、意図しないメンションを避けるため `allowed_mentions.parse = []` を含めるdraftとした。Discord成功レスポンスから外部投稿識別子相当を取り出す処理もdraftとして置いたが、レスポンス全文は返さない方針を維持する。
+
+重要な安全境界として、今回追加したhelperはリクエスト処理の実行経路へ接続していない。`dry_run = false` は引き続き `real_send_not_enabled` 相当で先に拒否されるため、secretが設定されていてもDiscord実送信には進まない。DB更新処理、外部投稿識別子保存処理、secret実値設定はまだ行わない。

@@ -1387,3 +1387,15 @@ deploy済み `sync-session-post-to-discord` について、`dry_run = false` を
 - `create` 実行時に外部投稿識別子相当が既にある場合の挙動を、実送信前に明示する。
 
 次工程では、実送信コードdraftを追加する場合でも、最初は `dry_run = false` 拒否を維持したままレビューできる形を優先する。secret設定、実送信確認、DB更新連携、フロント接続は別工程に分ける。
+
+## M-14E-14C Webhook helper draft追加後の確認観点
+Webhook実送信用draft helperを追加したが、dry-run確認済みの境界は維持している。
+
+- `dry_run = true`: preview専用のまま。Discord送信なし、DB更新なし。
+- `dry_run = false`: `real_send_not_enabled` 相当で拒否する挙動を維持。今回も再実行していない。
+- Webhook helper: 将来用draftとして追加したが、現行リクエスト処理からは呼ばない。
+- `fetch`: draft helper内に将来送信用として存在するが、実送信有効化条件へ到達しない。
+- DB書き込み: 追加なし。
+- `console.*`: 追加なし。
+
+Codex環境では `deno` コマンドがPATH上で見つからず、今回の環境では `deno check` を実行できなかった。Deno構文確認は、Denoが利用できるユーザー手元環境または別環境で再実施する候補として残す。

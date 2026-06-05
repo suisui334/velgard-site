@@ -61,9 +61,25 @@ interface SyncTargetJudgment {
   reason: string;
 }
 
+interface DiscordWebhookPayload {
+  content: string;
+  allowed_mentions: {
+    parse: string[];
+  };
+}
+
+type DiscordWebhookDraftResult =
+  | { ok: true; messageId: string | null }
+  | {
+    ok: false;
+    status: number;
+    errorCode: "webhook_config_missing" | "webhook_send_failed" | "webhook_response_invalid";
+  };
+
 const ALLOWED_ACTIONS = new Set<SyncAction>(["create", "update", "close", "delete", "resync"]);
 const SYNC_TARGET_STATUSES = new Set(["tentative", "recruiting", "full", "closed", "finished"]);
 const CLOSED_STATUSES = new Set(["closed", "finished"]);
+const DISCORD_SESSION_POST_WEBHOOK_URL_ENV = "DISCORD_SESSION_POST_WEBHOOK_URL";
 const SESSION_SELECT_COLUMNS = [
   "id",
   "title",
@@ -302,6 +318,85 @@ function createCallerSupabaseClient(authHeader: string): { ok: true; client: Ret
       }
     })
   };
+}
+
+// Future real-send draft only. This helper is intentionally not wired into the
+// request flow while dry_run=false is guarded by real_send_not_enabled.
+async function sendDiscordWebhookDraft(messagePreview: string): Promise<DiscordWebhookDraftResult> {
+  const webhookUrl = Deno.env.get(DISCORD_SESSION_POST_WEBHOOK_URL_ENV);
+  if (!webhookUrl) {
+    return {
+      ok: false,
+      status: 500,
+      errorCode: "webhook_config_missing"
+    };
+  }
+
+  const response = await fetch(withDiscordWebhookWait(webhookUrl), {
+    method: "POST",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(buildDiscordWebhookPayload(messagePreview))
+  });
+
+  if (!response.ok) {
+    return {
+      ok: false,
+      status: response.status,
+      errorCode: "webhook_send_failed"
+    };
+  }
+
+  const responseBody = await readDiscordWebhookResponse(response);
+  if (!responseBody.ok) {
+    return {
+      ok: false,
+      status: response.status,
+      errorCode: "webhook_response_invalid"
+    };
+  }
+
+  return {
+    ok: true,
+    messageId: extractDiscordMessageId(responseBody.value)
+  };
+}
+
+function buildDiscordWebhookPayload(messagePreview: string): DiscordWebhookPayload {
+  return {
+    content: truncateDiscordContent(messagePreview),
+    allowed_mentions: {
+      parse: []
+    }
+  };
+}
+
+function withDiscordWebhookWait(webhookUrl: string): string {
+  const separator = webhookUrl.includes("?") ? "&" : "?";
+  return `${webhookUrl}${separator}wait=true`;
+}
+
+async function readDiscordWebhookResponse(
+  response: Response
+): Promise<{ ok: true; value: unknown } | { ok: false }> {
+  try {
+    return { ok: true, value: await response.json() };
+  } catch {
+    return { ok: false };
+  }
+}
+
+function extractDiscordMessageId(value: unknown): string | null {
+  if (!isRecord(value) || typeof value.id !== "string") {
+    return null;
+  }
+
+  return normalizeText(value.id, 80) || null;
+}
+
+function truncateDiscordContent(value: string): string {
+  return value.slice(0, 1900);
 }
 
 function callIsSessionGmRpc(

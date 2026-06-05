@@ -1388,3 +1388,13 @@
 - 実装前レビュー項目として、secret未設定時の拒否、dry-run境界、二重投稿防止、既存外部投稿識別子がある場合の `create` 挙動、送信成功後DB更新失敗時の扱い、ログ安全性を整理した。
 - 次工程候補は、M-14E-14C 実送信コードdraft実装前レビュー、M-14E-14D secret設定手順整理、M-14E-14E secret設定後dry-run再確認、M-14E-14F テスト投稿確認、M-14E-14G DB更新連携、M-14E-14H フロント管理UI接続。
 - この工程ではdocs整理のみ行い、secret実値設定、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、Edge Functionコード変更、deploy、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-14C Discord同期Edge Function Webhook実送信用draftコード
+- `sync-session-post-to-discord` に将来のWebhook実送信用draft helperを追加した。
+- helperは `DISCORD_SESSION_POST_WEBHOOK_URL` をsecret名候補として参照するが、実値は記録していない。
+- Webhook payload draftは `content` と `allowed_mentions.parse = []` を使う形にした。
+- Discord成功レスポンスから外部投稿識別子相当を抽出するdraft処理を置いたが、レスポンス全文は扱わない。
+- 現行制御フローではhelperを呼ばない。`dry_run = false` は引き続き `real_send_not_enabled` 相当で拒否し、実送信へ進まない。
+- DB更新処理、外部投稿識別子保存処理、同期状態更新処理、フロント接続はまだ追加していない。
+- Codex環境では `deno` がPATH上に見つからず、`deno check` は未実施。Denoが利用できる環境での再確認を後続候補に残す。
+- この工程ではEdge Functionコードdraftとdocs記録のみ行い、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、SQL Editor実行、DB/RPC変更、Edge Function deploy、フロント実装、`updates.json` 変更、commit / pushは行わない。

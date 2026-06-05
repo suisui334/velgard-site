@@ -936,3 +936,24 @@ Bot方式は、将来的にGM別、種別別、セッション別の投稿先分
 実装前には、secret未設定時の拒否、dry-run境界、外部API失敗時の一般化、ログ安全性、二重投稿防止、送信成功後DB更新失敗時の扱い、外部投稿識別子既存時の `create` 挙動をレビューする。
 
 次工程は、M-14E-14Cで実送信コードdraftを作る場合でも `dry_run = false` 拒否を維持したままレビューできる形にする。その後、secret設定手順、dry-run再確認、テスト投稿、DB更新連携、フロント管理UI接続へ分割する。
+
+## M-14E-14C Webhook実送信用draftコード追加
+Edge Function `sync-session-post-to-discord` に、将来のWebhook実送信用draft helperを追加した。ただし、現行制御フローでは呼び出していない。`dry_run = false` は認証やDB読取より前に `real_send_not_enabled` 相当で拒否される状態を維持している。
+
+追加したdraftの役割:
+
+- Webhook secret名候補をコード上の定数として参照する。
+- Webhook payloadを `content` と `allowed_mentions` で組み立てる。
+- Discord WebhookへPOSTする将来処理をhelper内に隔離する。
+- Discord成功レスポンスから外部投稿識別子相当だけを抽出する。
+- 失敗時は生レスポンス全文ではなく、一般化したエラー種別へ丸める。
+
+今回追加していないもの:
+
+- `dry_run = false` の実送信有効化。
+- DB更新処理。
+- 外部投稿識別子保存処理。
+- Discord同期状態更新処理。
+- フロントからの呼び出しUI。
+
+次工程では、実送信helperを有効化する前に、secret設定手順、実送信ON/OFF条件、DB更新RPCの要否、二重投稿防止、送信成功後DB更新失敗時の扱いを再レビューする。
