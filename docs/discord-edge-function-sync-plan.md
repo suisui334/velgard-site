@@ -1366,3 +1366,33 @@ NULL許容を第一候補にする理由:
 8. M-14E-15J: `dry_run = true` QA。
 
 この工程ではSQL draft作成とdocs整理のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、deploy、Discord追加実送信、dry-run再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15C session_tool preflight SQL実行結果
+ユーザー手元で `docs/supabase/sql/026_session_tool_preflight_select_only.sql` をSupabase SQL Editorへ貼り付けて実行した。Codex側ではSQL Editorを実行していない。
+
+初回実行では、SQL内の日本語説明文字列がPowerShell経由の貼り付けで文字化けし、520行目前後で構文エラーになった。原因はDB構造やRPCではなく、SQL draft内の説明用文字列リテラルが壊れたこと。対策として、preflight SQL内の説明文字列と結果ラベルをASCIIへ寄せ、ヘッダーにもASCII維持の注意を追加した。修正後の再実行ではSQL Editorに結果グリッドが表示された。
+
+preflight結果の要約:
+
+- `public.sessions` は存在し、依頼書相当の正本テーブル候補として妥当。
+- `public.session_posts` は見つからず、現状では別の依頼書専用テーブルへ分かれていない。
+- 既存core columnsは概ね確認できた。
+- `public.sessions.session_tool` は存在しない。
+- 類似候補の `play_location` / `venue` / `session_place` / `session_place_name` 等も見つからない。
+- `session_tool` 関連CHECK制約は見つからない。
+- `create_session_post(...)` / `update_session_post(...)` / `delete_session_post(text)` は存在する。
+- `delete_session_post(text)` は完全削除用途のため、`session_tool` 追加対象ではない見込み。
+- create/update RPCは、`session_tool` 追加後にsignature変更または別RPC化の検討が必要。
+- default引数つきRPCのoverload曖昧化に注意が必要。
+- 既存RPCは `security_definer` と明示的な `search_path` が設定済みに見える。
+- `authenticated` 向けEXECUTE権限があり、`anon` / `public` は基本的に許可しない既存方針と整合する。
+- `public.sessions` のRLSは有効で、policyは複数存在する。
+
+判断:
+
+- `session_tool` は新規列追加が必要な可能性が高い。
+- `public.sessions` へ `session_tool text null` を追加し、空文字をRPC側でtrim後NULLへ丸め、表示時に `未定` へfallbackする案を第一候補として維持する。
+- 初期実装ではCHECK制約による固定候補化は行わず、自由入力を優先する。
+- 次工程は、preflight結果にもとづくsession_tool追加用SQL apply draft作成とする。
+
+この工程では結果記録とpreflight SQL draftのASCII説明文修正のみ行い、SQL apply、DB/RPC変更、Edge Functionコード変更、deploy、Discord追加実送信、dry-run再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。

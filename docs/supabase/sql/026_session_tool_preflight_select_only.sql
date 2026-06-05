@@ -5,6 +5,8 @@
 -- Catalog inspection only. This file must not alter schema, data, or
 -- privileges. Keep actual row values and credential values out of this file
 -- and out of pasted review notes.
+-- Keep result labels and SQL string literals ASCII-only. Non-ASCII notes
+-- caused a paste/encoding issue in one PowerShell to SQL Editor workflow.
 
 with
 target_rpcs(function_sort, function_name) as (
@@ -32,7 +34,7 @@ expected_core_columns(column_sort, column_name, expected_note) as (
 ),
 session_tool_column_candidates(candidate_sort, column_name, expected_note) as (
   values
-    (1, 'session_tool', 'preferred internal column name for display label 開催場所'),
+    (1, 'session_tool', 'preferred internal column name for display label session tool'),
     (2, 'play_location', 'alternative name; may be confused with physical place'),
     (3, 'venue', 'alternative name; physical venue nuance is stronger'),
     (4, 'session_place', 'alternative name; close to Japanese label but less precise')
@@ -496,7 +498,7 @@ results as (
     'session_tool column design',
     'nullable text, no fixed-value CHECK in first implementation',
     'info',
-    'session_tool text null; RPC trims blank to null; UI displays 未定 when blank',
+    'session_tool text null; RPC trims blank to null; UI displays unset/fallback label when blank',
     'This is a design checkpoint only; no schema change is performed by this file.'
 
   union all
@@ -516,7 +518,7 @@ results as (
     180,
     '11_design_candidate',
     'Discord post format dependency',
-    'new format uses 開催場所【session_tool or 未定】',
+    'new format uses session_tool or fallback label',
     'info',
     'Edge Function preview and send format should read the same normalized value',
     'Do not include site detail URL or internal identifiers in Discord text.'

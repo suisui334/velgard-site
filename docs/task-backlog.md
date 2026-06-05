@@ -1513,3 +1513,17 @@
 - Discord新フォーマットでは `開催場所【session_toolまたは未定】` を使い、サイト詳細URLや内部ID、認証情報、外部投稿先実値は本文へ入れない。
 - 次工程候補は、M-14E-15C preflight SQL手動実行、M-14E-15D preflight結果にもとづくapply draft、M-14E-15E apply前レビュー、M-14E-15F ユーザー手動SQL Editor適用、M-14E-15G フロントUI実装、M-14E-15H session-detail表示調整、M-14E-15I Edge Functionフォーマット変更、M-14E-15J dry_run QA。
 - この工程では調査・SQL draft・docs整理のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15C 開催場所/session_tool preflight実行結果
+- ユーザーがSupabase SQL Editorで `docs/supabase/sql/026_session_tool_preflight_select_only.sql` を手動実行した。
+- 初回はSQL内の日本語説明文字列がPowerShell経由で文字化けし、文字列リテラルが壊れて構文エラーになった。対策として、preflight SQL内の説明文字列と結果ラベルをASCIIへ寄せた。
+- 修正版ではSQL Editorに単一結果セットの結果グリッドが表示された。
+- `public.sessions` は存在し、現状の依頼書相当テーブル候補として妥当。`public.session_posts` は見つからなかった。
+- `session_tool` 列は存在しない。`play_location` / `venue` / `session_place` / `session_place_name` 等の類似列も見つからない。
+- `session_tool` 関連CHECK制約は見つからないため、初期自由入力案と矛盾しない。
+- `create_session_post(...)` / `update_session_post(...)` / `delete_session_post(text)` は存在する。create/updateはsession_tool対応のsignature変更または別RPC化検討が必要。deleteはsession_tool追加対象外でよさそう。
+- 既存RPCは `security_definer` と `search_path` 設定あり、`authenticated` EXECUTEあり、`anon` / `public` は基本なしの既存方針と整合する。
+- `public.sessions` のRLSは有効で、policyは複数存在する。nullable text列追加だけでRLS境界を広げない方針を維持する。
+- session_tool列追加案は `text null`、空文字trim後NULL、表示時 `未定` fallback、初期CHECKなし自由入力を第一候補にする。
+- 次工程候補は、M-14E-15D preflight結果にもとづくsession_tool追加SQL apply draft作成。
+- この工程ではdocs記録とpreflight SQL draftのASCII説明文修正のみ行い、SQL apply、DB/RPC変更、Edge Functionコード変更、deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。

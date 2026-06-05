@@ -1144,3 +1144,26 @@ Discord出力:
 - NULLまたは空文字は `開催場所【未定】` へ丸める。
 - `dry_run = true` previewと実送信本文は同じ丸め結果を使う。
 - Discord本文にはサイト詳細URLやクエリ付き詳細導線を入れない。
+
+## M-14E-15C session_tool preflight IO結果
+ユーザー手元で `026_session_tool_preflight_select_only.sql` をSQL Editor実行し、結果グリッドを確認した。初回はSQL内の日本語説明文字列が貼り付け経路で壊れて構文エラーになったため、SQL draft側の説明文字列をASCIIへ寄せた。修正後は結果グリッドが表示された。
+
+IO観点の確認結果:
+
+- 依頼書データの正本候補は引き続き `public.sessions`。
+- `session_tool` 入力列はまだ存在しない。
+- `play_location` / `venue` / `session_place` 系の代替列も見つからず、既存列流用ではなく新規列追加が自然。
+- `session_tool` 関連CHECK制約は存在しないため、初期自由入力案と矛盾しない。
+- `create_session_post(...)` と `update_session_post(...)` は存在するため、作成/更新IOへ `session_tool` を追加する必要がある。
+- `delete_session_post(text)` は削除用途であり、`session_tool` IO追加対象外でよさそう。
+- RLSとpolicyは存在し、nullable text列追加だけで権限境界を広げない方針を維持する。
+
+次のIO設計候補:
+
+- DB入力: `public.sessions.session_tool text null`。
+- 作成/更新RPC入力: `p_session_tool text default null`。
+- RPC内正規化: trim後空文字をNULLへ丸める。
+- フロント/詳細/Discord出力: NULLまたは空文字を `未定` へfallbackする。
+- 初期CHECKなし。候補selectや固定値制約は後続検討。
+
+この工程ではIO結果のdocs記録のみで、SQL apply、DB/RPC変更、Edge Functionコード変更、deploy、Discord送信、dry-run実行、フロント実装は行わない。
