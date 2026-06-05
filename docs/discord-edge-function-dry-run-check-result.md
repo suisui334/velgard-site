@@ -822,3 +822,97 @@ docsに残すpayload例はダミー値だけにする。
 3. deploy後に確認する場合でも、まず `dry_run = true` 限定確認から始め、実送信へ進まない。
 
 今回の記録工程では、Docker Desktop導入、Supabase CLI追加導入、ローカルserve再実行、`dry_run = true` 実行、`dry_run = false` 実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
+
+## M-14E-7 deploy後dry-run確認手順・deploy前安全レビュー
+
+Docker Desktop / Docker CLIが未導入または利用不可で、ローカルserve dry-run確認は保留になっている。Docker導入を保留する場合に備え、将来deploy後に `dry_run = true` だけを安全に確認する手順と、deploy前の安全レビュー項目を整理する。
+
+### 現状
+
+- Deno構文確認は成功済み。
+- Supabase CLIは `npx.cmd` 経由で `2.105.0` を確認済み。
+- ローカルserveはDocker未導入またはDocker daemon利用不可により不可。
+- `dry_run = true` は未実行。
+- `dry_run = false` も未実行。
+- Discord実送信なし。
+- DB更新なし。
+
+### deploy前チェックリスト
+
+deploy前に必ず確認する。
+
+- `git status --short` がcleanである。
+- `deno check supabase/functions/sync-session-post-to-discord/index.ts` が成功する。
+- `fetch(` が増えていない。
+- `.insert(` / `.update(` / `.delete(` / `.upsert(` が増えていない。
+- `console.` が増えていない。
+- `dry_run = false` が `real_send_not_enabled` で拒否される実装である。
+- Discord API送信処理が未接続である。
+- DB更新処理が未接続である。
+- 秘匿値の実値がコード、docs、GitHub差分にない。
+- 初期dry-run段階ではDiscord投稿先credentialが不要である。
+- ログに秘匿値の実値、認証系の生値、内部識別子を出さない。
+- CORS方針を確認する。初期draftの許可元はdry-run確認用として扱い、実運用前に再レビューする。
+- Authorization Bearerはユーザー手元だけで扱い、docsやチャットへ貼らない。
+- アプリ内admin権限とサーバ側高権限credentialを混同しない。
+
+### deploy後dry_run=true確認手順案
+
+deploy後に確認する場合も、最初は `create` / `dry_run = true` のみに絞る。
+
+必要な値:
+
+- Supabase接続先相当のURL。
+- Authorization Bearer。
+- 確認対象の依頼書ID相当の値。
+
+扱い:
+
+- 実値はユーザー手元だけで扱う。
+- docsや報告には実値を書かない。
+- レスポンスは一般化して記録する。
+- `message_preview` と `planned_db_update` の有無を確認する。
+- Discord実送信が発生していないことを確認する。
+- DB更新が発生していないことを確認する。
+- 秘匿値の実値、認証系の生値、内部識別子がレスポンスやログに出ないことを確認する。
+
+payload例はダミー値だけで記載する。
+
+```json
+{
+  "session_id": "<SESSION_ID_FOR_DRY_RUN>",
+  "action": "create",
+  "dry_run": true
+}
+```
+
+### dry_run=false
+
+- まだ実行しない。
+- 将来確認する場合も、実送信コードを追加する前のdraft段階では `real_send_not_enabled` で拒否されることだけを確認対象にする。
+- Discord実送信コードを追加するまでは、実送信へ進まない。
+
+### secret管理
+
+- 初期dry-runではDiscord投稿先credentialは不要な方針を維持する。
+- 必要になる場合も、Supabase側のsecret管理で扱い、docsやチャットには実値を書かない。
+- サーバ側高権限credentialはアプリ内admin権限とは別物として扱う。
+- Codexは秘匿値の実値や認証系の生値を要求しない。
+
+### deploy判断の前提
+
+- この工程ではdeployしない。
+- 次工程でdeployする場合も、deploy前にユーザー確認を必須にする。
+- deploy後も最初は `dry_run = true` のみ確認する。
+- Discord実送信はさらに後続工程へ分ける。
+
+### 次工程候補
+
+1. M-14E-8: Edge Function deploy手順・事前確認。
+2. M-14E-9: deploy実施判断。
+3. M-14E-10: deploy後dry_run=true確認。
+4. M-14E-11: real_send createのみ実装検討。
+5. M-14E-12: Discord実送信QA。
+6. またはDocker Desktop導入後にローカルserve dry-runへ戻る。
+
+この工程ではdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。

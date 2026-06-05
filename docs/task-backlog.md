@@ -1262,3 +1262,13 @@
 - Discord実送信なし、DB更新なし、`dry_run = false` 未実行、Edge Function deployなし。
 - 次工程候補は、Docker Desktopを導入してローカルserve dry-runへ進む案、またはローカルserveを保留してdeploy前手順整理と安全レビューへ進む案。
 - この工程ではdocs記録のみ。Docker Desktop導入、Supabase CLI追加導入、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-7 Discord同期Edge Function deploy後dry-run確認手順・deploy前安全レビュー
+- 作業前の作業ツリーはclean、最新commitは `918dcd3 Record Discord sync local serve blocked by Docker`。
+- `npx.cmd supabase --version` は `2.105.0`。Deno構文確認はPATH上の `deno` が未認識だったため、ユーザー領域のDeno実行ファイルをフルパスで実行して成功した。
+- 安全検索では `fetch(`、DB書き込み系メソッド、`console.`、外部投稿URL形式、bot token風文字列、service-role系credential風文字列はいずれも0件。
+- ローカルserveがDocker未導入により不可のため、将来deploy後に `create` / `dry_run = true` だけを安全に確認する手順とdeploy前チェックリストをdocsへ整理した。
+- deploy前チェックは、cleanな作業ツリー、Deno構文確認、外部送信なし、DB書き込みなし、console出力なし、`dry_run = false` 拒否、秘匿値実値なし、CORS確認、Authorization Bearerをユーザー手元だけで扱うことを含む。
+- deploy後確認では、実値をdocsや報告へ書かず、`message_preview` と `planned_db_update`、Discord実送信なし、DB更新なし、レスポンスとログの安全性を一般化して記録する。
+- 次工程候補は、M-14E-8 deploy手順・事前確認、M-14E-9 deploy実施判断、M-14E-10 deploy後dry_run=true確認、M-14E-11 real_send createのみ実装検討、M-14E-12 Discord実送信QA、またはDocker Desktop導入後にローカルserve dry-runへ戻る案。
+- この工程ではdocs整理のみ。Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。

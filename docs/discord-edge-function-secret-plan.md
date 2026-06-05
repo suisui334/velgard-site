@@ -331,6 +331,22 @@ Docker Desktopを導入する場合も、秘匿値の実値、認証系の生値
 
 この追記ではdocs記録のみ行い、Docker Desktop導入、Supabase CLI追加導入、ローカルserve再実行、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
 
+## M-14E-7 deploy後dry-run確認時のsecret管理
+
+Docker未導入によりローカルserveが使えない場合、将来deploy後に `dry_run = true` だけを確認する案を残す。ただし、この工程ではdeployしない。
+
+deploy前に確認すること:
+
+- 秘匿値の実値がコード、docs、GitHub差分にない。
+- 初期dry-run段階ではDiscord投稿先credentialを不要とする。
+- Authorization Bearerはユーザー手元だけで扱う。
+- レスポンスやログに秘匿値の実値、認証系の生値、内部識別子を出さない。
+- サーバ側高権限credentialをアプリ内admin権限と混同しない。
+
+deploy後dry-run確認を行う場合も、最初は `create` / `dry_run = true` のみに絞る。`dry_run = false` は実行しない。実値はSupabase管理画面またはユーザー手元の環境だけで扱い、docsや報告には書かない。
+
+この追記ではdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
 ## M-14E-6G ローカルserve前の環境変数確認
 
 Edge Functionコードが参照している環境変数名:

@@ -602,6 +602,25 @@ IO確認の次工程候補:
 
 この追記ではdocs記録のみ行い、Docker Desktop導入、Supabase CLI追加導入、Edge Function deploy、Discord実送信、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
 
+## M-14E-7 deploy前安全レビュー・deploy後dry-run確認
+
+ローカルserveがDocker未導入により不可のため、deploy後に `dry_run = true` だけを確認する場合のIO観点を整理する。この工程ではdeployしない。
+
+deploy前IOチェック:
+
+- `dry_run = false` は `real_send_not_enabled` で拒否する。
+- Discord API送信処理は未接続。
+- DB書き込み処理は未接続。
+- `fetch(`、DB書き込み系メソッド、`console.` が増えていない。
+- レスポンスに秘匿値の実値、認証系の生値、内部識別子、外部投稿参照情報そのものを含めない。
+- CORS方針をdry-run確認用として扱い、実運用前に再レビューする。
+
+deploy後dry-run確認は `create` / `dry_run = true` から始める。確認するのは、`message_preview`、`planned_db_update`、Discord実送信なし、DB更新なし、レスポンスとログの安全性。実値はユーザー手元だけで扱い、結果は一般化して記録する。
+
+`dry_run = false` はまだ実行しない。Discord実送信コードを追加するまでは実送信へ進まない。
+
+この追記ではdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
 ## M-14E-6H dry-run実行可否と停止判断
 
 `npx.cmd supabase --version` は `2.105.0`。Deno構文確認はユーザー領域のDeno実行ファイルをフルパス実行して成功した。
