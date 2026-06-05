@@ -598,6 +598,22 @@ npx.cmd supabase functions deploy sync-session-post-to-discord
 
 この追記ではdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-10 deploy直前IO最終確認
+
+最終確認では、`sync-session-post-to-discord` がdry-run preview専用draftのままであることを確認した。Deno構文確認は成功し、Supabase CLIは `npx.cmd` 経由で利用可能。`fetch(`、DB書き込み系メソッド、`console.` は0件で、Discord API送信処理とDB書き込み処理は未接続のまま。
+
+deploy候補コマンドは以下だが、Codex側では実行しない。
+
+```powershell
+npx.cmd supabase functions deploy sync-session-post-to-discord
+```
+
+deploy後の初回IO確認は `create` / `dry_run = true` のみに絞る。確認項目は、Function到達、`message_preview` と `planned_db_update` の有無、Discord実送信なし、DB更新なし、レスポンスとログの安全性。実値はユーザー手元だけで扱い、結果は一般化して記録する。
+
+`dry_run = false` はまだ実行しない。将来確認する場合も、実送信コード追加前の拒否確認として別工程に分ける。
+
+この追記ではdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
 ## M-14E-9 deploy直前IO判断
 
 deploy直前のIO観点では、dry-run専用draftが外部送信にもDB書き込みにも進まないことを再確認する。

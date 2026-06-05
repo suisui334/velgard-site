@@ -587,6 +587,34 @@ deploy後確認は `create` / `dry_run = true` のみに絞る。`dry_run = fals
 
 この追記ではdocs整理とdeploy直前レビューのみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-10 dry-run専用deploy実施前 最終安全確認
+
+dry-run専用deployの最終安全確認として、作業ツリー、Deno構文確認、Supabase CLI利用可否、安全検索、生成物、`updates.json`差分を確認した。この工程ではdeployしない。
+
+確認結果:
+
+- 作業ツリーはclean。
+- 最新commitは `cf8037c Document Discord sync dry run deploy checklist`。
+- Deno構文確認は成功。
+- Supabase CLIは `npx.cmd` 経由で `2.105.0` を確認。
+- `fetch(`、DB書き込み系メソッド、`console.` は0件。
+- 外部投稿URL形式、bot token風文字列、認証系生値風文字列、service-role系文字列はいずれも0件。
+- `deno.lock` なし。
+- `updates.json` 差分なし。
+
+deploy対象:
+
+- Function名: `sync-session-post-to-discord`
+- 対象ファイル: `supabase/functions/sync-session-post-to-discord/index.ts`
+- 候補コマンド: `npx.cmd supabase functions deploy sync-session-post-to-discord`
+- Codex側では実行しない。
+
+deploy時にCLIログイン、project link、project ref相当、Supabase access token相当が必要になる可能性がある。実値はユーザー手元だけで扱い、docsやチャットへ書かない。認証やlinkの扱いが不明な場合はdeployを止める。
+
+現時点の確認結果では、ユーザーが明示確認したうえで手動deployへ進むための直前安全条件は満たしている。ただし、deploy後確認は `create` / `dry_run = true` のみに絞り、`dry_run = false` はまだ実行しない。
+
+この追記では最終安全確認とdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
 ## M-14E-6H dry-run実行条件整理とローカル実行可否
 
 確認結果:

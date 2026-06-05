@@ -347,6 +347,16 @@ deploy後dry-run確認を行う場合も、最初は `create` / `dry_run = true`
 
 この追記ではdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
 
+## M-14E-10 手動deploy直前の認証・secret注意
+
+dry-run専用deployをユーザー手元で行う場合、Supabase CLIログイン、project link、project ref相当、Supabase access token相当の入力が必要になる可能性がある。これらの実値はdocs、GitHub、DB、フロント、チャットへ書かない。
+
+Codex側は実値を要求しない。CLI認証やproject linkが未設定、対象projectが不明、または実値を共有しないと進められない状態になった場合はdeployを止め、結果だけを一般化して記録する。
+
+初期dry-run段階ではDiscord投稿先credentialは不要な方針を維持する。必要になる場合もSupabase側のsecret管理で扱い、実値は記録しない。サーバ側高権限credentialをアプリ内admin権限と混同しない。
+
+この追記ではdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
 ## M-14E-9 CLI認証・project link時の秘匿値管理
 
 dry-run専用deploy時には、Supabase CLIのログイン状態、project link、project ref相当の情報が必要になる可能性がある。これらはユーザー手元またはSupabase管理画面側だけで扱い、docs、GitHub、DB、フロント、チャットへ実値を書かない。

@@ -1297,3 +1297,16 @@
 - `dry_run = false` はまだ実行しない。将来確認する場合も拒否確認として別工程に分ける。
 - 次工程候補は、M-14E-10 ユーザー手動deploy実施、M-14E-11 deploy後 create / dry_run=true 確認、M-14E-12 dry_run=false拒否確認、M-14E-13 real_send createのみ実装検討、M-14E-14 Discord実送信QA、またはDocker Desktop導入後にローカルserve dry-runへ戻る案。
 - この工程ではdocs整理とdeploy直前レビューのみ。Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-10 Discord同期Edge Function dry-run専用deploy実施前 最終安全確認
+- 作業前の作業ツリーはclean、最新commitは `cf8037c Document Discord sync dry run deploy checklist`。
+- Deno構文確認は成功。Supabase CLIは `npx.cmd supabase --version` で `2.105.0`。
+- 安全検索では `fetch(`、DB書き込み系メソッド、`console.`、外部投稿URL形式、bot token風文字列、認証系生値風文字列、service-role系文字列はいずれも0件。
+- `deno.lock` は存在しない。`updates.json` 差分なし。
+- deploy対象は Function名 `sync-session-post-to-discord`、対象ファイル `supabase/functions/sync-session-post-to-discord/index.ts`。候補コマンドは `npx.cmd supabase functions deploy sync-session-post-to-discord`。
+- Codex側ではdeploy候補コマンドを実行していない。`dry_run = true` / `dry_run = false` も実行していない。
+- deploy停止条件は、dirtyな作業ツリー、Deno構文確認失敗、外部送信処理やDB書き込みやconsole出力の増加、秘匿値実値混入、CLI認証・project link・project ref相当の扱い不明、`dry_run = false` 拒否の崩れ、ユーザー明示確認なし。
+- deploy時にSupabase CLIログイン、project link、project ref相当、Supabase access token相当の入力が必要になる可能性がある。実値はユーザー手元だけで扱い、docsやチャットへ書かない。
+- 現時点の確認結果では、ユーザーが明示確認したうえで手動deployへ進むための直前安全条件は満たしている。ただし、deploy後確認は `create` / `dry_run = true` のみに絞り、`dry_run = false` はまだ実行しない。
+- 次工程候補は、ユーザー手動deploy実施、deploy後 create / dry_run=true 確認、dry_run=false拒否確認、real_send createのみ実装検討、Discord実送信QA、またはDocker Desktop導入後にローカルserve dry-runへ戻る案。
+- この工程では最終安全確認とdocs整理のみ。Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、`updates.json` 変更、commit / pushは行っていない。

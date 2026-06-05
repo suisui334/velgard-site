@@ -1126,3 +1126,54 @@ payload例:
 6. またはDocker Desktop導入後にローカルserve dry-runへ戻る。
 
 この工程ではdocs整理とdeploy直前レビューのみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
+
+## M-14E-10 dry-run専用deploy実施前 最終安全確認
+
+Codex側ではdeployせず、dry-run実行にも進まず、ユーザー手動deployへ進めるかどうかの最終安全確認だけを行った。
+
+### 最終安全確認結果
+
+| 確認 | 結果 |
+| --- | --- |
+| `git status --short` | clean |
+| `git log --oneline -1` | `cf8037c Document Discord sync dry run deploy checklist` |
+| Deno構文確認 | 成功 |
+| `npx.cmd supabase --version` | `2.105.0` |
+| `fetch(` | 0 |
+| `.insert(` / `.update(` / `.delete(` / `.upsert(` | 0 |
+| `console.` | 0 |
+| 外部投稿URL形式 | 0 |
+| bot token風文字列 | 0 |
+| 認証系生値風文字列 | 0 |
+| service-role系文字列 | 0 |
+| `deno.lock` | なし |
+| `updates.json`差分 | なし |
+
+### deploy対象
+
+- Function名: `sync-session-post-to-discord`
+- 対象ファイル: `supabase/functions/sync-session-post-to-discord/index.ts`
+- deploy候補コマンド: `npx.cmd supabase functions deploy sync-session-post-to-discord`
+- Codex側ではこのコマンドを実行しない。
+
+### deploy停止条件
+
+- 作業ツリーがdirty。
+- Deno構文確認が失敗する。
+- 外部送信処理、DB書き込み処理、console出力が増えている。
+- 秘匿値の実値がコードまたはdocsに混入している。
+- CLI認証、project link、project ref相当の扱いが不明。
+- `dry_run = false` 拒否が崩れている。
+- ユーザーの明示確認がない。
+
+### ユーザー手動deploy時の注意
+
+deploy時にSupabase CLIログイン、project link、project ref相当の確認、Supabase access token相当の入力が求められる可能性がある。実値はユーザー手元だけで扱い、docsやチャットへ書かない。認証やlinkが未設定の場合はdeployを止め、結果だけを一般化して記録する。
+
+deploy後の確認は最初に `create` / `dry_run = true` のみに絞る。Authorization Bearer、確認対象依頼書ID相当の値、Supabase接続先等はユーザー手元だけで扱い、結果は一般化して記録する。`dry_run = false` はまだ実行しない。
+
+### 判断
+
+現時点の確認結果では、dry-run専用deployへ進むための直前安全条件は満たしている。ただし、実際のdeployはユーザー明示確認後にユーザー手元で行う。Codex側ではdeployしない。
+
+この工程では最終安全確認とdocs整理のみ行い、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値設定、commit / pushは行っていない。
