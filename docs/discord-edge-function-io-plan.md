@@ -648,6 +648,25 @@ IO上の確認:
 
 この追記ではdocs記録のみ行い、Edge Functionコード変更、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
 
+## M-14E-13 dry_run=false拒否確認のIO観点
+
+`dry_run = false` 拒否確認は、実送信を有効化しない状態で拒否ガードだけを確認する工程として扱う。この工程では実行しない。
+
+IO確認観点:
+
+- 入力payloadは `action = create` / `dry_run = false` に限定する。
+- 確認対象依頼書ID相当の値とAuthorization Bearerはユーザー手元だけで扱う。
+- 期待結果は、`real_send_not_enabled` または同等理由での拒否。
+- Discord投稿が作成されない。
+- DB同期状態列が変更されない。
+- レスポンスとFunction Logsに秘匿値の実値、認証系の生値、内部識別子を出さない。
+
+記録対象はHTTP status、response keys、error codeまたは一般化した拒否理由、Discord投稿なし確認、DB更新なし確認に絞る。レスポンス本文全文やURL実値、`message_preview` 本文全文は記録しない。
+
+`dry_run = false` が成功送信扱いになった場合は即停止し、以後再実行しない。Discord実送信実装やDB更新処理の追加へはまだ進まない。
+
+この追記では手順整理のみ行い、`dry_run = false` 実行、Discord実送信、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
+
 ## M-14E-10 deploy直前IO最終確認
 
 最終確認では、`sync-session-post-to-discord` がdry-run preview専用draftのままであることを確認した。Deno構文確認は成功し、Supabase CLIは `npx.cmd` 経由で利用可能。`fetch(`、DB書き込み系メソッド、`console.` は0件で、Discord API送信処理とDB書き込み処理は未接続のまま。

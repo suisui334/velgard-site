@@ -1344,3 +1344,15 @@
 - `planned_db_update` はdry-run上の予定情報であり、実DB更新は行わない設計として扱う。
 - 次工程候補は、`dry_run = false` 拒否確認、またはDiscord実送信実装前の追加安全レビュー。
 - この工程ではdocs記録のみ。Edge Functionコード変更、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-13 Discord同期Edge Function dry_run=false拒否確認手順整理
+- 作業前の作業ツリーはclean、最新commitは `253abab Record Discord sync dry run success`。
+- deploy済み `sync-session-post-to-discord` について、`dry_run = false` が実送信へ進まず安全に拒否されることを確認する手順を整理した。
+- この工程では `dry_run = false` は実行していない。Discord実送信も行っていない。
+- payload例は `session_id` をプレースホルダーにし、`action = create`、`dry_run = false`、`request_source = manual_real_send_rejection_check` とする方針。
+- 期待する挙動は、HTTP 4xxまたは `ok = false` 相当で拒否され、`real_send_not_enabled` または同等の拒否理由が返ること。
+- 確認観点は、拒否レスポンス、Discord投稿なし、DB同期状態変更なし、Function Logsの安全性。
+- 記録対象はHTTP status、response keys、error codeまたは一般化した拒否理由に絞る。レスポンス本文全文、確認対象依頼書ID相当の値、Supabase接続先全文、Authorization Bearer、Discord投稿先、`message_preview` 本文全文は記録しない。
+- 停止条件は、成功送信扱い、Discord投稿作成、DB同期状態変更、秘匿値実値や認証系の生値の露出、拒否確認として扱えない想定外エラー。
+- 停止条件に該当した場合は以後再実行せず、一般化した結果を記録して追加安全レビューへ戻る。
+- この工程では手順整理のみ。SQL Editor実行、DB/RPC変更、Discord実送信、`dry_run = false` 実行、Edge Functionコード変更、Edge Function deploy、フロント実装、秘匿値の実値記録、`updates.json` 変更、commit / pushは行っていない。

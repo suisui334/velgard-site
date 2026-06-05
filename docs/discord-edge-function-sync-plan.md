@@ -683,6 +683,33 @@ deploy済みEdge Functionの `create` / `dry_run = true` 確認でHTTP 500が発
 
 この追記ではdry-run成功結果のdocs記録のみ行い、Edge Functionコード変更、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
 
+## M-14E-13 dry_run=false拒否確認手順整理
+
+`sync-session-post-to-discord` の `dry_run = false` が実送信へ進まず、安全に拒否されることを確認するための手順を整理した。この工程では実行しない。
+
+確認方針:
+
+- payloadは `create` / `dry_run = false` に限定する。
+- `request_source` は手動拒否確認用の固定文字列を使う。
+- 確認対象依頼書ID相当の値、Supabase接続先、Authorization Bearer等はユーザー手元だけで扱い、docsや報告へ実値を書かない。
+- 期待する挙動は、HTTP 4xxまたは `ok = false` 相当での拒否。
+- `real_send_not_enabled` または同等の拒否理由が返ることを確認する。
+- Discord投稿なし、DB同期状態変更なし、Function Logsの安全性を確認する。
+
+停止条件:
+
+- `dry_run = false` が成功送信扱いになった。
+- Discord投稿が作成された。
+- DB同期状態列が変更された。
+- レスポンスまたはログに秘匿値の実値、認証系の生値、内部識別子が含まれた。
+- 想定外のエラーで拒否確認として扱えない。
+
+停止条件に該当した場合は以後再実行せず、一般化した結果だけを記録し、追加安全レビューへ戻る。
+
+次工程候補は、ユーザー手元での `dry_run = false` 拒否確認結果記録、またはDiscord実送信実装前の追加安全レビュー。Discord実送信、Discord投稿先credential設定、DB更新、フロント接続はまだ行わない。
+
+この追記では手順整理のみ行い、`dry_run = false` 実行、Discord実送信、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、Edge Function deploy、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
+
 ## M-14E-6H dry-run実行条件整理とローカル実行可否
 
 確認結果:
