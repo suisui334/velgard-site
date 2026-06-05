@@ -1408,3 +1408,12 @@
 - 実送信有効化前の最終レビューとして、投稿先チャンネル確認、テスト用/本番募集チャンネル判断、誤投稿時の削除/訂正方針、二重投稿防止、既存外部投稿識別子がある場合の `create` 挙動、Discord成功後DB更新失敗時の扱いを整理した。
 - 次工程候補は、M-14E-14E secret設定手順のユーザー確認、M-14E-14F secret設定後dry_run=true再確認、M-14E-14G 実送信有効化コード設計、M-14E-14H テスト投稿確認。
 - この工程ではdocs整理のみ行い、secret実値設定、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、Edge Functionコード変更、deploy、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-14E Discord同期Edge Function secret設定前の最終意思決定
+- `DISCORD_SESSION_POST_WEBHOOK_URL` の実secret設定前に、投稿先と初回確認方針をユーザー判断事項として整理した。
+- 初期方針は「全依頼書を1つの募集チャンネルへ投稿」を維持する。docsでは投稿先実値を扱わず、「本番募集チャンネル」「テスト用チャンネル」の抽象名だけを使う。
+- secret設定前の判断事項は、Webhook方式で進めるか、初回確認先をテスト用チャンネルにするか本番募集チャンネルにするか、検証用依頼書を使うか、誤投稿時の削除/訂正担当と手順、投稿文面が本番に出ても問題ないか。
+- secret設定だけでは実送信は有効化されない。設定後も `dry_run = true` はpreview専用、`dry_run = false` は `real_send_not_enabled` 相当で拒否維持、Discord投稿なし、DB更新なしを確認する。
+- 実送信有効化前の停止条件は、投稿先未確定、テスト/本番判断未確定、誤投稿時対応未確定、二重投稿防止未整理、既存外部投稿識別子がある場合の `create` 挙動未整理、Discord成功後DB更新失敗時の扱い未整理、secret実値や投稿先実値の露出リスク。
+- 次工程候補は、M-14E-14F ユーザー手元でsecret設定、M-14E-14G secret設定後dry_run=true再確認、M-14E-14H secret設定後もdry_run=false拒否維持確認、M-14E-14I 実送信有効化コード変更案作成、M-14E-14J 初回テスト投稿確認。
+- この工程ではdocs整理のみ行い、secret実値設定、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、Edge Functionコード変更、deploy、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。
