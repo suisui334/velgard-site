@@ -631,6 +631,23 @@ IO上の修正方針:
 
 この追記ではdocs記録のみ行い、SQL Editor実行、DB/RPC変更、Discord実送信、`dry_run = false` 実行、Edge Function deploy、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
 
+## M-14E-12D 修正版deploy後dry-run成功時のIO結果
+
+RPC method binding修正後の再deployにより、`create` / `dry_run = true` はHTTP 200で成功した。レスポンスには `ok`、`dry_run`、`action`、`sync_target`、`message_preview`、`planned_db_update`、`warnings` が含まれた。
+
+IO上の確認:
+
+- `message_preview` は返却あり。ただし本文全文は記録しない。
+- `planned_db_update` は返却あり。ただしdry-run上の予定情報であり、実DB更新は行わない設計。
+- Discord実送信なし。
+- `dry_run = false` 未実行。
+- DB更新なし。
+- フロント接続なし。
+
+次工程では、`dry_run = false` が拒否されることを別工程で確認するか、Discord実送信実装前の安全レビューへ進む。実送信やDB更新はまだ行わない。
+
+この追記ではdocs記録のみ行い、Edge Functionコード変更、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
+
 ## M-14E-10 deploy直前IO最終確認
 
 最終確認では、`sync-session-post-to-discord` がdry-run preview専用draftのままであることを確認した。Deno構文確認は成功し、Supabase CLIは `npx.cmd` 経由で利用可能。`fetch(`、DB書き込み系メソッド、`console.` は0件で、Discord API送信処理とDB書き込み処理は未接続のまま。

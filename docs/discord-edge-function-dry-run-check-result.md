@@ -1238,3 +1238,31 @@ deploy済み `sync-session-post-to-discord` で、ユーザー手元の `create`
 次工程は、ユーザー確認後に修正版Edge Functionのdeployと、deploy後 `create` / `dry_run = true` 再確認を行うこと。
 
 この工程ではFunctionコード修正とdocs記録のみ行い、SQL Editor実行、DB/RPC変更、Discord実送信、`dry_run = false` 実行、Edge Function deploy、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
+
+## M-14E-12D 修正版deploy後 create / dry_run=true 成功結果
+
+M-14E-12Bで発生していたHTTP 500は、RPC method binding修正後の再deployにより解消した。ユーザー手元で修正版 `sync-session-post-to-discord` の `create` / `dry_run = true` を再確認し、HTTP 200で成功した。
+
+確認結果:
+
+| 確認 | 結果 |
+| --- | --- |
+| `create` / `dry_run = true` 実行 | ユーザー手元で実施 |
+| HTTP status | 200 |
+| JSON parse | 成功 |
+| `ok` | true |
+| `dry_run` | true |
+| `action` | `create` |
+| response keys | `ok`, `dry_run`, `action`, `sync_target`, `message_preview`, `planned_db_update`, `warnings` |
+| `message_preview` | 返却あり |
+| `planned_db_update` | 返却あり |
+| Discord実送信 | なし |
+| `dry_run = false` | 未実行 |
+
+レスポンスサイズ、preview行数、preview有無は確認済み。ただし、確認対象依頼書ID相当の値、Supabase接続先、Authorization Bearer、`message_preview` 本文全文はdocsへ記録しない。
+
+DB更新については、dry-runレスポンス上は `planned_db_update` として予定情報が返る段階であり、実DB更新は行わない設計として扱う。
+
+次工程候補は、`dry_run = false` 拒否確認、またはDiscord実送信実装前の追加安全レビュー。Discord実送信、Discord投稿先credential設定、DB更新、フロント接続はまだ行わない。
+
+この工程ではdry-run成功結果のdocs記録のみ行い、Codex側でEdge Functionコード変更、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、commit / pushは行っていない。

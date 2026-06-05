@@ -660,6 +660,29 @@ deploy済みEdge Functionの `create` / `dry_run = true` 確認でHTTP 500が発
 
 この追記ではFunctionコード修正とdocs記録のみ行い、SQL Editor実行、DB/RPC変更、Discord実送信、`dry_run = false` 実行、Edge Function deploy、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
 
+## M-14E-12D 修正版deploy後dry-run成功結果
+
+修正版 `sync-session-post-to-discord` をdeploy後、ユーザー手元で `create` / `dry_run = true` を再確認し、HTTP 200で成功した。M-14E-12Bで発生していたHTTP 500は、Supabase client RPC method binding修正後の再deployで解消した。
+
+確認できたこと:
+
+- HTTP statusは200。
+- レスポンスJSONのparseに成功。
+- `ok = true`。
+- `dry_run = true`。
+- `action = create`。
+- レスポンスには `ok` / `dry_run` / `action` / `sync_target` / `message_preview` / `planned_db_update` / `warnings` が含まれる。
+- `message_preview` は返却あり。ただし本文全文は記録しない。
+- Discord実送信なし。
+- `dry_run = false` 未実行。
+- DB更新なし。
+
+`planned_db_update` はdry-run上の予定情報であり、実DB更新は行わない設計として扱う。
+
+次工程候補は、`dry_run = false` 拒否確認、またはDiscord実送信実装前の追加安全レビュー。Discord実送信、Discord投稿先credential設定、DB更新、フロント接続はまだ行わない。
+
+この追記ではdry-run成功結果のdocs記録のみ行い、Edge Functionコード変更、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、commit / pushは行っていない。
+
 ## M-14E-6H dry-run実行条件整理とローカル実行可否
 
 確認結果:

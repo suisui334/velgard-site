@@ -1331,3 +1331,16 @@
 - `dry_run = false` は有効化していない。Discord実送信処理、DB更新処理、フロント接続も追加していない。
 - 次工程は、ユーザー確認後に修正版Edge Functionをdeployし、deploy後 `create` / `dry_run = true` を再確認すること。
 - この工程ではFunctionコード修正とdocs記録のみ。SQL Editor実行、DB/RPC変更、Discord実送信、`dry_run = false` 実行、Edge Function deploy、フロント実装、秘匿値の実値記録、`updates.json` 変更、commit / pushは行っていない。
+
+## M-14E-12D Discord同期Edge Function 修正版deploy後 dry-run 成功結果記録
+- 作業前の作業ツリーはclean、最新commitは `4aeebdf Fix Discord sync RPC binding`。
+- 修正版 `sync-session-post-to-discord` はユーザー手元でdeploy済み。deploy時にDocker未起動WARNINGは出たが、deploy自体は成功。
+- ユーザー手元で `create` / `dry_run = true` を再実行し、HTTP 200で成功した。
+- M-14E-12Bで発生していたHTTP 500は、Supabase client RPC method binding修正後の再deployで解消した。
+- レスポンスJSON parseは成功し、`ok = true`、`dry_run = true`、`action = create` を確認した。
+- レスポンスには `ok` / `dry_run` / `action` / `sync_target` / `message_preview` / `planned_db_update` / `warnings` が含まれた。
+- `message_preview` は返却されたが、本文全文はdocsへ記録しない。確認対象依頼書ID相当の値、Supabase接続先、Authorization Bearer等の実値も記録していない。
+- Discord実送信なし。`dry_run = false` 未実行。SQL Editor未実行。DB/RPC変更なし。
+- `planned_db_update` はdry-run上の予定情報であり、実DB更新は行わない設計として扱う。
+- 次工程候補は、`dry_run = false` 拒否確認、またはDiscord実送信実装前の追加安全レビュー。
+- この工程ではdocs記録のみ。Edge Functionコード変更、Edge Function deploy、Discord実送信、`dry_run = true` 実行、`dry_run = false` 実行、SQL Editor実行、DB/RPC変更、フロント実装、秘匿値の実値記録、`updates.json` 変更、commit / pushは行っていない。
