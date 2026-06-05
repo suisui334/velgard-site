@@ -1399,3 +1399,21 @@ Webhook実送信用draft helperを追加したが、dry-run確認済みの境界
 - `console.*`: 追加なし。
 
 Codex環境では `deno` コマンドがPATH上で見つからず、今回の環境では `deno check` を実行できなかった。Deno構文確認は、Denoが利用できるユーザー手元環境または別環境で再実施する候補として残す。
+
+## M-14E-14D secret設定後確認の記録テンプレート
+secret設定後に確認する場合も、実値は記録しない。結果は以下のように一般化して記録する。
+
+| 項目 | 記録内容 |
+| --- | --- |
+| secret設定 | 設定済み / 未設定 / 未確認 |
+| 設定方法 | CLI / Dashboard / その他 |
+| secret名 | `DISCORD_SESSION_POST_WEBHOOK_URL` |
+| secret実値 | 記録しない |
+| `dry_run = true` | preview維持 / 未確認 |
+| `dry_run = false` | 拒否維持 / 未確認 |
+| Discord投稿 | 増加なし / 未確認 |
+| DB更新 | なし / 未確認 |
+| Function Logs | secret非露出 / 未確認 |
+| 残課題 | 一般化して記録 |
+
+M-14E-14Dではこのテンプレートと確認観点だけを追加する。secret実値設定、`dry_run = true` / `dry_run = false` の再実行、Discord実送信、Edge Functionコード変更、deploy、DB/RPC変更は行わない。

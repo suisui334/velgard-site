@@ -1398,3 +1398,13 @@
 - DB更新処理、外部投稿識別子保存処理、同期状態更新処理、フロント接続はまだ追加していない。
 - Codex環境では `deno` がPATH上に見つからず、`deno check` は未実施。Denoが利用できる環境での再確認を後続候補に残す。
 - この工程ではEdge Functionコードdraftとdocs記録のみ行い、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、SQL Editor実行、DB/RPC変更、Edge Function deploy、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-14D Discord同期Edge Function secret設定手順・設定後確認手順
+- Webhook方式の投稿先secret名は `DISCORD_SESSION_POST_WEBHOOK_URL` で進める前提を整理した。
+- Supabase CLIでは `npx.cmd supabase secrets set DISCORD_SESSION_POST_WEBHOOK_URL="<DISCORD_SESSION_POST_WEBHOOK_URL_VALUE>"` というプレースホルダー手順を記録した。実値はユーザー手元だけで扱い、docs、GitHub、DB、フロント、チャットには出さない。
+- Supabase Dashboardで設定する場合は、対象project、対象Function環境、secret名、値欄の非共有を確認する方針にした。
+- secret設定だけでは実送信は有効化されない。現行コードではWebhook helperは実行経路から呼ばれず、`dry_run = false` は `real_send_not_enabled` 相当で拒否される。
+- secret設定後は、まず `dry_run = true` preview維持、次に実送信有効化前の `dry_run = false` 拒否維持、Function Logsのsecret非露出、Discord投稿増加なし、DB更新なしを確認する。
+- 実送信有効化前の最終レビューとして、投稿先チャンネル確認、テスト用/本番募集チャンネル判断、誤投稿時の削除/訂正方針、二重投稿防止、既存外部投稿識別子がある場合の `create` 挙動、Discord成功後DB更新失敗時の扱いを整理した。
+- 次工程候補は、M-14E-14E secret設定手順のユーザー確認、M-14E-14F secret設定後dry_run=true再確認、M-14E-14G 実送信有効化コード設計、M-14E-14H テスト投稿確認。
+- この工程ではdocs整理のみ行い、secret実値設定、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、Edge Functionコード変更、deploy、SQL Editor実行、DB/RPC変更、フロント実装、`updates.json` 変更、commit / pushは行わない。

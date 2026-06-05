@@ -839,3 +839,16 @@ payload draft:
 - Discordレスポンス全文、Webhook実値、投稿先実値、認証情報、確認対象依頼書ID相当の実値は返さない。
 
 DB更新はまだIOに含めない。実送信成功後のDB更新、DB更新失敗時の補償、二重投稿防止は後続工程で扱う。
+
+## M-14E-14D secret設定後のIO確認手順
+secret設定後も、IO上の安全境界は変えない。`dry_run = true` は `message_preview` と `planned_db_update` 相当のpreviewのみを返し、Discord送信とDB更新を行わない。`dry_run = false` は実送信有効化コードへ進むまで拒否を維持する。
+
+確認するIO項目:
+
+- 入力payloadやAuthorization値をdocsへ記録しない。
+- レスポンスにはsecret実値、Webhook実値、投稿先実値、確認対象依頼書ID相当の実値、認証情報、`message_preview` 本文全文を含めない。
+- Function Logsにsecret実値やWebhook実値が出ていない。
+- Discord側に投稿が作成されていない。
+- DB同期状態が変わっていない。
+
+実送信有効化前の最終レビューでは、`create` の二重投稿防止を確認する。既存外部投稿識別子がある場合は、新規投稿を作らず拒否または更新系へ誘導する案を優先する。Discord API成功後にDB更新が失敗した場合の扱いは、実送信コード有効化前に別途設計する。

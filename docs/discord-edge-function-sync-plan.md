@@ -957,3 +957,18 @@ Edge Function `sync-session-post-to-discord` に、将来のWebhook実送信用d
 - フロントからの呼び出しUI。
 
 次工程では、実送信helperを有効化する前に、secret設定手順、実送信ON/OFF条件、DB更新RPCの要否、二重投稿防止、送信成功後DB更新失敗時の扱いを再レビューする。
+
+## M-14E-14D secret設定後の同期安全境界
+`DISCORD_SESSION_POST_WEBHOOK_URL` を設定しても、現行の同期処理はただちに実送信へ進まない。Webhook helperはdraftとして存在するが、現行リクエスト処理からは呼ばれず、`dry_run = false` は `real_send_not_enabled` 相当で拒否される。
+
+secret設定後の確認順は以下とする。
+
+1. secret実値をdocs、GitHub、DB、フロント、チャットへ出していないことを確認する。
+2. `dry_run = true` がpreviewのみで、Discord送信とDB更新を行わないことを再確認する。
+3. 実送信有効化前に `dry_run = false` が拒否されることを確認する。
+4. Function Logsにsecret実値、認証情報、確認対象依頼書ID相当の実値、投稿先実値が出ていないことを確認する。
+5. Discord側に新規投稿が増えていないことを確認する。
+
+実送信を有効化するコード変更は別工程にする。有効化前に、投稿先をテスト用チャンネルにするか本番募集チャンネルにするか、誤投稿時の削除/訂正方針、二重投稿防止、既存外部投稿識別子がある場合の `create` 挙動、Discord送信成功後のDB更新失敗時の扱いを最終レビューする。
+
+次工程候補は、M-14E-14E secret設定手順のユーザー確認、M-14E-14F secret設定後dry_run=true再確認、M-14E-14G 実送信有効化コード設計、M-14E-14H テスト投稿確認とする。

@@ -523,3 +523,40 @@ Webhook方式の送信payloadは、既存dry-run previewで確認している公
 このhelperは、secret未設定時に一般化した設定不足として扱う。Webhook payloadは既存preview本文をもとに `content` を作り、意図しないメンションを避けるため `allowed_mentions.parse = []` を含めるdraftとした。Discord成功レスポンスから外部投稿識別子相当を取り出す処理もdraftとして置いたが、レスポンス全文は返さない方針を維持する。
 
 重要な安全境界として、今回追加したhelperはリクエスト処理の実行経路へ接続していない。`dry_run = false` は引き続き `real_send_not_enabled` 相当で先に拒否されるため、secretが設定されていてもDiscord実送信には進まない。DB更新処理、外部投稿識別子保存処理、secret実値設定はまだ行わない。
+
+## M-14E-14D Webhook secret設定手順と設定後確認
+Webhook方式の初期実装では、単一募集チャンネル向けの投稿先credentialを `DISCORD_SESSION_POST_WEBHOOK_URL` というsecret名で扱う方針を維持する。secret実値はSupabase側のsecret管理だけで扱い、docs、GitHub、DB、フロント、チャットには書かない。
+
+### Supabase CLIで設定する場合
+PowerShellでは `npx.cmd` を使う。コマンド例はプレースホルダーのみで記録する。
+
+```powershell
+npx.cmd supabase secrets set DISCORD_SESSION_POST_WEBHOOK_URL="<DISCORD_SESSION_POST_WEBHOOK_URL_VALUE>"
+```
+
+`<DISCORD_SESSION_POST_WEBHOOK_URL_VALUE>` はユーザー手元だけで置き換える。実値をチャットやdocsへ貼らない。CLI認証、project link、project ref相当の扱いが必要になった場合も、実値はユーザー手元だけで扱い、Codexへ渡さない。
+
+### Supabase Dashboardで設定する場合
+Dashboardから設定する場合も、secret名が `DISCORD_SESSION_POST_WEBHOOK_URL` であること、対象projectと対象Functionの環境に設定すること、保存後に値が画面共有やdocsへ残らないことを確認する。スクリーンショットを共有する場合は、値欄を完全に隠す。
+
+### 設定反映とdeploy要否の確認観点
+secret設定だけでは実送信は有効化されない。現行コードではWebhook helperは実行経路から呼ばれず、`dry_run = false` は `real_send_not_enabled` 相当で拒否される。設定後にFunctionがsecretを参照できるようになるタイミングやdeploy要否は、Supabase CLIまたはDashboardの表示に従って確認する。判断が曖昧な場合は、deployや実送信へ進まず、結果だけを一般化して記録する。
+
+### secret設定後の安全確認
+secret設定後も、まず `dry_run = true` のpreview維持を確認する。次に、実送信有効化前であれば `dry_run = false` が引き続き拒否されることを確認対象にする。ただし、このM-14E-14D工程ではどちらも実行しない。
+
+確認時は、Function Logsにsecret実値、Webhook実値、認証情報、確認対象依頼書ID相当の実値、投稿先実値が出ていないことを確認する。Discord側にも投稿が増えていないことを、実送信有効化前の確認項目として残す。
+
+### 実送信有効化前の停止条件
+以下のどれかに該当する場合は、実送信有効化へ進まない。
+
+- secret名または対象projectが曖昧。
+- secret実値がdocs、GitHub、チャット、ログ、フロントに出た。
+- `dry_run = true` がpreview専用でなくなった。
+- `dry_run = false` の拒否境界が崩れた。
+- 投稿先チャンネルが募集チャンネルでよいか未確認。
+- テスト用チャンネルと本番募集チャンネルのどちらを使うか未決定。
+- 誤投稿時の削除または訂正方針が未整理。
+- 二重投稿防止策、既存外部投稿識別子がある場合の `create` 挙動、Discord成功後DB更新失敗時の扱いが未整理。
+
+この工程ではdocs整理のみ行い、secret実値設定、Discord実送信、`dry_run = true` / `dry_run = false` 再実行、Edge Functionコード変更、deploy、SQL Editor実行、DB/RPC変更、フロント実装は行わない。
