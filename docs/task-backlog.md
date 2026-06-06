@@ -2677,3 +2677,38 @@ Next:
 - Public-site final display confirmation.
 - Discord channel remnant cleanup.
 - Optional SELECT-only confirmation for DB sessions 0.
+
+## M-14E-18O 運用前リセット完了記録・最終表示確認
+
+Status: prelaunch cleanup completion recorded. No destructive operation was run.
+
+Cleanup completion:
+
+- After 037 final reset, DB-side session posts are treated as prelaunch-reset complete.
+- The remaining 3 Supabase session rows are treated as successfully deleted by final reset.
+- Discord test-channel posts were manually deleted by the user.
+- Discord post deletion was not performed by SQL or Codex.
+- Static JSON rows remain retired from normal UI.
+- Major prelaunch session-remnant cleanup is treated as complete.
+- If Discord-only remnants are found later, they should be handled manually on Discord, not through DB cleanup.
+
+Final public-site display checklist:
+
+- Calendar should not normally show old session posts.
+- Session detail should not normally resurrect old static JSON posts.
+- Mypage should not show unnecessary old session/application helper data.
+- The UI should not break when normal session posts are 0.
+- Create/update/delete Discord auto-sync for session posts has already passed QA.
+- Raw Discord ids, post URLs, JWT/session values, user ids, emails, and tokens must not be displayed.
+
+Static review:
+
+- `sessionData.js` loads static JSON fixtures only with explicit development URL flags.
+- `renderCalendar.js` and `renderSessionDetail.js` use `loadMergedSessions()`, so normal pages should not resurrect static JSON fixtures.
+- Hosted-page final visual confirmation remains a user-side check.
+
+Next:
+
+- Public-site visual confirmation for calendar/session-detail/mypage.
+- Manual Discord channel cleanup if any remnants are found.
+- Prelaunch smoke check for a new production session post if desired.

@@ -3058,3 +3058,38 @@ Next IO tracks:
 - Final public-site display confirmation.
 - Discord-channel-side remnant cleanup.
 - Optional SELECT-only confirmation that DB sessions are 0.
+
+## M-14E-18O prelaunch cleanup completion and final display checks
+
+Status: completion record and final display checklist. No SQL execution, deletion, Discord operation, deploy, dry-run, real-send, or secret switch was performed.
+
+Cleanup completion record:
+
+- After 037 final reset, DB-side session posts are treated as reset for prelaunch.
+- The remaining 3 Supabase session rows are treated as successfully deleted by final reset.
+- Test-channel Discord posts were manually deleted by the user.
+- SQL did not delete Discord posts.
+- If old test-webhook or Discord-only remnants are found later, handle them manually on Discord rather than through DB cleanup.
+- Static JSON fixture rows remain retired from normal UI.
+- Prelaunch session-remnant cleanup is treated as materially complete.
+
+Final public-site display checklist:
+
+- Calendar should not normally show old session posts.
+- Session detail should not normally resurrect old static JSON sessions.
+- Mypage should not retain unnecessary session/application helper data.
+- Calendar/session-detail/mypage should not break when there are 0 normal session posts.
+- Create/update/delete Discord auto-sync for new session posts has already passed QA.
+- Raw Discord ids, URLs, JWT/session values, user ids, emails, and tokens must not appear in UI/docs/console.
+
+Static review:
+
+- `sessionData.js` skips `data/sessions.json` unless `includeStaticSessions=1` or `staticSessions=1` is explicitly present.
+- `renderCalendar.js` and `renderSessionDetail.js` load through `loadMergedSessions()`, so normal UI should not resurrect static JSON fixture posts.
+- Final hosted-page display remains a user visual confirmation item.
+
+Next IO tracks:
+
+- Final visual check of calendar/session-detail/mypage after public-site reflection.
+- Manual Discord cleanup if any channel-side remnants are found.
+- Optional prelaunch smoke check for creating a new production session post.

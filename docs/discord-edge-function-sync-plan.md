@@ -3816,3 +3816,38 @@ Discord側cleanupチェックリスト:
 - 公開サイト最終表示確認。
 - Discordチャンネル側残骸整理。
 - 必要ならSELECT-onlyでDB sessions 0件確認。
+
+## M-14E-18O 運用前リセット完了記録と最終表示確認
+
+`1830a29 Record final session reset` の状態から、運用前リセット完了扱いと公開サイト最終表示確認項目を整理した。この工程ではSQL Editor実行、SQL apply、実削除、Discord投稿削除、DB/RPC変更、Edge Function deploy、dry-run、real-send、secret設定/切替は行っていない。
+
+運用前リセット完了扱い:
+
+- 037 final reset後、DB側依頼書は運用前リセット済み扱い。
+- Supabase側の残り依頼書3件はfinal reset対象として削除成功扱い。
+- Discord側テストチャンネル投稿は、ユーザー手元で手動削除済み。
+- SQLではDiscord投稿削除を行っていない。
+- 旧テストWebhook/Discord-only残骸が今後見つかった場合は、DBではなくDiscord側手動整理対象とする。
+- 静的JSON由来依頼書は通常UIから退役済み。
+- 本番運用前の依頼書残骸cleanupは主要完了扱い。
+
+公開サイト最終表示確認チェックリスト:
+
+- calendarに旧依頼書が通常表示されないこと。
+- session-detailで旧静的JSON依頼書が通常復活しないこと。
+- mypageに不要な依頼書/申請補助情報が残らないこと。
+- 依頼書が0件状態でもcalendar / session-detail / mypageが破綻しないこと。
+- 新規依頼書作成・編集・削除のDiscord自動同期はQA済みとして扱う。
+- Discord message id、channel id、thread id、post URL全文、JWT、session_id、project ref、Webhook URL、user id、email、tokenなどの実値を画面/docs/consoleへ出さないこと。
+
+静的レビュー結果:
+
+- `sessionData.js` は通常時に `data/sessions.json` を読み込まず、`includeStaticSessions=1` または `staticSessions=1` の明示フラグ時だけfixtureを含める。
+- `renderCalendar.js` / `renderSessionDetail.js` は `loadMergedSessions()` 経由でデータを取得するため、通常UIでは静的JSON由来の旧依頼書が復活しない前提。
+- 公開サイトの実表示はユーザー目視確認対象として扱う。
+
+次工程候補:
+
+- 公開サイト反映後、calendar / session-detail / mypageの最終目視確認。
+- Discordチャンネル側に残骸が見つかった場合の手動整理。
+- 運用開始前の新規依頼書作成smoke確認。
