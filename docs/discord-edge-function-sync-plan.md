@@ -1480,3 +1480,77 @@ RPCレビュー:
 - authenticated/anon/publicのEXECUTE権限を確認する。
 - `public.sessions` のRLS有効状態を確認する。
 - 実データ行、ユーザーID、認証情報、外部投稿先実値は出さない。
+
+## M-14E-15F session_tool SQL apply手動実行前最終確認
+`docs/supabase/sql/027_session_tool_apply_review_draft.sql` をユーザー手元でSQL Editor適用する前の最終確認を整理した。この工程ではSQL Editor実行、DB/RPC実変更、Edge Functionコード変更、deploy、Discord追加実送信、dry-run再実行、フロント実装は行わない。
+
+貼るSQL範囲:
+
+- SQL Editorに貼る対象は `docs/supabase/sql/027_session_tool_apply_review_draft.sql` 全体。
+- ファイル冒頭に未実行draft、SQL Editorへ貼る前のレビュー必須、このチャットでは実行しない旨が明記されている。
+- rollback方針はコメントだけで、実行される `DROP COLUMN` などは含めない。
+- 古いSQL Editor内容を消してから、ファイル全体を貼る。
+- SQL Editorが複数のSELECT結果を全部表示しない場合があるため、適用成功後に一部結果しか見えなくても再実行しない。M-14E-15Hで結果記録・追加確認へ進む。
+
+実行前チェック:
+
+- `git status --short` がclean。
+- 最新commitが `fe7d5ef Review session tool apply draft`。
+- `DROP TABLE` / `DROP COLUMN` / `TRUNCATE` / `CASCADE` が実行文としてない。
+- `INSERT` / `UPDATE` はRPC本文内のみで、既存データを直接変更するstandalone DMLではない。
+- `DROP FUNCTION` はcreate/update RPCのsignature明示に限定されている。
+- `GRANT` / `REVOKE` は再作成後のcreate/update RPCに限定され、authenticated許可、anon/public不可の既存方針に沿う。
+- SQL Editorへ貼る前に、貼り付け対象がこのファイル全体であることをユーザーが確認する。
+
+停止条件:
+
+- SQL Editorでエラーが出たら即停止し、同じSQLを再実行しない。
+- permission denied、function does not exist、duplicate function、cannot drop functionなどが出たら停止する。
+- 貼り付け内容にsecret、URL実値、認証情報、実データ行が混ざっていたら実行しない。
+- SQL Editorに古いSQLや別SQLが残っていたら、消してから貼り直す。
+- 途中成功/途中失敗の可能性があるため、エラー時は結果を一般化して記録し、次工程で確認する。
+
+成功時確認項目:
+
+- SQL Editor上でエラーが出ていない。
+- `public.sessions.session_tool` が存在し、型は `text`、NULL許容。
+- `create_session_post` / `update_session_post` のsignatureに `p_session_tool` が含まれる。
+- `delete_session_post` は変更対象外。
+- authenticatedにEXECUTEがあり、anon/publicに不要なEXECUTEがない。
+- `public.sessions` のRLSが有効のまま。
+- 実データ行、ユーザーID、メールアドレス、認証情報、外部投稿先実値は記録しない。
+
+ユーザー手元コピー例:
+
+```powershell
+Get-Content -Raw -Encoding UTF8 .\docs\supabase\sql\027_session_tool_apply_review_draft.sql | Set-Clipboard
+```
+
+結果記録テンプレート:
+
+- SQL Editor実行: 成功 / エラー
+- エラー有無: なし / あり
+- 表示された確認結果: column / rpc signature / execute grants / rls の要約のみ
+- `session_tool` 列: ok / 要確認
+- create/update RPC: ok / 要確認
+- delete RPC: 変更なし / 要確認
+- EXECUTE権限: ok / 要確認
+- RLS: ok / 要確認
+- 実データ行・内部ID・認証情報・外部投稿先実値: 記録していない
+- 次工程へ進めるか: はい / いいえ
+
+適用後にまだ行わないこと:
+
+- すぐにフロント実装しない。
+- すぐにEdge Functionを変更しない。
+- すぐにDiscord実送信しない。
+- dry-run確認へ進む前に、SQL適用結果をdocsへ記録する。
+
+次工程候補:
+
+1. M-14E-15G: ユーザー手元でSQL Editor実行。
+2. M-14E-15H: SQL適用結果docs記録。
+3. M-14E-15I: フロントUIへ `session_tool` 追加。
+4. M-14E-15J: session-detail表示調整。
+5. M-14E-15K: Edge Function Discord投稿フォーマット変更。
+6. M-14E-15L: `dry_run = true` QA。

@@ -1555,3 +1555,17 @@
 - rollbackでは安易に `DROP COLUMN session_tool` しない。適用中エラー時は再実行せず停止し、反映状態を確認する。
 - 次工程候補は、M-14E-15F ユーザー手動SQL Editor適用、M-14E-15G SQL適用結果記録、M-14E-15H フロントUI実装、M-14E-15I session-detail表示調整、M-14E-15J Edge Function投稿フォーマット変更。
 - この工程ではレビュー・docs整理・SQL draft修正のみ行い、SQL Editor実行、DB/RPC実変更、Edge Functionコード変更、deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15F 開催場所/session_tool追加SQL apply手動実行前最終確認
+- SQL Editorへ貼る対象は `docs/supabase/sql/027_session_tool_apply_review_draft.sql` 全体と整理した。
+- SQLファイル冒頭には未実行draft、レビュー必須、このチャットでは実行しないことが明記されている。
+- SQL Editor実行前に、古いSQL Editor内容を消してから全文を貼る。
+- PowerShellで全文をクリップボードへ送る候補は `Get-Content -Raw -Encoding UTF8 .\docs\supabase\sql\027_session_tool_apply_review_draft.sql | Set-Clipboard`。
+- 実行前チェックは、git clean、最新commit `fe7d5ef Review session tool apply draft`、DROP TABLE/DROP COLUMN/TRUNCATE/CASCADE実行文なし、standalone DMLなし、DROP FUNCTION対象signature明示、secretやURL実値なし。
+- SQL Editorでエラーが出たら即停止し、同じSQLを再実行しない。permission denied、function does not exist、duplicate function、cannot drop functionなども停止条件。
+- 成功時は、`session_tool` 列、create/update RPC signature、delete RPC対象外、authenticated EXECUTE、anon/public不可、RLS有効を確認する。
+- SQL Editorが一部結果グリッドしか表示しない場合は再実行せず、見えている範囲とエラーなしを記録し、M-14E-15Hで追加確認する。
+- 実データ行、ユーザーID、メールアドレス、認証情報、外部投稿先実値、Discord message id相当の実値は記録しない。
+- SQL適用後もすぐにフロント実装、Edge Function変更、Discord実送信、dry-runへ進まず、先に適用結果docs記録を行う。
+- 次工程候補は、M-14E-15G ユーザー手動SQL Editor実行、M-14E-15H SQL適用結果docs記録、M-14E-15I フロントUI実装、M-14E-15J session-detail表示調整、M-14E-15K Edge Function投稿フォーマット変更、M-14E-15L dry_run QA。
+- この工程では最終確認・docs整理のみ行い、SQL Editor実行、DB/RPC実変更、Edge Functionコード変更、deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。

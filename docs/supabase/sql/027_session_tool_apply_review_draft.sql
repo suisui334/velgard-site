@@ -6,7 +6,7 @@
 -- This chat does not execute this SQL.
 --
 -- Goals:
--- - Add nullable public.sessions.session_tool for the UI label "開催場所".
+-- - Add nullable public.sessions.session_tool for the UI label "session tool".
 -- - Keep the DB value as a session tool / online play environment, not a physical venue.
 -- - Keep existing rows valid by allowing NULL.
 -- - Keep initial input free text; no fixed-value CHECK in this draft.
@@ -788,6 +788,11 @@ commit;
 -- ============================================================
 -- 4. Post-apply verification queries
 -- ============================================================
+
+-- SQL Editor may display only the last result grid depending on the UI.
+-- If that happens, do not re-run blindly. Record that the apply finished
+-- without error and continue with the separate result-recording step.
+-- These verification queries are SELECT-only and do not expose row data.
 
 select
   column_name,

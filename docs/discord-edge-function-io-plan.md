@@ -1224,3 +1224,26 @@ RPC IO draft:
 - 既存クライアントが `p_session_tool` を送らない場合は既存値を保持する。
 - `session_tool` を消したい場合は空文字を送る。
 - detail/list/Edge Function本文生成側へ `session_tool` を含める作業は、SQL適用後の別工程で扱う。
+
+## M-14E-15F session_tool apply手動実行前IO確認
+SQL Editorへ貼る前のIO観点を整理した。この工程ではSQL Editor実行、DB/RPC実変更、Edge Functionコード変更、deploy、Discord送信、dry-run実行、フロント実装は行わない。
+
+SQL Editorへ貼る範囲:
+
+- `docs/supabase/sql/027_session_tool_apply_review_draft.sql` 全体。
+- post-apply確認SELECTも含めて貼る。
+- rollback notesはコメントであり、実行対象の列削除SQLではない。
+
+成功時に見るIO:
+
+- DB: `session_tool` 列が `public.sessions` に追加されている。
+- create RPC: 最終引数 `p_session_tool` がある。
+- update RPC: 最終引数 `p_session_tool` がある。
+- delete RPC: session_toolとは無関係のまま。
+- EXECUTE: authenticatedのみ許可され、anon/publicには不要なEXECUTEがない。
+- RLS: `public.sessions` のRLSが有効のまま。
+
+結果共有時の注意:
+
+- 実データ行、ユーザーID、メールアドレス、認証情報、外部投稿先実値、Discord message id相当の実値を貼らない。
+- SQL Editorが最後の結果グリッドだけを表示する場合は、見えている範囲を要約し、再実行しない。
