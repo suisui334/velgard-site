@@ -2615,3 +2615,24 @@ Manual QA IO checklist:
 - Update: 同じQA依頼書をUIから編集し、既存Discord投稿が更新されること、余分な新規投稿が増えないこと、GM/admin同期パネルが `投稿済み` / `更新` 相当になることを確認する。
 - Delete: 同じQA依頼書をUIから削除し、Discord投稿も削除されること、通常のread導線からQA依頼書が見えなくなることを確認する。
 - Safety: Discord message id、channel id、thread id、post URL全文、raw session id、user_id、email、token、selected_character_id、application_id、message preview本文全文が画面/console/docsへ出ないことを確認する。
+## M-14E-18C Public-site auto-sync manual QA IO result
+
+公開サイト上で、ユーザー手元により使い捨てQA依頼書 `【連携確認】自動同期ブラウザQA` の create / update / delete 自動同期QAを実施した。
+
+IO result:
+
+- Create: 公開・非draft依頼書の新規作成後、Discord依頼書チャンネルに投稿が1件増えた。
+- Create panel: 作成後のGM/admin向けDiscord同期パネルは投稿済み/新規投稿相当として表示され、破綻していなかった。
+- Update: QA依頼書を `【連携確認】自動同期ブラウザQA・編集確認済み` に編集後、Discord側の既存投稿が更新された。
+- Update guard: 編集時に余分な新規投稿は増えていない。
+- Delete: QA依頼書削除後、Discord側のQA投稿も削除された。
+- Delete readback: 削除後、公開サイト上でもQA依頼書は通常表示されない。
+- Safety: Discord message id、channel id、post URL全文、JWT、session id、raw user_id、email、tokenなどの実値は記録していない。
+
+Not executed by Codex in this result-recording step:
+
+- Discord再投稿・再編集・再削除。
+- Edge Function deploy。
+- SQL Editor実行、SQL apply、DB/RPC変更。
+- secret設定/切替。
+- `updates.json` 変更。

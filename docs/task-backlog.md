@@ -2224,3 +2224,20 @@ Next:
 - User-run public-site browser QA for one disposable session post: create auto-sync, update auto-sync, delete auto-sync, GM/admin panel display, and no sensitive/raw ID exposure.
 - Record the manual QA result in docs after completion.
 - Treat any leftover QA session posts as admin cleanup candidates only if they remain after QA.
+## M-14E-18C Discord auto-sync manual QA result
+
+Status: manual browser QA completed.
+
+- User performed public-site browser QA with disposable session post `【連携確認】自動同期ブラウザQA`.
+- Public, non-draft create produced one Discord post in the production request channel.
+- GM/admin Discord sync panel was visible and not broken after create, showing posted/create-equivalent state.
+- Editing the QA post to `【連携確認】自動同期ブラウザQA・編集確認済み` updated the existing Discord post.
+- No extra Discord post was created during update.
+- Deleting the QA post also deleted the Discord QA post.
+- After deletion, the QA post is not normally visible on the public site.
+- Sensitive values and raw identifiers were not recorded.
+
+Next:
+
+- Move to post-QA production readiness cleanup and remaining scope review.
+- Keep close / resync / repair, post URL handling, and any admin cleanup candidates as follow-up work.

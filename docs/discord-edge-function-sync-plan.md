@@ -3338,3 +3338,30 @@ deploy結果:
 
 - ユーザー手動で上記ブラウザQAを実施し、create / update / delete の結果をdocsへ記録する。
 - QA後に残った使い捨て依頼書や過去QA残骸があればadmin cleanup候補として整理する。
+## M-14E-18C Discord auto-sync manual browser QA result
+
+公開サイト上で、使い捨てQA依頼書 `【連携確認】自動同期ブラウザQA` を使い、Discord自動同期ブラウザQAをユーザー手元で実施した。
+
+確認結果:
+
+- 公開・非draft依頼書の新規作成後、Discord依頼書チャンネルに投稿が1件増えた。
+- 作成後、GM/admin向けDiscord同期パネルは投稿済み/新規投稿相当として表示され、破綻していなかった。
+- QA依頼書を `【連携確認】自動同期ブラウザQA・編集確認済み` に編集後、Discord側の既存投稿が更新された。
+- 編集時に余分な新規投稿は増えていない。
+- QA依頼書削除後、Discord側のQA投稿も削除された。
+- 削除後、公開サイト上でもQA依頼書は通常表示されない。
+- Discord message id、channel id、post URL全文、JWT、session id、raw user_id、email、tokenなどの実値は記録していない。
+
+判断:
+
+- 公開サイトUIからの create / update / delete 自動同期導線は、使い捨てQA依頼書で一通り成功した。
+- GM/admin同期状態パネルは、create後の投稿済み/新規投稿相当表示で破綻していない。
+- update時に新規投稿が増えなかったため、既存投稿更新導線として期待どおり。
+- delete時にDiscord投稿も削除され、公開サイト上の通常表示からも消えたため、投稿済み依頼書削除の自動同期導線として期待どおり。
+
+次工程候補:
+
+- 本番運用前の残課題整理を行う。
+- close / resync / repair の方針と実装範囲を整理する。
+- post URL保存補強またはリンク表示方針は引き続き後続課題として扱う。
+- 残存QA依頼書があればadmin cleanup候補として整理する。
