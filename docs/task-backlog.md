@@ -1987,3 +1987,13 @@ Discord成功後DB更新失敗時:
 - 二重投稿防止ゲート停止条件は、対象不一致、外部投稿識別子保存済み未確認、JWT/対象依頼書/Supabase接続先不備、テスト用チャンネル未確認、本番投稿疑い、不明エラー、確認コマンドと送信コマンド未分離、同一コマンド再実行。
 - 後続課題は `discord_post_url` 保存補強、二重投稿防止の実動確認、`update` / `close` / `delete` / `resync` 方針整理、管理UI同期状態表示、本番切替前レビュー、本番募集チャンネル切替ゲート。
 - この記録作業ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 再実行、Discord追加実送信、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16O 二重投稿防止確認ゲート結果
+- DB同期込み実送信済みの `M14E16_sync_db_QA_01` に対して、ユーザー手元で `create` / `dry_run = false` を1回だけ実施し、送信前guardの拒否を確認した。同じ確認コマンドは再実行禁止。
+- 結果はHTTP 409、JSON parse成功、`ok = false`、`dry_run = false`、`action = create`。`message_preview` は返っていない。
+- Discordテスト用チャンネルに新規投稿増加なし。本番募集チャンネル投稿なし。
+- `discord_send` / `db_update` はレスポンスキーとして存在したが、HTTP 409 / `ok = false` のため、実送信成功やDB更新成功を示すものとして扱わない。判定は送信前拒否、`message_preview` なし、Discord投稿増加なしを重視する。
+- 二重投稿防止の基本動作は確認済みとして扱う。
+- 後続課題は `discord_post_url` 保存補強、`update` / `close` / `delete` / `resync` 方針整理、GM/admin同期状態表示UI、失敗時repair/resync導線、本番切替前レビュー、本番初回投稿手順、本番募集チャンネルsecret切替ゲート。
+- 本番募集チャンネル切替はまだ行わない。
+- この記録作業ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 再実行、Discord追加実送信、本番投稿、secret設定/切替、`updates.json` 変更は行わない。

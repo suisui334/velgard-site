@@ -2084,3 +2084,29 @@ IO判断:
 停止条件:
 
 - 対象不一致、外部投稿識別子未確認、認証/接続準備不備、テスト用チャンネル未確認、本番投稿疑い、不明エラー、確認コマンドと送信コマンド未分離。
+
+## M-14E-16O Double-post guard IO verification
+DB同期込み実送信済みの `M14E16_sync_db_QA_01` を対象に、ユーザー手元で `create` / `dry_run = false` を1回だけ実行し、送信前guardの拒否IOを確認した。Codex側では実行操作を行わず、結果記録のみを行う。同じ確認コマンドは再実行禁止。
+
+guard request / response IO:
+
+- requestは `action = create` / `dry_run = false`。
+- 期待値は、外部投稿識別子保存済みの対象なのでDiscord送信前に拒否すること。
+- HTTP 409、JSON parse成功。
+- response keysは `ok` / `error_code` / `message` / `dry_run` / `action` / `sync_target` / `discord_send` / `db_update` / `warnings`。
+- `ok = false`、`dry_run = false`、`action = create`。
+- `message_preview` は返らない。
+- JWT、対象session id実値、Supabase URL全文、Discord message id実値、post URL全文、Webhook URLは記録しない。
+
+guard output:
+
+- Discordテスト用チャンネルに新規投稿増加なし。
+- 本番募集チャンネル投稿なし。
+- `discord_send` / `db_update` はレスポンスキーとして存在したが、HTTP 409 / `ok = false` のため、実送信成功やDB更新成功を示すものとしては扱わない。
+- 判定は送信前拒否、`message_preview` なし、Discord投稿増加なしを中心に行う。
+
+IO判断:
+
+- 外部投稿識別子保存済み対象の `create` 再実行はguardで拒否された。
+- Discord投稿増加なしのため、二重投稿防止の基本IOは確認済み。
+- 本番切替は、`discord_post_url` 保存補強、update/resync方針、管理UI同期状態表示、repair/resync導線、本番secret切替レビュー、本番初回投稿手順レビューが揃うまで停止する。

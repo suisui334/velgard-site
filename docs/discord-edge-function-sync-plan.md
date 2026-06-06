@@ -2656,3 +2656,43 @@ DB同期状態SELECT確認:
 - 管理UIでの同期状態表示。
 - 本番切替前レビュー。
 - 本番募集チャンネル切替ゲート。
+
+## M-14E-16O Double-post guard verification result
+DB同期込み実送信済みの検証用依頼書 `M14E16_sync_db_QA_01` に対して、ユーザー手元で `create` / `dry_run = false` を1回だけ実行し、二重投稿防止guardの実動を確認した。Codex側では SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、本番投稿、secret設定/切替を行っていない。同じ確認コマンドは再実行禁止とする。
+
+確認結果:
+
+- 対象は `M14E16_sync_db_QA_01`。
+- requestは `action = create` / `dry_run = false`。
+- 期待値は、既存投稿済み対象のためDiscord送信前に拒否すること。
+- JWT、対象依頼書、Supabase接続先はユーザー手元で準備し、実値はdocsへ記録しない。
+- HTTP 409、HTTP errorあり、JSON parse成功。
+- response keysは `ok` / `error_code` / `message` / `dry_run` / `action` / `sync_target` / `discord_send` / `db_update` / `warnings`。
+- `ok = false`、`dry_run = false`、`action = create`。
+- `message_preview` は返却されていない。
+- Discordテスト用チャンネルに新規投稿増加なし。
+- 本番募集チャンネル投稿なし。
+
+レスポンスキー解釈:
+
+- `discord_send` と `db_update` はレスポンスキーとして存在した。
+- ただし、今回の期待挙動はHTTP 409 / `ok = false` による送信前拒否である。
+- したがって、`discord_send` / `db_update` のキー存在は実送信成功やDB更新成功を意味するものとして扱わない。
+- 判定では、HTTP 409、`ok = false`、`message_preview` なし、Discord投稿増加なしを重視する。
+
+判断:
+
+- 既存投稿済み対象に対する `create` 再実行は送信前guardで拒否された。
+- Discord投稿増加がなかったため、二重投稿防止の基本動作は確認済みとして扱う。
+- Discord message id実値、post URL全文、Webhook URL、JWT、対象session id実値、Supabase URL全文、Discord投稿先実値は記録しない方針を維持した。
+- 本番募集チャンネル切替はまだ行わない。
+
+後続課題:
+
+- `discord_post_url` 保存補強。
+- `update` / `close` / `delete` / `resync` 方針整理。
+- GM/admin同期状態表示UI。
+- 失敗時repair/resync導線。
+- 本番切替前レビュー。
+- 本番初回投稿手順。
+- 本番募集チャンネルsecret切替ゲート。
