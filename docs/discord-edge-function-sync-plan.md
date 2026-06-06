@@ -2996,3 +2996,28 @@ GM/admin同期状態UI QA結果:
 - 不明なエラーがある。
 
 本番切替は、secret切替ゲート、本番向け `dry_run = true` 確認ゲート、本番初回投稿ゲートを順に独立して扱う。今回のレビュー準備では危険工程を実行しない。
+
+## M-14E-16U 本番Webhook secret切替結果
+本番募集チャンネル向けWebhook secret切替は、ユーザー手元でSupabase Dashboardから実施済み。Codex側ではWebhook URL実値の確認、表示、再入力、再設定を行っていない。
+
+記録内容:
+
+- 設定対象secret名は既存の `DISCORD_SESSION_POST_WEBHOOK_URL`。
+- 本番募集チャンネル向けWebhookへの切替はユーザー手元で実施済み。
+- Webhook URL実値はチャット、docs、GitHub、consoleへ記録していない。
+- Codex側ではsecret実値を扱っていない。
+- `dry_run = true` は未実行。
+- `dry_run = false` は未実行。
+- Discord本番投稿なし。
+- Edge Function deployなし。
+- SQL Editor実行なし。
+- DB/RPC変更なし。
+- git状態はcleanのまま。
+
+次工程:
+
+- 本番向け `dry_run = true` 確認ゲートへ進む。
+- 本番向け `dry_run = true` でもDiscord投稿が増えないことを確認する。
+- message preview本文全文、JWT、対象session id、Supabase URL全文、Webhook URL、Discord message id、channel id、post URL全文は記録しない。
+
+この記録工程では、secret設定/切替の再実行、`dry_run = true` 実行、`dry_run = false` 実送信、Discord投稿、Edge Function deploy、SQL Editor実行、DB/RPC変更、`updates.json` 変更は行わない。

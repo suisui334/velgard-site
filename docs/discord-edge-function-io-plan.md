@@ -2300,3 +2300,24 @@ production gate blockers:
 - git dirty、最新commit不一致、GM/admin同期状態UI未反映、テスト用create/DB同期/二重投稿防止記録未確認、本番Webhook secret未準備、本番投稿対象未確定、本番向け `dry_run = true` 未確認、本番募集チャンネル未目視確認、post URL未保存を許容しない判断、不明エラー。
 
 post URL未保存は、message id相当、channel id相当、`posted` / `create`、同期時刻、同期エラー空、二重投稿防止が確認済みであるため、最小本番create投入のブロッカーにしない案を第一候補にする。
+
+## M-14E-16U Production webhook secret switch result
+本番Webhook secret切替はユーザー手元で完了済み。この工程では結果記録のみを行い、Codex側ではsecret実値の確認、表示、再入力、再設定を行わない。
+
+IO記録:
+
+- secret名は `DISCORD_SESSION_POST_WEBHOOK_URL`。
+- 本番募集チャンネル向けWebhookへの切替はSupabase Dashboard側で実施済み。
+- Webhook URL実値はチャット、docs、GitHub、consoleへ出していない。
+- Codex側ではsecret実値を扱っていない。
+- `dry_run = true` / `dry_run = false` は未実行。
+- Discord本番投稿なし。
+- Edge Function deployなし。
+- SQL Editor実行なし。
+- DB/RPC変更なし。
+
+次IO:
+
+- 本番向け `dry_run = true` 確認ゲート。
+- Discord投稿増加なし、preview形式、secret非露出を確認する。
+- message preview本文全文、JWT、対象session id、Supabase URL全文、Webhook URL、Discord message id、channel id、post URL全文は記録しない。

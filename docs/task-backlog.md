@@ -2069,3 +2069,17 @@ Discord成功後DB更新失敗時:
 - 本番初回投稿後は、SELECT-onlyでDB同期状態を確認し、GM/admin同期状態UIで投稿済み表示を確認する。
 - 停止条件は、git dirty、最新commit不一致、GM/admin同期状態UI未反映、テスト用create/DB同期/二重投稿防止記録未確認、本番Webhook secret未準備、本番投稿対象未確定、本番向け `dry_run = true` 未確認、本番募集チャンネル未目視確認、post URL未保存を許容しない判断、不明エラー。
 - 今回はSQL Editor実行、DB/RPC変更、SQL apply、Edge Function変更、Edge Function deploy、`dry_run = true` 実行、`dry_run = false` 実送信、Discord本番投稿、secret設定/切替、Discord追加投稿、`updates.json` 変更は行わない。
+
+## M-14E-16U 本番Webhook secret切替結果
+- ユーザー手元でSupabase Dashboardから `DISCORD_SESSION_POST_WEBHOOK_URL` を本番募集チャンネル向けWebhookへ切替済み。
+- Webhook URL実値はチャット、docs、GitHub、consoleへ記録していない。
+- Codex側ではsecret実値を扱っていない。
+- `dry_run = true` は未実行。
+- `dry_run = false` は未実行。
+- Discord本番投稿なし。
+- Edge Function deployなし。
+- SQL Editor実行なし。
+- DB/RPC変更なし。
+- git状態はcleanのまま。
+- 次工程は本番向け `dry_run = true` 確認ゲート。
+- この工程ではWebhook URL実値の確認・表示・再入力、secret設定/切替の再実行、Discord投稿、`updates.json` 変更は行わない。
