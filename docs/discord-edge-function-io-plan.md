@@ -1247,3 +1247,22 @@ SQL Editorへ貼る範囲:
 
 - 実データ行、ユーザーID、メールアドレス、認証情報、外部投稿先実値、Discord message id相当の実値を貼らない。
 - SQL Editorが最後の結果グリッドだけを表示する場合は、見えている範囲を要約し、再実行しない。
+
+## M-14E-15H session_tool SQL適用後IO結果
+ユーザー手元で `027_session_tool_apply_review_draft.sql` 全体をSQL Editorへ貼り付け、手動実行した。Codex側ではSQL Editor実行、追加SQL apply、DB/RPC追加変更を行っていない。
+
+確認できたIO結果:
+
+- SQL Editorはエラーではなく結果グリッドを表示した。
+- 最後に見えていた結果はRLS確認で、`sessions_rls_enabled = true`、`sessions_force_rls = false`。
+- SQL Editorが最後の結果グリッドのみ表示している可能性がある。
+- 同一apply SQLは再実行しない。
+
+残る確認候補:
+
+- `public.sessions.session_tool` 列の存在、型、NULL許容。
+- `create_session_post` / `update_session_post` signatureに `p_session_tool` が含まれること。
+- `delete_session_post` が変更対象外のままであること。
+- authenticated EXECUTE、anon/public不可の権限状態。
+
+これらの詳細確認が必要な場合は、次工程でSELECT-only確認として分ける。実データ行、ユーザーID、メールアドレス、認証情報、外部投稿先実値は記録しない。

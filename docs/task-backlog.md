@@ -1569,3 +1569,14 @@
 - SQL適用後もすぐにフロント実装、Edge Function変更、Discord実送信、dry-runへ進まず、先に適用結果docs記録を行う。
 - 次工程候補は、M-14E-15G ユーザー手動SQL Editor実行、M-14E-15H SQL適用結果docs記録、M-14E-15I フロントUI実装、M-14E-15J session-detail表示調整、M-14E-15K Edge Function投稿フォーマット変更、M-14E-15L dry_run QA。
 - この工程では最終確認・docs整理のみ行い、SQL Editor実行、DB/RPC実変更、Edge Functionコード変更、deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15H 開催場所/session_tool追加SQL適用結果docs記録
+- M-14E-15Gとして、ユーザー手元で `docs/supabase/sql/027_session_tool_apply_review_draft.sql` 全体をSupabase SQL Editorへ貼り付けて手動実行した。
+- SQL Editorはエラー表示ではなく結果グリッドを表示したため、SQL applyは成功扱いとする。
+- 最後に見えていた結果はRLS確認で、`sessions_rls_enabled = true`、`sessions_force_rls = false`。
+- SQL Editorが最後の結果グリッドのみ表示している可能性があるため、同一apply SQLは再実行しない。
+- `session_tool` 列、create/update RPC signature、EXECUTE権限などの詳細確認は、必要なら次工程でSELECT-only確認として行う。
+- DB/RPC変更はユーザー手元SQL applyにより適用済みとして扱う。このdocs記録工程ではDB/RPC追加変更は行わない。
+- 実データ行、ユーザーID、メールアドレス、認証情報、project ref、Supabase URL全文、外部投稿先実値、Discord message id相当の実値は記録していない。
+- 次工程候補は、M-14E-15I 必要なら適用後SELECT-only確認、M-14E-15J フロントUIへ `session_tool` 追加、M-14E-15K session-detail表示調整、M-14E-15L Edge Function Discord投稿フォーマット変更、M-14E-15M dry_run QA。
+- この工程ではdocs記録のみ行い、SQL Editor再実行、追加SQL apply、DB/RPC追加変更、Edge Functionコード変更、deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。

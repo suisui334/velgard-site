@@ -1554,3 +1554,30 @@ Get-Content -Raw -Encoding UTF8 .\docs\supabase\sql\027_session_tool_apply_revie
 4. M-14E-15J: session-detail表示調整。
 5. M-14E-15K: Edge Function Discord投稿フォーマット変更。
 6. M-14E-15L: `dry_run = true` QA。
+
+## M-14E-15H session_tool SQL適用結果記録
+ユーザー手元で `docs/supabase/sql/027_session_tool_apply_review_draft.sql` 全体をSupabase SQL Editorへ貼り付け、手動実行した。Codex側ではSQL Editorを実行していない。
+
+実行結果:
+
+- SQL Editorはエラー表示ではなく結果グリッドを表示したため、M-14E-15GのSQL applyは成功扱いとする。
+- 最後に見えていた結果グリッドはRLS確認で、`sessions_rls_enabled = true`、`sessions_force_rls = false`。
+- SQL EditorのUI上、最後の結果グリッドのみ表示されている可能性がある。
+- 同一apply SQLは再実行していない。今後も再実行しない。
+- 実データ行、ユーザーID、メールアドレス、認証情報、外部投稿先実値は記録していない。
+
+判断:
+
+- `public.sessions` のRLSは有効なまま適用後確認できている。
+- `session_tool` 列、create/update RPC signature、EXECUTE権限などの詳細確認は、必要なら次工程でSELECT-onlyの追加確認として行う。
+- DB/RPC変更はユーザー手元SQL applyにより適用済みとして扱うが、このdocs記録工程ではDB/RPC追加変更を行わない。
+
+次工程候補:
+
+1. M-14E-15I: 必要なら `session_tool` 適用後SELECT-only確認。
+2. M-14E-15J: フロントUIへ `session_tool` 追加。
+3. M-14E-15K: session-detail表示調整。
+4. M-14E-15L: Edge Function Discord投稿フォーマット変更。
+5. M-14E-15M: `dry_run = true` QA。
+
+この工程ではdocs記録のみ行い、SQL Editor再実行、追加SQL apply、DB/RPC追加変更、Edge Functionコード変更、deploy、Discord追加実送信、dry-run再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。
