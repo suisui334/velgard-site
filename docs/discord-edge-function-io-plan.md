@@ -1839,8 +1839,8 @@ CHECK値のIO注意:
 
 - `sessions_discord_last_action_check` と `sessions_discord_sync_status_check` は確認できた。
 - ただし、結果表示の横幅都合で許容値配列の全体は完全には読めていない。
-- 030 draft内で使う `posted` / `failed` / `create` は、既存CHECKと一致するか未確定。
-- 未確定のまま030を実行しない。apply前にCHECK定義を完全確認し、必要なら030の状態値を修正する。
+- この時点では030 draft内で使う `posted` / `failed` / `create` が既存CHECKと一致するか未確定だった。
+- M-14E-16IでCHECK値を確定し、`posted` / `failed` / `create` はCHECK内であることを確認済み。ただし030はRPC apply前レビューゲート完了まで実行しない。
 
 030 apply draftのIO役割:
 
@@ -1876,3 +1876,24 @@ Edge Function IO順:
 - RPC applyゲートで専用RPCを適用するか判断する。
 - Edge Function実装バッチで専用RPC呼び出しとsanitized responseを実装する。
 - deployゲート、まとめQAバッチ、本番切替前レビューゲート、本番切替ゲートへ進む。
+
+## M-14E-16I CHECK値確定後のRPC IO整合
+追加のCHECK値展開SELECT-onlyをユーザー手元で1回だけ実行し、SQL Editorではエラーなしで結果グリッドが表示された。同じSELECTは再実行していない。これによりM-14E-16H時点のCHECK値未確定扱いを更新する。この工程でCodexはSQL Editor実行、DB/RPC変更、SQL apply、030 SQL実行、Edge Functionコード変更、deploy、Discord追加実送信を行っていない。
+
+確定したCHECK値:
+
+- `discord_last_action`: `close` / `create` / `delete` / `resync` / `update`。
+- `discord_sync_status`: `failed` / `not_requested` / `pending` / `posted` / `skipped`。
+- `discord_last_action` は `text` / nullable YES / default NULL。
+- `discord_sync_status` は `text` / nullable NO / default `not_requested`。
+
+030 IO整合:
+
+- create成功記録は `posted` + `create` を使うためCHECK内。
+- create失敗記録は `failed` + `create` を使うためCHECK内。
+- 初期/未送信は既存defaultの `not_requested` を使う。
+- `pending` は処理中や将来キュー化候補、`skipped` は同期対象外候補として残る。
+- `synced` / `not_synced` などCHECK外の状態値は030の実行ロジックに使わない。
+- 030はapply draftのまま未実行で、RPC apply前レビューゲート完了までSQL Editorへ貼らない。
+
+Edge FunctionからのIO順は、request validation、user auth、target session fetch、create guard RPC、message build、Discord send、success記録RPC、failure記録RPCまたはpartial failure handling、sanitized responseとする。`dry_run = true` ではDB更新なし。`dry_run = false` かつDiscord送信成功後のみsuccess記録RPCを呼ぶ。DB更新失敗時は同じcreate再実行を禁止し、manual repair/resyncを後続化する。

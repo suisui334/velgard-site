@@ -1856,8 +1856,8 @@ Discord成功後DB更新失敗時:
 - `sessions_discord_last_action_check`、`sessions_discord_sync_status_check`、`sessions_status_check`、`sessions_visibility_check` が確認できた。
 - `create_session_post` / `update_session_post` / `delete_session_post` は存在し、security definer、search_path、authenticated EXECUTEあり、anon / PUBLIC不可を確認上OK。
 - `sessions` / `user_roles` はRLS enabled。policy概要は取得できたが、具体的なpolicy本文や実値は記録しない。
-- 重要: CHECK制約の許容値配列は結果表示幅の都合で完全には読めていない。`posted` / `failed` / `create` 等を推測で確定扱いにせず、030 apply前に正確なCHECK定義確認を必須とする。
-- `docs/supabase/sql/030_discord_sync_rpc_apply_draft.sql` は未実行のapply draft。`DO NOT RUN UNTIL REVIEWED` 注記を維持し、029結果後もCHECK許容値未確定のため実行可能扱いにしない。
+- 重要: この時点ではCHECK制約の許容値配列が結果表示幅の都合で完全には読めていなかったため、`posted` / `failed` / `create` 等を推測で確定扱いにしなかった。M-14E-16IでCHECK値確定結果を記録済み。
+- `docs/supabase/sql/030_discord_sync_rpc_apply_draft.sql` は未実行のapply draft。`DO NOT RUN UNTIL REVIEWED` 注記を維持し、M-14E-16IでCHECK整合確認後もRPC apply review gate完了までは実行可能扱いにしない。
 - 030のRPC案は `check_discord_session_post_create_ready(text)`、`record_discord_session_post_create_success(text,text,text,text,text)`、`record_discord_session_post_create_failure(text,text)` の3本。既存 `update_session_post` に同期責務を混ぜない方針を維持。
 - 030 draftには、029は成功したがCHECK許容値全体は未確認であり、正確な許容値確認まで非実行とするコメントを追加した。SQL本文の実行ロジックは変更していない。
 - Edge Function実装バッチでは、request validation、user auth、target session fetch、create guard RPC、message build、Discord send、success記録RPC、failure記録RPCまたはpartial failure handling、sanitized responseの順で整理する。
@@ -1865,3 +1865,22 @@ Discord成功後DB更新失敗時:
 - 次工程は、RPC apply前レビューゲート、RPC applyゲート、Edge Function実装バッチ、deployゲート、まとめQAバッチ、本番切替前レビューゲート、本番切替ゲートの大きめ工程へ再編する。
 - 本番募集チャンネル切替は、DB更新連携、外部投稿識別子保存、二重投稿防止、`update` / `resync` 方針、本番Webhook/secret切替レビュー、本番初回投稿手順レビューが揃うまで停止。
 - この工程ではdocs/SQL draftコメント整理のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、030 SQL実行、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16I CHECK値確定結果と030 RPC apply draft整合
+- ユーザー手元で追加のCHECK値展開SELECT-onlyを1回だけ実行済み。SQL Editorではエラーなしで結果グリッドが表示された。同じSELECTは再実行していない。
+- `sessions_discord_last_action_check` の許容値は `close` / `create` / `delete` / `resync` / `update`。
+- `sessions_discord_sync_status_check` の許容値は `failed` / `not_requested` / `pending` / `posted` / `skipped`。
+- `discord_last_action` は `text` / nullable YES / default NULL。
+- `discord_sync_status` は `text` / nullable NO / default `not_requested`。
+- M-14E-16H時点のCHECK許容値未確定扱いは、この確認結果で更新済み。
+- `docs/supabase/sql/030_discord_sync_rpc_apply_draft.sql` は未実行apply draftのまま。`DO NOT RUN UNTIL REVIEWED` とRPC apply review gate完了までSQL Editorへ貼らない方針を維持。
+- 030の成功記録は `posted` + `create`、失敗記録は `failed` + `create` を使うため、確定済みCHECK値と整合する。
+- 030内の実行ロジックに `synced` / `not_synced` などCHECK外の状態値は使わない。
+- 初期/未送信状態は既存defaultの `not_requested`、処理中候補は `pending`、同期対象外候補は `skipped` と整理する。
+- `check_discord_session_post_create_ready(text)` はcreate送信前guard、`record_discord_session_post_create_success(...)` はDiscord送信成功後の外部投稿識別子保存、`record_discord_session_post_create_failure(...)` は一般化エラー保存を担う候補。
+- 3RPCとも `security definer` / `search_path` 固定 / authenticated EXECUTE / anon・PUBLIC不可の方針で、既存依頼書RPCの流儀に寄せる。
+- 同時実行時の二重投稿リスクは残るため、将来の予約状態更新またはより強いDB側排他をTODOとして残す。
+- Edge Function実装バッチでは、request validation、user auth、target session fetch、create guard RPC、message build、Discord send、success記録RPC、failure記録RPCまたはpartial failure handling、sanitized responseの順で実装する。
+- `dry_run = true` はDB更新なし。`dry_run = false` かつDiscord送信成功後のみsuccess記録RPCを呼ぶ。
+- 次工程はRPC apply前レビューゲートへ進める状態。ただしSQL Editor実行、DB/RPC変更、SQL apply、030実行、Edge Functionコード変更、deploy、Discord送信はまだ行わない。
+- 本番募集チャンネル切替は、DB更新連携、外部投稿識別子保存、二重投稿防止、`update` / `resync` 方針、secret切替レビュー、本番初回投稿手順が揃うまで停止。

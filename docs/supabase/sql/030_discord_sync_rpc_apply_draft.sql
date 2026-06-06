@@ -4,9 +4,9 @@
 -- DO NOT RUN UNTIL REVIEWED.
 -- This is an APPLY draft, not an executed migration.
 -- Do not paste into Supabase SQL Editor until:
--- - 029_discord_sync_check_values_select_only.sql has been reviewed and run by the user.
--- - Existing CHECK values for discord_sync_status and discord_last_action are confirmed.
+-- - The RPC apply review gate is complete.
 -- - Function names, return shapes, and Edge Function call order are reviewed.
+-- - The user explicitly approves SQL apply.
 --
 -- This draft intentionally does not alter table columns.
 -- It assumes public.sessions already has:
@@ -20,14 +20,18 @@
 -- - discord_synced_at
 -- - discord_sync_error
 --
--- Status/action values used below are draft assumptions:
--- - discord_sync_status: pending / posted / failed
--- - discord_last_action: create
--- Run 029 first and revise this draft if existing CHECK constraints differ.
--- M-14E-16F/G review note:
--- - 029 was run once without error, but the available result view did not fully expose the CHECK value arrays.
--- - Keep this draft non-executable until exact allowed values for discord_sync_status and discord_last_action are confirmed.
--- - If posted, failed, or create differ from existing CHECK definitions, revise this file before any apply.
+-- Confirmed CHECK values:
+-- - discord_sync_status: failed / not_requested / pending / posted / skipped
+-- - discord_last_action: close / create / delete / resync / update
+--
+-- Values used below:
+-- - create success: discord_sync_status = posted, discord_last_action = create
+-- - create failure: discord_sync_status = failed, discord_last_action = create
+-- - no non-CHECK status/action values are used.
+--
+-- M-14E-16I review note:
+-- - CHECK expansion SELECT-only was run once without error by the user.
+-- - Keep this draft non-executable until the RPC apply review gate is complete.
 --
 -- Safety notes:
 -- - No INSERT statements.

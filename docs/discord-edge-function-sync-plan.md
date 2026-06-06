@@ -2262,7 +2262,7 @@ CHECK許容値の扱い:
 
 - 029結果ではCHECK制約名と関連カラムは確認できた。
 - ただし結果表示の横幅都合により、CHECK許容値配列の全体は完全には読めていない。
-- このため `discord_sync_status` / `discord_last_action` の正確な許容値は未確定として扱う。
+- この時点では `discord_sync_status` / `discord_last_action` の正確な許容値は未確定として扱った。M-14E-16Iで確定結果を記録済み。
 - `posted` / `failed` / `create` などの値を推測で確定扱いにしない。
 - 030 apply draftを実行可能扱いにする前に、既存CHECK定義の完全な確認が必要。
 - 必要なら追加SELECT-onlyで `pg_get_constraintdef(...)` の該当制約だけを読み、許容値を明確化する。ただしこの工程では新規SQL作成やSQL Editor実行は行わない。
@@ -2277,7 +2277,7 @@ CHECK許容値の扱い:
 - `check_discord_session_post_create_ready(text)` は送信前guard候補。GM本人またはadminのみ許可し、既存外部投稿識別子がある場合は送信前に拒否する。
 - `record_discord_session_post_create_success(text, text, text, text, text)` はDiscord送信成功後の成功記録候補。外部投稿識別子相当、投稿先相当、投稿URL相当、同期状態、最終action、同期成功時刻、同期エラークリアを扱う。
 - `record_discord_session_post_create_failure(text, text)` はDiscord送信失敗時の一般化エラー記録候補。生レスポンス全文やsecret、外部投稿識別子実値は保存しない。
-- 030 draft内の状態値は、現時点では既存CHECKが許可するか未確定であるため、apply前TODOとして残す。
+- この時点では030 draft内の状態値が既存CHECKと一致するか未確定だったためapply前TODOとして残した。M-14E-16Iで `posted` / `failed` / `create` がCHECK内であることを確認済み。
 
 Edge Function実装計画の更新:
 
@@ -2304,3 +2304,70 @@ Edge Function実装計画の更新:
 7. 本番切替ゲート: 本番募集チャンネル切替を独立ゲートで扱う。
 
 本番募集チャンネル切替は、DB更新連携、外部投稿識別子保存、二重投稿防止、`update` / `resync` 方針、本番Webhook/secret切替レビュー、本番初回投稿手順レビューが揃うまで停止する。
+
+## M-14E-16I CHECK値確定結果と030 RPC apply draft整合レビュー
+追加のCHECK値展開SELECT-onlyをユーザー手元で1回だけ実行し、SQL Editorではエラーなしで結果グリッドが表示された。同じSELECTは再実行していない。この工程でCodexはSQL Editor実行、DB/RPC変更、SQL apply、030 SQL実行、Edge Functionコード変更、追加deploy、Discord追加実送信、secret設定/切替を行っていない。
+
+CHECK値確定結果:
+
+- `sessions_discord_last_action_check` の許容値は `close` / `create` / `delete` / `resync` / `update`。
+- `sessions_discord_sync_status_check` の許容値は `failed` / `not_requested` / `pending` / `posted` / `skipped`。
+- `discord_last_action` は `text` / nullable YES / default NULL。
+- `discord_sync_status` は `text` / nullable NO / default `not_requested`。
+- M-14E-16H時点の「CHECK許容値未確定」扱いは、この確認結果で更新する。
+- 実値ID、投稿URL全文、外部投稿識別子実値、認証情報、実データ行は記録しない。
+
+030 apply draft整合レビュー:
+
+- `docs/supabase/sql/030_discord_sync_rpc_apply_draft.sql` は引き続き未実行apply draft。
+- 冒頭の `DO NOT RUN UNTIL REVIEWED` と、RPC apply review gate完了までSQL Editorへ貼らない方針を維持する。
+- 030内の成功記録は `discord_sync_status = posted`、`discord_last_action = create` を使う。
+- 030内の失敗記録は `discord_sync_status = failed`、`discord_last_action = create` を使う。
+- いずれも確定済みCHECK許容値内であり、`synced` / `not_synced` などCHECK外の状態値は030内の実行ロジックに使わない。
+- 初期/未送信状態は既存defaultの `not_requested` として扱い、030では明示初期化しない。
+- `pending` は処理中・将来キュー化候補、`skipped` は同期対象外候補として残るが、今回のcreate成功/失敗RPCでは更新しない。
+- 030のコメントを、CHECK値確定済みだがRPC apply前レビューまでは非実行、という表現へ更新した。
+- 既存 `update_session_post` にDiscord同期責務を混ぜない方針を維持する。
+
+RPC案の役割と安全性:
+
+- `check_discord_session_post_create_ready(text)`
+  - create送信前guardとして、ログイン済みGM本人またはadminのみを想定する。
+  - 既存 `discord_message_id` 等がある場合はDiscord送信前に拒否し、二重投稿を抑止する。
+  - DB更新は行わないため、最終的な同時実行対策はsuccess記録RPC側の条件更新でも担保する。
+- `record_discord_session_post_create_success(text, text, text, text, text)`
+  - Discord送信成功後に外部投稿識別子相当、投稿先相当、投稿URL相当、同期状態、最終action、同期成功時刻、同期エラークリアを保存する候補。
+  - 戻り値は状態とboolean中心にし、外部投稿識別子実値やURL全文を返さない。
+  - `discord_message_id is null` を条件にした更新により、DB側でも二重投稿防止を補強する。
+- `record_discord_session_post_create_failure(text, text)`
+  - Discord送信失敗時に一般化エラーだけを保存する候補。
+  - 生レスポンス全文、Webhook URL、認証情報、外部投稿識別子実値は保存しない。
+- 3RPCとも `security definer` / `set search_path = ''` を使い、既存依頼書RPCの流儀へ寄せる。
+- EXECUTEはauthenticatedを想定し、anon / PUBLICには不要な権限を与えない。
+- 同時実行でDiscord送信そのものが先に二重化するリスクは完全には消えないため、将来の予約状態更新またはより強いDB側排他をTODOとして残す。
+
+Edge Function実装計画:
+
+1. request validation。
+2. user auth。
+3. target session fetch。
+4. create guard RPC。
+5. message build。
+6. Discord send。
+7. success記録RPC。
+8. failure記録RPCまたはpartial failure handling。
+9. sanitized response。
+
+`dry_run = true` ではDB更新なしを維持する。`dry_run = false` かつDiscord送信成功後のみsuccess記録RPCを呼ぶ。送信前guardで既存 `discord_message_id` 等がある場合はDiscord送信前に拒否する。DB更新失敗時は同じ `create` 再実行を禁止し、manual repair / resyncは後続工程へ分離する。レスポンスやconsoleに外部投稿識別子実値、投稿URL全文、Webhook URL、JWT、確認対象ID実値、Discord投稿先実値、message preview本文全文を出さない。
+
+次工程は大きめ単位で整理する:
+
+1. RPC apply前レビューゲート。
+2. RPC applyゲート。
+3. Edge Function実装バッチ。
+4. deployゲート。
+5. まとめQAバッチ。
+6. 本番切替前レビューゲート。
+7. 本番切替ゲート。
+
+本番切替はまだ行わない。DB更新連携、外部投稿識別子保存、二重投稿防止、`update` / `resync` 方針、secret切替レビュー、本番初回投稿手順が揃うまで停止する。
