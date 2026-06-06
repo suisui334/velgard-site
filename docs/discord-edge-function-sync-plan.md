@@ -1905,3 +1905,94 @@ Discord目視確認:
 - DB更新連携、外部投稿識別子保存、二重投稿防止、`update` / `close` / `delete` / `resync`、本番募集チャンネル切り替えは後続工程として維持する。
 
 この工程ではdocs記録と静的確認のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-16A Discord同期DB更新連携・外部投稿識別子保存・二重投稿防止設計
+M-14E-15P-Cでテスト用チャンネルへの新フォーマット実送信1回確認が成功したため、次工程としてDiscord投稿成功後のDB更新連携、外部投稿識別子保存、`create` 二重投稿防止を設計する。この工程では設計とSELECT-only preflight SQL draft作成のみを行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信は行わない。
+
+目的:
+
+- Discord投稿成功後に、依頼書DBへ外部投稿識別子相当と同期状態を保存する。
+- 同じ依頼書への `action = create` 二重投稿を防止する。
+- 将来の `update` / `close` / `delete` / `resync` の足場を作る。
+- Discord実送信成功とDB更新失敗を分けて扱う。
+
+保存候補カラム案:
+
+- `discord_message_id`: 外部投稿識別子相当。`create` 二重投稿防止と将来の更新/削除の中心になる。
+- `discord_channel_id`: 投稿先チャンネル識別子相当。単一チャンネル初期実装では必須でない可能性がある。
+- `discord_sync_status`: 同期状態。
+- `discord_last_action`: 最後に実行した同期アクション。
+- `discord_synced_at` または `discord_last_synced_at`: 最後に同期成功した時刻。
+- `discord_sync_error`: 一般化した同期エラー概要。生レスポンス全文や秘匿値は保存しない。
+- `discord_sync_error_at`: エラー発生時刻候補。
+- `discord_sync_attempted_at`: 最後に同期試行した時刻候補。
+- `discord_webhook_kind` または `discord_target_kind`: テスト用/本番用や将来の投稿先分岐を扱う候補。
+
+現時点では既存スキーマを変更せず、実カラム名と不足有無は `docs/supabase/sql/028_discord_sync_state_preflight_select_only.sql` の手動実行結果を見て確定する。
+
+状態設計案:
+
+- 初期は過剰に複雑化せず、`synced` / `failed` / `not_synced` 相当を中心に整理する。
+- 既存CHECK制約に `not_requested` / `pending` / `posted` / `failed` / `skipped` などがある場合は、既存値へマッピングする。
+- `pending` は将来の非同期キューや再同期要求が必要になった場合に使う候補。
+- `skipped` は非公開、下書き、対象外状態などで同期しない場合の候補。
+- `unknown` は運用上扱いが曖昧になりやすいため、初期実装では安易に増やさない。
+
+`create` 二重投稿防止案:
+
+- 外部投稿識別子相当が既にある依頼書に対する `action = create` は拒否する。
+- ユーザー向けレスポンスは一般化したエラーにし、外部投稿識別子実値は返さない。
+- 将来は `update` または `resync` へ誘導する。
+- DB更新連携と二重投稿防止が入るまで、本番募集チャンネル切り替えは行わない。
+
+Discord成功後DB更新失敗時の扱い:
+
+- Discord投稿は既に発生しているため、同じ `create` を再実行すると二重投稿リスクがある。
+- レスポンスではDiscord送信成功とDB更新失敗を分けて返す。
+- 外部投稿識別子実値はdocs、console、GitHub、チャットへ出さない。
+- 後続で、手動照合、repair、resyncの方針を検討する。
+- DB更新失敗時の `ok` を true / false どちらにするかは、実装前レビューで決める。利用者の安全を優先し、少なくとも「Discord送信済みだがDB更新未完了」を明確に返す。
+
+Edge Function側の将来実装方針:
+
+- `dry_run = true` ではDB更新しない。
+- `dry_run = false` かつDiscord送信成功後のみDB更新する。
+- DB更新成功後に `db_update` を成功扱いにする。
+- DB更新失敗時はDiscord送信成功とDB更新失敗を分けて返す。
+- Discord成功レスポンス全文は返さない。
+- 外部投稿識別子実値はレスポンスに出すか慎重に扱う。少なくともdocs、console、GitHub、チャットへは出さない。
+
+action拡張の足場:
+
+- `create`: 未投稿なら新規投稿する。既存投稿識別子があれば拒否する。
+- `update`: 既存投稿を編集する。
+- `close`: 募集終了/締切反映へ更新する。
+- `delete`: Discord投稿削除または削除済み扱いへ更新する。完全削除前の順序設計が必要。
+- `resync`: DB状態とDiscord状態の再同期を行う。
+
+本番チャンネル切り替えの停止条件:
+
+- DB更新連携が未実装。
+- 外部投稿識別子保存が未実装。
+- `create` 二重投稿防止が未実装。
+- 本番Webhook未設定/未切替。
+- 本番初回実送信手順が未レビュー。
+- 上記の間は本番募集チャンネルへ進まない。
+
+SELECT-only preflight SQL draft:
+
+- `docs/supabase/sql/028_discord_sync_state_preflight_select_only.sql` を作成した。
+- `public.sessions` のDiscord同期系カラム、類似カラム、CHECK制約、session posting RPC signature、関連function、helper、RLS、policy概要、EXECUTE権限を単一結果表で確認する。
+- 出力列は `sort_order / section / check_name / expected / status / result_value / notes`。
+- SQL内の説明文字列はASCII中心にし、文字化けや構文崩れを避ける。
+- この工程ではSQL Editorで実行しない。
+
+次工程候補:
+
+1. M-14E-16B: ユーザー手元で `028_discord_sync_state_preflight_select_only.sql` をSQL Editor手動実行。
+2. M-14E-16C: preflight結果docs記録。
+3. M-14E-16D: DB更新連携/RPCまたはEdge Function内DB更新方針のapply draft設計。
+4. M-14E-16E: `create` 二重投稿防止コード設計。
+5. M-14E-16F: テスト用チャンネルでDB更新連携QA。
+
+この工程ではdocs設計とSELECT-only preflight SQL draft作成のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
