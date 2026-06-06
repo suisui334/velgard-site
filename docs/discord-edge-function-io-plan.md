@@ -1342,3 +1342,44 @@ preview確認:
 - DB更新連携、二重投稿防止、action拡張、GM/admin同期UI、本番募集チャンネル切り替えは後続IO設計に残す。
 
 この工程ではdocs記録のみ行い、SQL Editor再実行、DB/RPC追加変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15N-FIX session_tool UI QA / update IO修正
+ユーザー実ブラウザで `session_tool` / 開催場所UIを手動QAした。Codex側ではSQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord送信、dry-run実行を行っていない。
+
+QA結果:
+
+- create IO: 新規依頼書作成時、開催場所入力を保存でき、session-detailへ表示された。
+- update IO: 編集時、開催場所を別値へ変更して保存でき、session-detailへ反映された。
+- detail IO: session-detailの開催場所表示を確認できた。
+- layout IO: 募集人数min/max欄の見た目崩れなし。
+- management IO: GM/admin管理ブロックは補足情報内の募集状態下、更新日時前に表示され、参加者向け基本情報の上部を邪魔していない。
+- exposure IO: raw id、user_id、email、token等の画面露出なし。
+- Discord IO: テスト用チャンネルに新規投稿増加なし。
+
+不具合:
+
+- update IOで開催場所を空欄保存した場合、session-detailが `未定` にならず、前回入力値が保持された。
+- 再編集時も開催場所欄に前回値が残った。
+
+原因と修正:
+
+- `buildSessionPayload()` は作成/更新共通で、空欄の `p_session_tool` を `nullableText(...)` により `null` へ丸めていた。
+- `update_session_post` は `p_session_tool is null` を既存値保持、空文字を明示クリアとして扱う設計。
+- `buildUpdatePayload()` で更新時のみ `p_session_tool: getValue(form, "p_session_tool")` を上書きし、空欄を空文字としてRPCへ渡すよう修正した。
+- 新規作成時の空欄は従来どおり `null` のまま。
+- DB/RPC変更は不要。
+
+修正後確認:
+
+- 編集で開催場所を空欄保存し、session-detailで `未定` 表示になることを確認済み。
+- 前回値保持問題は解消済みとして扱う。
+- Discord投稿増加なし。
+- `dry_run = false` は未実行。
+
+残るIO候補:
+
+- M-14E-15Oで今回のUI QA結果とFIXをcommit / pushする。
+- 新フォーマット実送信確認を行う場合は、新しい検証用依頼書を使い、既存の旧フォーマット送信済み依頼書は再利用しない。
+- DB更新連携、二重投稿防止、action拡張、GM/admin同期UI、本番募集チャンネル切り替えは後続IO設計に残す。
+
+この工程ではdocs記録と既存フロント差分の静的確認のみ行い、SQL Editor再実行、DB/RPC追加変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。

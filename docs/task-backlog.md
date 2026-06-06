@@ -1611,3 +1611,27 @@
 - 旧フォーマットで送信済みの既存検証用依頼書は、二重投稿防止のため再利用しない。
 - DB更新連携、二重投稿防止、action拡張、GM/admin同期UI、本番募集チャンネル切り替えは後続工程として残す。
 - この工程ではdocs記録のみ行い、SQL Editor再実行、DB/RPC追加変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15N-FIX session_tool UI手動QAと空欄クリア修正
+- M-14E-15Nとして、ユーザー実ブラウザでsession_tool UI手動QAを実施した。
+- 新規依頼書作成で開催場所を入力して保存でき、session-detailに開催場所が表示された。
+- 編集で開催場所を別値へ変更して保存でき、session-detailに変更後の開催場所が表示された。
+- 募集人数min/max欄の見た目崩れなし。
+- GM/admin管理ブロックは補足情報内の募集状態下、更新日時前に表示され、参加者向け基本情報の上部を邪魔していない。
+- raw id、user_id、email、token等の画面露出なし。
+- Discordテスト用チャンネルに新規投稿増加なし。
+- 不具合として、編集時に開催場所を空欄保存しても `未定` 表示にならず、前回入力値が保持される問題を発見した。
+- 原因は、更新payloadで空欄が `nullableText(...)` により `null` へ変換され、`update_session_post` 側で既存値保持として扱われたこと。
+- `assets/js/renderSessionPost.js` の `buildUpdatePayload()` で、更新時の `p_session_tool` を `getValue(form, "p_session_tool")` に変更した。
+- 新規作成時は従来どおり空欄を `null` とし、更新時だけ空欄を空文字としてRPCへ送り、明示クリアできるようにした。
+- DB/RPC変更なしで修正完了。
+- 修正後、編集で開催場所を空欄保存し、session-detailで `未定` 表示になることをユーザー実ブラウザで確認済み。
+- Discord投稿増加なし、`dry_run = false` 未実行。
+
+次工程候補:
+
+- M-14E-15O: session_tool UI QA結果とFIXをcommit / pushする。
+- その後、必要なら新しい検証用依頼書で新フォーマット実送信を1回だけ別工程として扱う。
+- 旧フォーマットで送信済みの既存検証用依頼書は、二重投稿防止のため再利用しない。
+- DB更新連携、二重投稿防止、action拡張、GM/admin同期UI、本番募集チャンネル切り替えは後続工程として残す。
+- この工程ではコード修正、docs記録、静的確認のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。

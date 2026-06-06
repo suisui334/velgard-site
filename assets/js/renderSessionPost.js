@@ -436,7 +436,8 @@ function buildUpdatePayload(form, session) {
   if (!sessionId) throw new Error("session_not_found");
   return {
     p_session_id: sessionId,
-    ...buildSessionPayload(form)
+    ...buildSessionPayload(form),
+    p_session_tool: getValue(form, "p_session_tool")
   };
 }
 
