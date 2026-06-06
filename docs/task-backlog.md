@@ -2198,3 +2198,14 @@ Discord成功後DB更新失敗時:
 - close / resync / repair の方針整理と実装ゲート。
 - 残存QA依頼書がある場合のadmin cleanup候補整理。
 - post URL保存補強またはリンク表示方針の再レビュー。
+## M-14E-18 Discord auto-sync frontend flow
+
+Status: implementation batch completed.
+
+- Added a shared frontend Discord sync helper for create/update/delete.
+- Public, non-draft create saves now attempt Discord create sync after the app save succeeds.
+- Public, non-draft edits now attempt Discord update sync only when the session already has a Discord post reference.
+- Posted deletes now attempt Discord delete sync before DB deletion. If Discord delete sync fails, the DB delete is stopped.
+- Draft/private saves and unposted edits do not trigger hidden create sync.
+- No Edge Function deploy, SQL Editor execution, DB/RPC change, secret setting/switching, dry-run execution, real send, Discord edit/delete, or production Discord operation was performed in this implementation batch.
+- Next batch: wait for public site reflection and run a frontend manual QA gate for create/update/delete auto-sync behavior. Existing leftover QA session posts can remain as admin cleanup candidates unless they block QA.

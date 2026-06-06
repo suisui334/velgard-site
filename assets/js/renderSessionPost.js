@@ -8,18 +8,26 @@ import {
   getSupabaseRuntimeConfig,
   hasSupabaseRuntimeConfig
 } from "./supabaseBrowserClient.js?v=20260601-session-post";
+import {
+  deleteSyncedSession,
+  getDiscordSyncStateModifier,
+  getDiscordSyncUiMessage,
+  hasDiscordPostReference,
+  syncCreatedSession,
+  syncUpdatedSession
+} from "./discordSyncClient.js?v=20260606-discord-auto-sync";
 
 const ERROR_MESSAGE = "依頼書を投稿できませんでした。権限または入力内容を確認してください。";
 const END_BEFORE_START_MESSAGE = "終了日時は開始日時より後にしてください。";
 const SAVE_ERROR_MESSAGE = "保存に失敗しました。";
 const SAVE_SUCCESS_MESSAGE = "変更を保存しました。";
-const PUBLIC_SAVE_SUCCESS_MESSAGE = "変更を保存しました。公開カレンダーに反映されます。Discord通知はまだ未実装です。";
+const PUBLIC_SAVE_SUCCESS_MESSAGE = "変更を保存しました。公開カレンダーに反映されます。";
 const DRAFT_PUBLIC_MESSAGE = "下書きは公開にできません。募集状態を変更するか、公開状態を非公開にしてください。";
-const DELETE_CONFIRM_MESSAGE = "この依頼書を完全に削除します。\n削除すると、依頼書本体に加えて参加申請・コメントも削除されます。\n中止として残したい場合は、削除せず募集状態を「中止」にしてください。\nDiscord通知・投稿削除はまだ未実装です。\n本当に削除しますか？";
+const DELETE_CONFIRM_MESSAGE = "この依頼書を完全に削除します。\n削除すると、依頼書本体に加えて参加申請・コメントも削除されます。\n中止として残したい場合は、削除せず募集状態を「中止」にしてください。\nDiscord投稿済みの場合は同期削除を試みます。\n本当に削除しますか？";
 const DELETE_SUCCESS_MESSAGE = "この依頼書を削除しました。";
 const DELETE_ERROR_MESSAGE = "依頼書の削除に失敗しました。";
 const PUBLICATION_HIDDEN_HINT = "この依頼書は公開カレンダーには表示されません。";
-const PUBLICATION_ACTIVE_HINT = "保存すると公開カレンダーに表示されます。Discord通知はまだ未実装です。";
+const PUBLICATION_ACTIVE_HINT = "保存すると公開カレンダーに表示されます。";
 const STATUS_CLOSED_HINTS = {
   closed: "保存すると募集終了扱いになります。",
   finished: "保存すると開催終了扱いになります。",
@@ -43,6 +51,7 @@ const MANAGE_SESSION_SELECT = [
   "visibility",
   "status",
   "discord_sync_status",
+  "discord_message_id",
   "gm_user_id",
   "created_at",
   "updated_at"
@@ -715,6 +724,7 @@ function normalizeManagedSession(row, options = {}) {
     manageScope: options.manageScope === "admin" ? "admin" : "own",
     discordSyncStatus: String(row?.discord_sync_status ?? "").trim(),
     discordSyncStatusLabel: DISCORD_SYNC_STATUS_LABELS[String(row?.discord_sync_status ?? "").trim()] || "未設定",
+    discordMessageId: String(row?.discord_message_id ?? "").trim(),
     createdAt: formatJapanDateTime(row?.created_at) || "未定",
     updatedAt: formatJapanDateTime(row?.updated_at) || "未定",
     startInputValue: date && startTime ? `${date}T${startTime}` : "",
@@ -910,6 +920,11 @@ function getSaveSuccessMessage(payload) {
   return payload.p_visibility === "public" ? PUBLIC_SAVE_SUCCESS_MESSAGE : SAVE_SUCCESS_MESSAGE;
 }
 
+function appendDiscordSyncMessage(message, syncResult, options = {}) {
+  const syncMessage = getDiscordSyncUiMessage(syncResult, options);
+  return syncMessage ? `${message} ${syncMessage}` : message;
+}
+
 function shouldRedirectToSessionDetailAfterSave(payload) {
   return payload?.p_visibility === "public" && payload?.p_status !== "draft";
 }
@@ -970,6 +985,7 @@ function normalizeManagedSessionFromUpdate(previousSession, payload, result) {
     visibility: payload.p_visibility,
     status: payload.p_status,
     discord_sync_status: result?.discord_sync_status || previousSession.discordSyncStatus,
+    discord_message_id: previousSession.discordMessageId,
     created_at: previousSession.createdAt,
     updated_at: result?.updated_at || previousSession.updatedAt
   });
@@ -1016,12 +1032,24 @@ async function saveManagedSession(client, elements) {
     const result = Array.isArray(data) ? data[0] : data;
     if (!result || typeof result !== "object") throw new Error("invalid-result");
 
-    const updatedSession = normalizeManagedSessionFromUpdate(previousSession, payload, result);
+    const syncResult = await syncUpdatedSession(client, {
+      sessionId: resolveSavedSessionId(result, previousSession.id),
+      payload,
+      session: previousSession
+    });
+    const resultForMemory = syncResult.ok && syncResult.attempted
+      ? { ...result, discord_sync_status: "posted" }
+      : result;
+    const updatedSession = normalizeManagedSessionFromUpdate(previousSession, payload, resultForMemory);
     updateManagedSessionMemory(elements, updatedSession, previousSession);
     fillFormFromManagedSession(elements.form, updatedSession);
     updatePublicationHint(elements);
     elements.refreshTemplateControls?.();
-    setState(elements.formState, getSaveSuccessMessage(payload), "is-ok");
+    setState(
+      elements.formState,
+      appendDiscordSyncMessage(getSaveSuccessMessage(payload), syncResult),
+      getDiscordSyncStateModifier(syncResult)
+    );
     setState(elements.manageState, "");
     if (shouldRedirectToSessionDetailAfterSave(payload)) {
       redirectToSessionDetail(resolveSavedSessionId(result, updatedSession.id));
@@ -1054,8 +1082,18 @@ async function deleteManagedSession(client, elements) {
 
   try {
     const payload = buildDeletePayload(previousSession);
-    const { error } = await client.rpc("delete_session_post", payload);
-    if (error) throw error;
+    if (hasDiscordPostReference(previousSession)) {
+      const syncResult = await deleteSyncedSession(client, {
+        session: previousSession,
+        sessionId: payload.p_session_id
+      });
+      if (!syncResult.ok) {
+        throw new Error("discord_sync_delete_failed");
+      }
+    } else {
+      const { error } = await client.rpc("delete_session_post", payload);
+      if (error) throw error;
+    }
 
     const index = getManagedSessionIndex(elements, previousSession);
     if (index >= 0) {
@@ -1520,8 +1558,18 @@ async function initializeForm(root, client, access = {}) {
       if (error) throw error;
       const result = Array.isArray(data) ? data[0] : data;
       if (!result || typeof result !== "object") throw new Error("invalid-result");
-      setState(state, "作成しました。", "is-ok");
-      renderResult(resultList, result);
+      const syncResult = await syncCreatedSession(client, {
+        sessionId: resolveSavedSessionId(result),
+        payload
+      });
+      setState(
+        state,
+        appendDiscordSyncMessage("作成しました。", syncResult),
+        getDiscordSyncStateModifier(syncResult)
+      );
+      renderResult(resultList, syncResult.ok && syncResult.attempted
+        ? { ...result, discord_sync_status: "posted" }
+        : result);
       resultPanel.hidden = false;
       if (shouldRedirectToSessionDetailAfterSave(payload) && redirectToSessionDetail(resolveSavedSessionId(result))) {
         return;

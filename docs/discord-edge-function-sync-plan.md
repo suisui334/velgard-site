@@ -3283,3 +3283,16 @@ deploy結果:
 - GM/admin UIからの手動update/delete同期導線を設計・実装する。
 - close / resync / repair の運用方針と実装範囲を整理する。
 - post URL保存補強またはリンク表示方針は引き続き後続課題として扱う。
+## M-14E-18 Discord auto-sync frontend flow
+
+`70a3cf0 Verify Discord sync lifecycle` の状態から、公開・非draft依頼書の作成/編集/削除に対して、フロント側から `sync-session-post-to-discord` を呼ぶ自動同期導線を実装した。
+
+- 共通helper `assets/js/discordSyncClient.js` を追加し、`create` / `update` / `delete` の `dry_run = false` 呼び出しをフロントから扱う入口をまとめた。
+- 作成時は、`create_session_post` 成功後、公開・非draftの場合のみ `action = create` 同期を試みる。下書き/非公開保存では同期しない。
+- 編集時は、`update_session_post` 成功後、公開・非draftかつ既存Discord投稿識別子がある場合のみ `action = update` 同期を試みる。既存投稿がない対象に対してフロントが黙ってcreate同期を増やすことはしない。
+- 削除時は、既存Discord投稿識別子がある場合のみ `action = delete` 同期を先に試み、失敗時はDB削除へ進まない。未投稿対象は従来どおり既存 `delete_session_post` RPCで削除する。
+- 同期失敗時も、作成/編集保存自体は成功扱いを維持し、UIには一般化した警告だけを出す。削除同期失敗時は依頼書削除を止め、一般化したエラーを出す。
+- レスポンス内のDiscord message id、channel id、thread id、post URL全文、message preview本文全文はDOM/console/docsへ出さない方針を維持する。
+- `dry_run = true` / `dry_run = false` の実行、Discord投稿/編集/削除、Edge Function deploy、SQL Editor実行、DB/RPC変更、secret設定/切替はこの工程では行っていない。
+
+次工程は公開サイト反映後のフロント手動QAバッチとする。確認項目は、新規公開依頼書作成後のcreate同期、投稿済み依頼書編集後のupdate同期、投稿済み依頼書削除時のdelete同期、未投稿依頼書の従来削除、一般参加者向け画面への実ID露出なし、GM/admin同期パネルの一般化表示である。既存の残骸QA依頼書は必要に応じてadmin cleanup候補として扱う。

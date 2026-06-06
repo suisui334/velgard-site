@@ -2581,3 +2581,16 @@ Next IO:
 - GM/admin向け手動同期UI導線の設計・実装。
 - close / resync / repair IOの整理。
 - 残存QA依頼書がある場合のadmin cleanup候補整理。
+## M-14E-18 Frontend auto-sync IO boundary
+
+公開・非draft依頼書の保存/削除後に、フロントからEdge Functionへ自動同期する導線を追加した。今回の工程は実装と静的確認のみであり、実際の `dry_run = false`、Discord投稿/編集/削除、本番/テスト投稿増加は行っていない。
+
+IO方針:
+
+- Create: アプリ用RPCの作成成功後にだけ `action = create` を呼ぶ。下書き/非公開保存、作成失敗時は呼ばない。
+- Update: アプリ用RPCの更新成功後にだけ `action = update` を呼ぶ。既存Discord投稿識別子がない場合は新規投稿を増やさずスキップする。
+- Delete: 既存Discord投稿識別子がある場合は `action = delete` を先に呼ぶ。同期削除が失敗した場合はDB削除を止める。未投稿対象は既存削除RPCを使う。
+- UI表示: 成功/失敗はいずれも一般化メッセージに丸める。外部投稿識別子、チャンネル識別子、thread識別子、post URL全文、message preview本文全文は表示しない。
+- DOM/console/docs: JWT、session id実値、project ref、Supabase URL全文、Webhook URL、Discord message id、channel id、thread id、post URL全文、raw user_id、email、token、selected_character_id、application_idを出さない。
+
+次のQAでは、公開サイト反映後にフロント操作だけでcreate/update/delete同期が期待どおり発火するかを確認する。ただし、実際のDiscord投稿/編集/削除を伴うため、QAの各 `dry_run = false` は対象を明確にし、再実行禁止のゲートとして扱う。

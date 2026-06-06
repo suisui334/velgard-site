@@ -1,5 +1,5 @@
 import { getParams } from "./dataLoader.js";
-import { loadMergedSessions } from "./sessionData.js?v=20260606-discord-sync-status";
+import { loadMergedSessions } from "./sessionData.js?v=20260606-discord-auto-sync";
 import {
   escapeHtml,
   getSessionDisplayTitle,
@@ -8,19 +8,24 @@ import {
 } from "./sessionDisplay.js?v=20260606-discord-sync-status";
 import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260607-pl-application-template";
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js?v=20260601-session-post";
+import {
+  deleteSyncedSession,
+  hasDiscordPostReference
+} from "./discordSyncClient.js?v=20260606-discord-auto-sync";
 
 const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const DETAIL_EXCLUDED_STATUSES = new Set(["draft", "canceled", "cancelled"]);
-const DELETE_CONFIRM_MESSAGE = "この依頼書を完全に削除します。\n削除すると、依頼書本体に加えて参加申請・コメントも削除されます。\n中止として残したい場合は、削除せず募集状態を「中止」にしてください。\nDiscord通知・投稿削除はまだ未実装です。\n本当に削除しますか？";
+const DELETE_CONFIRM_MESSAGE = "この依頼書を完全に削除します。\n削除すると、依頼書本体に加えて参加申請・コメントも削除されます。\n中止として残したい場合は、削除せず募集状態を「中止」にしてください。\nDiscord投稿済みの場合は同期削除を試みます。\n本当に削除しますか？";
 const DELETE_SUCCESS_MESSAGE = "この依頼書を削除しました。";
 const DELETE_ERROR_MESSAGE = "依頼書の削除に失敗しました。";
 const DELETE_ERROR_MESSAGES = {
   login_required: "ログインが必要です。",
   not_allowed: "この依頼書を削除する権限がありません。",
   session_not_found: "対象の依頼書が見つかりません。",
-  session_id_required: "対象の依頼書が見つかりません。"
+  session_id_required: "対象の依頼書が見つかりません。",
+  discord_sync_delete_failed: "Discord同期削除に失敗しました。依頼書は削除していません。管理パネルで確認してください。"
 };
 
 function parseIsoDate(value) {
@@ -198,8 +203,18 @@ async function applyDeleteSessionPost(client, elements, session) {
 
   try {
     const payload = buildDeletePayload(session);
-    const { error } = await client.rpc("delete_session_post", payload);
-    if (error) throw error;
+    if (hasDiscordPostReference(session)) {
+      const syncResult = await deleteSyncedSession(client, {
+        session,
+        sessionId: payload.p_session_id
+      });
+      if (!syncResult.ok) {
+        throw new Error("discord_sync_delete_failed");
+      }
+    } else {
+      const { error } = await client.rpc("delete_session_post", payload);
+      if (error) throw error;
+    }
 
     setManageState(elements.state, DELETE_SUCCESS_MESSAGE, "is-ok");
     elements.deleteButton.title = "この依頼書は削除済みです。";
