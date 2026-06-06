@@ -2682,3 +2682,49 @@ Next IO gate candidates:
 - Static fixture retirement review.
 - Supabase remnant cleanup gate.
 - Old test-channel manual cleanup gate.
+## M-14E-18E Prelaunch cleanup inventory IO draft
+
+Status: inventory/procedure draft only. No cleanup operation was executed.
+
+Static investigation:
+
+- Static JSON rows are normalized as `source = static`.
+- Supabase rows are normalized as `source = supabase`.
+- Merged display can still include static-only ids unless fixture retirement is handled separately.
+- Static JSON rows are not DB rows and must not be sent to Discord delete sync.
+- Posted Supabase rows use Discord delete sync first, then DB delete.
+- Unposted Supabase rows skip Discord delete sync and use the DB-only delete RPC.
+- Old test-webhook posts can fail deletion under the current production webhook. This should remain a manual cleanup or repair/resync category.
+
+New SQL drafts:
+
+- `docs/supabase/sql/032_prelaunch_session_cleanup_inventory_select_only.sql`
+  - SELECT-only aggregate inventory.
+  - Returns generalized section/check/status/count rows only.
+  - Does not return row ids, Discord ids, post URLs, user ids, emails, tokens, secrets, or row data.
+- `docs/supabase/sql/033_prelaunch_session_cleanup_apply_draft.sql`
+  - DO NOT RUN / NOT EXECUTED / USER APPROVAL REQUIRED procedure draft.
+  - Contains no executable cleanup operation.
+  - Documents that SQL alone cannot delete Discord posts and that static JSON retirement is not DB cleanup.
+
+Cleanup IO classification:
+
+- Production-webhook posted Supabase candidate: delete through current app/Edge Function delete sync after manual classification.
+- Unposted Supabase candidate: DB-only delete path after manual classification.
+- Static JSON candidate: frontend/data retirement, not DB cleanup.
+- Old test-webhook or Discord-only candidate: Discord-side manual cleanup or separately reviewed repair/resync path.
+
+Stop conditions for future cleanup gates:
+
+- Source category is unclear.
+- Production webhook ownership is unclear.
+- Static fixture retirement has not been decided.
+- A step would expose raw row ids, Discord ids, URLs, JWTs, user ids, emails, tokens, or webhook values.
+- A step would require SQL Editor execution, DB/RPC change, Edge Function deploy, dry-run/real-send, Discord deletion, or secret switch outside its own explicit gate.
+
+Next IO gates:
+
+- Run the SELECT-only inventory in a separate gate.
+- Review static JSON retirement.
+- Review Supabase cleanup execution.
+- Review old test-channel or Discord-only manual cleanup.

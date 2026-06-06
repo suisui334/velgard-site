@@ -2289,3 +2289,50 @@ Next:
 - Static JSON retirement review.
 - Supabase remnant cleanup gate.
 - Test-channel / Discord-only manual cleanup gate.
+## M-14E-18E 運用前リセット実行準備
+
+Status: cleanup inventory/procedure draft completed. No destructive cleanup was run.
+
+Added SQL drafts:
+
+- `docs/supabase/sql/032_prelaunch_session_cleanup_inventory_select_only.sql`
+  - SELECT-only inventory for Supabase session counts and cleanup categories.
+  - Does not return raw ids, Discord ids, post URLs, user ids, emails, tokens, secrets, or row data.
+- `docs/supabase/sql/033_prelaunch_session_cleanup_apply_draft.sql`
+  - DO NOT RUN / NOT EXECUTED / USER APPROVAL REQUIRED cleanup procedure draft.
+  - Contains no executable delete/update/cleanup operation.
+
+Static/code review:
+
+- Static JSON rows remain outside DB/RPC cleanup and are marked by source as static.
+- Supabase rows remain the only normal edit/delete target.
+- Posted Supabase rows go through Discord delete sync before DB delete.
+- Unposted Supabase rows use the existing DB-only delete path.
+- Old test-webhook Discord remnants may not be deletable by the current production webhook and should be separated from normal production cleanup.
+- No code change was made in this batch to avoid disturbing already verified create/update/delete auto-sync behavior.
+
+Prelaunch cleanup plan:
+
+1. Run the SELECT-only inventory gate.
+2. Decide whether to retire or shrink `data/sessions.json`.
+3. Classify Supabase rows into production auto-delete, DB-only delete, and manual-review candidates.
+4. Handle old test-channel or Discord-only remnants on the Discord side or through a separately reviewed repair path.
+5. Recheck calendar, session-detail, mypage/session-post management list, and GM/admin Discord sync panel after cleanup.
+
+Future admin cleanup UI candidate:
+
+- Admin-only inventory view with generalized counts.
+- Individual and bulk cleanup actions with strong confirmation.
+- Static JSON rows shown as fixture retirement targets, not DB delete targets.
+- Discord-only remnants shown as manual Discord cleanup targets.
+
+Not executed:
+
+- No actual deletion, Discord post deletion, SQL Editor execution, SQL apply, DB/RPC change, Edge Function deploy, dry-run, real-send, secret switch, or `updates.json` change.
+
+Next:
+
+- Cleanup inventory SELECT-only gate.
+- Static JSON retirement review.
+- Supabase remnant cleanup gate.
+- Old test-channel / Discord-only manual cleanup gate.

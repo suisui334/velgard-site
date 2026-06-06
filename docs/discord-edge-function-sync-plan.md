@@ -3431,3 +3431,59 @@ cleanup停止条件:
 - テストチャンネル/Discord-only残骸cleanupゲート: Discord側の手動整理として扱う。
 
 この工程では、実際の大量削除、Discord投稿削除、SQL Editor実行、SQL apply、DB/RPC変更、Edge Function deploy、dry-run、real-send、secret設定/切替、`updates.json` 変更は行っていない。
+## M-14E-18E 運用前リセット実行準備
+
+`6be75f4 Plan prelaunch session cleanup` の状態から、運用開始前に残存依頼書を安全に整理するための準備を行った。この工程では実削除、Discord投稿削除、SQL Editor実行、SQL apply、DB/RPC変更、Edge Function deploy、dry-run、real-send、secret設定/切替は行わない。
+
+静的調査結果:
+
+- `sessionData.js` は静的JSON由来を `source: "static"`、Supabase由来を `source: "supabase"` として正規化する。
+- `loadMergedSessions` は静的JSONとSupabase行をmergeする。Supabase行と同じidならSupabase行が優先されるが、静的JSON固有idは静的データとして表示候補に残る。
+- `renderSessionDetail.js` はSupabase由来だけを編集/削除対象にし、静的JSON由来では通常の削除ボタンを有効化しない。
+- 投稿済みSupabase依頼書は `hasDiscordPostReference` がtrueの場合、削除前にDiscord delete同期を試み、成功後にDB削除へ進む。
+- 未投稿Supabase依頼書はDiscord delete同期を行わず、既存 `delete_session_post` RPCへ進む。
+- テスト用Webhook時代に作られたDiscord投稿は、現在の本番Webhookでは削除できない可能性がある。この場合、現行delete同期はDB削除へ進まず停止するため安全側の挙動として扱う。
+- `data/sessions.json` 由来はDB行ではないため、DB/RPC cleanupでは削除できない。運用前に静的fixtureとして残すか、退役/縮小するかを別ゲートで決める。
+
+追加したSQL draft:
+
+- `docs/supabase/sql/032_prelaunch_session_cleanup_inventory_select_only.sql`
+  - SELECT-onlyのinventory draft。
+  - Supabase依頼書の件数、公開/下書き/非公開系、Discord同期状態、最終操作、外部投稿識別子保存有無、QA/test/連携確認らしきタイトル件数、cleanup候補分類を集計する。
+  - 実ID、Discord ID、post URL全文、user id、email、token、secretは返さない。
+  - 実削除は行わない。
+- `docs/supabase/sql/033_prelaunch_session_cleanup_apply_draft.sql`
+  - 実行禁止のcleanup手順draft。
+  - SQL単体ではDiscord投稿を削除できないこと、DB削除対象とDiscord削除対象を混ぜないこと、静的JSON退役はDB cleanupではないことを明記した。
+  - 実行可能な削除SQLは含めていない。
+
+静的JSON退役方針:
+
+- 今回はコード変更しない。理由は、既存create/update/delete自動同期を壊すリスクを避け、静的fixtureの用途有無を先に確認するため。
+- 現行UIでは静的JSON由来は通常のSupabase編集/削除対象から外れているため、誤ってDiscord delete同期へ送らない境界は維持されている。
+- 後続で退役する場合は、`data/sessions.json` の縮小、読み込み停止、またはGM/admin向けに「静的データ由来・運用前退役対象」と一般化表示する案を比較する。
+- Supabaseでhidden/draft/canceledにした行が静的JSON fallbackで復活しないかは、inventory後にfixture退役方針と合わせて確認する。
+
+運用前cleanup手順案:
+
+1. `032_prelaunch_session_cleanup_inventory_select_only.sql` を別ゲートで実行し、実IDを出さず件数/分類だけ確認する。
+2. 静的JSON fixtureを残すか退役するか決める。
+3. Supabase上の未投稿テスト依頼書は、既存DB削除導線でcleanup候補にする。
+4. 本番Webhook由来の投稿済みSupabase依頼書は、現行delete自動同期でDiscord投稿削除後にDB削除する。
+5. テストWebhook時代の古い投稿は、Discord側の手動削除または別途repair/resync設計に分ける。
+6. Discord側にだけ残る投稿はDBから追えないため、Discord側の手動整理対象にする。
+7. cleanup後にcalendar / session-detail / mypage / session-post管理一覧 / GM-admin同期パネルを再確認する。
+
+将来のadmin cleanup UI案:
+
+- admin専用ページで、実IDを表示せず分類別件数と一般化状態を表示する。
+- 個別削除と一括削除は強い確認文言を必須にする。
+- 静的JSON由来はDB削除ボタンではなく、fixture退役対象として表示する。
+- Discord-only残骸はアプリから削除せず、Discord側手動整理として表示する。
+
+次工程:
+
+- cleanup inventory SELECT-onlyゲート。
+- 静的JSON退役レビュー。
+- Supabase残骸cleanupゲート。
+- テストチャンネル / Discord-only残骸の手動cleanupゲート。
