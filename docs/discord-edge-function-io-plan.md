@@ -1763,3 +1763,60 @@ Discord成功 / DB更新失敗IO:
 - 本番初回投稿手順未レビュー。
 
 この工程ではdocs設計のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16F/G Discord同期DB更新連携 IO draft
+M-14E-16D/EのIO設計を踏まえ、CHECK許容値確認用SELECT-only SQLと専用RPC apply draftを作成した。この工程ではSQL Editor実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord送信は行わない。
+
+SQL draft:
+
+- `029_discord_sync_check_values_select_only.sql`: `discord_sync_status` / `discord_last_action` のCHECK定義、関連カラム、RPC signature、EXECUTE、RLS/policyを単一結果表で読むSELECT-only preflight。
+- `030_discord_sync_rpc_apply_draft.sql`: 専用RPC案の未実行apply draft。029結果でCHECK許容値を確認するまで実行しない。
+
+Edge Functionからの将来IO順:
+
+1. request validation: `action` / `dry_run` / 対象依頼書指定を検証する。
+2. user auth: Authorizationのユーザー文脈を確認する。JWT本体はログやレスポンスへ出さない。
+3. target session fetch: 投稿本文生成に必要な公開情報を取得する。raw内部IDや個人情報を返さない。
+4. create二重投稿防止guard: `dry_run = false` かつ `action = create` の場合だけ、専用RPCで既存外部投稿識別子の有無を確認する。
+5. message build: `dry_run = true` と実送信で同じ本文生成を使う。
+6. Discord send: `dry_run = false` のみ。Webhook URLはsecretから参照し、ログやレスポンスへ出さない。
+7. DB sync success update: Discord送信成功後に専用RPCで外部投稿識別子相当と同期状態を保存する。
+8. partial failure handling: Discord送信成功後にDB更新が失敗した場合、送信済みとDB更新失敗を分けて返し、同じcreate再実行を禁止する。
+9. sanitized response: 外部投稿識別子実値、投稿URL実値、Webhook URL、JWT、確認対象ID実値、Discord投稿先実値を返さない。
+
+RPC IO案:
+
+- `check_discord_session_post_create_ready(text)`
+  - 入力: 対象依頼書ID相当。
+  - 出力: `can_send`、現在の同期状態、既存投稿有無のboolean。
+  - エラー: 未ログイン、権限なし、対象なし、既存投稿ありを一般化して返す。
+  - DB更新なし。
+- `record_discord_session_post_create_success(text, text, text, text, text)`
+  - 入力: 対象依頼書ID相当、外部投稿識別子相当、投稿先相当、スレッド相当、投稿URL相当。
+  - 出力: 同期状態、最終action、同期成功時刻、外部投稿識別子を保存したかのboolean。
+  - DB更新: Discord送信成功後のみ。
+  - 実値IDやURLはレスポンスへ返さない。
+- `record_discord_session_post_create_failure(text, text)`
+  - 入力: 対象依頼書ID相当、一般化エラーコード。
+  - 出力: 同期状態、最終action、更新時刻。
+  - 生レスポンスやsecret、外部投稿識別子実値は保存しない。
+
+`dry_run = true` IO:
+
+- guard RPCを呼ばない。
+- Discord送信しない。
+- DB更新しない。
+- message previewと予定情報だけを返す。
+
+`dry_run = false` IO:
+
+- `action = create` のみ初期対象。
+- guard RPCで既存投稿ありならDiscord送信前に拒否。
+- Discord送信成功後、success記録RPCを呼ぶ。
+- DB更新失敗時はpartial failureとして扱い、再実行禁止を明示する。
+
+残るIO論点:
+
+- pre-send guardだけでは同時実行を完全に防げないため、将来の予約状態更新またはより強いDB側排他を検討する。
+- CHECK許容値が030 draftの想定と違う場合、RPC draftの状態値を修正する。
+- `update` / `close` / `delete` / `resync` は今回のRPC draftでは未実装とし、後続のaction拡張バッチで扱う。

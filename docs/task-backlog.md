@@ -1822,3 +1822,28 @@ Discord成功後DB更新失敗時:
 - これらが残る間は本番募集チャンネルへ進まない。
 
 この工程ではdocs設計のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16F/G Discord同期DB更新連携 SQL/RPC draft作成バッチ
+- CHECK許容値確認用SELECT-only SQL draftとして `docs/supabase/sql/029_discord_sync_check_values_select_only.sql` を作成。
+- 専用RPC案の未実行apply draftとして `docs/supabase/sql/030_discord_sync_rpc_apply_draft.sql` を作成。
+- 029は `discord_sync_status` / `discord_last_action` のCHECK定義、関連カラム、既存RPC signature、EXECUTE、RLS/policyを単一結果表で確認するSELECT-only preflight。
+- 030は `DO NOT RUN UNTIL REVIEWED` を明記したapply draftで、029結果によりCHECK許容値を確認するまで実行しない。
+- 030のRPC案は、`check_discord_session_post_create_ready(text)`、`record_discord_session_post_create_success(text,text,text,text,text)`、`record_discord_session_post_create_failure(text,text)` の3本。
+- 既存 `update_session_post` にDiscord同期責務を混ぜず、専用RPCで二重投稿防止、同期状態更新、一般化エラー保存を扱う方針を維持。
+- `dry_run = true` ではDB更新なし。`dry_run = false` かつDiscord送信成功後のみsuccess記録RPCを呼ぶ。
+- Edge Function実装バッチでは、request validation、user auth、target session fetch、create guard、message build、Discord send、DB success update、partial failure handling、sanitized responseの順で整理する。
+- Discord送信成功後にDB更新失敗した場合は、同じ `create` 再実行を禁止し、Discord送信済みとDB更新失敗を分けて返す。
+- 本番募集チャンネル切替は、DB更新連携、外部投稿識別子保存、二重投稿防止、update/resync方針、本番Webhook/secret切替レビュー、本番初回投稿手順レビューが完了するまで停止。
+
+次工程を大きめに再編:
+
+1. CHECK確認SQL実行ゲート: 029をユーザー手元でSQL Editor実行し、CHECK許容値を記録する。
+2. RPC applyレビューゲート: 029結果を踏まえ、030の状態値・関数名・戻り値・権限をレビューする。
+3. RPC applyゲート: ユーザー手元でSQL Editor適用する。
+4. Edge Function実装バッチ: 専用RPC呼び出し、DB更新連携、二重投稿防止、partial failure responseを実装する。
+5. deployゲート: Edge Function deployを独立ゲートで扱う。
+6. まとめQAバッチ: dry-run、テスト用チャンネル実送信、二重投稿拒否、DB状態確認をまとめて行う。
+7. 本番切替前レビューゲート: 本番Webhook/secret切替、初回投稿手順、停止条件を確認する。
+8. 本番切替ゲート: 本番募集チャンネル切替を独立ゲートで扱う。
+
+この工程ではSQL/RPC draft作成とdocs整理のみ行い、SQL Editor実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更は行わない。
