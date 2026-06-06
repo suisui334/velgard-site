@@ -3365,3 +3365,69 @@ deploy結果:
 - close / resync / repair の方針と実装範囲を整理する。
 - post URL保存補強またはリンク表示方針は引き続き後続課題として扱う。
 - 残存QA依頼書があればadmin cleanup候補として整理する。
+
+## M-14E-18D 運用前cleanup設計と削除不能原因調査
+
+Status: 調査・設計完了。実削除は未実施。
+
+公開サイトUIからのDiscord自動同期ブラウザQAは、create / update / delete まで成功済み。一方で、運用開始前に残ったテスト依頼書や古いDiscord投稿を整理するため、削除不能の想定原因とcleanup手順を整理した。
+
+由来別の削除経路:
+
+- Supabase由来、かつ本番Webhookで作成されたDiscord投稿識別子あり: 現行の削除導線で、Discord delete同期を先に行い、成功後に `delete_session_post` でDB行を削除する。
+- Supabase由来、かつDiscord投稿識別子なし: Discord delete同期を行わず、既存 `delete_session_post` でDB行を削除する。
+- Supabase由来、かつテスト用Webhook時代のDiscord投稿識別子あり: 現在の本番Webhookでは古い投稿を削除できない可能性がある。Discord delete失敗時にDB削除へ進まない現行挙動は安全側として維持する。
+- `data/sessions.json` 由来の静的依頼書: DB行ではないためDB/RPC削除対象ではない。運用前退役対象として、静的fixtureを削るか残すかを別途判断する。
+- Discord側にだけ残ってDBから追えない投稿: アプリから安全に対象特定できないため、Discord側の手動削除またはチャンネル整理対象にする。
+
+コード上の確認結果:
+
+- `sessionData.js` は静的行に `source: "static"`、Supabase行に `source: "supabase"` を付ける。
+- `renderSessionDetail.js` はSupabase由来だけを編集/削除対象にし、静的JSON由来では削除ボタンを有効化しない。
+- `discordSyncClient.js` はDiscord投稿識別子がある場合だけdelete同期を試みる。
+- Edge Functionのdeleteは、現在設定されているWebhookでDiscordメッセージを削除し、その後にDB削除RPCへ進む。Discord削除に失敗した場合はDB削除を止める。
+- `data/sessions.json` の静的fallbackは、Supabase行と同じidならSupabase行で上書きされるが、静的固有idは静的データを退役しない限り通常表示候補に残る。
+
+削除不能の主な想定原因:
+
+- 古いテスト用Webhook投稿を、本番Webhookで削除しようとしている。
+- 静的JSON由来の予定をDB依頼書として削除しようとしている。
+- Discord投稿識別子がない対象で、Discord delete同期を期待している。
+- GM/admin権限やログイン状態が未確認。
+- Discord delete失敗時にDB削除を止める安全設計が働いている。
+
+今回の実装判断:
+
+- 既存create/update/delete自動同期を壊すリスクを避けるため、コード変更は行わない。
+- 本番Webhook由来のSupabase依頼書は、現行delete自動同期で削除できる状態を維持する。
+- 未投稿Supabase依頼書は、既存DB削除RPCで削除できる状態を維持する。
+- 静的JSON由来をDiscord delete同期へ送らない現行分岐を維持する。
+- テストWebhook時代のDiscord残骸は、手動Discord cleanupまたは別途repair/resync設計で扱う。
+
+運用前cleanup手順案:
+
+1. `data/sessions.json` の旧モック/テスト予定を運用前に残すか退役するか決める。
+2. Supabase上の残存テスト依頼書を、実IDを出さない形で一覧化し、未投稿 / 本番Webhook投稿済み / 旧テストWebhook投稿済み候補へ分類する。
+3. 未投稿Supabase依頼書は、既存削除RPC導線でcleanupする。
+4. 本番Webhook由来の投稿済みSupabase依頼書は、現行delete自動同期でDiscord投稿削除後にDB削除する。
+5. テスト用Webhook時代のDiscord投稿は、Discord側で手動削除またはテストチャンネル整理対象にする。
+6. Discord側だけに残っている投稿は、DBから追わずDiscord側で手動整理する。
+7. cleanup後にcalendar / session-detail / mypage / session-post管理一覧 / GM-admin同期パネルを確認する。
+
+cleanup停止条件:
+
+- 対象の由来が分類できない。
+- 本番Webhook由来かテストWebhook由来か判断できない。
+- 静的JSON fixtureを退役してよいか未確定。
+- SQL Editor実行、DB/RPC変更、Edge Function deploy、secret確認、実IDやURL全文の露出が必要になる。
+- Discord削除失敗後に同じ破壊操作を再実行しそうになる。
+- QA以外の本番運用依頼書に影響しそうになる。
+
+次工程:
+
+- cleanup inventoryゲート: 実IDや外部IDを出さない形で対象を分類する。
+- 静的JSON退役レビュー: fixture用途が残るかを確認する。
+- Supabase残骸cleanupゲート: ユーザー明示許可後に個別またはまとめて削除する。
+- テストチャンネル/Discord-only残骸cleanupゲート: Discord側の手動整理として扱う。
+
+この工程では、実際の大量削除、Discord投稿削除、SQL Editor実行、SQL apply、DB/RPC変更、Edge Function deploy、dry-run、real-send、secret設定/切替、`updates.json` 変更は行っていない。

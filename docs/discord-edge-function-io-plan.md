@@ -2636,3 +2636,49 @@ Not executed by Codex in this result-recording step:
 - SQL Editor実行、SQL apply、DB/RPC変更。
 - secret設定/切替。
 - `updates.json` 変更。
+
+## M-14E-18D Prelaunch cleanup IO review
+
+Status: cleanup IO design only. No delete operation was executed.
+
+Delete IO categories:
+
+- Supabase + production Discord reference: frontend delete calls Edge Function `action = delete`; Edge Function deletes the Discord message through the currently configured webhook, then calls `delete_session_post`.
+- Supabase + no Discord reference: frontend delete skips Discord sync and calls `delete_session_post`.
+- Supabase + old test-webhook Discord reference: the current production webhook may not own the old message. Discord delete can fail before DB deletion. Treat as manual cleanup or separate repair/resync design.
+- Static JSON source: no DB/RPC delete target. It should not call Discord delete sync. Treat as static fixture retirement.
+- Discord-only remnant: no app-side trusted target. Treat as Discord-side manual cleanup.
+
+Delete-blocker IO causes:
+
+- The item is static `data/sessions.json` data and not a Supabase row.
+- The item has a Discord post reference but was created by a different webhook than the one currently configured.
+- The item lacks a Discord post reference and should use the DB-only delete path instead.
+- GM/admin permission or login state was not established.
+- Edge Function delete failed and correctly prevented DB deletion.
+
+Static JSON retirement IO:
+
+- Decide whether `data/sessions.json` still serves fixture/fallback needs.
+- If static data is retired, handle it as a data/frontend change rather than DB cleanup.
+- Avoid using static fallback to resurrect content that was intentionally hidden, canceled, drafted, or deleted in Supabase.
+- If static items remain, keep them clearly outside DB/Discord delete sync.
+
+Discord remnant cleanup IO:
+
+- Production-webhook posts are candidates for current auto-delete sync.
+- Old test-webhook posts may need Discord-side manual deletion or channel cleanup.
+- DB rows with old message references should not be force-deleted until the Discord cleanup path is understood.
+- Discord-only posts without DB rows are outside app cleanup and should be handled in Discord.
+
+Not implemented in this batch:
+
+- No frontend or Edge Function code change.
+- No SQL Editor execution, SQL apply, DB/RPC change, Edge Function deploy, dry-run, real-send, Discord post/edit/delete, secret change, or `updates.json` change.
+
+Next IO gate candidates:
+
+- Cleanup inventory gate with generalized source/status results only.
+- Static fixture retirement review.
+- Supabase remnant cleanup gate.
+- Old test-channel manual cleanup gate.

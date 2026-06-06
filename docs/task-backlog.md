@@ -2241,3 +2241,51 @@ Next:
 
 - Move to post-QA production readiness cleanup and remaining scope review.
 - Keep close / resync / repair, post URL handling, and any admin cleanup candidates as follow-up work.
+
+## M-14E-18D Prelaunch session cleanup planning
+
+Status: cleanup investigation/design completed. No destructive cleanup was run.
+
+What was reviewed:
+
+- Session detail delete button and GM/admin permission path.
+- Supabase vs static JSON source split.
+- Frontend Discord delete sync path.
+- Existing DB-only delete fallback for unposted Supabase rows.
+- Edge Function delete behavior for posted rows.
+- Static `data/sessions.json` fallback behavior.
+
+Findings:
+
+- Production-webhook Supabase posts should continue to use current auto-delete sync.
+- Unposted Supabase posts should continue to use the existing `delete_session_post` path.
+- Static JSON rows are not DB rows and cannot be deleted through DB/RPC cleanup.
+- Older test-webhook Discord posts may not be deletable by the current production webhook; these are likely manual Discord cleanup or repair/resync candidates.
+- Discord-only remnants without DB rows cannot be safely targeted by the app.
+
+Code changes:
+
+- None in this batch. Current create/update/delete auto-sync paths remain unchanged.
+
+Prelaunch cleanup backlog:
+
+- Build a source/status cleanup inventory that does not expose raw ids, Discord ids, URLs, JWTs, user ids, emails, or tokens.
+- Decide whether to retire or shrink `data/sessions.json` before operations.
+- Separate cleanup candidates into production auto-delete, DB-only delete, static JSON retirement, old test-channel manual cleanup, and Discord-only manual cleanup.
+- Run actual deletion only as a separate explicit cleanup gate.
+- Recheck calendar, session-detail, mypage/session-post management list, and GM/admin Discord sync panel after cleanup.
+
+Stop conditions for cleanup:
+
+- Source category is unclear.
+- Old test-webhook vs production-webhook ownership is unclear.
+- Static fixture retirement has not been decided.
+- Cleanup would require SQL Editor, DB/RPC change, Edge Function deploy, secret inspection, or raw external ids.
+- Non-QA production content might be affected.
+
+Next:
+
+- Prelaunch cleanup inventory gate.
+- Static JSON retirement review.
+- Supabase remnant cleanup gate.
+- Test-channel / Discord-only manual cleanup gate.
