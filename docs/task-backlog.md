@@ -1847,3 +1847,21 @@ Discord成功後DB更新失敗時:
 8. 本番切替ゲート: 本番募集チャンネル切替を独立ゲートで扱う。
 
 この工程ではSQL/RPC draft作成とdocs整理のみ行い、SQL Editor実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16H 029実行結果記録と030 RPC apply draftレビュー
+- ユーザー手元で `docs/supabase/sql/029_discord_sync_check_values_select_only.sql` をSQL Editorへファイル全体貼り付けし、SELECT-only preflightとして1回だけ実行済み。エラーなしで結果グリッドが表示された。同じSQLは再実行していない。
+- `public.sessions` は存在し、core column summaryは `15/15 present`。`session_tool` も存在確認済み。
+- Discord同期系カラムは `9/9 present`。確認済みカラムは `discord_message_id` / `discord_channel_id` / `discord_thread_id` / `discord_post_url` / `discord_sync_status` / `discord_last_action` / `discord_sync_requested_at` / `discord_synced_at` / `discord_sync_error`。
+- `discord_sync_status` は `text` / nullable YES / defaultあり、`discord_last_action` は `text` / nullable YES / default NULL。
+- `sessions_discord_last_action_check`、`sessions_discord_sync_status_check`、`sessions_status_check`、`sessions_visibility_check` が確認できた。
+- `create_session_post` / `update_session_post` / `delete_session_post` は存在し、security definer、search_path、authenticated EXECUTEあり、anon / PUBLIC不可を確認上OK。
+- `sessions` / `user_roles` はRLS enabled。policy概要は取得できたが、具体的なpolicy本文や実値は記録しない。
+- 重要: CHECK制約の許容値配列は結果表示幅の都合で完全には読めていない。`posted` / `failed` / `create` 等を推測で確定扱いにせず、030 apply前に正確なCHECK定義確認を必須とする。
+- `docs/supabase/sql/030_discord_sync_rpc_apply_draft.sql` は未実行のapply draft。`DO NOT RUN UNTIL REVIEWED` 注記を維持し、029結果後もCHECK許容値未確定のため実行可能扱いにしない。
+- 030のRPC案は `check_discord_session_post_create_ready(text)`、`record_discord_session_post_create_success(text,text,text,text,text)`、`record_discord_session_post_create_failure(text,text)` の3本。既存 `update_session_post` に同期責務を混ぜない方針を維持。
+- 030 draftには、029は成功したがCHECK許容値全体は未確認であり、正確な許容値確認まで非実行とするコメントを追加した。SQL本文の実行ロジックは変更していない。
+- Edge Function実装バッチでは、request validation、user auth、target session fetch、create guard RPC、message build、Discord send、success記録RPC、failure記録RPCまたはpartial failure handling、sanitized responseの順で整理する。
+- `dry_run = true` はDB更新なし。`dry_run = false` かつDiscord送信成功後のみDB更新連携を行う。
+- 次工程は、RPC apply前レビューゲート、RPC applyゲート、Edge Function実装バッチ、deployゲート、まとめQAバッチ、本番切替前レビューゲート、本番切替ゲートの大きめ工程へ再編する。
+- 本番募集チャンネル切替は、DB更新連携、外部投稿識別子保存、二重投稿防止、`update` / `resync` 方針、本番Webhook/secret切替レビュー、本番初回投稿手順レビューが揃うまで停止。
+- この工程ではdocs/SQL draftコメント整理のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、030 SQL実行、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更は行わない。

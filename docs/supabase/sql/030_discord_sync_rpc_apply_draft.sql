@@ -24,6 +24,10 @@
 -- - discord_sync_status: pending / posted / failed
 -- - discord_last_action: create
 -- Run 029 first and revise this draft if existing CHECK constraints differ.
+-- M-14E-16F/G review note:
+-- - 029 was run once without error, but the available result view did not fully expose the CHECK value arrays.
+-- - Keep this draft non-executable until exact allowed values for discord_sync_status and discord_last_action are confirmed.
+-- - If posted, failed, or create differ from existing CHECK definitions, revise this file before any apply.
 --
 -- Safety notes:
 -- - No INSERT statements.

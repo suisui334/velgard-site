@@ -2238,3 +2238,69 @@ Edge Function実装バッチでの処理順序:
 6. まとめQAバッチ: dry-run、テスト用チャンネル実送信、二重投稿拒否、DB状態確認をまとめて行う。
 7. 本番切替前レビューゲート: 本番Webhook/secret切替、初回投稿手順、停止条件を確認する。
 8. 本番切替ゲート: 本番募集チャンネル切替を独立ゲートで扱う。
+
+## M-14E-16H 029実行結果記録と030 RPC apply draftレビュー
+ユーザー手元で `docs/supabase/sql/029_discord_sync_check_values_select_only.sql` をSupabase SQL Editorへファイル全体貼り付けし、SELECT-only preflightとして1回だけ実行した。SQL Editorではエラーなしで結果グリッドが表示された。同じSQLの再実行はしていない。この工程でCodexはSQL Editor実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、secret設定/切替を行っていない。
+
+029実行結果の要点:
+
+- `public.sessions` は存在する。
+- core column summaryは `15/15 present`。
+- `session_tool` は存在する。
+- Discord同期系カラムは `9/9 present`。
+- 確認済みカラムは `discord_message_id`、`discord_channel_id`、`discord_thread_id`、`discord_post_url`、`discord_sync_status`、`discord_last_action`、`discord_sync_requested_at`、`discord_synced_at`、`discord_sync_error`。
+- `discord_sync_status` は `text` / nullable YES / defaultあり。
+- `discord_last_action` は `text` / nullable YES / default NULL。
+- `sessions_discord_last_action_check`、`sessions_discord_sync_status_check`、`sessions_status_check`、`sessions_visibility_check` が確認できた。
+- `create_session_post` / `update_session_post` / `delete_session_post` のRPC signatureを確認した。
+- create/update/delete RPCは `security_definer` と `search_path` 明示が確認上OK。
+- authenticatedはEXECUTE可能、anon / PUBLICはEXECUTE不可。
+- `sessions` と `user_roles` はRLS enabled。
+- `sessions` / `user_roles` のpolicy概要は取得できたが、具体的なpolicy本文や実値は記録しない。
+
+CHECK許容値の扱い:
+
+- 029結果ではCHECK制約名と関連カラムは確認できた。
+- ただし結果表示の横幅都合により、CHECK許容値配列の全体は完全には読めていない。
+- このため `discord_sync_status` / `discord_last_action` の正確な許容値は未確定として扱う。
+- `posted` / `failed` / `create` などの値を推測で確定扱いにしない。
+- 030 apply draftを実行可能扱いにする前に、既存CHECK定義の完全な確認が必要。
+- 必要なら追加SELECT-onlyで `pg_get_constraintdef(...)` の該当制約だけを読み、許容値を明確化する。ただしこの工程では新規SQL作成やSQL Editor実行は行わない。
+
+030 apply draftレビュー結果:
+
+- `docs/supabase/sql/030_discord_sync_rpc_apply_draft.sql` は専用RPC案のapply draftであり、未実行。
+- 冒頭に `DO NOT RUN UNTIL REVIEWED` があり、SQL Editorへ貼る前にレビュー必須である。
+- `CREATE OR REPLACE FUNCTION`、`REVOKE`、`GRANT`、関数内 `UPDATE` を含むため、SELECT-onlyではない。SQL applyゲートまで実行しない。
+- 030には新規カラム追加はなく、既存Discord同期系カラムを使う案だけを記載している。
+- 既存 `update_session_post` にDiscord同期責務を混ぜず、専用RPCへ分離する方針を維持する。
+- `check_discord_session_post_create_ready(text)` は送信前guard候補。GM本人またはadminのみ許可し、既存外部投稿識別子がある場合は送信前に拒否する。
+- `record_discord_session_post_create_success(text, text, text, text, text)` はDiscord送信成功後の成功記録候補。外部投稿識別子相当、投稿先相当、投稿URL相当、同期状態、最終action、同期成功時刻、同期エラークリアを扱う。
+- `record_discord_session_post_create_failure(text, text)` はDiscord送信失敗時の一般化エラー記録候補。生レスポンス全文やsecret、外部投稿識別子実値は保存しない。
+- 030 draft内の状態値は、現時点では既存CHECKが許可するか未確定であるため、apply前TODOとして残す。
+
+Edge Function実装計画の更新:
+
+1. request validation。
+2. user auth。
+3. target session fetch。
+4. `create` 二重投稿防止guard RPC。
+5. message build。
+6. Discord send。
+7. success記録RPC。
+8. failure記録RPCまたはpartial failure handling。
+9. sanitized response。
+
+`dry_run = true` ではDB更新しない。`dry_run = false` かつDiscord送信成功後のみsuccess記録RPCを呼ぶ。送信前guardで既存 `discord_message_id` 等が検出された場合はDiscord送信前に拒否する。DB更新失敗時は同じ `create` 再実行を禁止し、手動修復またはresync/repair導線を後続工程で設計する。レスポンス、docs、consoleには外部投稿識別子実値、投稿URL全文、Webhook URL、JWT、確認対象ID実値、Discord投稿先実値、message preview本文全文を残さない。
+
+次工程を大きめに再編:
+
+1. RPC apply前レビューゲート: 030の状態値、権限、関数名、戻り値、停止条件をレビューし、CHECK許容値未確定なら追加SELECT-only確認を先に行う。
+2. RPC applyゲート: ユーザー手元でSQL Editor適用する独立ゲート。
+3. Edge Function実装バッチ: 専用RPC呼び出し、DB更新連携、二重投稿防止、partial failure responseを実装する。
+4. deployゲート: Edge Function deployを独立ゲートで扱う。
+5. まとめQAバッチ: `dry_run = true`、テスト用チャンネル実送信、二重投稿拒否、DB状態確認をまとめて行う。
+6. 本番切替前レビューゲート: 本番Webhook/secret切替、初回投稿手順、停止条件を確認する。
+7. 本番切替ゲート: 本番募集チャンネル切替を独立ゲートで扱う。
+
+本番募集チャンネル切替は、DB更新連携、外部投稿識別子保存、二重投稿防止、`update` / `resync` 方針、本番Webhook/secret切替レビュー、本番初回投稿手順レビューが揃うまで停止する。

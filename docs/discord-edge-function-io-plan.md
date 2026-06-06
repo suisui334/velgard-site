@@ -1820,3 +1820,59 @@ RPC IO案:
 - pre-send guardだけでは同時実行を完全に防げないため、将来の予約状態更新またはより強いDB側排他を検討する。
 - CHECK許容値が030 draftの想定と違う場合、RPC draftの状態値を修正する。
 - `update` / `close` / `delete` / `resync` は今回のRPC draftでは未実装とし、後続のaction拡張バッチで扱う。
+
+## M-14E-16H 029結果反映後のRPC IOレビュー
+ユーザー手元で `029_discord_sync_check_values_select_only.sql` をSQL Editorへファイル全体貼り付けし、SELECT-only preflightとして1回だけ実行した。エラーなしで結果グリッドが表示された。同じSQLの再実行はしていない。`030_discord_sync_rpc_apply_draft.sql` は未実行のapply draftであり、この工程ではDB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信を行わない。
+
+029で確認できたIO前提:
+
+- `public.sessions` は存在し、core column summaryは `15/15 present`。
+- `session_tool` は存在する。
+- Discord同期系カラムは `9/9 present`。
+- `discord_message_id` / `discord_channel_id` / `discord_thread_id` / `discord_post_url` / `discord_sync_status` / `discord_last_action` / `discord_sync_requested_at` / `discord_synced_at` / `discord_sync_error` が確認済み。
+- `discord_sync_status` は `text` / nullable YES / defaultあり。
+- `discord_last_action` は `text` / nullable YES / default NULL。
+- `create_session_post` / `update_session_post` / `delete_session_post` は存在し、security/search_path/EXECUTE権限は確認上OK。
+- `sessions` / `user_roles` はRLS enabled。
+
+CHECK値のIO注意:
+
+- `sessions_discord_last_action_check` と `sessions_discord_sync_status_check` は確認できた。
+- ただし、結果表示の横幅都合で許容値配列の全体は完全には読めていない。
+- 030 draft内で使う `posted` / `failed` / `create` は、既存CHECKと一致するか未確定。
+- 未確定のまま030を実行しない。apply前にCHECK定義を完全確認し、必要なら030の状態値を修正する。
+
+030 apply draftのIO役割:
+
+- `check_discord_session_post_create_ready(text)`
+  - `dry_run = false` かつ `action = create` の送信前guard。
+  - 既存外部投稿識別子がある場合は送信前に拒否する。
+  - DB更新なし。
+- `record_discord_session_post_create_success(text, text, text, text, text)`
+  - Discord送信成功後のDB更新候補。
+  - 外部投稿識別子相当を保存するが、実値をレスポンスへ返さない。
+  - DB側でも既存識別子なしを確認し、二重投稿防止を補強する。
+- `record_discord_session_post_create_failure(text, text)`
+  - Discord送信失敗時の一般化エラー記録候補。
+  - 生レスポンス、Webhook URL、認証情報、外部投稿識別子実値は保存しない。
+
+Edge Function IO順:
+
+1. request validation。
+2. user auth。
+3. target session fetch。
+4. create guard RPC。
+5. message build。
+6. Discord send。
+7. success記録RPC。
+8. failure記録RPCまたはpartial failure handling。
+9. sanitized response。
+
+`dry_run = true` はmessage previewまでで、guard RPC、Discord送信、DB更新を行わない。`dry_run = false` のcreateのみ、guard、Discord送信、成功記録RPCへ進む。Discord送信成功後にDB更新が失敗した場合は、Discord送信済みとDB更新失敗を分けて返し、同じcreate再実行を禁止する。
+
+次工程IO:
+
+- RPC apply前レビューゲートでCHECK許容値と030の状態値を照合する。
+- RPC applyゲートで専用RPCを適用するか判断する。
+- Edge Function実装バッチで専用RPC呼び出しとsanitized responseを実装する。
+- deployゲート、まとめQAバッチ、本番切替前レビューゲート、本番切替ゲートへ進む。
