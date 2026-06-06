@@ -1689,3 +1689,77 @@ readiness IO:
 - 本番募集チャンネル切り替えはまだ行わない。
 
 この工程ではdocs記録と静的確認のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-16D/E DB更新連携IO設計とcreate二重投稿防止
+M-14E-16Cのpreflight IO結果により、既存Discord同期系カラムでDB更新連携へ進める可能性が高いと判断した。この工程では、Edge Function実装前のIO境界、DB更新経路、二重投稿防止、失敗時レスポンスを整理する。SQL Editor再実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加送信は行わない。
+
+DB更新IO:
+
+- `dry_run = true`: DB更新しない。`planned_db_update` は予定情報のみ。
+- `dry_run = false` + Discord送信成功: DB更新を試行する。
+- 外部投稿識別子の主軸は `discord_message_id`。
+- `discord_channel_id` / `discord_thread_id` / `discord_post_url` は、投稿先照合や将来UIのための保存候補。ただし画面/docs/consoleへ実値を出さない。
+- `discord_sync_status` は既存CHECK制約の許容値へ合わせて更新する。
+- `discord_last_action` は初期では `create` 相当を保存する。
+- `discord_sync_requested_at` は同期試行開始時刻候補。
+- `discord_synced_at` は同期成功時刻候補。
+- `discord_sync_error` は一般化エラーのみを保存する候補。
+
+CHECK制約IO:
+
+- `discord_sync_status` / `discord_last_action` は既存CHECK制約の許容値へ合わせる。
+- `synced` / `not_synced` などアプリ内表現だけで実装しない。
+- 追加確認が必要な場合は、制約定義だけを取得するSELECT-only確認を別途用意する。
+- 追加SELECT-only候補は `pg_constraint` と `pg_get_constraintdef(...)` を使い、実データ行を取得しない。
+
+DB更新経路比較:
+
+- A案: Edge Functionから `public.sessions` をサーバー側で直接updateする。
+  - 利点: 実装が速く、RPC追加が不要。
+  - 欠点: 権限境界、不変条件、二重投稿防止がEdge Functionに寄りやすい。原子性と監査性を別途設計する必要がある。
+- B案: Discord同期状態更新専用RPCを追加する。
+  - 利点: 二重投稿防止、状態遷移、権限、search_path、一般化エラーをDB側へ閉じ込めやすい。
+  - 欠点: SQL/RPC applyゲートとレビューが必要。
+  - 暫定評価: 第一候補。
+- C案: 既存 `update_session_post` に混在させる。
+  - 利点: 既存RPCを再利用できる。
+  - 欠点: GM編集用RPCと同期状態更新が混ざり、権限境界や監査が曖昧になる。
+  - 暫定評価: 非推奨。
+
+二重投稿防止IO:
+
+- `action = create` では、Discord送信前に `discord_message_id` 等が既に存在しないか確認する。
+- 既に存在する場合はDiscord送信前に拒否する。
+- 拒否レスポンスは一般化し、外部投稿識別子実値を返さない。
+- 将来は `update` または `resync` へ誘導する。
+- Edge Function側の事前チェックに加え、専用RPC側で原子的に担保する案を第一候補にする。
+
+Discord成功 / DB更新失敗IO:
+
+- Discord投稿が既に発生しているため、同じ `create` 再実行は禁止。
+- レスポンスは `discord_send` 成功と `db_update` 失敗を分けて返す。
+- top-level `ok` は `false` とし、`discord_sent_db_update_failed` 相当の一般化エラーを返す案を暫定推奨する。
+- ただしDiscord送信済みであることはレスポンス上で明確にする。
+- `discord_sync_error` に保存する場合も一般化エラーのみとする。
+- repair/resync/手動照合は後続IO設計へ分離する。
+
+大きめ工程への再編:
+
+- 設計確定バッチ。
+- SQL/RPC draft作成バッチ。
+- SQL Editor applyゲート。
+- Edge Function実装バッチ。
+- deployゲート。
+- まとめQAバッチ。
+- 本番切替前レビューゲート。
+- 本番切替ゲート。
+
+本番募集チャンネル切り替え停止条件:
+
+- DB更新連携未完了。
+- 二重投稿防止未完了。
+- `update` / `resync` 方針未整理。
+- 本番Webhook/secret切り替えレビュー未完了。
+- 本番初回投稿手順未レビュー。
+
+この工程ではdocs設計のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更は行わない。

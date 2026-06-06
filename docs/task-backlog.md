@@ -1768,3 +1768,57 @@
 - DB更新経路をEdge Function直接updateにするか専用RPCにするか比較する。
 - `create` 二重投稿防止をDB側、RPC側、Edge Function側のどこで担保するか決める。
 - この工程ではdocs記録と静的確認のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-16D/E Discord同期DB更新連携・二重投稿防止 実装設計
+- M-14E-16Cのpreflight結果を踏まえ、新規カラム追加なしで既存Discord同期系カラムを使う案を第一候補として整理した。
+- 外部投稿識別子の主軸は `discord_message_id`。
+- `discord_channel_id` / `discord_thread_id` / `discord_post_url` は投稿先照合や将来UIに使える候補。ただし実値はdocs/console/画面に出さない。
+- `discord_sync_status` / `discord_last_action` / `discord_sync_requested_at` / `discord_synced_at` / `discord_sync_error` の更新タイミングを整理した。
+- `dry_run = true` ではDB更新しない。
+- `dry_run = false` かつDiscord送信成功後のみDB更新する。
+- CHECK制約の許容値に合わせる必要があるため、`synced` / `not_synced` 等の想定値だけで実装しない。
+- 必要なら追加SELECT-onlyで `discord_sync_status` / `discord_last_action` の制約定義を確認する。ただし実行は別工程。
+
+DB更新経路比較:
+
+- A案: Edge Functionから `public.sessions` をサーバー側で直接update。実装は速いが、権限境界・原子性・監査性がEdge Function側に寄りやすい。
+- B案: Discord同期状態更新専用RPCを追加。二重投稿防止、状態遷移、権限、search_path、一般化エラーをDB側へ閉じ込めやすい。SQL/RPC applyゲートが必要。
+- C案: 既存 `update_session_post` へ混在。既存RPCを使えるが、GM編集用RPCと同期状態更新が混ざるため非推奨。
+- 暫定結論として、専用RPC案を第一候補とする。
+
+二重投稿防止方針:
+
+- `action = create` 時、対象sessionに `discord_message_id` 等が既に存在する場合はDiscord送信前に拒否する。
+- 拒否時は一般化エラーを返し、外部投稿識別子実値は出さない。
+- 将来は `update` または `resync` に誘導する。
+- Edge Function側の事前チェックに加え、可能ならDB/RPC側でも原子的に担保する。
+
+Discord成功後DB更新失敗時:
+
+- Discord投稿は既に発生しているため、同じ `create` 再実行は禁止。
+- レスポンスではDiscord送信成功とDB更新失敗を分離する。
+- top-level `ok` は `false` とし、Discord送信済みであることを明示する案を暫定推奨する。
+- `discord_sync_error` へは一般化エラーだけを保存する案を検討する。
+- repair/resync/手動照合は後続工程へ分離する。
+
+次工程を大きめに再編:
+
+- 設計確定バッチ: CHECK許容値、DB更新経路、二重投稿防止、失敗時レスポンス、repair/resync方針を確定。
+- SQL/RPC draft作成バッチ: 専用RPC案を第一候補にdraft化。
+- SQL Editor applyゲート: DB/RPC変更をユーザー手元で独立実行。
+- Edge Function実装バッチ: DB更新連携と二重投稿防止を実装。
+- deployゲート: Edge Function deployを独立実行。
+- まとめQAバッチ: dry-run、テスト用チャンネル実送信、二重投稿拒否、DB状態確認をまとめて実施。
+- 本番切替前レビューゲート。
+- 本番切替ゲート。
+
+本番募集チャンネル切り替え停止条件:
+
+- DB更新連携未完了。
+- 二重投稿防止未完了。
+- `update` / `resync` 方針未整理。
+- 本番Webhook/secret切り替えレビュー未完了。
+- 本番初回投稿手順未レビュー。
+- これらが残る間は本番募集チャンネルへ進まない。
+
+この工程ではdocs設計のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更は行わない。

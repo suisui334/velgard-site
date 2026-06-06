@@ -2085,3 +2085,83 @@ readiness:
 4. CHECK制約の既存許容値に合わせた状態更新案を整理する。
 
 この工程ではdocs記録と静的確認のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-16D/E DB更新連携実装設計とcreate二重投稿防止方針
+M-14E-16Cのpreflight結果により、`public.sessions` にはDiscord同期に必要な主要カラムが既に揃っている可能性が高いと判断した。このため、M-14E-16D/E相当では新規カラム追加なしで進める案を第一候補として、DB更新連携、外部投稿識別子保存、`create` 二重投稿防止の実装設計を整理する。この工程ではdocs設計のみを行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信は行わない。
+
+既存カラム前提のDB更新案:
+
+- 外部投稿識別子の主軸は `discord_message_id` とする。
+- `discord_channel_id` は投稿先チャンネル識別子相当として保存候補にする。ただし初期は単一テスト用チャンネル/単一本番チャンネル方針のため、必須度は `discord_message_id` より低い。
+- `discord_thread_id` はスレッド運用を使う場合に保存候補とする。初期実装では未使用でもよい。
+- `discord_post_url` は運用上の照合や将来の管理UIに有用だが、画面やdocsへ実値を出さない方針を維持する。
+- `discord_sync_status` は同期状態を保存する。
+- `discord_last_action` は最後の同期アクションを保存する。初期は `create` が中心。
+- `discord_sync_requested_at` は同期要求/試行の開始時刻候補。初期実装で更新するかは、既存CHECK/運用方針に合わせて決める。
+- `discord_synced_at` はDiscord送信成功後、DB更新も成功した時刻として扱う候補。
+- `discord_sync_error` は一般化したエラー概要のみを保存する。Webhook URL、認証情報、外部投稿識別子実値、Discord API生レスポンス全文は保存しない。
+- `dry_run = true` ではDB更新しない。
+- `dry_run = false` かつDiscord送信成功後のみDB更新する。
+
+CHECK制約の確認方針:
+
+- `discord_sync_status` / `discord_last_action` は既存CHECK制約があるため、想定値だけで実装しない。
+- 実装前に、M-14E-16Cのpreflight結果または追加SELECT-onlyで許容値の正確な表現を明確化する。
+- 追加SELECT-only候補は、`pg_constraint` から `discord_sync_status` / `discord_last_action` の `pg_get_constraintdef(...)` を取得し、実値行を取らず制約定義だけ確認する形にする。
+- CHECK値が既存の `posted` / `failed` / `not_requested` 等であれば、アプリ側の `synced` / `not_synced` 相当を既存値へマッピングする。
+- CHECK値が不十分な場合でも、この工程ではSQL applyしない。必要ならSQL/RPC draft作成バッチで扱う。
+
+DB更新経路比較:
+
+| 案 | 内容 | 利点 | 欠点/リスク | 暫定評価 |
+| --- | --- | --- | --- | --- |
+| A案 | Edge Functionから `public.sessions` をサーバー側で直接update | RPC追加なしで実装が速い。既存カラムをすぐ使える。 | 権限境界と不変条件がEdge Function内に寄りやすい。二重投稿防止の原子性や監査性を設計しにくい。サーバー側権限とアプリ内admin権限を混同しない注意が必要。 | 初期検証には速いが、本番運用前の第一候補にはしない。 |
+| B案 | Discord同期状態更新専用RPCを追加 | 二重投稿防止、状態遷移、権限、search_path、エラー一般化をDB側へ閉じ込めやすい。`discord_message_id is null` 条件などを原子的に扱いやすい。 | SQL/RPC applyゲートが必要。RPC設計・権限レビューが必要。 | 暫定第一候補。 |
+| C案 | 既存 `update_session_post` にDiscord同期状態更新を混在 | 既存RPCを再利用できる。 | GM編集用RPCと同期状態更新が混ざり、権限・監査・UI編集との境界が曖昧になる。誤更新やsignature複雑化のリスクがある。 | 非推奨。 |
+
+暫定結論:
+
+- 専用RPC案を第一候補とする。
+- Edge Function側でも送信前に `discord_message_id` 等を確認するが、最終的な二重投稿防止は可能ならDB/RPC側でも担保する。
+- DB/RPC変更はSQL/RPC draft作成バッチとSQL Editor applyゲートに分ける。
+
+`create` 二重投稿防止方針:
+
+- `action = create` の場合、Discord送信前に対象依頼書の外部投稿識別子相当を確認する。
+- `discord_message_id` 等が既に存在する場合はDiscord送信前に拒否する。
+- 拒否時は一般化エラーを返し、外部投稿識別子実値をレスポンス、docs、consoleへ出さない。
+- 将来は `update` または `resync` へ誘導する。
+- DB/RPC側では、専用RPC内で `discord_message_id is null` を条件にした更新、または同等の原子的なチェックを検討する。
+- Edge Function側だけのチェックは競合時に弱いため、本番切り替え前にはDB/RPC側の担保を優先する。
+
+Discord成功後DB更新失敗時:
+
+- Discord投稿は既に発生しているため、同じ `create` 再実行は禁止する。
+- レスポンスでは `discord_send` 成功と `db_update` 失敗を分離する。
+- top-level `ok` は、利用者に再実行させないための注意喚起を優先し、`false` として `error_code = discord_sent_db_update_failed` 相当を返す案を暫定推奨する。
+- ただし `discord_send.ok = true` 相当を含め、Discord投稿済みであることは明確にする。
+- `discord_sync_error` へは一般化エラーのみを保存する案を検討する。生レスポンス全文、Webhook URL、認証情報、外部投稿識別子実値は保存しない。
+- 手動修復、repair、resync導線は後続工程で設計する。
+
+次工程の大きめ再編:
+
+1. 設計確定バッチ: CHECK許容値、DB更新経路、二重投稿防止、失敗時レスポンス、repair/resync方針を確定する。
+2. SQL/RPC draft作成バッチ: 専用RPC案を第一候補に、必要なSQL/RPC draftとSELECT-only確認を作る。
+3. SQL Editor applyゲート: ユーザー手元でSQL applyを実行する独立ゲート。
+4. Edge Function実装バッチ: DB更新連携、二重投稿防止、一般化エラーを実装する。
+5. deployゲート: Edge Function deployを独立ゲートで実行する。
+6. まとめQAバッチ: `dry_run = true`、テスト用チャンネル実送信、二重投稿拒否、DB状態確認をまとめて行う。
+7. 本番切替前レビューゲート: 本番Webhook/secret、初回投稿手順、停止条件を再確認する。
+8. 本番切替ゲート: 本番募集チャンネルへの切り替えを独立ゲートで実施する。
+
+本番募集チャンネル切り替え停止条件:
+
+- DB更新連携が未完了。
+- 外部投稿識別子保存が未完了。
+- `create` 二重投稿防止が未完了。
+- `update` / `resync` 方針が未整理。
+- 本番Webhook/secret切り替えレビューが未完了。
+- 本番初回投稿手順が未レビュー。
+- 上記が残る間は本番募集チャンネルへ進まない。
+
+この工程ではdocs設計のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更は行わない。
