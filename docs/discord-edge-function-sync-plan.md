@@ -1996,3 +1996,92 @@ SELECT-only preflight SQL draft:
 5. M-14E-16F: テスト用チャンネルでDB更新連携QA。
 
 この工程ではdocs設計とSELECT-only preflight SQL draft作成のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-16C Discord同期DB状態 preflight 実行結果
+ユーザー手元で `docs/supabase/sql/028_discord_sync_state_preflight_select_only.sql` をSupabase SQL Editorへファイル全体貼り付けし、SELECT-only preflightとして1回だけ実行した。SQL Editorではエラーなしで結果グリッドが表示された。同じSQLの再実行はしていない。Codex側ではSQL Editor実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、secret設定/切替を行っていない。
+
+実行概要:
+
+- `028_discord_sync_state_preflight_select_only.sql` をファイル全体で実行。
+- SELECT-only preflightとして実行。
+- エラーなし。
+- 結果グリッド表示。
+- 再実行なし。
+
+public.sessions / 基本カラム:
+
+- `public.sessions` は存在。
+- 依頼書基本カラムは確認上OK。
+- core column summaryは `15/15 present`。
+- `session_tool` も存在確認済み。
+
+Discord同期系カラム:
+
+- `discord_message_id` 既存。
+- `discord_channel_id` 既存。
+- `discord_thread_id` 既存。
+- `discord_post_url` 既存。
+- `discord_sync_status` 既存。
+- `discord_last_action` 既存。
+- `discord_sync_requested_at` 既存。
+- `discord_synced_at` 既存。
+- `discord_sync_error` 既存。
+- required sync column summaryは `4/4 present`。
+- optional sync column summaryは `6/10 present`。
+- `discord_last_synced_at` 候補は `discord_synced_at` 類似カラムとして扱えそう。
+- `discord_sync_error_at`、`discord_sync_attempted_at`、`discord_webhook_kind`、`discord_target_kind` は未検出候補として扱う。
+
+CHECK制約:
+
+- `discord_sync_status` のCHECK制約あり。
+- `discord_last_action` のCHECK制約あり。
+- posting status / visibility のCHECK制約も確認上OK。
+- 実装前に、許容値の正確な表現は既存制約に合わせる必要がある。
+
+RPC / security / EXECUTE:
+
+- `create_session_post` RPCあり。
+- `update_session_post` RPCあり。
+- `delete_session_post` RPCあり。
+- 各RPCはsecurity definer確認上OK。
+- search_path明示確認上OK。
+- authenticatedは実行可能。
+- anon / PUBLIC は実行不可。
+
+sync関連function / helper:
+
+- public function名にdiscord/sync/resyncを含むものは一部検出。
+- sync専用helperは未検出。
+- `has_role(text)`、`is_admin()`、`is_session_gm(text)`、`user_roles` は確認上OK。
+
+RLS / policy:
+
+- `sessions` RLS enabled。
+- `user_roles` RLS enabled。
+- policy概要が取得できた。
+- 具体的なpolicy本文や実値は記録しない。
+
+readiness:
+
+- create double-post prevention readinessは、外部投稿識別子相当が存在するため設計上進められる見込み。
+- sync state update readinessは、`discord_sync_status` / `discord_last_action` / `discord_synced_at` が存在するため設計上進められる見込み。
+- Discord成功後DB更新失敗時の扱いはmanual review required。
+- production channel switch gateはclosedのまま。
+- 本番募集チャンネル切り替えはまだ行わない。
+
+判断:
+
+- 新規カラム追加なしでも、既存Discord同期系カラムを使ってDB更新連携を実装できる可能性が高い。
+- ただし、既存CHECK制約の許容値を正確に確認してから実装する。
+- 二重投稿防止は `discord_message_id` 等の既存外部投稿識別子を使う方針が有力。
+- DB更新はEdge Functionから直接updateするか、専用RPCを追加するかを次工程で比較する。
+- DB/RPC変更やEdge Function変更はまだ行わない。
+
+次工程候補:
+
+1. M-14E-16D: preflight結果に基づくDB更新連携実装設計。
+2. DB更新をEdge Function内の安全なDB更新経路で行うか、専用RPCを追加するか比較する。
+3. `create` 二重投稿防止をDB側、RPC側、Edge Function側のどこで担保するか決める。
+4. CHECK制約の既存許容値に合わせた状態更新案を整理する。
+
+この工程ではdocs記録と静的確認のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。

@@ -1728,3 +1728,43 @@
 - M-14E-16E: `create` 二重投稿防止コード設計。
 - M-14E-16F: テスト用チャンネルでDB更新連携QA。
 - この工程ではdocs設計とSELECT-only preflight SQL draft作成のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-16C Discord同期DB状態 preflight実行結果記録
+- ユーザー手元で `docs/supabase/sql/028_discord_sync_state_preflight_select_only.sql` をSupabase SQL Editorへファイル全体貼り付けし、SELECT-only preflightとして1回だけ実行した。
+- SQL Editorではエラーなしで結果グリッドが表示された。
+- 同じSQLの再実行はしていない。
+- `public.sessions` は存在し、依頼書基本カラムは確認上OK。
+- core column summaryは `15/15 present`。
+- `session_tool` も存在確認済み。
+- Discord同期系カラムとして、`discord_message_id`、`discord_channel_id`、`discord_thread_id`、`discord_post_url`、`discord_sync_status`、`discord_last_action`、`discord_sync_requested_at`、`discord_synced_at`、`discord_sync_error` を確認。
+- required sync column summaryは `4/4 present`。
+- optional sync column summaryは `6/10 present`。
+- `discord_last_synced_at` 候補は `discord_synced_at` 類似カラムとして扱えそう。
+- `discord_sync_error_at`、`discord_sync_attempted_at`、`discord_webhook_kind`、`discord_target_kind` は未検出候補として記録する。
+- `discord_sync_status` / `discord_last_action` / posting status / visibility のCHECK制約は確認上OK。
+- ただし実装前に、許容値の正確な表現は既存制約に合わせる必要がある。
+- `create_session_post` / `update_session_post` / `delete_session_post` RPCあり。
+- 各RPCはsecurity definer、search_path明示、authenticated EXECUTEあり、anon/PUBLIC不可を確認上OK。
+- public function名にdiscord/sync/resyncを含むものは一部検出。sync専用helperは未検出。
+- `has_role(text)`、`is_admin()`、`is_session_gm(text)`、`user_roles` は確認上OK。
+- `sessions` と `user_roles` はRLS enabled。
+- policy概要は取得できたが、具体的なpolicy本文や実値は記録しない。
+- create double-post prevention readinessは、外部投稿識別子相当が存在するため設計上進められる見込み。
+- sync state update readinessは、`discord_sync_status` / `discord_last_action` / `discord_synced_at` が存在するため設計上進められる見込み。
+- Discord成功後DB更新失敗時の扱いはmanual review required。
+- production channel switch gateはclosedのまま。本番募集チャンネル切り替えはまだ行わない。
+
+判断:
+
+- 新規カラム追加なしでも、既存Discord同期系カラムを使ってDB更新連携を実装できる可能性が高い。
+- 二重投稿防止は `discord_message_id` 等の既存外部投稿識別子を使う方針が有力。
+- DB更新はEdge Functionから直接updateするか、専用RPCを追加するかを次工程で比較する。
+- DB/RPC変更やEdge Function変更はまだ行わない。
+
+次工程候補:
+
+- M-14E-16D: preflight結果に基づくDB更新連携実装設計。
+- CHECK制約の既存許容値に合わせた状態更新案を整理する。
+- DB更新経路をEdge Function直接updateにするか専用RPCにするか比較する。
+- `create` 二重投稿防止をDB側、RPC側、Edge Function側のどこで担保するか決める。
+- この工程ではdocs記録と静的確認のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
