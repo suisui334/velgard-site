@@ -2696,3 +2696,60 @@ DB同期込み実送信済みの検証用依頼書 `M14E16_sync_db_QA_01` に対
 - 本番切替前レビュー。
 - 本番初回投稿手順。
 - 本番募集チャンネルsecret切替ゲート。
+
+## M-14E-16P discord_post_url follow-up and production gates
+`M14E16_sync_db_QA_01` のDB同期状態確認で `discord_post_url` 相当が未保存だったため、Edge Functionコードを確認した。Codex側では SQL Editor再実行、DB/RPC変更、SQL apply、Edge Function deploy、`dry_run = false` 再実行、Discord追加投稿、本番投稿、secret設定/切替を行っていない。
+
+`discord_post_url` 未保存の原因:
+
+- Discord Webhook送信後のsuccess記録RPCへ `p_discord_post_url` を渡す設計は既にあった。
+- ただし、Edge Function側の送信結果生成で `postUrl` が常に `null` になっていた。
+- そのため、Discord送信成功後に `discord_message_id` と `discord_channel_id` は保存されても、`discord_post_url` は保存されなかった。
+
+コード補強:
+
+- Webhook `wait = true` のレスポンスから、message id相当、channel id相当、guild/server id相当を取得する。
+- 3つの値がDiscord snowflake相当の形式に見える場合だけ、DB保存用の投稿URL相当を組み立てる。
+- guild/server id相当が返らない、または値形式が想定外の場合は、従来どおり `discord_post_url` は `null` のままにする。
+- 組み立てたURL相当はsuccess記録RPCへ渡すだけで、レスポンス、docs、consoleへ全文やID実値を出さない。
+- `dry_run = true` ではWebhook送信もDB更新も行わないため影響なし。
+- Discord本文フォーマットは変更しない。
+
+残る制約:
+
+- Webhookレスポンスにguild/server id相当が含まれない場合、正しい投稿URL相当は組み立てない。
+- 投稿URL相当の保存可否は、次回deploy後の `dry_run = true` 確認と、別ゲートのテスト用チャンネル実送信QA後のSELECT確認で判断する。
+- `discord_post_url` 保存失敗は、外部投稿識別子保存と二重投稿防止の主目的とは切り離して扱う。
+
+`update` / `resync` / `repair` 方針:
+
+- `update`: 既存Discord投稿を編集する。`discord_message_id` 相当がある依頼書のみ対象にする。
+- `resync`: DB上の同期状態とDiscord投稿を再同期するGM/admin向け手動操作候補。failedや確認が必要な状態からの復旧に使う。
+- `repair`: Discord送信成功後DB更新失敗など、部分失敗状態を手動で補正する後続導線として設計する。
+- `close`: 募集終了、締切、終了表示をDiscord投稿へ反映する。
+- `delete`: Discord投稿削除、または削除済み/終了扱いへ更新する。完全削除前に外部投稿をどう扱うかは別レビュー。
+- 初期段階ではcreate安定化を優先し、update/resync/repair/close/deleteは後続工程へ残す。
+
+GM/admin同期状態表示UIの最小仕様:
+
+- session-detailのGM/admin管理ブロック内に、Discord同期状態の小さな表示を追加する案を第一候補にする。
+- 表示ラベル候補は、未同期、投稿済み、同期失敗、確認が必要。
+- 生のDiscord message id、channel id、thread id、post URL全文は表示しない。
+- `discord_post_url` が保存できるようになった場合も、リンク表示するかは別レビューにする。
+- 失敗時は一般化エラーだけを表示する。
+- resyncボタン、repairボタン、update/close/delete操作は後続。
+
+本番切替前チェックリスト:
+
+1. テスト用チャンネルでcreate実送信成功。
+2. DB同期状態保存成功。
+3. 二重投稿防止guard成功。
+4. `discord_post_url` 未保存の扱いを了承、または保存補強をQA済み。
+5. update/resync/repair方針がdocs化済み。
+6. GM/admin向け同期状態表示の最低方針がある。
+7. 本番secret切替手順レビュー済み。
+8. 本番初回投稿手順レビュー済み。
+9. 本番投稿前に `dry_run = true` 確認を行う。
+10. 本番投稿は独立ゲートで1回だけ扱う。
+
+本番募集チャンネル切替はまだ行わない。次工程は、Edge Function deployゲート、deploy後 `dry_run = true` 確認、テスト用チャンネルでのpost URL保存補強QA、またはGM/admin同期状態表示UI設計へ分ける。

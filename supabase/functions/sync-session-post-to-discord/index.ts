@@ -529,12 +529,16 @@ async function sendDiscordWebhookDraft(messagePreview: string): Promise<DiscordW
     };
   }
 
+  const messageId = extractDiscordMessageId(responseBody.value);
+  const channelId = extractDiscordTextField(responseBody.value, "channel_id");
+  const guildId = extractDiscordTextField(responseBody.value, "guild_id");
+
   return {
     ok: true,
-    messageId: extractDiscordMessageId(responseBody.value),
-    channelId: extractDiscordTextField(responseBody.value, "channel_id"),
+    messageId,
+    channelId,
     threadId: extractDiscordThreadId(responseBody.value),
-    postUrl: null
+    postUrl: buildDiscordPostUrl(guildId, channelId, messageId)
   };
 }
 
@@ -600,6 +604,18 @@ function extractDiscordThreadId(value: unknown): string | null {
   }
 
   return normalizeText(value.thread.id, 120) || null;
+}
+
+function buildDiscordPostUrl(guildId: string | null, channelId: string | null, messageId: string | null): string | null {
+  if (!isDiscordSnowflakeLike(guildId) || !isDiscordSnowflakeLike(channelId) || !isDiscordSnowflakeLike(messageId)) {
+    return null;
+  }
+
+  return `https://discord.com/channels/${guildId}/${channelId}/${messageId}`;
+}
+
+function isDiscordSnowflakeLike(value: string | null): value is string {
+  return typeof value === "string" && /^\d{10,32}$/.test(value);
 }
 
 function truncateDiscordContent(value: string): string {

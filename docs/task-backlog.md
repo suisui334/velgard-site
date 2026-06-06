@@ -1997,3 +1997,16 @@ Discord成功後DB更新失敗時:
 - 後続課題は `discord_post_url` 保存補強、`update` / `close` / `delete` / `resync` 方針整理、GM/admin同期状態表示UI、失敗時repair/resync導線、本番切替前レビュー、本番初回投稿手順、本番募集チャンネルsecret切替ゲート。
 - 本番募集チャンネル切替はまだ行わない。
 - この記録作業ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 再実行、Discord追加実送信、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16P discord_post_url補強と後続ゲート整理
+- `discord_post_url` 相当が未保存だった原因をEdge Functionコードで確認した。success記録RPCへpost URL相当を渡す設計はあったが、送信結果の `postUrl` が常に `null` だった。
+- 低リスク修正として、Webhook `wait = true` レスポンスからmessage id相当、channel id相当、guild/server id相当を取り出し、3値がsnowflake相当に見える場合だけDB保存用の投稿URL相当を組み立てるようにした。
+- guild/server id相当が得られない場合や形式が想定外の場合は、`discord_post_url` は従来どおり未保存にする。無理に不正確なURLは保存しない。
+- 生成した投稿URL相当はsuccess記録RPCへ渡すだけで、レスポンス、docs、consoleへURL全文やID実値を出さない。
+- `dry_run = true`、Discord本文フォーマット、DB/RPC定義には影響させていない。
+- update/resync/repair方針として、`update` は既存投稿編集、`resync` はGM/admin向け再同期、`repair` は部分失敗の補正導線、`close` は募集終了反映、`delete` は削除または削除済み扱いとして後続設計に残す。
+- GM/admin同期状態表示UIの最小仕様は、session-detail管理ブロック内に未同期、投稿済み、同期失敗、確認が必要を一般化表示する案。生のmessage id、channel id、post URL全文は表示しない。resync/repairボタンは後続。
+- 本番切替前チェックリストは、テスト用チャンネルcreate成功、DB更新成功、二重投稿防止成功、post URL未保存の扱い了承または補強QA済み、update/resync/repair方針docs化、GM/admin同期状態表示方針、本番secret切替手順、本番初回投稿手順、本番前 `dry_run = true` 確認。
+- 次工程候補は、Edge Function deployゲート、deploy後 `dry_run = true` 確認、テスト用チャンネルでのpost URL保存補強QA、またはGM/admin同期状態表示UI設計。
+- 本番募集チャンネル切替はまだ行わない。
+- この工程ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Function deploy、追加deploy、`dry_run = false` 実送信、Discord追加実送信、本番投稿、secret設定/切替、`updates.json` 変更は行わない。

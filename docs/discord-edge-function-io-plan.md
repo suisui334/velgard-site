@@ -2110,3 +2110,46 @@ IO判断:
 - 外部投稿識別子保存済み対象の `create` 再実行はguardで拒否された。
 - Discord投稿増加なしのため、二重投稿防止の基本IOは確認済み。
 - 本番切替は、`discord_post_url` 保存補強、update/resync方針、管理UI同期状態表示、repair/resync導線、本番secret切替レビュー、本番初回投稿手順レビューが揃うまで停止する。
+
+## M-14E-16P post URL output and follow-up IO
+`discord_post_url` 相当が未保存だった原因をEdge Functionコード上で確認した。この工程では、低リスクなコード補強とIO設計整理のみを行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Function deploy、`dry_run = false` 再実行、Discord追加投稿、本番投稿、secret設定/切替は行わない。
+
+post URL IO原因:
+
+- success記録RPCへ `p_discord_post_url` を渡すIOは存在していた。
+- Webhook送信成功結果の `postUrl` が常に `null` だったため、DB側にURL相当が保存されなかった。
+- message id相当とchannel id相当は取得済みで、外部投稿識別子保存と二重投稿防止には影響しない。
+
+post URL IO補強:
+
+- Webhookレスポンスからmessage id相当、channel id相当、guild/server id相当を取得する。
+- 3値がsnowflake相当の場合だけ、DB保存用の投稿URL相当を生成する。
+- guild/server id相当が得られない場合は `null` のままにして、無理に不正確なURLを保存しない。
+- 生成した投稿URL相当はsuccess記録RPCへ渡すだけで、レスポンス、docs、consoleへ全文やID実値を出さない。
+- `dry_run = true` IOには影響しない。
+- Discord本文生成IOは変更しない。
+
+update/resync/repair IO:
+
+- `update`: `discord_message_id` 相当がある依頼書だけ、既存投稿本文を編集する。
+- `resync`: GM/admin向けの再同期操作候補。DB状態とDiscord投稿状態を再照合する。
+- `repair`: Discord送信成功後DB更新失敗などの部分失敗を補正する手動導線候補。
+- `close`: 募集終了や締切状態を既存投稿へ反映する。
+- `delete`: 投稿削除または削除済み扱いへの更新。完全削除前の順序は別レビュー。
+- これらはcreate安定化後の後続IOに残す。
+
+GM/admin同期状態表示IO:
+
+- session-detailのGM/admin管理ブロック内に、同期状態表示を追加する案を第一候補にする。
+- 表示候補は、未同期、投稿済み、同期失敗、確認が必要。
+- 生のmessage id、channel id、thread id、post URL全文は表示しない。
+- 失敗時は一般化エラーだけを表示する。
+- resync/repairボタンやリンク表示は別レビュー。
+
+本番切替前IOチェック:
+
+- テスト用チャンネルcreate成功、DB更新成功、二重投稿防止成功。
+- `discord_post_url` 未保存の扱いを了承、または補強QA済み。
+- update/resync/repair方針、GM/admin同期状態表示方針、本番secret切替手順、本番初回投稿手順がdocs化済み。
+- 本番投稿前に `dry_run = true` を確認する。
+- 本番投稿は独立ゲートで扱う。
