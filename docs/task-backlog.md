@@ -2603,3 +2603,50 @@ Next:
 
 - User runs 036 once in SQL Editor.
 - Review 036 output and decide Discord-side cleanup / 037 apply gate.
+
+## M-14E-18M 036 SELECT-only確認結果
+
+Status: final reset confirmation recorded. 037 was not executed.
+
+User-run SELECT-only result:
+
+- `docs/supabase/sql/036_prelaunch_final_session_reset_confirm_select_only.sql` was run once in SQL Editor.
+- No SQL Editor error was shown.
+- A result grid was displayed.
+- The query was not rerun.
+- Raw ids, Discord ids, post URL, JWT, session id, project ref, Supabase URL, webhook URL, user id, email, token, and message preview body were not recorded.
+
+036 summary:
+
+- remaining_session_count: 3.
+- external_identifier_rows: 2.
+- no_external_identifier_rows: 1.
+- discord_side_cleanup_required: true.
+- qa_like_title_rows: 2.
+- non_qa_rows: 1.
+- FK readiness: `session_applications -> sessions cascade = true`, `session_comments -> sessions cascade = true`.
+- discord_last_action: null-like 1, create 1, delete 1.
+- discord_sync_status: failed 1, posted 1, skipped 1.
+- status: draft 1, recruiting 2.
+- visibility: hidden 1, public 2.
+
+Decision:
+
+- The remaining 3 rows are prelaunch reset targets.
+- SQL cannot delete Discord posts for the 2 rows with Discord external identifiers.
+- Old test-webhook-origin or Discord-only remnants should be manually cleaned on Discord.
+- Running the DB final reset may remove the ability to track Discord posts from DB state.
+- Even so, for prelaunch reset, the DB direction is to eventually reach 0 session rows.
+
+037 execution rule:
+
+- `docs/supabase/sql/037_prelaunch_final_session_reset_apply_draft.sql` remains unexecuted.
+- It still has DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED / DISCORD SIDE CLEANUP MUST BE DECIDED FIRST.
+- `v_discord_side_cleanup_decided` remains false by default.
+- In the next final reset apply gate, set `v_discord_side_cleanup_decided` to true only after the user explicitly approves the Discord-side cleanup decision and DB final reset.
+
+Next:
+
+- User confirms Discord-side cleanup handling.
+- If approved, run 037 once in an independent final reset apply gate.
+- After final reset, run SELECT-only confirmation for DB sessions 0 and verify normal UI pages show no session posts.

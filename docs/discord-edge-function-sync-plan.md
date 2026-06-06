@@ -3751,3 +3751,41 @@ Discord側cleanupチェックリスト:
 次工程:
 
 - ユーザー手元SQL Editorで036を1回だけ実行し、結果確認後にDiscord側整理/037実行可否を判断する。
+
+## M-14E-18M 036 SELECT-only確認結果
+
+ユーザー手元で `docs/supabase/sql/036_prelaunch_final_session_reset_confirm_select_only.sql` をSQL Editorへ貼り付け、1回だけ実行した。SQL Editor上でエラー表示はなく、結果グリッドが表示された。再実行はしていない。この工程では036確認結果の記録と037実行方針の明確化のみを行い、037実行、実削除、Discord投稿削除、SQL apply、DB/RPC変更、Edge Function deploy、dry-run、real-send、secret設定/切替は行わない。
+
+036確認結果:
+
+- remaining_session_count: 3。
+- external_identifier_rows: 2。
+- no_external_identifier_rows: 1。
+- discord_side_cleanup_required: true。
+- qa_like_title_rows: 2。
+- non_qa_rows: 1。
+- FK check: `session_applications -> sessions cascade = true`、`session_comments -> sessions cascade = true`。
+- discord_last_action: null相当1、create 1、delete 1。
+- discord_sync_status: failed 1、posted 1、skipped 1。
+- status: draft 1、recruiting 2。
+- visibility: hidden 1、public 2。
+
+判断:
+
+- 残り3件は運用前reset対象とする。
+- Discord外部識別子あり2件について、SQLではDiscord投稿を削除できない。
+- 旧テストWebhook由来またはDiscord-only残骸は、Discord側で手動整理する方針とする。
+- DB最終resetを実行すると、DBからDiscord投稿を追跡できなくなる可能性がある。
+- それでも運用前リセットとして、DB側は最終的に0件へ更地化する方針とする。
+
+037 apply draft確認:
+
+- `docs/supabase/sql/037_prelaunch_final_session_reset_apply_draft.sql` は DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED / DISCORD SIDE CLEANUP MUST BE DECIDED FIRST を維持している。
+- `v_discord_side_cleanup_decided` は初期値falseのまま。次の実行ゲートで、ユーザーがDiscord側cleanup判断済みとして明示許可した場合のみtrueへ変更して実行する設計とする。
+- 037はまだ実行しない。
+
+次工程:
+
+- Discord側cleanup判断をユーザーが明示する。
+- 037 final reset apply gateで、必要なら `v_discord_side_cleanup_decided` をtrueへ変更して1回だけ実行する。
+- 実行後はSELECT-onlyでDB sessions 0件を確認し、calendar / session-detail / mypage表示を確認する。

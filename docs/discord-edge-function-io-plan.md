@@ -2988,3 +2988,44 @@ Recommended final reset order:
 Next IO gate:
 
 - User runs 036 once in SQL Editor, then reviews whether Discord-side cleanup and 037 final reset can proceed.
+
+## M-14E-18M final reset 036 confirmation result
+
+Status: SELECT-only confirmation result recorded. No final reset was run.
+
+The user ran `docs/supabase/sql/036_prelaunch_final_session_reset_confirm_select_only.sql` once in SQL Editor. No SQL Editor error was shown, and a result grid was displayed. The query was not rerun.
+
+036 result:
+
+- remaining_session_count: 3.
+- external_identifier_rows: 2.
+- no_external_identifier_rows: 1.
+- discord_side_cleanup_required: true.
+- qa_like_title_rows: 2.
+- non_qa_rows: 1.
+- FK checks: `session_applications -> sessions cascade = true`, `session_comments -> sessions cascade = true`.
+- discord_last_action: null-like 1, create 1, delete 1.
+- discord_sync_status: failed 1, posted 1, skipped 1.
+- status: draft 1, recruiting 2.
+- visibility: hidden 1, public 2.
+
+IO judgment:
+
+- The remaining 3 rows are prelaunch reset targets.
+- SQL cannot delete Discord posts for the 2 rows with Discord external identifiers.
+- Old test-webhook or Discord-only remnants should be handled manually on Discord.
+- Running the DB final reset may remove the ability to track Discord posts from DB state.
+- Even with that limitation, the prelaunch reset direction is to eventually bring DB sessions to 0.
+
+037 draft clarification:
+
+- `docs/supabase/sql/037_prelaunch_final_session_reset_apply_draft.sql` still has DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED / DISCORD SIDE CLEANUP MUST BE DECIDED FIRST.
+- `v_discord_side_cleanup_decided` remains false by default.
+- In the next apply gate, set it to true only if the user explicitly confirms the Discord-side cleanup decision and approves the final reset execution.
+- 037 was not executed in this batch.
+
+Next IO gate:
+
+- User explicitly decides Discord-side cleanup handling.
+- If approved, run 037 once in a separate final reset apply gate.
+- After apply, confirm DB sessions 0 with SELECT-only checks and verify normal pages show no session posts.
