@@ -2650,3 +2650,30 @@ Next:
 - User confirms Discord-side cleanup handling.
 - If approved, run 037 once in an independent final reset apply gate.
 - After final reset, run SELECT-only confirmation for DB sessions 0 and verify normal UI pages show no session posts.
+
+## M-14E-18N 037 final reset実行結果
+
+Status: final reset apply result recorded. Supabase session rows are treated as reset.
+
+User-run result:
+
+- `docs/supabase/sql/037_prelaunch_final_session_reset_apply_draft.sql` was run once in SQL Editor.
+- Before execution, `v_discord_side_cleanup_decided` was changed to true after deciding that Discord-side remnants would be handled manually.
+- No SQL Editor error was shown.
+- The SQL was not rerun.
+- deleted_count: 3.
+- The remaining 3 Supabase session rows are treated as successfully deleted for prelaunch final reset.
+- Raw ids, Discord ids, post URL, JWT, session id, project ref, Supabase URL, webhook URL, user id, email, token, and message preview body were not recorded.
+
+Decision:
+
+- Supabase-side remaining session rows are treated as reset to 0.
+- Discord post deletion was not performed.
+- Old test-webhook-origin or Discord-only remnants remain Discord-side manual cleanup targets.
+- Static JSON rows remain retired from normal UI.
+
+Next:
+
+- Public-site final display confirmation.
+- Discord channel remnant cleanup.
+- Optional SELECT-only confirmation for DB sessions 0.

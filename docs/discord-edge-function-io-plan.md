@@ -3029,3 +3029,32 @@ Next IO gate:
 - User explicitly decides Discord-side cleanup handling.
 - If approved, run 037 once in a separate final reset apply gate.
 - After apply, confirm DB sessions 0 with SELECT-only checks and verify normal pages show no session posts.
+
+## M-14E-18N final reset 037 apply result
+
+Status: final reset apply result recorded. No additional cleanup operation was run by Codex.
+
+The user ran `docs/supabase/sql/037_prelaunch_final_session_reset_apply_draft.sql` once in SQL Editor. Before execution, `v_discord_side_cleanup_decided` was changed to true because the Discord-side remnants were judged as manual cleanup targets. No SQL Editor error was shown, and the SQL was not rerun.
+
+037 result:
+
+- 037 apply executed once by the user.
+- `v_discord_side_cleanup_decided` was set to true before execution.
+- No error shown.
+- Not rerun.
+- deleted_count: 3.
+- The remaining 3 Supabase session rows are treated as successfully deleted for prelaunch final reset.
+- No raw ids, Discord ids, post URL, JWT, session id, project ref, Supabase URL, webhook URL, user id, email, token, or message preview body were recorded.
+
+IO judgment:
+
+- Supabase-side remaining session rows are treated as reset.
+- Discord post deletion was not performed.
+- Old test-webhook / Discord-only remnants remain manual Discord cleanup targets.
+- Static JSON fixture rows remain retired from normal UI.
+
+Next IO tracks:
+
+- Final public-site display confirmation.
+- Discord-channel-side remnant cleanup.
+- Optional SELECT-only confirmation that DB sessions are 0.

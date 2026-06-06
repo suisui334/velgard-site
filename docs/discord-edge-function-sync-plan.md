@@ -3789,3 +3789,30 @@ Discord側cleanupチェックリスト:
 - Discord側cleanup判断をユーザーが明示する。
 - 037 final reset apply gateで、必要なら `v_discord_side_cleanup_decided` をtrueへ変更して1回だけ実行する。
 - 実行後はSELECT-onlyでDB sessions 0件を確認し、calendar / session-detail / mypage表示を確認する。
+
+## M-14E-18N 037 final reset実行結果
+
+ユーザー手元で `docs/supabase/sql/037_prelaunch_final_session_reset_apply_draft.sql` をSQL Editorへ貼り付け、1回だけ実行した。実行前に、Discord側残骸は手動整理する方針で判断済みとして、`v_discord_side_cleanup_decided` をtrueへ変更した。SQL Editor上でエラー表示はなく、再実行はしていない。この工程では実行結果の記録のみを行い、追加削除、Discord投稿削除、SQL apply追加、DB/RPC変更、Edge Function deploy、dry-run、real-send、secret設定/切替は行わない。
+
+037実行結果:
+
+- 037 applyは1回のみ実行。
+- `v_discord_side_cleanup_decided` をtrueにしたうえで実行。
+- エラー表示なし。
+- 再実行なし。
+- deleted_count: 3。
+- Supabase側の残り依頼書3件は、運用前final reset対象として削除成功扱い。
+- 実ID、Discord message id、channel id、thread id、post URL全文、JWT、session_id、project ref、Supabase URL全文、Webhook URL、user_id、email、token、message preview本文全文は記録していない。
+
+判断:
+
+- DB側の残り3件はfinal resetで削除済みとして扱う。
+- Discord投稿削除は未実施。
+- 旧テストWebhook/Discord-only残骸はDiscord側手動整理対象として残る。
+- 静的JSON由来は通常UI退役済み。
+
+次工程:
+
+- 公開サイト最終表示確認。
+- Discordチャンネル側残骸整理。
+- 必要ならSELECT-onlyでDB sessions 0件確認。
