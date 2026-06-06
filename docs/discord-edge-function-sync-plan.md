@@ -1438,3 +1438,45 @@ RLS / rollback注意:
 5. M-14E-15I: session-detail表示調整。
 6. M-14E-15J: Edge Function Discord投稿フォーマット変更。
 7. M-14E-15K: `dry_run = true` QA。
+
+## M-14E-15E session_tool SQL apply draftレビュー
+`docs/supabase/sql/027_session_tool_apply_review_draft.sql` をSQL Editor適用前の安全レビュー対象として確認した。この工程ではSQL Editor実行、DB/RPC実変更、Edge Functionコード変更、deploy、Discord追加実送信、dry-run再実行、フロント実装は行わない。
+
+レビュー結果:
+
+- `public.sessions.session_tool text null` の列追加は既存データへの影響が小さい。固定候補CHECKは初期では入れず、自由入力を優先する方針を維持する。
+- `DROP TABLE` / `DROP COLUMN` / `TRUNCATE` は実行文として含めない。
+- `DROP FUNCTION` は `create_session_post` / `update_session_post` のsignature整理目的に限定し、対象signatureを明示する。`CASCADE` は使わない。
+- apply用draftのため `ALTER TABLE` / `DROP FUNCTION` / `CREATE FUNCTION` / `GRANT` / `REVOKE` は含むが、SQL Editor実行は別工程まで行わない。
+- `INSERT` / `UPDATE` はRPC本文内にのみ存在し、apply時に既存データを直接変更するDMLではない。
+- RPC再作成と権限整理部分を明示トランザクションで包む方針へ修正した。
+
+RPCレビュー:
+
+- `create_session_post(...)` は最終引数 `p_session_tool text default null` を追加し、空文字をNULLへ丸める。
+- `update_session_post(...)` は最終引数 `p_session_tool text default null` を追加する。
+- updateでは `p_session_tool` 未指定時に既存値を保持し、空文字を渡した場合のみNULLへ丸めてクリアできる方針に修正した。
+- create/updateとも、改行不可と80文字上限をRPC側バリデーションとして扱う。
+- `delete_session_post(text)` は `session_tool` 追加対象外として維持する。
+
+権限/RLS:
+
+- 既存の `security definer` / `set search_path = ''` 方針を維持する。
+- `authenticated` EXECUTEを維持し、`public` / `anon` にはEXECUTEさせない。
+- nullable text列追加だけならRLS policy変更は不要と判断する。ただし適用後SELECTでRLS有効状態を確認する。
+
+停止条件:
+
+- SQL Editor実行前に必ず別工程でユーザー確認を挟む。
+- draft内signatureとpreflight結果が合わない場合は停止する。
+- 適用中にエラーが出た場合は再実行せず停止し、どこまで反映されたかを確認する。
+- `DROP COLUMN session_tool` は保存済み値を消すため、安易なrollbackとして使わない。
+- 適用後にRPCが見えない/呼べない場合は、signature、EXECUTE権限、PostgREST schema cache、RLS順に確認する。
+
+適用後検証SQL方針:
+
+- `session_tool` 列存在、型、NULL許容をSELECT-onlyで確認する。
+- create/update/delete RPCのsignature、`security_definer`、`search_path` を確認する。
+- authenticated/anon/publicのEXECUTE権限を確認する。
+- `public.sessions` のRLS有効状態を確認する。
+- 実データ行、ユーザーID、認証情報、外部投稿先実値は出さない。

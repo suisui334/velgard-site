@@ -15,9 +15,13 @@
 -- Safety notes:
 -- - No DROP TABLE, DROP COLUMN, TRUNCATE, or direct data cleanup.
 -- - DROP FUNCTION is used only to replace RPC signatures.
+-- - Do not use CASCADE for DROP FUNCTION in this draft.
 -- - INSERT/UPDATE statements appear only inside RPC function bodies and do not run at apply time.
+-- - The schema/RPC/grant section is wrapped in an explicit transaction.
 -- - Keep credential values, connection strings, external post targets, auth tokens, and row data out of this file.
 -- - Keep SQL string literals and review labels ASCII-only where possible to avoid paste encoding issues.
+
+begin;
 
 -- ============================================================
 -- 1. Schema draft
@@ -422,6 +426,9 @@ grant execute on function public.create_session_post(
 -- 3. update_session_post RPC replacement draft
 -- ============================================================
 
+-- For update_session_post, omitted p_session_tool keeps the existing value.
+-- Passing an empty string clears the value to NULL after trim normalization.
+
 drop function if exists public.update_session_post(
   text,
   text,
@@ -520,7 +527,8 @@ begin
     s.gm_user_id,
     s.visibility,
     s.status,
-    s.discord_message_id
+    s.discord_message_id,
+    s.session_tool
   into v_existing
   from public.sessions as s
   where s.id = v_session_id
@@ -650,7 +658,11 @@ begin
     raise exception 'summary_too_long' using errcode = '22023';
   end if;
 
-  v_session_tool := nullif(trim(coalesce(p_session_tool, '')), '');
+  if p_session_tool is null then
+    v_session_tool := v_existing.session_tool;
+  else
+    v_session_tool := nullif(trim(p_session_tool), '');
+  end if;
   if v_session_tool is not null then
     if v_session_tool ~ '[\r\n]' then
       raise exception 'session_tool_must_be_single_line' using errcode = '22023';
@@ -771,6 +783,8 @@ grant execute on function public.update_session_post(
   text
 ) to authenticated;
 
+commit;
+
 -- ============================================================
 -- 4. Post-apply verification queries
 -- ============================================================
@@ -850,5 +864,6 @@ where n.nspname = 'public'
 
 -- Do not casually drop public.sessions.session_tool after data is written.
 -- Dropping the column would destroy saved session tool values.
+-- If an error occurs before commit, stop and review instead of re-running blindly.
 -- If this apply fails before use, prefer restoring RPC definitions from the
 -- previous reviewed files and review data impact separately.

@@ -1198,3 +1198,29 @@ RPC IO draft:
 - PostgREST RPCのdefault引数overload曖昧化を避けるため、既存signatureと新signature候補をdrop/recreateするdraftにした。
 - 既存の `security definer` / `set search_path = ''` / `authenticated` EXECUTE方針を維持する。
 - `public` / `anon` にはEXECUTEを付与しない。
+
+## M-14E-15E session_tool apply draft IOレビュー
+`027_session_tool_apply_review_draft.sql` のIO観点レビューを行った。この工程ではSQL Editor実行、DB/RPC実変更、Edge Functionコード変更、deploy、Discord送信、dry-run実行、フロント実装は行わない。
+
+確認したIO:
+
+- DB入力列は `public.sessions.session_tool text null`。
+- create RPCは `p_session_tool text default null` を最終引数に追加する。
+- update RPCも `p_session_tool text default null` を最終引数に追加する。
+- createでは未指定/空文字をNULLとして保存する。
+- updateでは未指定なら既存値を保持し、空文字を送った場合はNULLへクリアする。
+- 改行不可と80文字上限はRPC側で検証する。
+- `delete_session_post(text)` は `session_tool` IO対象外。
+
+レビューで修正した点:
+
+- update RPCの `session_tool` 更新挙動を、未指定時にNULL上書きではなく既存値保持へ変更した。
+- schema/RPC/grant適用部分を明示トランザクションで包み、エラー時に途中状態を避けやすいdraftへ修正した。
+- `DROP FUNCTION` に `CASCADE` を使わない方針をdraftコメントにも明記した。
+
+後続IO注意:
+
+- SQL適用後、フロントは編集フォームから `session_tool` を明示送信する。
+- 既存クライアントが `p_session_tool` を送らない場合は既存値を保持する。
+- `session_tool` を消したい場合は空文字を送る。
+- detail/list/Edge Function本文生成側へ `session_tool` を含める作業は、SQL適用後の別工程で扱う。

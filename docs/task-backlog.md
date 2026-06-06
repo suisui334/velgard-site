@@ -1540,3 +1540,18 @@
 - SQL draft内にapply用のDDL/GRANT/REVOKEは含むが、この工程ではSQL Editor実行を行わない。INSERT/UPDATEはRPC本文内にのみ現れ、既存データを直接変更するDMLとしては実行されない。
 - 次工程候補は、M-14E-15E SQL apply draftレビュー、M-14E-15F ユーザー手動SQL Editor適用、M-14E-15G SQL適用結果記録、M-14E-15H フロントUI実装、M-14E-15I session-detail表示調整、M-14E-15J Edge Function投稿フォーマット変更。
 - この工程ではSQL apply draft作成とdocs整理のみ行い、SQL Editor実行、DB/RPC実変更、Edge Functionコード変更、deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15E 開催場所/session_tool追加SQL apply draftレビュー
+- `docs/supabase/sql/027_session_tool_apply_review_draft.sql` をSQL Editor適用前レビューした。
+- 実行順序は、列追加、create RPC drop/recreate、create権限整理、update RPC drop/recreate、update権限整理、commit、最後にSELECT-only検証という流れに整理した。
+- RPC再作成と権限整理部分を明示トランザクションで包むようSQL draftを修正した。
+- `DROP TABLE` / `DROP COLUMN` / `TRUNCATE` は実行文として入れない。`DROP FUNCTION` はsignature明示のRPC整理目的のみで、`CASCADE` は使わない。
+- `INSERT` / `UPDATE` はRPC本文内にのみ存在し、apply時に既存データを直接変更するDMLではない。
+- `create_session_post(...)` は `p_session_tool text default null` を最終引数に追加し、空文字をNULLへ丸める。
+- `update_session_post(...)` は `p_session_tool text default null` を最終引数に追加し、未指定なら既存値保持、空文字ならNULL化するようdraftを修正した。
+- `delete_session_post(text)` は `session_tool` 追加対象外。
+- `security definer` / `set search_path = ''` / authenticated EXECUTE維持、anon/public不可方針を確認した。
+- RLS policyはnullable text列追加だけなら変更不要。ただし適用後SELECTでRLS有効状態を確認する。
+- rollbackでは安易に `DROP COLUMN session_tool` しない。適用中エラー時は再実行せず停止し、反映状態を確認する。
+- 次工程候補は、M-14E-15F ユーザー手動SQL Editor適用、M-14E-15G SQL適用結果記録、M-14E-15H フロントUI実装、M-14E-15I session-detail表示調整、M-14E-15J Edge Function投稿フォーマット変更。
+- この工程ではレビュー・docs整理・SQL draft修正のみ行い、SQL Editor実行、DB/RPC実変更、Edge Functionコード変更、deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。
