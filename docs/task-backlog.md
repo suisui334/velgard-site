@@ -1527,3 +1527,16 @@
 - session_tool列追加案は `text null`、空文字trim後NULL、表示時 `未定` fallback、初期CHECKなし自由入力を第一候補にする。
 - 次工程候補は、M-14E-15D preflight結果にもとづくsession_tool追加SQL apply draft作成。
 - この工程ではdocs記録とpreflight SQL draftのASCII説明文修正のみ行い、SQL apply、DB/RPC変更、Edge Functionコード変更、deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15D 開催場所/session_tool追加SQL apply draft作成
+- M-14E-15Cのpreflight結果にもとづき、未実行のapply review draft `docs/supabase/sql/027_session_tool_apply_review_draft.sql` を作成した。
+- draftでは `public.sessions.session_tool text null` を追加する。既存データへの一括値設定は行わず、NULLを未設定として扱う。
+- 初期実装では固定候補CHECK制約を追加せず、自由入力を優先する。RPC内では空文字をtrim後NULLへ丸め、改行拒否と80文字上限をdraftに含めた。
+- `create_session_post(...)` / `update_session_post(...)` は最終引数 `p_session_tool text default null` を追加する案。PostgREST RPCのdefault引数overload曖昧化を避けるため、既存signatureと新signature候補をdrop/recreateするdraftにした。
+- `delete_session_post(text)` は物理削除用途のため、`session_tool` 追加対象外として扱う。
+- RPCの `security definer` / `set search_path = ''` / `authenticated` EXECUTE方針を維持し、`public` / `anon` にはEXECUTEを許可しない。
+- post-apply確認SELECTとして、列存在、RPC signature、security/search_path、EXECUTE権限、RLS状態を確認する項目を含めた。
+- rollbackでは安易に `DROP COLUMN` しない。列削除は保存済み `session_tool` のデータ消失につながるため、必要なら別工程で影響確認する。
+- SQL draft内にapply用のDDL/GRANT/REVOKEは含むが、この工程ではSQL Editor実行を行わない。INSERT/UPDATEはRPC本文内にのみ現れ、既存データを直接変更するDMLとしては実行されない。
+- 次工程候補は、M-14E-15E SQL apply draftレビュー、M-14E-15F ユーザー手動SQL Editor適用、M-14E-15G SQL適用結果記録、M-14E-15H フロントUI実装、M-14E-15I session-detail表示調整、M-14E-15J Edge Function投稿フォーマット変更。
+- この工程ではSQL apply draft作成とdocs整理のみ行い、SQL Editor実行、DB/RPC実変更、Edge Functionコード変更、deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。

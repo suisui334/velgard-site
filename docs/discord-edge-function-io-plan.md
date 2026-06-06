@@ -1167,3 +1167,34 @@ IO観点の確認結果:
 - 初期CHECKなし。候補selectや固定値制約は後続検討。
 
 この工程ではIO結果のdocs記録のみで、SQL apply、DB/RPC変更、Edge Functionコード変更、deploy、Discord送信、dry-run実行、フロント実装は行わない。
+
+## M-14E-15D session_tool apply draft IO
+M-14E-15Cのpreflight結果にもとづき、`session_tool` 追加用の未実行apply draft `docs/supabase/sql/027_session_tool_apply_review_draft.sql` を作成した。この工程ではSQL Editor実行、DB/RPC実変更、Edge Functionコード変更、deploy、Discord送信、dry-run実行、フロント実装は行わない。
+
+DB IO draft:
+
+- `public.sessions.session_tool text null` を追加する。
+- NULLを未設定の正規値とする。
+- 既存データへ一括値設定は行わない。
+- 初期実装では固定候補CHECKを置かない。
+
+RPC IO draft:
+
+- `create_session_post(...)` の最終引数に `p_session_tool text default null` を追加する。
+- `update_session_post(...)` の最終引数に `p_session_tool text default null` を追加する。
+- RPC内で空文字をtrim後NULLへ丸める。
+- 改行は拒否し、文字数上限は80文字とする。
+- `delete_session_post(text)` は `session_tool` を扱わず、変更対象外。
+
+戻り値と後続IO:
+
+- create/update RPCの戻り値は既存の最小情報を維持し、今回draftでは `session_tool` を返さない。
+- detail/listや直接SELECTで画面・Edge Functionが使う取得列へ `session_tool` を含める作業は、SQL適用後のフロント/Edge Function工程で扱う。
+- Discord投稿本文では後続工程で `開催場所【session_toolまたは未定】` を使う。
+- raw user_id、email、token、認証情報、外部投稿先実値、Discord message id相当の実値は返さない。
+
+互換性:
+
+- PostgREST RPCのdefault引数overload曖昧化を避けるため、既存signatureと新signature候補をdrop/recreateするdraftにした。
+- 既存の `security definer` / `set search_path = ''` / `authenticated` EXECUTE方針を維持する。
+- `public` / `anon` にはEXECUTEを付与しない。

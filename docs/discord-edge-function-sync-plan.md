@@ -1396,3 +1396,45 @@ preflight結果の要約:
 - 次工程は、preflight結果にもとづくsession_tool追加用SQL apply draft作成とする。
 
 この工程では結果記録とpreflight SQL draftのASCII説明文修正のみ行い、SQL apply、DB/RPC変更、Edge Functionコード変更、deploy、Discord追加実送信、dry-run再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15D session_tool SQL apply draft作成
+M-14E-15Cのpreflight結果にもとづき、`public.sessions` へ `session_tool` を追加するためのSQL apply draftを作成した。この工程ではSQL Editor実行、DB/RPC実変更、Edge Functionコード変更、deploy、Discord追加実送信、dry-run再実行、フロント実装は行わない。
+
+作成したdraft:
+
+- `docs/supabase/sql/027_session_tool_apply_review_draft.sql`
+- 冒頭に未実行draftであること、SQL Editorへ貼る前に別工程レビューが必須であること、このチャットでは実行しないことを明記した。
+- コメントとレビュー用ラベルはASCII中心にし、貼り付け経路での文字化けリスクを下げる。
+
+draft概要:
+
+- `public.sessions` に `session_tool text null` を追加する。
+- 既存データへ一括値設定は行わず、NULLを未設定の正規値として扱う。
+- 初期実装では固定候補CHECK制約を追加しない。
+- `create_session_post(...)` / `update_session_post(...)` へ最終引数として `p_session_tool text default null` を追加する案にした。
+- RPC内では `nullif(btrim(p_session_tool), '')` 相当で空文字をNULLへ丸める。
+- `session_tool` は改行不可、80文字上限の軽い入力制約をdraftに含めた。
+- `delete_session_post(text)` は物理削除用途のため変更対象外とする。
+
+RPC signature方針:
+
+- PostgRESTのdefault引数つきRPC overload曖昧化を避けるため、既存signatureと新signature候補を明示的にdropしたうえで、新しい1本を作り直す案を第一候補にした。
+- 既存の `security definer` と `set search_path = ''` 方針を維持する。
+- `authenticated` へのEXECUTE付与を維持し、`public` / `anon` にはEXECUTEさせない。
+- post-apply確認SELECTで列、signature、security/search_path、EXECUTE権限、RLS状態を確認する。
+
+RLS / rollback注意:
+
+- nullable text列追加だけならRLS policy自体は原則変更不要とする。
+- rollbackで安易に `DROP COLUMN` すると保存済み `session_tool` が消えるため、実行用rollbackとして列削除は入れない。
+- 適用前レビューで想定外のRPC overload、権限差分、RLS/policy影響、フロント更新順序の問題が見つかった場合はSQL Editor適用へ進まない。
+
+次工程候補:
+
+1. M-14E-15E: SQL apply draftレビュー。
+2. M-14E-15F: ユーザー手元でSQL Editor適用。
+3. M-14E-15G: SQL適用結果記録。
+4. M-14E-15H: フロントUIへ `session_tool` 入力追加。
+5. M-14E-15I: session-detail表示調整。
+6. M-14E-15J: Edge Function Discord投稿フォーマット変更。
+7. M-14E-15K: `dry_run = true` QA。
