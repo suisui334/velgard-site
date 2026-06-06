@@ -3487,3 +3487,41 @@ cleanup停止条件:
 - 静的JSON退役レビュー。
 - Supabase残骸cleanupゲート。
 - テストチャンネル / Discord-only残骸の手動cleanupゲート。
+## M-14E-18F 運用前cleanup inventory結果
+
+ユーザー手元で `docs/supabase/sql/032_prelaunch_session_cleanup_inventory_select_only.sql` をSQL Editorへ貼り付け、1回だけ実行した。エラー表示はなく、結果グリッドが表示された。再実行はしていない。この工程ではSELECT-only inventory結果の記録のみを行い、実削除、Discord投稿削除、SQL apply、DB/RPC変更、Edge Function deploy、dry-run、real-send、secret設定/切替は行わない。
+
+inventory結果概要:
+
+- Supabase session total: 23。
+- QA/test/連携確認系タイトル候補: 22。
+- manual confirmation required total: 22。
+- production webhook posted Supabase candidate: 1。
+- possible old test webhook or manual review candidate: 2。
+- unposted Supabase DB delete candidate: 21。
+- Discord外部投稿識別子保存あり: 2。
+- Discord投稿先チャンネル識別子保存あり: 2。
+- Discord thread識別子保存あり: 0。
+- Discord post URL保存あり: 0。
+
+同期状態/操作の概要:
+
+- `discord_last_action`: null相当20、create 2、delete 1。
+- `discord_sync_status`: failed 1、not_requested 9、pending 1、posted 1、skipped 11。
+- visibility: hidden 13、private 1、public 10。
+- status: canceled 3、closed 1、draft 7、finished 1、full 1、recruiting 9、tentative 1。
+
+判断:
+
+- Supabase上の依頼書23件のうち、ほとんどがQA/test/連携確認系候補として扱うべき状態。
+- 21件は外部投稿識別子がないため、分類確認後はDB-only cleanup候補になり得る。
+- 2件はDiscord外部投稿識別子があるため、Webhook由来、現行本番Webhookで削除可能か、または手動確認が必要。
+- 本番Webhook由来として現行delete同期で削除できそうな候補は1件に見える。
+- `discord_post_url` は0件のため、cleanup分類やリンク確認の判断材料には使わない。
+- 静的JSON由来はこのSQL inventoryの対象外であり、別工程で退役/非表示化レビューが必要。
+
+次工程方針:
+
+- 静的JSON退役レビューとSupabase DB-only cleanupゲートを分ける。
+- Supabase DB-only cleanupでは、外部投稿識別子なしの候補をさらに公開状態、status、QA/test候補で分類し、実削除はユーザー確認後の別ゲートにする。
+- 外部投稿識別子ありの2件は、Discord側手動確認またはdelete同期可否レビューに分離する。

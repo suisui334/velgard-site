@@ -2728,3 +2728,44 @@ Next IO gates:
 - Review static JSON retirement.
 - Review Supabase cleanup execution.
 - Review old test-channel or Discord-only manual cleanup.
+## M-14E-18F Prelaunch cleanup inventory result
+
+Status: SELECT-only inventory result recorded. No cleanup operation was executed.
+
+The user ran `docs/supabase/sql/032_prelaunch_session_cleanup_inventory_select_only.sql` once in SQL Editor. No error was shown and a result grid was displayed. The query was not rerun.
+
+Generalized result:
+
+- Supabase session total: 23.
+- QA/test/renkei-kakunin title candidates: 22.
+- Manual confirmation required total: 22.
+- Production-webhook posted Supabase candidate: 1.
+- Possible old test-webhook or manual-review candidate: 2.
+- Unposted Supabase DB-only cleanup candidate: 21.
+- Saved external post identifier rows: 2.
+- Saved channel identifier rows: 2.
+- Saved thread identifier rows: 0.
+- Saved post URL rows: 0.
+
+State distribution:
+
+- `discord_last_action`: null-like 20, create 2, delete 1.
+- `discord_sync_status`: failed 1, not_requested 9, pending 1, posted 1, skipped 11.
+- visibility: hidden 13, private 1, public 10.
+- status: canceled 3, closed 1, draft 7, finished 1, full 1, recruiting 9, tentative 1.
+
+IO judgment:
+
+- Most Supabase rows appear to be QA/test cleanup candidates.
+- 21 rows have no external post identifier and are likely DB-only cleanup candidates after manual classification.
+- 2 rows have external post identifiers and require webhook-origin/manual review before any cleanup.
+- Only 1 row currently looks like a production-webhook posted Supabase candidate for normal delete sync.
+- `discord_post_url` is not saved on any row, so cleanup decisions cannot rely on post URL.
+- Static JSON rows are outside this Supabase inventory and need a separate retirement or non-display review.
+
+Next IO gates:
+
+- Static JSON retirement review.
+- Supabase DB-only cleanup gate.
+- External-identifier row review gate.
+- Old test-channel / Discord-side manual cleanup gate.

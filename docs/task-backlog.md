@@ -2336,3 +2336,45 @@ Next:
 - Static JSON retirement review.
 - Supabase remnant cleanup gate.
 - Old test-channel / Discord-only manual cleanup gate.
+## M-14E-18F 運用前cleanup inventory結果記録
+
+Status: SELECT-only inventory result recorded. No destructive cleanup was run.
+
+- User ran `docs/supabase/sql/032_prelaunch_session_cleanup_inventory_select_only.sql` once in SQL Editor.
+- No SQL Editor error was shown, and a result grid was displayed.
+- The inventory query was not rerun.
+- No actual deletion, Discord post deletion, SQL apply, DB/RPC change, Edge Function deploy, dry-run, real-send, secret switch, or `updates.json` change was performed.
+
+Inventory summary:
+
+- Supabase session total: 23.
+- QA/test/連携確認系 title candidates: 22.
+- Manual confirmation required total: 22.
+- Production-webhook posted Supabase candidate: 1.
+- Possible old test webhook or manual review candidate: 2.
+- Unposted Supabase DB-only cleanup candidate: 21.
+- Saved external post identifier rows: 2.
+- Saved channel identifier rows: 2.
+- Saved thread identifier rows: 0.
+- Saved post URL rows: 0.
+
+Distribution summary:
+
+- `discord_last_action`: null-like 20, create 2, delete 1.
+- `discord_sync_status`: failed 1, not_requested 9, pending 1, posted 1, skipped 11.
+- visibility: hidden 13, private 1, public 10.
+- status: canceled 3, closed 1, draft 7, finished 1, full 1, recruiting 9, tentative 1.
+
+Cleanup interpretation:
+
+- Most Supabase session rows are likely QA/test cleanup candidates.
+- 21 rows have no external post identifier and should be separated into a Supabase DB-only cleanup gate after manual classification.
+- 2 rows have external post identifiers and need webhook-origin or manual review before any cleanup.
+- The normal production-webhook delete-sync candidate appears to be 1 row.
+- `discord_post_url` is saved on 0 rows, so it cannot be used for cleanup classification.
+- Static JSON rows are outside this SQL inventory and need a separate retirement/non-display review.
+
+Next:
+
+- Split the next work into static JSON retirement review and Supabase DB-only cleanup gate.
+- Keep external-identifier rows and old test-channel / Discord-only remnants in separate manual-review gates.
