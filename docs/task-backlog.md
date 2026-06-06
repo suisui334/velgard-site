@@ -2083,3 +2083,21 @@ Discord成功後DB更新失敗時:
 - git状態はcleanのまま。
 - 次工程は本番向け `dry_run = true` 確認ゲート。
 - この工程ではWebhook URL実値の確認・表示・再入力、secret設定/切替の再実行、Discord投稿、`updates.json` 変更は行わない。
+
+## M-14E-16V 本番初回Discord投稿結果
+- 指定タイトル `【連携確認】依頼書投稿テスト` を対象に、本番初回投稿まとめゲートを実施した。
+- 開始commitは `f2bd4d0 Record production Discord webhook switch`、開始時git状態はclean。
+- 指定タイトルの既存対象が0件だったため、既存アプリ用RPC経由で公開/非draftの依頼書を1件作成した。SQL Editor、直接insert、DBスキーマ変更、RPC定義変更は行っていない。
+- 初回作成時に `open` は初期statusとして拒否されたため、DB変更なしで停止し、既存仕様に合わせて `recruiting` で作成した。
+- 作成後、指定タイトルの対象が1件だけであることを確認した。対象ID実値は記録していない。
+- `create / dry_run = true` を1回だけ実行し、HTTP 200、JSON parse成功、`ok = true`、`dry_run = true`、`action = create`、`message_preview` あり、`planned_db_update` あり、warning count 0を確認した。message preview本文全文は記録していない。
+- `dry_run = true` ではDiscord投稿なし、DB同期識別子保存なし、DB同期更新なし。
+- ユーザーが本番依頼書チャンネルに投稿増加なしを目視確認し、`dry_run = false` 1回実行を明示許可した。
+- `create / dry_run = false` はユーザー許可後に1回だけ実行した。同じコマンドは再実行禁止。
+- 実送信結果はHTTP 200、JSON parse成功、`ok = true`、`dry_run = false`、`action = create`、response keys `ok,dry_run,action,sync_target,discord_send,db_update,warnings`、`db_update.success = true`、warning count 0、`message_preview` なし。
+- Discord message id、channel id、post URL全文、JWT、対象session id、Supabase URL全文、Webhook URL、message preview本文全文は記録していない。
+- 読み取り専用のDB同期状態確認で、`discord_message_id_saved = true`、`discord_channel_id_saved = true`、`discord_sync_status = posted`、`discord_last_action = create`、`discord_synced_at_present = true`、`discord_sync_error_empty = true` を確認した。
+- `discord_post_url_saved = false` は既知の非致命制約として扱う。post URL補強やリンク表示は後続課題。
+- ユーザー目視確認項目として、本番依頼書チャンネルに1件だけ投稿されたこと、タイトル一致、`概要` ラベルなし、概要本文改行保持、詳細URL/詳細リンクなし、ISO/UTC表記なしを確認する。
+- 次工程候補は、本番投稿の目視確認結果追記、GM/admin同期状態UIで投稿済み表示確認、`update` / `resync` / `repair` 方針と実装。
+- この工程ではsecret設定/切替、Webhook URL実値確認、Edge Function deploy、SQL Editor実行、DB/RPC定義変更、`dry_run = false` の複数回実行、Discord追加投稿、`updates.json` 変更は行わない。

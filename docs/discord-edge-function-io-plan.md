@@ -2321,3 +2321,64 @@ IO記録:
 - 本番向け `dry_run = true` 確認ゲート。
 - Discord投稿増加なし、preview形式、secret非露出を確認する。
 - message preview本文全文、JWT、対象session id、Supabase URL全文、Webhook URL、Discord message id、channel id、post URL全文は記録しない。
+
+## M-14E-16V First production Discord post IO result
+本番Webhook secret切替後、指定タイトル `【連携確認】依頼書投稿テスト` を対象に、本番初回投稿IOを実施した。対象ID、JWT、Supabase URL全文、Discord message id、channel id、post URL全文、message preview本文全文はIO記録に残さない。
+
+target preparation:
+
+- 開始commitは `f2bd4d0 Record production Discord webhook switch`、git状態はclean。
+- 指定タイトルの既存対象は0件だったため、既存アプリ用RPC経由で公開/非draftの依頼書を1件作成した。
+- `open` は初期statusとして拒否されたため、DB変更なしで停止し、既存仕様に合わせて `recruiting` で作成した。
+- SQL Editor、直接insert、DBスキーマ変更、RPC定義変更は行っていない。
+- 作成後、指定タイトルの対象が1件だけであることを確認した。
+
+dry-run IO:
+
+- `create / dry_run = true` を1回だけ実行。
+- HTTP 200、JSON parse成功、`ok = true`、`dry_run = true`、`action = create`。
+- response keysは `ok,dry_run,action,sync_target,message_preview,planned_db_update,warnings`。
+- `message_preview` は返ったが本文全文は記録しない。
+- warning countは0。
+- Discord投稿なし、DB同期識別子保存なし、DB同期更新なし。
+- 本番依頼書チャンネルに投稿が増えていないことをユーザーが目視確認し、`dry_run = false` 1回実行を許可した。
+
+real-send IO:
+
+- `create / dry_run = false` はユーザー許可後に1回だけ実行。再実行禁止。
+- HTTP 200、JSON parse成功、`ok = true`、`dry_run = false`、`action = create`。
+- response keysは `ok,dry_run,action,sync_target,discord_send,db_update,warnings`。
+- `discord_send`、`db_update`、`warnings` は返った。
+- `db_update.success = true` として扱える。
+- warning countは0。
+- `message_preview` は返っていない。
+- Discord message id、channel id、post URL全文はレスポンス/console/docsへ出さない。
+
+DB sync readback:
+
+- 読み取り専用の状態確認でboolean/status形式だけを確認した。SQL Editor再実行やDB/RPC定義変更は行っていない。
+- `discord_message_id_saved = true`。
+- `discord_channel_id_saved = true`。
+- `discord_sync_status = posted`。
+- `discord_last_action = create`。
+- `discord_synced_at_present = true`。
+- `discord_sync_error_empty = true`。
+- `discord_post_url_saved = false` は既知の非致命制約として扱う。
+
+visual confirmation checklist:
+
+- 本番依頼書チャンネルに1件だけ投稿されたこと。
+- タイトルが対象タイトルと一致すること。
+- `概要` ラベルなし。
+- 概要本文の改行保持。
+- 詳細URL/詳細リンクなし。
+- ISO/UTC表記なし。
+
+follow-up IO:
+
+- ユーザー目視確認結果を必要に応じて追記する。
+- GM/admin同期状態UIで投稿済み表示を確認する。
+- `update` / `resync` / `repair` IO設計と実装へ進む。
+- post URL未保存は本番create最小投入のブロッカーにしないが、リンク表示やguild id補強は後続IOに残す。
+
+このIO記録工程では、secret設定/切替、Webhook URL実値確認、Edge Function deploy、SQL Editor実行、DB/RPC定義変更、`dry_run = false` の複数回実行、Discord追加投稿、`updates.json` 変更は行わない。

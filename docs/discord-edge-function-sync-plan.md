@@ -3021,3 +3021,62 @@ GM/admin同期状態UI QA結果:
 - message preview本文全文、JWT、対象session id、Supabase URL全文、Webhook URL、Discord message id、channel id、post URL全文は記録しない。
 
 この記録工程では、secret設定/切替の再実行、`dry_run = true` 実行、`dry_run = false` 実送信、Discord投稿、Edge Function deploy、SQL Editor実行、DB/RPC変更、`updates.json` 変更は行わない。
+
+## M-14E-16V 本番初回投稿まとめゲート結果
+本番募集チャンネル向けWebhook secret切替後、指定タイトル `【連携確認】依頼書投稿テスト` を対象に、本番初回投稿まとめゲートを実施した。対象の実ID、JWT、Supabase URL全文、Discord message id、channel id、post URL全文、message preview本文全文は記録しない。
+
+対象依頼書:
+
+- 開始commitは `f2bd4d0 Record production Discord webhook switch`、作業開始時git状態はclean。
+- 指定タイトルの既存公開依頼書は見つからなかったため、既存アプリ用RPC経由で依頼書を1件作成した。SQL Editor、直接insert、DBスキーマ変更、RPC定義変更は行っていない。
+- 初回作成時に `open` は初期状態として拒否されたため、DB変更なしで停止し、既存仕様に合わせて `recruiting` の公開/非draft依頼書として作成した。
+- 作成後、指定タイトルの対象が1件だけ存在し、公開済み、非draft、本番投稿対象として扱えることを確認した。
+
+`dry_run = true` 確認:
+
+- `create / dry_run = true` を1回だけ実行した。
+- HTTP 200、JSON parse成功、`ok = true`、`dry_run = true`、`action = create`。
+- response keysは `ok,dry_run,action,sync_target,message_preview,planned_db_update,warnings`。
+- `message_preview` と `planned_db_update` は返ったが、本文全文は記録しない。
+- warning countは0。
+- Discord投稿なし、DB同期識別子保存なし、DB同期更新なし。
+- 本番依頼書チャンネルに投稿が増えていないことをユーザーが目視確認し、その後 `dry_run = false` 1回実行を明示許可した。
+
+`dry_run = false` 本番初回投稿:
+
+- `create / dry_run = false` はユーザー許可後に1回だけ実行した。同じコマンドは再実行禁止。
+- HTTP 200、JSON parse成功、`ok = true`、`dry_run = false`、`action = create`。
+- response keysは `ok,dry_run,action,sync_target,discord_send,db_update,warnings`。
+- `discord_send`、`db_update`、`warnings` は返った。`db_update.success = true` として扱える。
+- warning countは0。
+- `message_preview` は返っていない。
+- Discord message id、channel id、post URL全文などの実値はレスポンス、docs、consoleへ出さない方針を維持した。
+
+DB同期状態確認:
+
+- 読み取り専用の状態確認で、対象の同期状態をboolean/status形式で確認した。SQL Editor再実行やDB/RPC定義変更は行っていない。
+- `discord_message_id_saved = true`。
+- `discord_channel_id_saved = true`。
+- `discord_sync_status = posted`。
+- `discord_last_action = create`。
+- `discord_synced_at_present = true`。
+- `discord_sync_error_empty = true`。
+- `discord_post_url_saved = false`。これは既知の非致命制約として扱い、post URL補強またはリンク表示は後続課題に残す。
+
+ユーザー目視確認項目:
+
+- 本番依頼書チャンネルに投稿が1件だけ増えたこと。
+- 投稿タイトルが対象タイトルと一致していること。
+- `概要` ラベルがないこと。
+- 概要本文の改行が保持されていること。
+- 詳細URL/詳細リンクがないこと。
+- ISO/UTC表記がないこと。
+
+次工程:
+
+- ユーザー目視結果を必要に応じてdocsへ追記する。
+- GM/admin同期状態UIで本番対象が投稿済みとして見えることを確認する。
+- `update` / `resync` / `repair` 方針と実装を後続で扱う。
+- post URL未保存は本番create最小投入のブロッカーにしないが、運用利便性の後続課題として維持する。
+
+この工程では、secret設定/切替、Webhook URL実値確認、Edge Function deploy、SQL Editor実行、DB/RPC定義変更、`dry_run = false` の複数回実行、Discord追加投稿、`updates.json` 変更は行わない。
