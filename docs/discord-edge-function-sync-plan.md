@@ -3296,3 +3296,45 @@ deploy結果:
 - `dry_run = true` / `dry_run = false` の実行、Discord投稿/編集/削除、Edge Function deploy、SQL Editor実行、DB/RPC変更、secret設定/切替はこの工程では行っていない。
 
 次工程は公開サイト反映後のフロント手動QAバッチとする。確認項目は、新規公開依頼書作成後のcreate同期、投稿済み依頼書編集後のupdate同期、投稿済み依頼書削除時のdelete同期、未投稿依頼書の従来削除、一般参加者向け画面への実ID露出なし、GM/admin同期パネルの一般化表示である。既存の残骸QA依頼書は必要に応じてadmin cleanup候補として扱う。
+## M-14E-18B Discord auto-sync browser QA preparation
+
+`8754e5c Add Discord auto sync flow` の公開サイト反映後QAとして、公開配信ファイルとフロント導線を確認した。
+
+公開サイト反映確認:
+
+- `session-post.html` は `assets/js/main.js?v=20260606-discord-auto-sync` を読み込む状態になっている。
+- `session-detail.html` も同じく `assets/js/main.js?v=20260606-discord-auto-sync` を読み込む状態になっている。
+- 配信中の `renderSessionPost.js` と `renderSessionDetail.js` は `discordSyncClient.js?v=20260606-discord-auto-sync` を参照している。
+- 配信中の `discordSyncClient.js` には `sync-session-post-to-discord` 呼び出しと `frontend_auto_create` / `frontend_auto_update` / `frontend_auto_delete` の導線が含まれている。
+
+ブラウザQA実施可否:
+
+- Chrome連携を試したが、Codex側からChrome extension backendへ接続できなかった。
+- そのため、公開サイトUIをCodex側で直接操作する create / update / delete 自動同期QAは未実施。
+- この工程ではQA用依頼書作成、Discord投稿/編集/削除、DB状態変更、Edge Function deploy、SQL Editor実行、secret設定/切替を行っていない。
+
+静的レビュー結果:
+
+- 作成導線は、`create_session_post` 成功後、公開・非draftの場合のみ `action = create` を呼ぶ。
+- 編集導線は、`update_session_post` 成功後、公開・非draftかつ既存Discord投稿識別子がある場合のみ `action = update` を呼ぶ。
+- 削除導線は、既存Discord投稿識別子がある場合だけ `action = delete` を先に呼び、失敗時はDB削除へ進まない。
+- 未投稿対象の削除は従来の `delete_session_post` RPCに戻る。
+- Discord message id、channel id、thread id、post URL全文、raw session idなどは表示用DOMへ出さない。
+
+ユーザー手動QAチェックリスト:
+
+1. 公開サイトUIで新しいQA依頼書を1件作成する。タイトル候補は `【連携確認】自動同期ブラウザQA`。公開・非draft、開催場所は未定、募集人数は1-4人。
+2. 作成後に依頼書詳細へ遷移することを確認する。
+3. 本番Discord依頼書チャンネルにQA投稿が1件だけ増えたことを目視確認する。
+4. GM/adminのDiscord同期パネルで `投稿済み` / `新規投稿` 相当の表示が破綻していないことを確認する。実IDやURL全文が見えないことも確認する。
+5. QA依頼書を編集し、タイトルを `【連携確認】自動同期ブラウザQA・編集確認済み` 相当に変更する。概要も編集確認用の本文へ変更する。
+6. 編集保存後、既存Discord投稿が更新され、新規投稿が余分に増えないことを目視確認する。
+7. GM/admin同期パネルで `投稿済み` / `更新` 相当の表示が破綻していないことを確認する。
+8. QA依頼書を削除する。投稿済み対象なので、delete同期経由でDiscord投稿も削除されることを確認する。
+9. 削除成功後、通常の依頼書一覧/詳細導線からQA依頼書が見えないこと、Discord側QA投稿が削除されていることを確認する。
+10. 失敗した場合は再実行せず停止し、どの段階で失敗したかをboolean/status形式で記録する。
+
+次工程:
+
+- ユーザー手動で上記ブラウザQAを実施し、create / update / delete の結果をdocsへ記録する。
+- QA後に残った使い捨て依頼書や過去QA残骸があればadmin cleanup候補として整理する。

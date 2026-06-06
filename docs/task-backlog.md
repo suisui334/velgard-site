@@ -2209,3 +2209,18 @@ Status: implementation batch completed.
 - Draft/private saves and unposted edits do not trigger hidden create sync.
 - No Edge Function deploy, SQL Editor execution, DB/RPC change, secret setting/switching, dry-run execution, real send, Discord edit/delete, or production Discord operation was performed in this implementation batch.
 - Next batch: wait for public site reflection and run a frontend manual QA gate for create/update/delete auto-sync behavior. Existing leftover QA session posts can remain as admin cleanup candidates unless they block QA.
+## M-14E-18B Discord auto-sync browser QA preparation
+
+Status: public reflection confirmed, browser automation blocked.
+
+- Public `session-post.html` / `session-detail.html` delivery now references the auto-sync cache-bust version.
+- Delivered session post/detail JS references `discordSyncClient.js`, and the delivered helper includes create/update/delete auto-sync paths.
+- Codex could not connect to the Chrome extension backend, so it did not perform public-site UI create/update/delete QA.
+- No QA session was created, no Discord post/edit/delete was performed, no DB/RPC change or SQL Editor execution occurred, and no secret setting/switching occurred.
+- Manual QA checklist is now documented in the sync/IO docs.
+
+Next:
+
+- User-run public-site browser QA for one disposable session post: create auto-sync, update auto-sync, delete auto-sync, GM/admin panel display, and no sensitive/raw ID exposure.
+- Record the manual QA result in docs after completion.
+- Treat any leftover QA session posts as admin cleanup candidates only if they remain after QA.

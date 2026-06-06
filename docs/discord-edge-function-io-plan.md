@@ -2594,3 +2594,24 @@ IO方針:
 - DOM/console/docs: JWT、session id実値、project ref、Supabase URL全文、Webhook URL、Discord message id、channel id、thread id、post URL全文、raw user_id、email、token、selected_character_id、application_idを出さない。
 
 次のQAでは、公開サイト反映後にフロント操作だけでcreate/update/delete同期が期待どおり発火するかを確認する。ただし、実際のDiscord投稿/編集/削除を伴うため、QAの各 `dry_run = false` は対象を明確にし、再実行禁止のゲートとして扱う。
+## M-14E-18B Public-site auto-sync QA IO preparation
+
+公開サイトに `8754e5c Add Discord auto sync flow` のフロント差分が反映されていることを、配信HTML/JSの静的確認で確認した。
+
+Confirmed delivery state:
+
+- `session-post.html` と `session-detail.html` は `assets/js/main.js?v=20260606-discord-auto-sync` を参照している。
+- `renderSessionPost.js` / `renderSessionDetail.js` は `discordSyncClient.js?v=20260606-discord-auto-sync` を参照している。
+- `discordSyncClient.js` は `create` / `update` / `delete` の自動同期呼び出し導線を含む。
+
+Not executed:
+
+- Codex側Chrome連携が利用できなかったため、公開サイトUIのブラウザ操作QAは未実施。
+- QA依頼書作成、Discord create/update/delete、DB同期状態変更、Edge Function deploy、SQL Editor実行、DB/RPC変更、secret設定/切替は行っていない。
+
+Manual QA IO checklist:
+
+- Create: 公開・非draftのQA依頼書をUIから作成し、依頼書詳細へ遷移すること、本番Discord依頼書チャンネルに1件だけ投稿されること、GM/admin同期パネルが `投稿済み` / `新規投稿` 相当になることを確認する。
+- Update: 同じQA依頼書をUIから編集し、既存Discord投稿が更新されること、余分な新規投稿が増えないこと、GM/admin同期パネルが `投稿済み` / `更新` 相当になることを確認する。
+- Delete: 同じQA依頼書をUIから削除し、Discord投稿も削除されること、通常のread導線からQA依頼書が見えなくなることを確認する。
+- Safety: Discord message id、channel id、thread id、post URL全文、raw session id、user_id、email、token、selected_character_id、application_id、message preview本文全文が画面/console/docsへ出ないことを確認する。
