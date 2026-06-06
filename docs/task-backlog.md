@@ -2762,3 +2762,50 @@ Next:
 - Public-site reflection check for calendar and session-detail.
 - GM account browser QA for `〆にする` / `〆解除`.
 - Discord update reflection check for a posted session, if needed, in a separate QA gate.
+
+## M-14E-19A GM手動〆マーク 公開サイト軽量QA
+
+Status: public static reflection checked. Interactive GM browser QA is still pending.
+
+Public-site reflection check:
+
+- `session-detail.html` returns HTTP 200 and references `assets/js/main.js?v=20260607-gm-close-mark`.
+- `calendar.html` returns HTTP 200 and references `assets/js/main.js?v=20260607-gm-close-mark`.
+- Public `main.js` imports `renderSessionDetail.js?v=20260607-gm-close-mark` and `renderCalendar.js?v=20260607-gm-close-mark`.
+- Public `renderSessionDetail.js` contains the GM close-mark control, `〆にする`, `〆解除`, deadline reminder text, existing `update_session_post` usage, and existing `syncUpdatedSession` usage.
+- Public `sessionDisplay.js` contains close-mark detection and title-without-close-mark helper logic.
+- Public `renderCalendar.js` contains close-mark detection and renders the close mark before the GM label while avoiding duplicate title-prefix display.
+- Public `style.css` contains the close-mark button, hidden-button, and close-note styles.
+
+Safety result:
+
+- No `dry_run=true` or `dry_run=false` was executed.
+- No Discord production edit/post/delete was performed.
+- No SQL Editor execution, SQL apply, DB/RPC change, Edge Function deploy, or secret/Webhook change was performed.
+- No raw session id, JWT, user id, email, token, Discord message id, channel id, thread id, post URL, Webhook URL, or message preview body was recorded.
+
+Interactive QA status:
+
+- Codex-side Chrome control was unavailable in this session; only the in-app browser backend was discoverable, and it could not reliably attach to a public-site tab.
+- Therefore, GM logged-in browser operations were not executed by Codex.
+- GM-only visibility, normal-player visibility, confirmation dialog behavior, actual title update, double-mark prevention, close-mark removal, deadline reminder, and comment availability remain user-side browser QA items.
+
+QA gate separation:
+
+- Use a draft / hidden / unposted QA session first if available, to avoid Discord production edit.
+- If testing on a public non-draft session with an existing Discord post reference, stop before pressing `〆にする` / `〆解除`; that operation can trigger Discord production update and must be a separate explicit gate.
+- Discord production edit QA should be limited to one clearly selected posted session.
+
+Remaining user-side QA checklist:
+
+- GM本人にだけ `〆にする` / `〆解除` が表示されること。
+- 通常PL/未ログインでは表示されないこと。
+- 締切前に押すと確認ダイアログが出ること。
+- キャンセルではタイトルが変化しないこと。
+- OKでタイトル先頭に `〆` が付くこと。
+- 二重に `〆〆` にならないこと。
+- `〆解除` で先頭の `〆` だけ外れること。
+- カレンダーでは `〆` がGM名より前に表示されること。
+- 締切後で `〆` なしの場合、GM管理領域に押し忘れ注意が出ること。
+- 締切後でもコメント機能が無効化されていないこと。
+- 依頼書0件状態と静的JSON退役状態に影響しないこと。

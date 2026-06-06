@@ -3878,3 +3878,25 @@ QA観点:
 - 締切後で未〆の場合は管理領域内に押し忘れ注意を出す。
 - `〆` の二重付与を避け、解除時は先頭の `〆` だけ外す。
 - update自動同期で既存Discord投稿が編集され、余分なcreate投稿が増えないことを確認する。
+
+## M-14E-19A GM手動〆マーク 公開サイト軽量QA
+
+公開サイト配信ファイルの静的確認により、GM手動〆マーク機能のフロント差分は公開側へ反映済みと判断する。この工程ではSQL Editor実行、SQL apply、DB/RPC変更、Edge Function deploy、dry-run、Discord投稿/編集/削除、secret設定/切替は行っていない。
+
+公開反映確認:
+
+- `session-detail.html` / `calendar.html` は `assets/js/main.js?v=20260607-gm-close-mark` を参照している。
+- 公開配信中の `main.js` は `renderSessionDetail.js?v=20260607-gm-close-mark` と `renderCalendar.js?v=20260607-gm-close-mark` を参照している。
+- 公開配信中の `renderSessionDetail.js` には `〆にする` / `〆解除` / 締切後押し忘れ注意 / `update_session_post` / `syncUpdatedSession` が含まれている。
+- 公開配信中の `renderCalendar.js` は、閉め印をGM名より前に出す描画順へ更新済み。
+- 公開配信中の `sessionDisplay.js` は、先頭 `〆` 判定とタイトルからの閉め印除去helperを含む。
+
+未実施:
+
+- Codex側ではログイン済みGMブラウザ操作を実施していない。
+- Discord投稿済み公開依頼書での `〆` 付与/解除は、Discord本番編集に繋がる可能性があるため実施していない。
+
+次のQA:
+
+- まずdraft / hidden / 未投稿のQA依頼書で、ボタン表示、確認ダイアログ、タイトル整形、二重付与防止、解除、カレンダー表示を確認する。
+- Discord投稿済み依頼書で確認する場合は、実行前に対象を明確化し、1件だけのDiscord本番編集ゲートとして扱う。

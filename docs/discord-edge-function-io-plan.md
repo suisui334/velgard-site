@@ -3117,3 +3117,26 @@ Safety:
 - No raw session id, raw user id, email, token, selected character id, application id, Discord message id, channel id, thread id, or post URL is displayed by the new UI.
 - No message preview body or Webhook/secret value is introduced.
 - No direct Supabase `.insert` / `.update` / `.delete` / `.upsert` write path was added.
+
+## M-14E-19A GM close mark public QA IO record
+
+Status: public static reflection checked. No production Discord edit was performed.
+
+Public delivery checks:
+
+- `session-detail.html` and `calendar.html` are serving the GM close-mark cache-bust value.
+- Public `main.js` imports the GM close-mark versions of session-detail and calendar modules.
+- Public session-detail JS includes GM close-mark button labels, deadline reminder text, existing title update RPC usage, and existing Discord update sync hook.
+- Public calendar JS includes the close-mark-before-GM display path.
+
+IO not performed:
+
+- No GM logged-in browser action was performed by Codex.
+- No Discord production edit/post/delete was performed.
+- No dry-run or real-send request was executed.
+- No SQL, DB/RPC, deploy, or secret/Webhook operation was performed.
+
+Next IO boundary:
+
+- Draft / hidden / unposted session QA can be used for UI-only checks.
+- A posted public session check can trigger Discord production update and must be a separate explicit gate with one target only.
