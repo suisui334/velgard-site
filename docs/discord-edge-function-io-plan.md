@@ -2153,3 +2153,47 @@ GM/admin同期状態表示IO:
 - update/resync/repair方針、GM/admin同期状態表示方針、本番secret切替手順、本番初回投稿手順がdocs化済み。
 - 本番投稿前に `dry_run = true` を確認する。
 - 本番投稿は独立ゲートで扱う。
+
+## M-14E-16Q post URL補強deploy後dry-run IO確認
+`9420c53` の `sync-session-post-to-discord` はユーザー手元でdeploy済み。Codex側ではdeploy、`dry_run = false` 実送信、Discord追加投稿、本番投稿、secret設定/切替を行っていない。
+
+deploy IO:
+
+- deploy対象commitは `9420c53`。
+- deploy前のgit状態はclean。
+- deploy前の `deno check` は成功。
+- deployは終了コード0、成功表示あり。
+- deploy時にWARNING表示はあったが、認証問題ではない。
+- project linkに関する表示は確認対象として扱う。
+- deploy後のgit状態はclean。
+
+post-deploy dry-run IO:
+
+- 対象は `M14E16_sync_db_QA_01`。
+- requestは `action = create` / `dry_run = true`。
+- JWT、対象session id、Supabase URL全文はユーザー手元だけで扱う。
+- HTTP 200、JSON parse成功。
+- response keysは `ok` / `dry_run` / `action` / `sync_target` / `message_preview` / `planned_db_update` / `warnings`。
+- `ok = true`、`dry_run = true`、`action = create`。
+- `message_preview` は返るが本文全文は記録しない。
+- `概要` ラベルなし、詳細URLなし、対象タイトルあり、ISO/UTC表記なし。
+- Discordテスト用チャンネルへの投稿増加なし。
+
+IO判断:
+
+- `dry_run = true` はpreview専用を維持している。
+- `概要` ラベル削除はEdge Function側に反映済み。
+- `discord_post_url` 補強後の保存成否は、別ゲートのテスト用チャンネル実送信とSELECT-only確認で判断する。
+
+post URL保存補強QA IO案:
+
+1. 新規検証用依頼書 `M14E16_post_url_QA_01` を作成する。
+2. session-detailで対象を確認する。
+3. `dry_run = true` previewを確認する。
+4. 独立ゲートで `dry_run = false` 実送信を1回だけ行う。
+5. Discordテスト用チャンネルに新規投稿が1件だけ増えたことを確認する。
+6. SELECT-onlyでDB同期状態を確認し、`discord_post_url` 相当の保存有無を見る。
+
+停止条件:
+
+- 対象不一致、認証/対象/Supabase接続先準備不備、dry-run失敗、本文への詳細URL/ISO/UTC/`概要` ラベル混入、テスト用チャンネル未確認、本番投稿疑い、実値IDやURL全文の記録が必要になりそうな場合、不明エラー、同一実送信コマンド再実行。

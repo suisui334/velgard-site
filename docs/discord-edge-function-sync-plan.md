@@ -2753,3 +2753,73 @@ GM/admin同期状態表示UIの最小仕様:
 10. 本番投稿は独立ゲートで1回だけ扱う。
 
 本番募集チャンネル切替はまだ行わない。次工程は、Edge Function deployゲート、deploy後 `dry_run = true` 確認、テスト用チャンネルでのpost URL保存補強QA、またはGM/admin同期状態表示UI設計へ分ける。
+
+## M-14E-16Q discord_post_url補強deploy結果とpost-deploy dry_run=true確認
+`discord_post_url` 補強済みの `sync-session-post-to-discord` は、ユーザー手元で `9420c53` の状態としてdeploy済み。Codex側ではEdge Function deploy、`dry_run = false` 実送信、Discord追加投稿、本番投稿、secret設定/切替を行っていない。
+
+deploy結果:
+
+- 対象commitは `9420c53` と確認済み。
+- deploy前の作業ツリーはclean。
+- deploy前の `deno check` は終了コード0。
+- deployは実行され、終了コード0、成功表示あり。
+- deploy時にWARNING表示はあったが、認証問題を示すものではない。
+- project linkに関する表示は確認対象として扱う。
+- deploy後の作業ツリーはclean。
+- `deno.lock` / `supabase/.temp` は生成物として掃除済み。
+
+post-deploy `dry_run = true` 確認:
+
+- 対象は既存検証用依頼書 `M14E16_sync_db_QA_01`。
+- JWT、対象session id、Supabase URL全文はユーザー手元だけで扱い、docsへ記録しない。
+- requestは `action = create` / `dry_run = true`。
+- `dry_run = false` は実行していない。
+- HTTP 200、JSON parse成功。
+- response keysは `ok` / `dry_run` / `action` / `sync_target` / `message_preview` / `planned_db_update` / `warnings`。
+- `ok = true`、`dry_run = true`、`action = create`。
+- `message_preview` は返ったが、本文全文は記録しない。
+- `message_preview` には対象タイトル相当が含まれ、詳細URLなし、ISO/UTC表記なし。
+- `概要` ラベル削除はEdge Function側previewにも反映済み。
+- Discordテスト用チャンネルへの新規投稿増加なし。
+
+判断:
+
+- `9420c53` のEdge Function deployは成功扱いでよい。
+- `dry_run = true` はpreview専用を維持している。
+- `概要` ラベル削除はdeploy後のpreviewで確認済み。
+- `discord_post_url` 補強はdeploy済みだが、保存成否は次のテスト用チャンネル実送信QAで確認する。
+- 本番募集チャンネル切替はまだ行わない。
+
+post URL保存補強QAゲート案:
+
+1. 新しい検証用依頼書 `M14E16_post_url_QA_01` を作成する。既存の `M14E16_sync_db_QA_01` は投稿済みのため再利用しない。
+2. 開催場所は `Tekey` などの一般的な検証値でよい。
+3. session-detailで対象依頼書であることを確認する。
+4. `dry_run = true` previewを確認し、詳細URL、ISO/UTC表記、`概要` ラベルが混入していないことを確認する。
+5. 独立ゲートで `dry_run = false` 実送信を1回だけ行う。
+6. Discordテスト用チャンネルに新規投稿が1件だけ増えたことを確認する。
+7. SELECT-onlyでDB同期状態を確認し、`discord_post_url` 相当が保存されたかを見る。
+8. `discord_post_url` 相当が保存されない場合は、guild/server id相当がWebhookレスポンスから得られない等の既知条件として後続課題化する。
+
+post URL保存補強QAゲート停止条件:
+
+- 対象が `M14E16_post_url_QA_01` ではない。
+- JWT、対象session id、Supabase URLの準備に不備がある。
+- `dry_run = true` が通らない。
+- Discord本文に詳細URL、ISO/UTC表記、`概要` ラベルが混入している。
+- Discord投稿先がテスト用チャンネルであると確認できない。
+- 本番募集チャンネル投稿の疑いがある。
+- DB確認で実値IDやURL全文を出す必要がありそうな場合。
+- 不明なエラーが出た場合。
+- 同じ `dry_run = false` コマンドを再実行しそうな場合。
+
+後続課題:
+
+- post URL保存補強QA。
+- `update` / `close` / `delete` / `resync` / `repair` 実装。
+- GM/admin同期状態表示UI。
+- 本番切替前レビュー。
+- 本番secret切替ゲート。
+- 本番初回投稿ゲート。
+
+この記録作業ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 実送信、Discord追加投稿、本番投稿、secret設定/切替、`updates.json` 変更は行わない。

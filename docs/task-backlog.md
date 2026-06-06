@@ -2010,3 +2010,18 @@ Discord成功後DB更新失敗時:
 - 次工程候補は、Edge Function deployゲート、deploy後 `dry_run = true` 確認、テスト用チャンネルでのpost URL保存補強QA、またはGM/admin同期状態表示UI設計。
 - 本番募集チャンネル切替はまだ行わない。
 - この工程ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Function deploy、追加deploy、`dry_run = false` 実送信、Discord追加実送信、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16Q post URL補強deploy結果とdry_run=true確認
+- `9420c53` の `sync-session-post-to-discord` はユーザー手元でdeploy済み。
+- deploy前のgit状態はclean、deploy前 `deno check` は成功、deployは終了コード0で成功扱い。WARNING表示はあったが認証問題ではない。
+- deploy後のgit状態はclean。`deno.lock` / `supabase/.temp` は生成物として掃除済み。
+- deploy後、`M14E16_sync_db_QA_01` を対象に `create` / `dry_run = true` を確認済み。
+- dry-runはHTTP 200、JSON parse成功、`ok = true`、`dry_run = true`、`action = create`。
+- response keysは `ok,dry_run,action,sync_target,message_preview,planned_db_update,warnings`。
+- previewでは `概要` ラベルなし、詳細URLなし、対象タイトルあり、ISO/UTC表記なし。
+- Discordテスト用チャンネルに新規投稿増加なし。`dry_run = false` は未実行。
+- 次工程はpost URL保存補強QAゲート。新しい検証用依頼書 `M14E16_post_url_QA_01` を使い、既存投稿済みの `M14E16_sync_db_QA_01` は再利用しない。
+- post URL保存補強QAでは、作成、session-detail確認、`dry_run = true`、独立ゲートでの `dry_run = false` 1回、Discord投稿1件確認、SELECT-only DB確認で `discord_post_url` 相当の保存有無を見る。
+- 停止条件は、対象不一致、認証/対象/Supabase接続先不備、dry-run失敗、詳細URL/ISO/UTC/`概要` ラベル混入、テスト用チャンネル未確認、本番投稿疑い、実値IDやURL全文の記録が必要になりそうな場合、不明エラー、同一実送信コマンド再実行。
+- 後続課題は、post URL保存補強QA、`update` / `close` / `delete` / `resync` / `repair` 実装、GM/admin同期状態表示UI、本番切替前レビュー、本番secret切替ゲート、本番初回投稿ゲート。
+- この工程ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 実送信、Discord追加投稿、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
