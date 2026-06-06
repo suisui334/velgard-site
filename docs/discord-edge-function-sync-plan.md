@@ -3637,3 +3637,28 @@ inventory結果概要:
 
 - 035 applyゲートを独立工程として扱う。
 - 035実行前に、対象ファイルが19件前提であること、実行禁止注記が維持されていること、034結果と矛盾しないことを再確認する。
+
+## M-14E-18J DB-only cleanup 035実行結果
+
+ユーザー手元で `docs/supabase/sql/035_prelaunch_db_only_cleanup_apply_draft.sql` をSQL Editorへ貼り付け、1回だけ実行した。SQL Editor上でエラー表示はなく、再実行はしていない。この結果を、034で再確認したDB-only cleanup候補19件の削除成功として扱う。
+
+記録した結果:
+
+- 035 applyは1回のみ実行。
+- エラー表示なし。
+- 再実行なし。
+- DB-only cleanup候補19件は削除成功扱い。
+- 実ID、Discord message id、channel id、thread id、post URL全文、JWT、session_id、project ref、Supabase URL全文、Webhook URL、user_id、email、token、message preview本文全文は記録していない。
+
+判断:
+
+- 034時点で外部投稿識別子混入0、非QA候補混入0、FK CASCADE確認OKだったため、035のguard条件を満たしたcleanupとして扱う。
+- 035実行後の追加SELECT-only件数確認は、この記録工程では行っていない。必要な場合は別工程で、実IDやURL全文を返さないSELECT-only確認により、DB-only cleanup候補0件、Supabase session total減少、Discord外部識別子あり2件の残存を確認する。
+- 静的JSON由来の依頼書は通常運用画面から退役済みであり、今回のDB-only cleanupとは別系統として扱う。
+- Discord投稿削除は未実施。外部識別子あり2件、旧テストWebhook/Discord-only残骸は別途判断する。
+
+次工程候補:
+
+- Discord識別子あり2件の扱い判断。
+- テストチャンネル/Discord-only残骸の手動整理。
+- 必要ならpost-cleanup SELECT-only確認ゲート。

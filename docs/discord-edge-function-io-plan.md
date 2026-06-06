@@ -2873,3 +2873,30 @@ IO judgment:
 Next IO gate:
 
 - Independent 035 apply gate after confirming the draft still matches the latest reviewed 034 result.
+
+## M-14E-18J DB-only cleanup 035 apply result
+
+Status: DB-only cleanup apply result recorded. No additional cleanup operation was run by Codex.
+
+The user ran `docs/supabase/sql/035_prelaunch_db_only_cleanup_apply_draft.sql` once in SQL Editor. No SQL Editor error was shown, and the SQL was not rerun. The result is treated as successful deletion of the 19 DB-only cleanup candidates confirmed by 034.
+
+Recorded result:
+
+- 035 apply executed once by the user.
+- No error shown.
+- Not rerun.
+- 19 DB-only cleanup candidates treated as deleted.
+- No raw ids, Discord ids, post URL, JWT, session id, project ref, Supabase URL, webhook URL, user id, email, token, or message preview body were recorded.
+
+IO judgment:
+
+- 034 had confirmed external identifier mix-in 0, non-QA mix-in 0, and FK cascade readiness OK, so this is treated as a guarded DB-only cleanup success.
+- Codex did not perform an additional SELECT-only DB confirmation in this recording batch. If needed, run a separate SELECT-only verification that returns only generalized counts/status values and checks DB-only candidates are now 0, Supabase session total decreased, and the 2 rows with Discord external identifiers remain outside DB-only cleanup.
+- Static JSON fixture rows remain a separate track and should not reappear in normal production UI.
+- Discord post deletion was not performed.
+
+Next IO tracks:
+
+- Decide how to handle the 2 rows with Discord external identifiers.
+- Manually review old test-channel / Discord-only remnants.
+- Optional post-cleanup SELECT-only confirmation gate.
