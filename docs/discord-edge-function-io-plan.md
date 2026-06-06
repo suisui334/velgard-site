@@ -1494,3 +1494,67 @@ preview検証IO:
 - DB更新連携、外部投稿識別子保存、二重投稿防止、action拡張、本番募集チャンネル切り替えは後続IO設計に残す。
 
 この工程ではdocs記録と静的確認のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 実送信、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15P-C テスト用チャンネル create dry_run=false 実送信IO結果
+新しい検証用依頼書 `M14E15P_discord_format_QA_01` を対象に、ユーザー手元で `create / dry_run = false` を1回だけ実行し、テスト用チャンネルへの実送信を確認した。Codex側ではリクエスト実行、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加送信を行っていない。
+
+入力IO:
+
+- 対象依頼書は `M14E15P_discord_format_QA_01`。
+- 旧 `TEST_1` とUI QA用依頼書は再利用していない。
+- 実送信先はテスト用チャンネル向けWebhook設定。
+- `USER_JWT_READY = true`。
+- `SESSION_ID_READY = true`。
+- `SUPABASE_URL_READY = true`。
+- `TARGET_SESSION_TITLE_EXPECTED = M14E15P_discord_format_QA_01`。
+- `REAL_SEND_NOT_EXECUTED = true`。
+- `READY_FOR_MANUAL_CONFIRMATION = true`。
+- 送信対象確認コマンドと送信コマンドは分離済み。
+- JWT、確認対象ID、Supabase URL全文、Webhook URL、Discord投稿先実値は記録していない。
+
+実送信レスポンスIO:
+
+- `REAL_SEND_REQUEST_ACTION = create`。
+- `REAL_SEND_REQUEST_DRY_RUN = false`。
+- `REAL_SEND_EXPECTED_TARGET = TEST_CHANNEL_CONFIGURED_WEBHOOK`。
+- `DO_NOT_RERUN_THIS_COMMAND = true`。
+- `REAL_SEND_EXECUTED = true`。
+- `HTTP_ERROR = false`。
+- `HTTP_STATUS = 200`。
+- JSON parse成功。
+- `RESPONSE_KEYS = ok,dry_run,action,sync_target,discord_send,db_update,warnings`。
+- `ok = true`。
+- `dry_run = false`。
+- `action = create`。
+- `discord_send` 返却あり。
+- `db_update` 返却あり。ただし永続DB更新連携、外部投稿識別子保存、同期状態更新は後続工程として扱う。
+- `warnings` 返却あり。
+- `message_preview` 返却なし。
+- 外部投稿識別子相当は存在検知されたが、実値は記録しない。
+- `REAL_SEND_CHECK_COMPLETE = true`。
+
+Discord側IO:
+
+- テスト用チャンネルに新規投稿が1件増えた。
+- 投稿は「依頼書通知」アプリから送信された。
+- 投稿タイトルは `M14E15P_discord_format_QA_01` 相当。
+- 冒頭区切り線あり。
+- GM表示あり。
+- 開催場所表示あり。
+- 日時は日本語短縮形式。
+- 参加人数表示あり。
+- 参加締切表示あり。
+- 概要表示あり。
+- 詳細URL/詳細リンクなし。
+- ISO/UTC表記なし。
+- 本番募集チャンネル投稿なし。
+- message preview本文全文、Discord message id実値、Discord投稿先実値は記録しない。
+
+判断:
+
+- 新Discord投稿フォーマットのテスト用チャンネル実送信は成功。
+- `dry_run = true` previewと `dry_run = false` 実送信の本文フォーマット整合性は概ね確認できた。
+- 送信コマンドは1回のみ実行済みであり、再実行禁止。
+- DB更新連携、外部投稿識別子保存、二重投稿防止、`update` / `close` / `delete` / `resync`、本番募集チャンネル切り替えは後続IO設計に残す。
+
+この工程ではdocs記録と静的確認のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。

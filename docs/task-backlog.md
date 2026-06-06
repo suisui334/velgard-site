@@ -1678,3 +1678,31 @@
 - 実送信時は確認コマンドと送信コマンドを分離し、対話プロンプト依存の送信手順を使わない。
 - DB更新連携、外部投稿識別子保存、二重投稿防止、action拡張、本番募集チャンネル切り替えは後続工程として維持する。
 - この工程ではdocs記録と静的確認のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 実送信、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15P-C テスト用チャンネル create dry_run=false 実送信1回確認
+- 新しい検証用依頼書 `M14E15P_discord_format_QA_01` を対象に、ユーザー手元で `create / dry_run = false` 実送信を1回だけ実行した。
+- 旧 `TEST_1` は再利用していない。
+- UI QA用依頼書も再利用していない。
+- 実送信はテスト用チャンネル向けWebhook設定のまま実施した。
+- 送信対象確認コマンドと送信コマンドは分離済み。
+- 送信前確認として、JWT、確認対象ID、Supabase URLの準備が整っていることと、対象タイトルが `M14E15P_discord_format_QA_01` であることを確認した。
+- 実送信結果はHTTP 200、HTTP errorなし、JSON parse成功、`ok = true`、`dry_run = false`、`action = create`。
+- レスポンスキーは `ok,dry_run,action,sync_target,discord_send,db_update,warnings`。
+- `discord_send`、`db_update`、`warnings` は返却あり。
+- `message_preview` は返却なし。
+- 外部投稿識別子相当は存在検知されたが、実値は記録しない。
+- Discordテスト用チャンネルに新規投稿が1件増えた。
+- 投稿は「依頼書通知」アプリから送信され、タイトルは `M14E15P_discord_format_QA_01` 相当。
+- 投稿本文は、冒頭区切り線あり、GM表示あり、開催場所表示あり、日時は日本語短縮形式、参加人数表示あり、参加締切表示あり、概要表示あり、詳細URL/詳細リンクなし、ISO/UTC表記なし。
+- 本番募集チャンネル投稿なし。
+- message_preview本文全文、Discord message id実値、Discord投稿先実値、JWT、確認対象ID、project ref、Supabase URL全文は記録しない。
+- M-14E-15P-Cのテスト用チャンネル新フォーマット実送信1回確認は成功扱いとする。
+- 実送信コマンドは再実行禁止。
+
+次工程候補:
+
+- M-14E-15P-D: 実送信結果docsのcommit / push。
+- M-14E-15S以降: DB更新連携、外部投稿識別子保存、二重投稿防止設計。
+- `update` / `close` / `delete` / `resync` 対応、GM/admin同期UI、本番募集チャンネル切り替えは後続工程として維持する。
+- 本番募集チャンネル切り替えはまだ行わない。
+- この工程ではdocs記録と静的確認のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
