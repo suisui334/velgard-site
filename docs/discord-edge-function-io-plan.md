@@ -1383,3 +1383,62 @@ QA結果:
 - DB更新連携、二重投稿防止、action拡張、GM/admin同期UI、本番募集チャンネル切り替えは後続IO設計に残す。
 
 この工程ではdocs記録と既存フロント差分の静的確認のみ行い、SQL Editor再実行、DB/RPC追加変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15P-A 公開サイト反映後QA / Discord実送信前IOレビュー
+`73968eb Fix session tool clear handling` のGitHub Pages反映後、ユーザー実ブラウザで `session_tool` クリア挙動を再確認した。Codex側ではSQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord送信、dry-run実行を行っていない。
+
+公開サイトQA IO:
+
+- update IO: 開催場所を空欄保存できた。
+- detail IO: session-detailで `未定` 表示になった。
+- edit reload IO: 再編集画面でも開催場所欄が空欄になった。
+- Discord IO: テスト用チャンネルに新規投稿増加なし。
+- exposure IO: raw id、user_id、email、token等の画面露出なし。
+- `73968eb` の修正は公開サイトにも反映済みと判断する。
+
+次回実送信確認の入力IO方針:
+
+- 新しい検証用依頼書を使う。
+- 推奨タイトルは `M14E15P_discord_format_QA_01`。
+- 旧フォーマットで送信済みの既存 `TEST_1` は再利用しない。
+- 今回のUI QA用依頼書も編集検証済みのため、実送信用には別の新規検証用依頼書を使う。
+- 実送信前に `dry_run = true` preview確認を必ず行う。
+- 確認コマンドと送信コマンドを分離し、対話プロンプト依存の送信手順を使わない。
+- `dry_run = false` はユーザー確認後、独立工程で1回のみ実行する。
+
+preview IO確認項目:
+
+- HTTP 200。
+- JSON parse成功。
+- `ok = true`。
+- `dry_run = true`。
+- `action = create`。
+- `message_preview` あり。ただし本文全文は記録しない。
+- 冒頭区切り線あり。
+- 開催場所ラベルあり。
+- 詳細URLなし。
+- 詳細ラベルなし。
+- ISO/UTC表記なし。
+- Discord投稿増加なし。
+
+実送信IOの停止条件:
+
+- JWT、確認対象ID、Supabase URLの準備に失敗。
+- `dry_run = true` preview確認が通らない。
+- previewにURL、詳細リンク、ISO/UTC表記が混入。
+- 対象が旧 `TEST_1`、または意図しない依頼書。
+- Discordテスト用チャンネルではない疑い。
+- 既に投稿済みの対象を再利用している疑い。
+- 不明なエラーが出た場合。
+
+実送信後も未実装のIO:
+
+- DB更新連携。
+- 外部投稿識別子保存。
+- 同期状態更新。
+- 二重投稿防止。
+- `update` / `close` / `delete` / `resync` 対応。
+- GM/admin同期UI。
+- 本番募集チャンネル切り替え。
+
+この工程ではdocs記録と安全レビューのみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
