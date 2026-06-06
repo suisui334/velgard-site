@@ -1897,3 +1897,34 @@ Edge Function IO順:
 - 030はapply draftのまま未実行で、RPC apply前レビューゲート完了までSQL Editorへ貼らない。
 
 Edge FunctionからのIO順は、request validation、user auth、target session fetch、create guard RPC、message build、Discord send、success記録RPC、failure記録RPCまたはpartial failure handling、sanitized responseとする。`dry_run = true` ではDB更新なし。`dry_run = false` かつDiscord送信成功後のみsuccess記録RPCを呼ぶ。DB更新失敗時は同じcreate再実行を禁止し、manual repair/resyncを後続化する。
+
+## M-14E-16J RPC apply前レビュー後のIO計画
+`030_discord_sync_rpc_apply_draft.sql` をRPC apply前レビューゲートとして確認した。030は未実行apply draftのままであり、この工程ではSQL Editor実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信を行わない。
+
+RPC IOレビュー:
+
+- create guard RPCは、`dry_run = false` かつ `action = create` の送信前に呼ぶ。既存 `discord_message_id` があればDiscord送信前に拒否する。
+- success記録RPCは、Discord送信成功後にだけ呼ぶ。`posted` + `create` を保存し、外部投稿識別子実値や投稿URL全文をレスポンスへ返さない。
+- failure記録RPCは、Discord送信失敗時にだけ呼ぶ。`failed` + `create` と一般化エラーを保存する。
+- failure記録RPCは、既存外部投稿識別子がある行を `failed` に上書きしないよう030 draft上で補強した。
+- `dry_run = true` ではguard RPC、Discord送信、DB更新を呼ばない。
+
+partial failure IO:
+
+- Discord送信成功後にsuccess記録RPCが失敗した場合、Discord投稿は既に発生しているため同じcreate再実行を禁止する。
+- レスポンスは `discord_send` 成功と `db_update` 失敗を分離する。
+- top-level `ok` は再実行抑止を優先してfalse寄りに扱う案を維持する。
+- repair/resync/手動照合は後続工程で扱う。
+
+apply後SELECT-only確認候補:
+
+- 3RPCの存在とsignature。
+- `security_definer`。
+- `search_path`。
+- EXECUTE権限: authenticated可、anon / PUBLIC不可。
+- 既存create/update/delete session post RPCに意図しない影響がないこと。
+- Discord同期系カラムが残っていること。
+- RLS enabled維持。
+- `updates.json` 差分なし。
+
+SQL applyゲートでは、貼り付け範囲欠落、CHECK外値、secret/URL/ID実値混入、SQL Editorエラー、予期しない警告があれば停止する。

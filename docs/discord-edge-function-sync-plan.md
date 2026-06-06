@@ -2371,3 +2371,78 @@ Edge Function実装計画:
 7. 本番切替ゲート。
 
 本番切替はまだ行わない。DB更新連携、外部投稿識別子保存、二重投稿防止、`update` / `resync` 方針、secret切替レビュー、本番初回投稿手順が揃うまで停止する。
+
+## M-14E-16J RPC apply前レビューゲート
+`docs/supabase/sql/030_discord_sync_rpc_apply_draft.sql` をRPC apply前レビューゲートとして静的確認した。この工程ではSQL Editor実行、DB/RPC変更、SQL apply、030 SQL Editor貼り付け、Edge Functionコード変更、追加deploy、Discord追加実送信、secret設定/切替を行っていない。
+
+実行禁止注記:
+
+- 030冒頭には `DO NOT RUN UNTIL REVIEWED` が残っている。
+- 030は未実行apply draftであり、ユーザーの明示確認なしにSQL Editorへ貼らない。
+- 030には `CREATE OR REPLACE FUNCTION`、`REVOKE`、`GRANT`、関数内 `UPDATE` が含まれるため、SELECT-onlyではない。
+
+RPCごとの役割確認:
+
+- `check_discord_session_post_create_ready(text)`
+  - create送信前guard。
+  - GM本人またはadminを想定し、未ログイン、対象なし、権限なし、既存 `discord_message_id` ありをDiscord送信前に拒否する。
+  - DB更新なし。送信前guardだけでは同時実行を完全には防げないため、success記録RPC側の条件更新でも補強する。
+- `record_discord_session_post_create_success(text, text, text, text, text)`
+  - Discord送信成功後にだけ呼ぶ成功記録RPC候補。
+  - `discord_message_id`、投稿先相当、スレッド相当、投稿URL相当、`discord_sync_status = posted`、`discord_last_action = create`、`discord_synced_at`、`discord_sync_error = null` を更新する。
+  - 既に `discord_message_id` がある場合は拒否し、戻り値には外部投稿識別子実値やURL全文を返さない。
+- `record_discord_session_post_create_failure(text, text)`
+  - Discord送信失敗時に一般化エラーだけを保存する候補。
+  - `discord_sync_status = failed`、`discord_last_action = create` を使う。
+  - 既存 `discord_message_id` がある行を `failed` に上書きしないよう、030 draft上で既存識別子チェックと条件更新を補強した。
+  - 生レスポンス全文、Webhook URL、認証情報、外部投稿識別子実値は保存しない。
+
+CHECK値整合:
+
+- `discord_sync_status` で使う値は `posted` / `failed` のみで、確定済み許容値 `failed / not_requested / pending / posted / skipped` の範囲内。
+- `discord_last_action` で使う値は `create` のみで、確定済み許容値 `close / create / delete / resync / update` の範囲内。
+- 030内の実行ロジックにCHECK外の状態値やaction値は残っていない。
+- `not_requested` は既存defaultとして扱い、030では明示初期化しない。
+- `pending` と `skipped` は将来候補として残るが、今回のcreate成功/失敗RPCでは更新しない。
+
+権限・安全境界:
+
+- 3RPCとも `security definer` と `set search_path = ''` を使う。
+- 権限判定は `auth.uid()`、`public.is_admin()`、`public.has_role('gm')`、対象依頼書のGM所有関係を使う。
+- EXECUTEはauthenticatedに付与し、anon / PUBLICからはrevokeするdraftになっている。
+- 既存 `update_session_post` にDiscord同期責務を混ぜない。
+- 同時実行で複数リクエストが送信前guardを通過し、Discord送信が二重化するリスクは理論上残る。将来の予約状態更新、より強いDB側排他、またはEdge Function側の単発運用を後続TODOとする。
+
+Discord送信成功後DB更新失敗時:
+
+- Discord投稿は既に発生しているため、同じcreate再実行は禁止する。
+- Edge Functionレスポンスでは `discord_send` 成功と `db_update` 失敗を分けて返す。
+- top-level `ok` は再実行抑止を優先してfalse寄りに扱い、Discord送信済みであることを明示する案を維持する。
+- 手動修復、repair、resyncは後続工程へ分離する。
+- レスポンス、docs、consoleには外部投稿識別子実値、投稿URL全文、Webhook URL、JWT、確認対象ID実値、Discord投稿先実値、message preview本文全文を残さない。
+
+apply後確認計画:
+
+- RPC存在確認: `check_discord_session_post_create_ready`、`record_discord_session_post_create_success`、`record_discord_session_post_create_failure`。
+- RPC signature確認。
+- `security_definer` 確認。
+- `search_path` 明示確認。
+- EXECUTE権限確認: authenticated可、anon / PUBLIC不可。
+- 既存 `create_session_post` / `update_session_post` / `delete_session_post` への影響なし確認。
+- `public.sessions` のDiscord同期系カラムが想定どおり残っていること。
+- RLS enabledが維持されていること。
+- `updates.json` 差分なし確認。
+- 実値ID、投稿URL全文、外部投稿識別子実値、認証情報、実データ行を結果記録へ出さない。
+
+SQL applyゲートでの停止条件:
+
+- 030内容が想定ファイルと一致しない。
+- このレビュー結果と異なる変更が混ざっている。
+- CHECK外のstatus/action値がある。
+- secret、URL、ID実値、認証情報が混入している。
+- SQL Editor貼り付け内容が途中で欠けている。
+- SQL Editorでエラーが出る。
+- Supabase側で予期しない警告や挙動が出る。
+- 古いSQL Editor内容を消していない、または貼り付け範囲が不明。
+
+このレビュー結果により、030は次のSQL applyゲートへ進める候補になった。ただしSQL applyは独立ゲートであり、ユーザーの明示確認なしには実行しない。

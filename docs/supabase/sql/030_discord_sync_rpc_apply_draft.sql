@@ -253,6 +253,7 @@ $$;
 --
 -- Purpose:
 -- - Record a generalized failure after a Discord send attempt fails.
+-- - Refuse to overwrite a row that already has an external post identifier.
 -- - Never store raw external response bodies, credential values, or external targets.
 -- - Keep the failure string short and generic.
 
@@ -297,7 +298,8 @@ begin
 
   select
     s.id,
-    s.gm_user_id
+    s.gm_user_id,
+    s.discord_message_id
   into v_existing
   from public.sessions as s
   where s.id = v_session_id
@@ -317,6 +319,10 @@ begin
     raise exception 'not_allowed' using errcode = '42501';
   end if;
 
+  if nullif(btrim(coalesce(v_existing.discord_message_id, '')), '') is not null then
+    raise exception 'discord_create_already_synced' using errcode = '23505';
+  end if;
+
   update public.sessions as s
   set
     discord_sync_status = 'failed',
@@ -324,8 +330,13 @@ begin
     discord_sync_error = v_error_code,
     updated_at = now()
   where s.id = v_session_id
+    and nullif(btrim(coalesce(s.discord_message_id, '')), '') is null
   returning s.updated_at
     into v_updated_at;
+
+  if not found then
+    raise exception 'discord_failure_record_conflict' using errcode = '23505';
+  end if;
 
   session_id := v_session_id;
   discord_sync_status := 'failed';

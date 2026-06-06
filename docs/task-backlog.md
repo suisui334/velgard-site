@@ -1884,3 +1884,17 @@ Discord成功後DB更新失敗時:
 - `dry_run = true` はDB更新なし。`dry_run = false` かつDiscord送信成功後のみsuccess記録RPCを呼ぶ。
 - 次工程はRPC apply前レビューゲートへ進める状態。ただしSQL Editor実行、DB/RPC変更、SQL apply、030実行、Edge Functionコード変更、deploy、Discord送信はまだ行わない。
 - 本番募集チャンネル切替は、DB更新連携、外部投稿識別子保存、二重投稿防止、`update` / `resync` 方針、secret切替レビュー、本番初回投稿手順が揃うまで停止。
+
+## M-14E-16J RPC apply前レビューゲート
+- `docs/supabase/sql/030_discord_sync_rpc_apply_draft.sql` をRPC apply前レビューゲートとして静的確認した。030は未実行apply draftのままで、SQL Editorへは貼っていない。
+- 冒頭の `DO NOT RUN UNTIL REVIEWED` 注記と、ユーザー明示確認なしにSQL applyしない方針を維持。
+- 030で作成/変更候補のRPCは `check_discord_session_post_create_ready(text)`、`record_discord_session_post_create_success(text,text,text,text,text)`、`record_discord_session_post_create_failure(text,text)`。
+- CHECK整合: success記録は `posted` + `create`、failure記録は `failed` + `create`。いずれも確定済みCHECK値の範囲内。CHECK外の状態/action値は030実行ロジックに残っていない。
+- create送信前guardは既存 `discord_message_id` を検出してDiscord送信前に拒否する。success記録RPCも既存 `discord_message_id` がある場合は拒否し、条件更新で二重記録を防ぐ。
+- failure記録RPCは、既存外部投稿識別子がある行を `failed` に上書きしないよう030 draft上で補強した。
+- 3RPCとも `security definer` / `search_path` 固定 / authenticated EXECUTE / anon・PUBLIC不可の方針で、既存依頼書RPCの流儀と大きくズレない。
+- 同時実行時、複数リクエストが送信前guardを通過してDiscord送信が二重化するリスクは理論上残る。将来の予約状態更新、より強いDB側排他、またはEdge Function側の単発運用をTODOとして残す。
+- Discord送信成功後にDB更新失敗した場合は、`discord_send` 成功と `db_update` 失敗を分離し、同じcreate再実行を禁止する。manual repair/resyncは後続工程。
+- apply後確認計画は、3RPC存在、signature、security_definer、search_path、EXECUTE権限、既存create/update/delete RPC影響なし、Discord同期系カラム維持、RLS enabled、`updates.json` 差分なしをSELECT-onlyで確認する。
+- SQL applyゲート停止条件は、030内容不一致、レビュー結果と異なる変更、CHECK外値、secret/URL/ID実値混入、貼り付け欠落、SQL Editorエラー、Supabase側の予期しない警告/挙動。
+- 030は次のSQL applyゲートへ進める候補。ただしSQL Editor実行、DB/RPC変更、SQL applyは独立ゲートであり、この工程では実施しない。
