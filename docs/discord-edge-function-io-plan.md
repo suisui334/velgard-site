@@ -2480,3 +2480,32 @@ Next IO gate:
 
 - 031 apply経路を安全に確定してから、SQL applyを1回だけ実行する。
 - apply成功後に、update/delete用5RPCの存在、security definer、search_path、EXECUTE権限、既存create用RPC維持、CHECK値整合をSELECT-onlyで確認する。
+
+## M-14E-17 031 SQL apply IO result
+
+ユーザー手元で `docs/supabase/sql/031_discord_update_delete_rpc_apply_draft.sql` をSQL Editorへ貼り付け、1回だけ実行した。
+
+IO result:
+
+- SQL Editor上でエラー表示なし。
+- 同一SQLの再実行なし。
+- 結果グリッドでupdate/delete同期用RPC 5本を確認。
+  - `check_discord_session_post_delete_ready(text)`
+  - `check_discord_session_post_update_ready(text)`
+  - `record_discord_session_post_delete_failure(text, text)`
+  - `record_discord_session_post_update_failure(text, text)`
+  - `record_discord_session_post_update_success(text)`
+- 表示されている範囲では、5本とも `security_definer = true`、`has_search_path = true`。
+- EXECUTE権限の詳細はユーザー提供画像上では未確認。
+- EXECUTE権限は、Edge Function deploy後QAでRPC実呼び出しにより確認する。
+
+IO safety:
+
+- Codex側ではSQL Editor再実行、SQL apply再実行、DB/RPC追加変更を行っていない。
+- Edge Function deploy、dry-run、real-send、Discord投稿/編集/削除、secret設定/切替は未実施。
+- secret、Webhook URL、JWT、session id、project ref、Supabase URL全文、Discord message id、channel id、post URL全文、raw user id、email、token類の実値は記録しない。
+
+Next IO gate:
+
+- Edge Function deployゲート。
+- deploy後に、update/delete同期RPCのEXECUTE権限を実呼び出しで確認する。

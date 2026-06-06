@@ -3184,3 +3184,33 @@ Edge Function準備実装:
 - 安全なapply経路を確定する。
 - 候補は、ユーザー手元SQL Editorでの1回実行、またはproject linkを秘匿値なしで安全に確定できる公式CLI経路。
 - apply成功後に、対象5RPCの存在、`security_definer`、`search_path`、EXECUTE権限、既存create用RPC維持、CHECK値整合をSELECT-onlyで確認する。
+
+## M-14E-17 SQL apply成功結果
+
+ユーザー手元で `docs/supabase/sql/031_discord_update_delete_rpc_apply_draft.sql` をSupabase SQL Editorへ貼り付け、1回だけ実行した。
+
+実行結果:
+
+- SQL Editor上でエラー表示はなかった。
+- 同じSQLは再実行していない。
+- update/delete同期用RPCとして、以下5本が結果グリッド上で確認できた。
+  - `check_discord_session_post_delete_ready(text)`
+  - `check_discord_session_post_update_ready(text)`
+  - `record_discord_session_post_delete_failure(text, text)`
+  - `record_discord_session_post_update_failure(text, text)`
+  - `record_discord_session_post_update_success(text)`
+- 表示されている範囲では、上記5本はいずれも `security_definer = true`、`has_search_path = true`。
+- EXECUTE権限の詳細列はユーザー提供画像上では未確認。
+- RPC本体、`security_definer`、`search_path` は確認済みとして扱う。
+- EXECUTE権限の詳細は、Edge Function deploy後QAで実呼び出しにより確認する。
+- 既存create用RPCを維持したまま、update/delete同期RPCのDB側準備が進んだと扱う。
+
+未実施:
+
+- Codex側でSQL Editor再実行、SQL apply再実行、DB/RPC追加変更は行っていない。
+- Edge Function deploy、`dry_run = true`、`dry_run = false`、Discord投稿/編集/削除、secret設定/切替は行っていない。
+
+次工程:
+
+- Edge Function deployゲートへ進む。
+- deploy後QAでは、update/delete用RPCの実呼び出し可否、EXECUTE権限、既存create同期への影響なしを確認する。

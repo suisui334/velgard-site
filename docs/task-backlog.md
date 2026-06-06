@@ -2139,3 +2139,21 @@ Discord成功後DB更新失敗時:
 - apply後SELECT-only確認はapply未実行のため未実施。
 - Edge Function deploy、`dry_run = true`、`dry_run = false`、Discord投稿/編集/削除、secret設定/切替、`updates.json` 変更は行っていない。
 - 次工程候補は、安全な031 apply経路の確定、031 SQL apply 1回実行、apply後SELECT-only確認、Edge Function deployゲート。
+
+## M-14E-17 SQL apply成功結果記録
+- ユーザー手元で `docs/supabase/sql/031_discord_update_delete_rpc_apply_draft.sql` をSQL Editorへ貼り付け、1回だけ実行した。
+- SQL Editor上でエラー表示はなかった。
+- 同じSQLは再実行していない。
+- 結果グリッドで以下5本のRPCを確認した。
+  - `check_discord_session_post_delete_ready(text)`
+  - `check_discord_session_post_update_ready(text)`
+  - `record_discord_session_post_delete_failure(text, text)`
+  - `record_discord_session_post_update_failure(text, text)`
+  - `record_discord_session_post_update_success(text)`
+- 表示されている範囲では、5本とも `security_definer = true`、`has_search_path = true`。
+- EXECUTE権限の詳細列はユーザー提供画像上では未確認。
+- RPC本体、`security_definer`、`search_path` は確認済み。EXECUTE権限の詳細はEdge Function deploy後QAで実呼び出しにより確認する。
+- 既存create用RPCは維持されている前提で、update/delete同期用RPCのDB側準備が進んだと扱う。
+- Codex側ではSQL Editor再実行、SQL apply再実行、DB/RPC追加変更を行っていない。
+- Edge Function deploy、`dry_run = true`、`dry_run = false`、Discord投稿/編集/削除、secret設定/切替、`updates.json` 変更は行っていない。
+- 次工程はEdge Function deployゲート。deploy後QAではupdate/delete用RPCの実呼び出し可否、EXECUTE権限、既存create同期への影響なしを確認する。
