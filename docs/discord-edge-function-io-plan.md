@@ -2805,3 +2805,37 @@ Next IO gates:
 - Supabase DB-only cleanup gate.
 - External-identifier row review gate.
 - Old test-webhook / Discord-only manual cleanup gate.
+## M-14E-18H Supabase DB-only cleanup preparation
+
+Status: SQL draft preparation only. No cleanup operation was executed.
+
+Existing delete path review:
+
+- `delete_session_post(text)` is a per-session physical delete RPC for a logged-in GM/admin context.
+- Because it depends on `auth.uid()`, it is not the best bulk SQL Editor cleanup path.
+- Historical reviewed SQL notes that `session_applications.session_id` and `session_comments.session_id` use ON DELETE CASCADE to `public.sessions`.
+- DB-only cleanup targets must have no Discord external identifiers; they should not call Discord delete sync.
+
+New SQL drafts:
+
+- `docs/supabase/sql/034_prelaunch_db_only_cleanup_confirm_select_only.sql`
+  - SELECT-only confirmation.
+  - Confirms the DB-only candidate count, no external identifier mix-in, no non-QA mix-in, FK cascade readiness, and aggregate candidate distributions.
+  - Returns only generalized status/count/result rows.
+- `docs/supabase/sql/035_prelaunch_db_only_cleanup_apply_draft.sql`
+  - DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED.
+  - Guarded direct delete draft for a future independent apply gate.
+  - Stops if the candidate count does not match the reviewed expected value, if any external identifier is mixed in, if any non-QA row is mixed in, or if FK cascade is not confirmed.
+
+IO boundaries:
+
+- 032 reference count was 21 DB-only candidates, but 034 must be treated as the source of truth immediately before apply.
+- Rows with Discord external identifiers are excluded from DB-only cleanup.
+- Static JSON fixture rows are excluded from DB cleanup.
+- Old test-webhook and Discord-only remnants remain manual-review categories.
+
+Next IO gate:
+
+- Run 034 SELECT-only once in SQL Editor.
+- Review the count/status output.
+- Decide separately whether to run 035 in an apply gate.

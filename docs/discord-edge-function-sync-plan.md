@@ -3570,3 +3570,37 @@ inventory結果概要:
 - Supabase DB-only cleanupゲート。
 - 外部投稿識別子あり2件のWebhook由来/手動確認ゲート。
 - 旧テストWebhook / Discord-only残骸の手動整理ゲート。
+## M-14E-18H Supabase DB-only cleanup実行準備
+
+`147f5a5 Retire static session fallback` の状態から、運用開始前リセットの次段階として、Discord外部投稿識別子を持たないSupabase上のQA/test系依頼書を安全に削除できるよう、SELECT-only再確認SQLとguard付きapply draftを作成した。この工程では実削除、Discord投稿削除、SQL Editor実行、SQL apply、DB/RPC変更、Edge Function deploy、dry-run、real-send、secret設定/切替は行わない。
+
+既存削除RPC/依存関係の調査:
+
+- 既存 `delete_session_post(text)` は、GM/adminのログイン文脈で1件の依頼書を物理削除するRPC。
+- 同RPCは `auth.uid()` を使ってactorを確認するため、SQL Editor上の一括cleanupにはそのまま使いにくい。
+- 過去のreviewed SQLでは、`session_applications.session_id` と `session_comments.session_id` は `public.sessions` へのON DELETE CASCADEで確認済みとして扱われている。
+- DB-only cleanup対象はDiscord外部投稿識別子を持たないため、Discord delete同期は行わない。
+- 直接DELETEは危険になり得るため、実行draftでは候補件数、外部識別子混入、非QA候補混入、FK CASCADE確認をすべてguardする。
+
+追加したSQL draft:
+
+- `docs/supabase/sql/034_prelaunch_db_only_cleanup_confirm_select_only.sql`
+  - SELECT-onlyの再確認SQL。
+  - DB-only cleanup候補件数、032参照値との一致、外部識別子混入なし、非QA候補混入なし、FK CASCADE確認、候補status/visibility/同期状態内訳を返す。
+  - 実ID、Discord ID、post URL全文、user id、email、token、secret、row dataは返さない。
+- `docs/supabase/sql/035_prelaunch_db_only_cleanup_apply_draft.sql`
+  - `DO NOT RUN` / `NOT EXECUTED` / `USER SQL EDITOR APPROVAL REQUIRED` のapply draft。
+  - 034を直前に実行してレビューした後の独立applyゲートでのみ扱う。
+  - 032時点の参照値は21件だが、実行時には034の最新件数を正として扱う。
+  - 候補件数不一致、0件、外部識別子混入、非QA候補混入、FK CASCADE未確認の場合は削除せずエラーにする。
+
+対象外:
+
+- Discord外部識別子あり2件は、Webhook由来確認またはdelete同期/手動確認に分離する。
+- 旧テストWebhook/Discord-only残骸は今回対象外。
+- 静的JSON由来は通常運用から退役済みだが、DB-only cleanup対象ではない。
+
+次工程:
+
+- ユーザー手元SQL Editorで034を1回だけ実行し、件数とguard項目を確認する。
+- 034結果が想定どおりの場合のみ、035を実行するかを別ゲートで判断する。

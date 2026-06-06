@@ -2413,3 +2413,40 @@ Next:
 - Supabase DB-only cleanup gate for rows without external post identifiers.
 - External-identifier row review gate for rows that require webhook-origin/manual confirmation.
 - Old test-channel / Discord-only manual cleanup gate.
+## M-14E-18H Supabase DB-only cleanup実行準備
+
+Status: SELECT-only confirm SQL and guarded apply draft created. No destructive cleanup was run.
+
+Context:
+
+- Static JSON session fallback has been retired from normal UI.
+- 032 inventory showed 21 Supabase DB-only cleanup candidates without external Discord identifiers.
+- 2 rows with external Discord identifiers remain outside this DB-only cleanup path.
+- Old test-webhook / Discord-only remnants remain separate manual-review items.
+
+Existing delete path review:
+
+- Existing `delete_session_post(text)` is a per-session GM/admin RPC and is still suitable for normal UI deletes.
+- SQL Editor bulk cleanup does not have the same browser auth context, so a guarded direct-delete SQL draft is more practical for the prelaunch DB-only batch.
+- Prior reviewed delete RPC notes confirmed `session_applications` and `session_comments` cascade with session deletion; the new draft still rechecks cascade readiness before deleting.
+
+Added SQL drafts:
+
+- `docs/supabase/sql/034_prelaunch_db_only_cleanup_confirm_select_only.sql`
+  - SELECT-only confirmation for DB-only cleanup candidates.
+  - Returns candidate count, 032 reference match, excluded counts, FK cascade readiness, and aggregate candidate distributions.
+  - Does not return raw ids, Discord ids, post URLs, user ids, emails, tokens, secrets, or row data.
+- `docs/supabase/sql/035_prelaunch_db_only_cleanup_apply_draft.sql`
+  - DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED.
+  - Guarded direct-delete draft for a future apply gate only.
+  - Stops if count mismatch, external identifier mix-in, non-QA mix-in, zero candidates, or FK cascade not confirmed.
+
+Next:
+
+- User runs 034 once in SQL Editor and reviews generalized results.
+- If 034 is safe, decide in a separate apply gate whether to run 035.
+- Keep external-identifier rows, old test-webhook remnants, Discord-only remnants, and static JSON fixture cleanup in separate tracks.
+
+Not executed:
+
+- No actual deletion, Discord post deletion, SQL Editor execution, SQL apply, DB/RPC change, Edge Function deploy, dry-run, real-send, secret switch, or `updates.json` change.
