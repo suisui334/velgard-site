@@ -2942,3 +2942,49 @@ Next IO tracks:
 - Create final-reset SELECT-only SQL for the remaining 3 rows.
 - Create a guarded final-reset apply draft.
 - Keep old test-channel / Discord-only remnants in a manual cleanup track.
+
+## M-14E-18L final reset SQL preparation
+
+Status: SQL draft preparation only. No deletion or SQL execution was performed.
+
+Final reset policy:
+
+- The remaining 3 Supabase session rows are prelaunch reset targets.
+- Deleting DB rows does not delete Discord posts.
+- The 2 rows with Discord external identifiers need Discord-side cleanup or explicit manual decision before DB deletion.
+- The row that appears to be production-webhook-created should preferably use auto-delete sync first if feasible.
+- Old test-webhook or Discord-only remnants may not be deletable through the current production webhook and remain manual Discord cleanup candidates.
+- The final reset should treat DB cleanup and Discord-side cleanup as one ordered operation.
+
+Added SQL drafts:
+
+- `docs/supabase/sql/036_prelaunch_final_session_reset_confirm_select_only.sql`
+  - SELECT-only / DO NOT DELETE / NO MUTATION.
+  - Confirms remaining sessions total 3, external-identifier rows 2, no-external rows 1, status/visibility/sync aggregates, QA-like/non-QA counts, and FK cascade readiness.
+  - Returns generalized counts/status values only.
+- `docs/supabase/sql/037_prelaunch_final_session_reset_apply_draft.sql`
+  - DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED / DISCORD SIDE CLEANUP MUST BE DECIDED FIRST.
+  - Requires 036 to be run and reviewed immediately beforehand.
+  - Uses a manual `v_discord_side_cleanup_decided` guard that defaults to false, so the draft aborts until a separately approved gate updates it.
+  - Guards remaining count 3, external-identifier count 2, no-external count 1, and FK cascade readiness.
+  - Notes that DB deletion is not Discord deletion and cannot remove old test-webhook or Discord-only posts.
+
+Discord-side checklist:
+
+- Production request channel: manually inspect unwanted posts and prefer auto-delete sync for production-webhook-origin rows where feasible.
+- Test channel: treat old test-webhook posts as manual deletion or channel cleanup candidates.
+- Discord-only remnants: handle manually because DB cannot track them.
+
+Recommended final reset order:
+
+1. Run 036 SELECT-only confirmation once.
+2. Decide how to handle the 2 Discord-external-identifier rows.
+3. Use delete sync for production-webhook-origin rows if feasible.
+4. Manually clean old test-webhook / Discord-only remnants on Discord.
+5. Run 037 only in a separate approved apply gate.
+6. Confirm DB sessions are 0 using 032 or 036 style SELECT-only checks.
+7. Confirm calendar/session-detail/mypage show no normal session posts.
+
+Next IO gate:
+
+- User runs 036 once in SQL Editor, then reviews whether Discord-side cleanup and 037 final reset can proceed.

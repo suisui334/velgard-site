@@ -3702,3 +3702,52 @@ post-cleanup inventory結果:
 - 残り3件の最終reset用SELECT-only SQL作成。
 - 残り3件のguard付きapply draft作成。
 - テストチャンネル/Discord-only残骸の手動整理方針確認。
+
+## M-14E-18L 残り3件最終reset SQL準備
+
+`fe97b47 Record post-cleanup session inventory` の状態から、運用開始前に残り3件を最終resetできるよう、確認用SELECT-only SQLとguard付きapply draftを作成した。この工程では実削除、Discord投稿削除、SQL Editor実行、SQL apply、DB/RPC変更、Edge Function deploy、dry-run、real-send、secret設定/切替は行っていない。
+
+残り3件の扱い方針:
+
+- 残り3件は運用前reset対象。
+- DB行を削除してもDiscord投稿はSQLでは削除できない。
+- Discord外部識別子あり2件については、DB削除前にDiscord側投稿の扱いを決める必要がある。
+- 本番Webhook由来と思われる1件は、可能なら自動delete同期で消すのが第一候補。
+- 旧テストWebhook由来またはDiscord-only残骸は、本番Webhookでは消せない可能性が高く、Discord側手動削除またはチャンネル整理候補。
+- 本番切替前のテストチャンネル投稿や他残骸も、最終的にはDiscord側整理対象。
+- 最終resetは、DBを空にするだけでなく、Discord側残骸整理とセットで扱う。
+
+追加したSQL draft:
+
+- `docs/supabase/sql/036_prelaunch_final_session_reset_confirm_select_only.sql`
+  - SELECT-only / DO NOT DELETE / NO MUTATION。
+  - 残りsessions totalが3件か、Discord外部識別子あり2件か、外部識別子なし1件かを集計で確認する。
+  - public/hidden、status、discord_sync_status、discord_last_action、qa_like/non_qa、FK CASCADE readinessを返す。
+  - 実ID、Discord ID、post URL全文、user id、email、token、secret、row dataは返さない。
+- `docs/supabase/sql/037_prelaunch_final_session_reset_apply_draft.sql`
+  - DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED / DISCORD SIDE CLEANUP MUST BE DECIDED FIRST。
+  - 036を直前に実行してレビューした後の独立applyゲートでのみ扱う。
+  - Discord側整理判断フラグを初期値falseにしており、明示判断なしではエラーで停止する。
+  - sessions残件数3、外部識別子あり2、外部識別子なし1、FK CASCADE OKをguardする。
+  - DB削除はDiscord投稿削除ではないこと、旧テストWebhook投稿/Discord-only投稿はSQLでは消せないことを明記した。
+
+Discord側cleanupチェックリスト:
+
+- 本番依頼書チャンネル: 不要投稿を手動確認し、本番Webhook由来で自動deleteできるものは自動delete候補にする。
+- DBから消した後は自動deleteできなくなるため、Discord外部識別子あり行は削除順序に注意する。
+- テストチャンネル: 旧テストWebhook投稿は本番Webhookでは消せない可能性があるため、Discord側手動削除またはチャンネル整理候補にする。
+- Discord-only残骸: DBから追跡できないものは手動整理候補にする。
+
+最終reset推奨順:
+
+1. 036 SELECT-only確認。
+2. Discord外部識別子あり2件の扱い判断。
+3. 本番Webhook由来のものは可能ならdelete同期。
+4. 旧テストWebhook/Discord-only残骸はDiscord側で手動整理。
+5. 037でDB残り3件を最終削除。
+6. 032または036でDB sessions 0件確認。
+7. calendar / session-detail / mypageで依頼書が表示されないことを確認。
+
+次工程:
+
+- ユーザー手元SQL Editorで036を1回だけ実行し、結果確認後にDiscord側整理/037実行可否を判断する。
