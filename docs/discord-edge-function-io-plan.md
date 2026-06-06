@@ -2900,3 +2900,45 @@ Next IO tracks:
 - Decide how to handle the 2 rows with Discord external identifiers.
 - Manually review old test-channel / Discord-only remnants.
 - Optional post-cleanup SELECT-only confirmation gate.
+
+## M-14E-18K post-cleanup inventory result
+
+Status: post-cleanup inventory result recorded. No additional cleanup operation was run.
+
+The user ran `docs/supabase/sql/032_prelaunch_session_cleanup_inventory_select_only.sql` once in SQL Editor after DB-only cleanup. No SQL Editor error was shown, and a result grid was displayed. The query was not rerun.
+
+Inventory result:
+
+- Supabase session total: 3.
+- manual_confirmation_required_total: 2.
+- possible_old_test_webhook_or_manual_review_candidate: 2.
+- production_webhook_posted_supabase_candidate: 1.
+- unposted_supabase_db_delete_candidate: 1.
+- Discord external identifier rows: message id-like 2, channel id-like 2, thread id-like 0, post URL 0.
+- discord_last_action: null-like 1, create 1, delete 1.
+- discord_sync_status: failed 1, posted 1, skipped 1.
+- sessions total_rows: 3, qa_like_title_rows: 2, draft_status_rows: 1, public_visibility_rows: 2, hidden_or_private_visibility_rows: 1.
+- status_count: draft 1, recruiting 2.
+- visibility_count: hidden 1, public 2.
+
+IO judgment:
+
+- After DB-only cleanup, Supabase session rows decreased to 3.
+- 2 of the remaining rows have Discord external identifiers and require webhook-origin or manual review.
+- 1 remaining row is an unposted DB-only candidate, but it may be non-QA; treat it as a final reset target rather than immediate bulk-delete material.
+- 1 row appears to be a production-webhook delete-sync candidate.
+- Old test-webhook or Discord-only remnants may not be deletable by the current production webhook.
+- `discord_post_url` remains saved on 0 rows and cannot be used for cleanup classification.
+- Static JSON fixture rows are already retired from normal UI and remain outside this inventory track.
+
+Preferred final cleanup approach:
+
+- First manually tidy the Discord channel side before final DB reset.
+- Then prepare a final-reset SELECT-only SQL and a guarded apply draft for the 3 remaining DB rows.
+- The final reset draft should guard count, external-identifier expectations, and target classification, and should avoid returning raw ids or URLs.
+
+Next IO tracks:
+
+- Create final-reset SELECT-only SQL for the remaining 3 rows.
+- Create a guarded final-reset apply draft.
+- Keep old test-channel / Discord-only remnants in a manual cleanup track.

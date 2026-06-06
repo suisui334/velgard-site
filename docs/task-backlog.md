@@ -2507,3 +2507,44 @@ Next:
 - Review the 2 rows with Discord external identifiers.
 - Decide how to handle old test-channel / Discord-only remnants.
 - Optional post-cleanup SELECT-only confirmation gate if the user wants a final generalized count check.
+
+## M-14E-18K DB-only cleanup後の再棚卸し結果
+
+Status: post-cleanup inventory recorded. No additional destructive cleanup was run.
+
+User-run SELECT-only result:
+
+- `docs/supabase/sql/032_prelaunch_session_cleanup_inventory_select_only.sql` was run once in SQL Editor after DB-only cleanup.
+- No SQL Editor error was shown.
+- A result grid was displayed.
+- The query was not rerun.
+- Raw ids, Discord ids, post URL, JWT, session id, project ref, Supabase URL, webhook URL, user id, email, token, and message preview body were not recorded.
+
+Inventory summary:
+
+- Supabase session total: 3.
+- manual_confirmation_required_total: 2.
+- possible_old_test_webhook_or_manual_review_candidate: 2.
+- production_webhook_posted_supabase_candidate: 1.
+- unposted_supabase_db_delete_candidate: 1.
+- Discord external identifier rows: message id-like 2, channel id-like 2, thread id-like 0, post URL 0.
+- discord_last_action: null-like 1, create 1, delete 1.
+- discord_sync_status: failed 1, posted 1, skipped 1.
+- status_count: draft 1, recruiting 2.
+- visibility_count: hidden 1, public 2.
+
+Decision:
+
+- DB-only cleanup reduced Supabase sessions to 3 rows.
+- 2 remaining rows have Discord external identifiers and need webhook-origin or manual confirmation.
+- 1 remaining row is an unposted DB-only candidate, but because it may be non-QA, it should be handled as part of a final reset rather than immediate bulk cleanup.
+- 1 row appears to be a production-webhook delete-sync candidate.
+- Old test-webhook-origin or Discord-only remnants may not be deletable through the current production webhook.
+- `discord_post_url` is saved on 0 rows and cannot be used for cleanup classification.
+- Static JSON rows remain retired from normal UI.
+
+Preferred next approach:
+
+- Treat manual Discord channel cleanup first, then use a guarded final-reset SQL for the 3 remaining DB rows.
+- Split the next work into final-reset SELECT-only SQL creation and a guarded apply draft.
+- Keep Discord post deletion, final DB reset, and any manual Discord cleanup as separate explicit gates.

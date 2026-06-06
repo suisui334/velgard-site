@@ -3662,3 +3662,43 @@ inventory結果概要:
 - Discord識別子あり2件の扱い判断。
 - テストチャンネル/Discord-only残骸の手動整理。
 - 必要ならpost-cleanup SELECT-only確認ゲート。
+
+## M-14E-18K DB-only cleanup後の再棚卸し結果
+
+ユーザー手元で `docs/supabase/sql/032_prelaunch_session_cleanup_inventory_select_only.sql` をDB-only cleanup後の再棚卸しとしてSQL Editorへ貼り付け、1回だけ実行した。SQL Editor上でエラー表示はなく、結果グリッドが表示された。再実行はしていない。この工程では再棚卸し結果の記録と残り3件の方針整理のみを行い、追加削除、Discord投稿削除、SQL apply、DB/RPC変更、Edge Function deploy、dry-run、real-send、secret設定/切替は行わない。
+
+post-cleanup inventory結果:
+
+- Supabase session total: 3。
+- manual_confirmation_required_total: 2。
+- possible_old_test_webhook_or_manual_review_candidate: 2。
+- production_webhook_posted_supabase_candidate: 1。
+- unposted_supabase_db_delete_candidate: 1。
+- Discord外部投稿識別子保存行: message id相当2、channel id相当2、thread id相当0、post URL 0。
+- discord_last_action: null相当1、create 1、delete 1。
+- discord_sync_status: failed 1、posted 1、skipped 1。
+- sessions total_rows: 3、qa_like_title_rows: 2、draft_status_rows: 1、public_visibility_rows: 2、hidden_or_private_visibility_rows: 1。
+- status_count: draft 1、recruiting 2。
+- visibility_count: hidden 1、public 2。
+
+判断:
+
+- DB-only cleanup後、Supabase上の依頼書は3件まで減った。
+- 残り3件のうち2件はDiscord外部識別子ありのため、Webhook由来確認または手動確認が必要。
+- 残り3件のうち1件は未投稿DB-only候補だが、非QA候補の可能性があるため、即時一括削除ではなく最終reset対象として扱う。
+- 本番Webhook由来delete同期で消せそうな候補は1件に見える。
+- 旧テストWebhook由来またはDiscord-only残骸は、現在の本番Webhookでは削除できない可能性がある。
+- `discord_post_url` は0件のため、残り3件のcleanup判断には使わない。
+- 静的JSON由来は通常UIから退役済みであり、この再棚卸しとは別系統で扱う。
+
+最終cleanup方針:
+
+- 第一候補は、運用前にDiscordチャンネル側を手動整理したうえで、DBに残る3件を最終reset用のguard付きSQLで削除する案。
+- 最終reset SQLは、実IDやDiscord IDを返さないSELECT-only再確認SQLと、件数・外部識別子有無・非対象混入をguardするapply draftに分ける。
+- Discord外部識別子あり2件を自動delete同期で扱うか、Discord側手動整理後にDB resetとして扱うかは次工程で判断する。
+
+次工程候補:
+
+- 残り3件の最終reset用SELECT-only SQL作成。
+- 残り3件のguard付きapply draft作成。
+- テストチャンネル/Discord-only残骸の手動整理方針確認。
