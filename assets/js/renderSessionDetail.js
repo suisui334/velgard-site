@@ -1,5 +1,5 @@
 import { getParams } from "./dataLoader.js";
-import { loadMergedSessions } from "./sessionData.js?v=20260606-discord-auto-sync";
+import { loadMergedSessions } from "./sessionData.js?v=20260607-static-retire";
 import {
   escapeHtml,
   getSessionDisplayTitle,

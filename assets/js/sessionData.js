@@ -43,6 +43,12 @@ function hasSessionId(session) {
   return Boolean(normalizeText(session?.id));
 }
 
+function shouldIncludeStaticSessions() {
+  if (typeof window === "undefined") return false;
+  const params = new URLSearchParams(window.location.search);
+  return params.get("includeStaticSessions") === "1" || params.get("staticSessions") === "1";
+}
+
 function normalizeStaticSession(session) {
   return {
     ...session,
@@ -124,8 +130,9 @@ function mergeSessions(staticSessions, supabaseSessions) {
 }
 
 export async function loadMergedSessions(staticSessionsUrl) {
-  const staticData = await loadJson(staticSessionsUrl);
-  const staticSessions = Array.isArray(staticData.sessions) ? staticData.sessions : [];
+  const includeStaticSessions = shouldIncludeStaticSessions();
+  const staticData = includeStaticSessions ? await loadJson(staticSessionsUrl) : { sessions: [] };
+  const staticSessions = includeStaticSessions && Array.isArray(staticData.sessions) ? staticData.sessions : [];
   const supabaseResult = await loadSupabaseSessions().catch(() => ({
     sessions: [],
     loadError: true
@@ -133,6 +140,7 @@ export async function loadMergedSessions(staticSessionsUrl) {
 
   return {
     sessions: mergeSessions(staticSessions, supabaseResult.sessions),
-    supabaseLoadError: Boolean(supabaseResult.loadError)
+    supabaseLoadError: Boolean(supabaseResult.loadError),
+    staticSessionsIncluded: includeStaticSessions
   };
 }

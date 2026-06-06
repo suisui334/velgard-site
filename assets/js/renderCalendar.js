@@ -1,5 +1,5 @@
 import { loadJson } from "./dataLoader.js";
-import { loadMergedSessions } from "./sessionData.js?v=20260602-session-edit-route";
+import { loadMergedSessions } from "./sessionData.js?v=20260607-static-retire";
 import {
   escapeHtml,
   formatSessionApplicationDeadline,

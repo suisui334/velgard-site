@@ -2378,3 +2378,38 @@ Next:
 
 - Split the next work into static JSON retirement review and Supabase DB-only cleanup gate.
 - Keep external-identifier rows and old test-channel / Discord-only remnants in separate manual-review gates.
+## M-14E-18G 静的JSON依頼書退役
+
+Status: static JSON retirement implemented for normal UI. No destructive cleanup was run.
+
+What changed:
+
+- `data/sessions.json` remains in the repository as a fixture file.
+- Normal calendar/session-detail loading no longer reads static JSON.
+- Static fixture loading is available only through explicit development URL flags: `includeStaticSessions=1` or `staticSessions=1`.
+- mypage application session metadata now comes from Supabase public session rows instead of `data/sessions.json`.
+- Supabase remains the source of truth for production calendar/session-detail/mypage display.
+
+Changed files:
+
+- `assets/js/sessionData.js`
+- `assets/js/mypageAuthClient.js`
+- `assets/js/renderCalendar.js`
+- `assets/js/renderSessionDetail.js`
+- `assets/js/main.js`
+- `calendar.html`
+- `session-detail.html`
+- `mypage.html`
+
+Safety notes:
+
+- Static JSON rows are no longer normally shown in calendar/session-detail and do not automatically return when Supabase load fails.
+- Static JSON rows remain outside normal delete and Discord sync targets.
+- Existing Supabase create/update/delete auto-sync code was not changed.
+- No Supabase DB row deletion, Discord post deletion, SQL Editor execution, SQL apply, DB/RPC change, Edge Function deploy, dry-run, real-send, secret switch, or `updates.json` change was performed.
+
+Next:
+
+- Supabase DB-only cleanup gate for rows without external post identifiers.
+- External-identifier row review gate for rows that require webhook-origin/manual confirmation.
+- Old test-channel / Discord-only manual cleanup gate.

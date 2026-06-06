@@ -2769,3 +2769,39 @@ Next IO gates:
 - Supabase DB-only cleanup gate.
 - External-identifier row review gate.
 - Old test-channel / Discord-side manual cleanup gate.
+## M-14E-18G Static JSON session retirement
+
+Status: frontend/data-source retirement implemented. No DB or Discord cleanup was executed.
+
+Loading path:
+
+- calendar and session-detail use `loadMergedSessions()` through `renderCalendar.js` / `renderSessionDetail.js`.
+- Before this batch, `loadMergedSessions()` always loaded `data/sessions.json` and merged it with Supabase rows.
+- mypage application cards also fetched `data/sessions.json` directly for session metadata.
+- Static JSON rows were not normal edit/delete or Discord sync targets, but they could still appear as normal public content.
+
+Adopted IO policy:
+
+- Keep `data/sessions.json` as a fixture file.
+- Do not load static JSON in normal production UI.
+- Allow fixture loading only with an explicit development URL flag: `includeStaticSessions=1` or `staticSessions=1`.
+- Supabase is the normal source of truth for calendar/session-detail/mypage session metadata.
+- Supabase load failure no longer resurrects static JSON in normal operation.
+
+Implementation:
+
+- `sessionData.js` skips static JSON unless the explicit fixture flag is present.
+- `mypageAuthClient.js` now reads public session metadata from Supabase instead of static JSON.
+- cache-bust references were updated for calendar, session-detail, and mypage delivery.
+
+Not changed:
+
+- `data/sessions.json` was not deleted or emptied.
+- Edge Function, DB/RPC, SQL drafts, and Discord sync code paths were not changed.
+- Supabase create/update/delete auto-sync behavior remains unchanged.
+
+Next IO gates:
+
+- Supabase DB-only cleanup gate.
+- External-identifier row review gate.
+- Old test-webhook / Discord-only manual cleanup gate.

@@ -3525,3 +3525,48 @@ inventory結果概要:
 - 静的JSON退役レビューとSupabase DB-only cleanupゲートを分ける。
 - Supabase DB-only cleanupでは、外部投稿識別子なしの候補をさらに公開状態、status、QA/test候補で分類し、実削除はユーザー確認後の別ゲートにする。
 - 外部投稿識別子ありの2件は、Discord側手動確認またはdelete同期可否レビューに分離する。
+## M-14E-18G 静的JSON依頼書退役
+
+`8de73ec Record prelaunch cleanup inventory` の状態から、運用開始前リセットの前段として `data/sessions.json` 由来の旧モック/静的依頼書が通常運用画面に残り続けないようにした。この工程ではSupabase DB行の実削除、Discord投稿削除、SQL Editor実行、SQL apply、DB/RPC変更、Edge Function deploy、dry-run、real-send、secret設定/切替は行わない。
+
+読み込み経路:
+
+- `calendar.html` と `session-detail.html` は `main.js` 経由で `renderCalendar.js` / `renderSessionDetail.js` を読み込む。
+- `renderCalendar.js` と `renderSessionDetail.js` は `loadMergedSessions()` を通じて依頼書一覧を取得する。
+- 退役前の `loadMergedSessions()` は `data/sessions.json` とSupabase由来sessionをmergeしていた。
+- `mypage.html` の申請一覧補助情報は、退役前は `mypageAuthClient.js` が `data/sessions.json` を直接fetchしていた。
+- session-detailの管理導線はSupabase由来のみ編集/削除対象にし、静的JSON由来では通常削除ボタンを有効化しない。
+- 静的JSON由来はDiscord同期対象にはならない設計だったが、通常表示に残ることで「消したはずの依頼書が見える」状態を作り得た。
+
+採用した退役方針:
+
+- `data/sessions.json` は削除せず、開発用fixtureとして残す。
+- 通常運用では `data/sessions.json` を読み込まない。
+- 明示的に `includeStaticSessions=1` または `staticSessions=1` をURLに付けた場合だけ、開発用fixtureとして静的JSONを読み込めるようにした。
+- Supabase取得に失敗した場合でも、通常運用では静的JSONが自動復活しない。
+- public siteの通常calendar/session-detailではSupabase由来を正本にする。
+
+実装内容:
+
+- `assets/js/sessionData.js`
+  - `shouldIncludeStaticSessions()` を追加。
+  - 通常時は静的JSONを読まず、Supabase由来sessionだけを返す。
+  - 明示フラグ時だけ静的JSONをfixtureとしてmergeする。
+- `assets/js/mypageAuthClient.js`
+  - 申請一覧補助情報の取得元を `data/sessions.json` からSupabase `sessions` の公開行SELECTへ変更。
+  - 表示に必要なタイトル、日時、GM名、状態、公開状態だけを扱う。
+- `assets/js/renderCalendar.js` / `assets/js/renderSessionDetail.js` / `assets/js/main.js` / `calendar.html` / `session-detail.html` / `mypage.html`
+  - cache-bustを更新し、公開サイトで静的JSON退役版を読み込むようにした。
+
+判断:
+
+- 通常calendar/session-detailでは静的JSON由来の旧モック依頼書は表示されない方針になった。
+- session-detailの静的JSON管理UIは、明示fixture表示時だけ到達し得るが、通常削除/Discord同期対象にはならない。
+- Supabase由来create/update/delete自動同期のコードは変更していない。
+- `data/sessions.json` 自体は残るため、fixture用途の最終扱いは後続で確認する。
+
+次工程:
+
+- Supabase DB-only cleanupゲート。
+- 外部投稿識別子あり2件のWebhook由来/手動確認ゲート。
+- 旧テストWebhook / Discord-only残骸の手動整理ゲート。

@@ -12,7 +12,6 @@
   const DISCORD_MENTION_INPUT_PATTERN = /^<@(\d{17,20})>$/;
   const DISCORD_USER_ID_FORMAT_MESSAGE = `DiscordユーザーIDは17〜20桁の数字で入力してください。\n入力例: ${DISCORD_USER_ID_EXAMPLE}`;
   const DISCORD_USER_ID_RECHECK_MESSAGE = `登録形式を確認してください。今後は ${DISCORD_USER_ID_EXAMPLE} のように17〜20桁の数字で登録してください。`;
-  const SESSIONS_DATA_URL = "data/sessions.json?v=20260531-mypage-applications";
   const APPLICATION_SELECT_COLUMNS = "session_id,status,comment_id,created_at,updated_at,canceled_at";
   const TEMPLATE_PRESETS_RPC = "get_my_template_presets";
   const TEMPLATE_CREATE_RPC = "create_template_preset";
@@ -479,11 +478,26 @@
     }
   }
 
-  async function fetchPublicSessionsMap() {
-    const response = await fetch(SESSIONS_DATA_URL, { cache: "no-store" });
-    if (!response.ok) throw new Error("sessions-json-load-failed");
-    const data = await response.json();
-    const sessions = Array.isArray(data && data.sessions) ? data.sessions : [];
+  function normalizePublicSessionRow(row) {
+    return {
+      id: String(row && row.id ? row.id : "").trim(),
+      title: String(row && row.title ? row.title : "").trim(),
+      date: String(row && row.date ? row.date : "").trim(),
+      startTime: String(row && row.start_time ? row.start_time : "").trim(),
+      gmName: String(row && row.gm_name ? row.gm_name : "").trim(),
+      status: String(row && row.status ? row.status : "").trim(),
+      visibility: String(row && row.visibility ? row.visibility : "").trim()
+    };
+  }
+
+  async function fetchPublicSessionsMap(client) {
+    const { data, error } = await client
+      .from("sessions")
+      .select("id,title,date,start_time,gm_name,status,visibility")
+      .eq("visibility", "public");
+    if (error) throw error;
+
+    const sessions = Array.isArray(data) ? data.map(normalizePublicSessionRow) : [];
     const map = new Map();
     sessions.filter(isPublicSession).forEach((session) => {
       map.set(session.id, session);
@@ -516,7 +530,7 @@
 
       const [applications, sessionsById] = await Promise.all([
         fetchOwnApplications(client, session),
-        fetchPublicSessionsMap()
+        fetchPublicSessionsMap(client)
       ]);
 
       if (!panel.container.isConnected) return;
