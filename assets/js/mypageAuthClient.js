@@ -13,6 +13,7 @@
   const DISCORD_USER_ID_FORMAT_MESSAGE = `DiscordユーザーIDは17〜20桁の数字で入力してください。\n入力例: ${DISCORD_USER_ID_EXAMPLE}`;
   const DISCORD_USER_ID_RECHECK_MESSAGE = `登録形式を確認してください。今後は ${DISCORD_USER_ID_EXAMPLE} のように17〜20桁の数字で登録してください。`;
   const APPLICATION_SELECT_COLUMNS = "session_id,status,comment_id,created_at,updated_at,canceled_at";
+  const PUBLIC_SESSION_SELECT_COLUMNS = "id,title,date,start_time,gm_name,status,visibility";
   const TEMPLATE_PRESETS_RPC = "get_my_template_presets";
   const TEMPLATE_CREATE_RPC = "create_template_preset";
   const TEMPLATE_UPDATE_RPC = "update_template_preset";
@@ -227,6 +228,34 @@
     return label;
   }
 
+  function createMypageDetails(titleText, metaText, options = {}) {
+    const details = document.createElement("details");
+    details.className = `mypage-details${options.className ? ` ${options.className}` : ""}`;
+    if (options.open) details.open = true;
+
+    const summary = document.createElement("summary");
+    summary.className = "mypage-details-summary";
+
+    const title = document.createElement("span");
+    title.className = "mypage-details-title";
+    title.textContent = titleText;
+
+    const meta = document.createElement("span");
+    meta.className = "mypage-details-meta";
+    meta.textContent = metaText || "";
+
+    const body = document.createElement("div");
+    body.className = "mypage-details-body";
+
+    summary.append(title, meta);
+    details.append(summary, body);
+    return { details, body, meta };
+  }
+
+  function setMypageDetailsMeta(panel, metaText) {
+    if (panel && panel.meta) panel.meta.textContent = metaText || "";
+  }
+
   function normalizeStatus(value) {
     return String(value || "").trim().toLowerCase();
   }
@@ -254,6 +283,11 @@
         && session.id.trim()
         && session.visibility === "public"
     );
+  }
+
+  function isVisibleScheduleSession(session) {
+    const status = normalizeStatus(session && session.status);
+    return isPublicSession(session) && !["draft", "canceled", "cancelled", "archived"].includes(status);
   }
 
   function getSessionTitle(session) {
@@ -301,6 +335,11 @@
     const title = document.createElement("h3");
     title.textContent = titleText;
 
+    const count = document.createElement("span");
+    count.className = "mypage-application-count";
+    count.textContent = "0件";
+    title.append(count);
+
     const description = document.createElement("p");
     description.textContent = descriptionText;
 
@@ -316,13 +355,19 @@
     list.className = "mypage-application-list";
 
     section.append(head, state, list);
-    return { section, state, list, emptyText };
+    return { section, state, list, emptyText, count };
   }
 
   function createApplicationsPanel() {
     const container = document.createElement("div");
     container.className = "mypage-applications";
     container.dataset.mypageApplicationsPanel = "";
+
+    const gm = createApplicationSection(
+      "GM予定",
+      "本人がGMとして公開している依頼書です。admin管理対象とは分けて表示します。",
+      "現在、GM予定の依頼書はありません。"
+    );
 
     const pending = createApplicationSection(
       "参加申請中",
@@ -336,8 +381,15 @@
       "現在、参加予定のセッションはありません。"
     );
 
-    container.append(pending.section, accepted.section);
-    return { container, pending, accepted };
+    container.append(gm.section, pending.section, accepted.section);
+    return {
+      container,
+      gm,
+      pending,
+      accepted,
+      counts: { gm: 0, pending: 0, accepted: 0 },
+      summaryDetails: null
+    };
   }
 
   function setApplicationSectionState(section, message, options = {}) {
@@ -347,9 +399,15 @@
     section.state.classList.toggle("is-error", Boolean(options.error));
   }
 
+  function setApplicationSectionCount(section, count) {
+    if (section && section.count) section.count.textContent = `${count}件`;
+  }
+
   function setApplicationsLoading(panel) {
+    setApplicationSectionState(panel.gm, "読み込み中です。");
     setApplicationSectionState(panel.pending, "読み込み中です。");
     setApplicationSectionState(panel.accepted, "読み込み中です。");
+    setScheduleSummary(panel, "読み込み中");
   }
 
   function getApplicationUpdatedAt(application) {
@@ -362,6 +420,43 @@
     link.href = `session-detail.html?id=${encodeURIComponent(session.id)}`;
     link.textContent = "詳細を見る";
     return link;
+  }
+
+  function createGmManageLink(session) {
+    const link = document.createElement("a");
+    link.className = "button mypage-application-detail-link";
+    link.href = `session-post.html?id=${encodeURIComponent(session.id)}#my-sessions`;
+    link.textContent = "編集・管理";
+    return link;
+  }
+
+  function createGmSessionCard(session) {
+    const card = document.createElement("article");
+    card.className = "mypage-application-card mypage-gm-session-card";
+
+    const head = document.createElement("div");
+    head.className = "mypage-application-card-head";
+
+    const title = document.createElement("h4");
+    title.textContent = getSessionTitle(session);
+
+    const badge = document.createElement("span");
+    badge.className = "tag";
+    badge.textContent = getSessionStatusLabel(session.status);
+
+    head.append(title, badge, createApplicationDetailLink(session), createGmManageLink(session));
+
+    const meta = document.createElement("dl");
+    meta.className = "mypage-application-meta";
+    meta.append(
+      createMetaItem("日付", formatSessionDate(session)),
+      createMetaItem("開始時刻", formatSessionStartTime(session)),
+      createMetaItem("GM", String(session.gmName || "GM未設定").trim() || "GM未設定"),
+      createMetaItem("セッション状態", getSessionStatusLabel(session.status))
+    );
+
+    card.append(head, meta);
+    return card;
   }
 
   function createApplicationCard(item) {
@@ -430,6 +525,7 @@
   function renderApplicationItems(section, items) {
     section.list.replaceChildren();
     section.state.classList.remove("is-error");
+    setApplicationSectionCount(section, items.length);
 
     if (!items.length) {
       section.state.textContent = section.emptyText;
@@ -441,6 +537,33 @@
     sortApplicationItems(items).forEach((item) => {
       section.list.append(createApplicationCard(item));
     });
+  }
+
+  function renderGmSessionItems(section, sessions) {
+    section.list.replaceChildren();
+    section.state.classList.remove("is-error");
+    setApplicationSectionCount(section, sessions.length);
+
+    if (!sessions.length) {
+      section.state.textContent = section.emptyText;
+      section.state.hidden = false;
+      return;
+    }
+
+    section.state.hidden = true;
+    sessions
+      .slice()
+      .sort((a, b) => `${formatSessionDate(a)}T${formatSessionStartTime(a)}`.localeCompare(`${formatSessionDate(b)}T${formatSessionStartTime(b)}`, "ja"))
+      .forEach((session) => {
+        section.list.append(createGmSessionCard(session));
+      });
+  }
+
+  function setScheduleSummary(panel, overrideText = "") {
+    if (!panel || !panel.summaryDetails) return;
+    const counts = panel.counts || { gm: 0, pending: 0, accepted: 0 };
+    const text = overrideText || `GM ${counts.gm} / 申請中 ${counts.pending} / 参加予定 ${counts.accepted}`;
+    setMypageDetailsMeta(panel.summaryDetails, text);
   }
 
   function renderApplications(panel, applications, sessionsById) {
@@ -462,12 +585,17 @@
 
     renderApplicationItems(panel.pending, grouped.pending);
     renderApplicationItems(panel.accepted, grouped.accepted);
+    panel.counts.pending = grouped.pending.length;
+    panel.counts.accepted = grouped.accepted.length;
+    setScheduleSummary(panel);
   }
 
   function showApplicationsLoadFailure(panel, error) {
     const message = "申請情報を取得できませんでした。時間を置いて再度お試しください。";
+    setApplicationSectionState(panel.gm, message, { error: true });
     setApplicationSectionState(panel.pending, message, { error: true });
     setApplicationSectionState(panel.accepted, message, { error: true });
+    setScheduleSummary(panel, "読み込み失敗");
 
     if (error) {
       console.warn("mypage applications load failed", {
@@ -493,7 +621,7 @@
   async function fetchPublicSessionsMap(client) {
     const { data, error } = await client
       .from("sessions")
-      .select("id,title,date,start_time,gm_name,status,visibility")
+      .select(PUBLIC_SESSION_SELECT_COLUMNS)
       .eq("visibility", "public");
     if (error) throw error;
 
@@ -503,6 +631,18 @@
       map.set(session.id, session);
     });
     return map;
+  }
+
+  async function fetchOwnGmSessions(client, session) {
+    const { data, error } = await client
+      .from("sessions")
+      .select(PUBLIC_SESSION_SELECT_COLUMNS)
+      .eq("gm_user_id", session.user.id)
+      .eq("visibility", "public");
+
+    if (error) throw error;
+    return (Array.isArray(data) ? data.map(normalizePublicSessionRow) : [])
+      .filter(isVisibleScheduleSession);
   }
 
   async function fetchOwnApplications(client, session) {
@@ -523,17 +663,23 @@
     try {
       const session = await getActiveSession(client, knownSession);
       if (!session) {
+        renderGmSessionItems(panel.gm, []);
         renderApplicationItems(panel.pending, []);
         renderApplicationItems(panel.accepted, []);
+        panel.counts = { gm: 0, pending: 0, accepted: 0 };
+        setScheduleSummary(panel);
         return;
       }
 
-      const [applications, sessionsById] = await Promise.all([
+      const [gmSessions, applications, sessionsById] = await Promise.all([
+        fetchOwnGmSessions(client, session),
         fetchOwnApplications(client, session),
         fetchPublicSessionsMap(client)
       ]);
 
       if (!panel.container.isConnected) return;
+      panel.counts.gm = gmSessions.length;
+      renderGmSessionItems(panel.gm, gmSessions);
       renderApplications(panel, applications, sessionsById);
     } catch (error) {
       if (!panel.container.isConnected) return;
@@ -2645,6 +2791,11 @@
     const discordIdEditor = createDiscordIdEditor(client, elements, session);
     const templatePanel = createTemplateManagementPanel(client, elements, session);
     const applicationsPanel = createApplicationsPanel();
+    const accountDetails = createMypageDetails("アカウント概要", "ログイン中", { open: true });
+    const profileDetails = createMypageDetails("プロフィール / PC情報", "PC名・Discord ID");
+    const scheduleDetails = createMypageDetails("予定 / 申請履歴", "読み込み中");
+    const templateDetails = createMypageDetails("テンプレート管理", "保存済みテンプレート");
+    applicationsPanel.summaryDetails = scheduleDetails;
 
     const actions = document.createElement("div");
     actions.className = "actions";
@@ -2668,13 +2819,15 @@
     });
 
     actions.append(changePassword, logout);
+    accountDetails.body.append(displayNameEditor.container, actions);
+    profileDetails.body.append(playerCharacterPanel.container, discordIdEditor.container);
+    scheduleDetails.body.append(applicationsPanel.container);
+    templateDetails.body.append(templatePanel.container);
     elements.content.append(
-      displayNameEditor.container,
-      playerCharacterPanel.container,
-      discordIdEditor.container,
-      templatePanel.container,
-      actions,
-      applicationsPanel.container
+      accountDetails.details,
+      profileDetails.details,
+      scheduleDetails.details,
+      templateDetails.details
     );
     setMessage(elements, message || "");
     loadDisplayName(client, displayNameEditor);

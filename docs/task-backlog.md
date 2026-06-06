@@ -2809,3 +2809,58 @@ Remaining user-side QA checklist:
 - 締切後で `〆` なしの場合、GM管理領域に押し忘れ注意が出ること。
 - 締切後でもコメント機能が無効化されていないこと。
 - 依頼書0件状態と静的JSON退役状態に影響しないこと。
+
+## M-14E-20 mypage全体UI整理 / 予定表示整理
+
+Status: implemented. No SQL Editor execution, DB/RPC change, SQL apply, Edge Function deploy, dry-run, Discord operation, or secret/Webhook change was performed.
+
+Implemented scope:
+
+- Reorganized the logged-in mypage body into native `details` / `summary` sections.
+- The top account section remains open by default and keeps the minimal logged-in overview, display-name editor, password-change action, and logout action.
+- Profile and PC information is grouped into a collapsed section containing the existing PC-name panel and Discord user ID panel.
+- Template management is grouped into its own collapsed section without changing template RPC behavior.
+- Schedule / application history is grouped into one collapsed section with a compact summary count.
+- Schedule categories are now separated as GM予定, 参加申請中, and 参加予定.
+- Each schedule category shows its own `n件` count in the category heading.
+- GM予定 uses Supabase session rows only, filters to normal public display candidates, and does not mix admin-managed targets with the user's own GM schedule.
+- GM予定 cards keep a session-detail link and an edit/manage link.
+- 参加申請中 and 参加予定 continue to use existing application data and public Supabase session metadata.
+- Static JSON fixture sessions remain retired from normal operation and are not reintroduced into mypage.
+- No PC selection select was added. Existing PC-name display/edit behavior was left in place.
+
+UI policy:
+
+- Use browser-native folding instead of a custom accordion script.
+- Each summary shows a short section label and compact state/count text.
+- The schedule summary updates after loading as `GM n / 申請中 n / 参加予定 n`.
+- Empty GM schedule, application, and participant schedule states keep existing no-data messages and should not break zero-session operation.
+- Admin-specific future UI should remain separate from the user's own GM schedule.
+
+Safety notes:
+
+- No raw user id, email, token, selected character id, application id, Discord message id, channel id, thread id, post URL, Webhook URL, JWT, project ref, or Supabase URL was added to screen text, docs, or console output.
+- The implementation adds no Supabase direct `.insert` / `.update` / `.delete` / `.upsert` operation.
+- Discord create/update/delete auto-sync code and Edge Function code were not changed.
+- `updates.json` was not changed.
+
+QA checklist:
+
+- mypage is shorter on first load because only the account overview is open by default.
+- Each mypage section can be opened and closed.
+- Section summaries identify the content type without expanding everything vertically.
+- Schedule summary counts update after data loading.
+- GM予定 only, 参加申請中 only, 参加予定 only, and mixed categories are readable.
+- Each visible schedule/application card links to `session-detail`.
+- GM予定 keeps an edit/manage route for the user's own GM sessions.
+- Admin-managed targets are not mixed into the user's GM schedule.
+- Template management still loads, creates, updates, and deactivates through existing RPC paths.
+- PC information handles未登録 state naturally and does not add a PC-select control.
+- Static JSON fixture sessions do not return to normal mypage display.
+- Mobile width keeps summary text and action buttons within their containers.
+
+Next:
+
+- Public-site reflection QA for the folded mypage layout.
+- Browser QA with zero sessions, GM schedule only, application only, participant schedule only, and mixed data.
+- Follow-up UI pass only if the folded sections feel too terse or counts need richer labels.

@@ -3602,6 +3602,66 @@ body[data-page="mypage"] .mypage-applications {
   gap: 16px;
 }
 
+body[data-page="mypage"] .mypage-details {
+  min-width: 0;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 7px;
+  background: rgba(255, 255, 250, 0.66);
+}
+
+body[data-page="mypage"] .mypage-details[open] {
+  background: rgba(255, 255, 250, 0.82);
+}
+
+body[data-page="mypage"] .mypage-details-summary {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 11px 14px;
+  cursor: pointer;
+  color: var(--soot);
+  font-weight: 900;
+}
+
+body[data-page="mypage"] .mypage-details-summary::-webkit-details-marker {
+  display: none;
+}
+
+body[data-page="mypage"] .mypage-details-summary::after {
+  content: "開く";
+  flex: 0 0 auto;
+  color: var(--deep);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+body[data-page="mypage"] .mypage-details[open] .mypage-details-summary::after {
+  content: "閉じる";
+}
+
+body[data-page="mypage"] .mypage-details-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="mypage"] .mypage-details-meta {
+  flex: 0 1 auto;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="mypage"] .mypage-details-body {
+  display: grid;
+  gap: 16px;
+  padding: 0 14px 14px;
+}
+
 body[data-page="mypage"] [data-mypage-discord-id-panel],
 body[data-page="mypage"] [data-mypage-player-character-panel],
 body[data-page="mypage"] [data-mypage-template-panel] {
@@ -3921,6 +3981,25 @@ body[data-page="mypage"] .mypage-application-section-head h3,
 body[data-page="mypage"] .mypage-application-section-head p,
 body[data-page="mypage"] .mypage-application-card-head h4 {
   margin: 0;
+}
+
+body[data-page="mypage"] .mypage-application-section-head h3 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+body[data-page="mypage"] .mypage-application-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--deep);
+  background: rgba(184, 162, 207, 0.18);
+  font-size: 0.78rem;
+  font-weight: 900;
 }
 
 body[data-page="mypage"] .mypage-application-section-head p {
@@ -5052,6 +5131,19 @@ body.is-modal-open .back-to-top {
 
   body[data-page="mypage"] .mypage-application-card {
     padding: 12px;
+  }
+
+  body[data-page="mypage"] .mypage-details-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  body[data-page="mypage"] .mypage-details-summary::after {
+    align-self: flex-end;
+  }
+
+  body[data-page="mypage"] .mypage-details-meta {
+    text-align: left;
   }
 
   body[data-page="mypage"] .mypage-application-meta {
