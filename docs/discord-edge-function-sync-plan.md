@@ -3851,3 +3851,30 @@ Discord側cleanupチェックリスト:
 - 公開サイト反映後、calendar / session-detail / mypageの最終目視確認。
 - Discordチャンネル側に残骸が見つかった場合の手動整理。
 - 運用開始前の新規依頼書作成smoke確認。
+
+## M-14E-19 GM手動〆マークとDiscord update同期
+
+`d87d48e Record prelaunch cleanup completion` の状態から、GM本人だけがsession-detail上で依頼書タイトルに `〆` を付け外しできる最小実装を追加した。この工程ではSQL Editor実行、SQL apply、DB/RPC変更、Edge Function deploy、dry-run、Discord実送信/編集/削除、secret設定/切替は行っていない。
+
+実装方針:
+
+- `〆` は新規カラムではなく、既存タイトル先頭の明示マークとして扱う。
+- `〆にする` / `〆解除` は既存 `update_session_post` RPCを使うタイトル更新として扱う。
+- Discord投稿済み依頼書では、タイトル更新後に既存のfrontend auto update同期導線へ渡す。
+- Edge Function本文生成やWebhook設定は変更しない。
+- 締切日時による申請/コメントの自動遮断は実装しない。締切日時はGM判断用の目安として扱う。
+
+表示方針:
+
+- session-detailではタイトル自体に `〆` が付いて見える。
+- Discord本文も既存update同期により `〆` 付きタイトルへ更新される想定。
+- calendarではタイトル内の `〆` をタイトル欄に重複表示せず、GM名より前の閉め印として表示する。
+- 通常PL、未ログインユーザー、GMではないadminにはGM向け〆操作を出さない。
+
+QA観点:
+
+- GM本人のみ〆操作が可能。
+- 締切前に押すと確認ダイアログを出す。
+- 締切後で未〆の場合は管理領域内に押し忘れ注意を出す。
+- `〆` の二重付与を避け、解除時は先頭の `〆` だけ外す。
+- update自動同期で既存Discord投稿が編集され、余分なcreate投稿が増えないことを確認する。

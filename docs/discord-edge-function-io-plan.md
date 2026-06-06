@@ -3093,3 +3093,27 @@ Next IO tracks:
 - Final visual check of calendar/session-detail/mypage after public-site reflection.
 - Manual Discord cleanup if any channel-side remnants are found.
 - Optional prelaunch smoke check for creating a new production session post.
+
+## M-14E-19 GM manual close mark IO notes
+
+Status: implemented as frontend title update flow. No Edge Function deploy, dry-run, Discord operation, SQL execution, DB/RPC change, or secret switch was performed in this batch.
+
+Input boundary:
+
+- The only new user action is a GM-only session-detail management button.
+- `〆にする` prefixes the current title with fullwidth `〆`.
+- `〆解除` removes the leading `〆`.
+- Application deadline is read only for confirmation/reminder text. It does not block comments or applications in this batch.
+
+Output boundary:
+
+- The changed title is sent through the existing `update_session_post` payload.
+- For sessions with an existing Discord post reference, the existing frontend auto update sync is invoked after the title update.
+- `dry_run=false` is not invoked manually by this batch; any Discord update is the existing frontend update route after user save/action.
+- Calendar output renders the `〆` mark before the GM name while avoiding duplicate title-prefix display.
+
+Safety:
+
+- No raw session id, raw user id, email, token, selected character id, application id, Discord message id, channel id, thread id, or post URL is displayed by the new UI.
+- No message preview body or Webhook/secret value is introduced.
+- No direct Supabase `.insert` / `.update` / `.delete` / `.upsert` write path was added.

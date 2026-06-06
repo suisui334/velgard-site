@@ -3,14 +3,18 @@ import { loadMergedSessions } from "./sessionData.js?v=20260607-static-retire";
 import {
   escapeHtml,
   getSessionDisplayTitle,
+  hasSessionClosingMark,
   renderSessionDiscordSyncPanel,
   renderSessionDetailContent
-} from "./sessionDisplay.js?v=20260606-discord-sync-status";
+} from "./sessionDisplay.js?v=20260607-gm-close-mark";
 import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260607-pl-application-template";
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js?v=20260601-session-post";
 import {
   deleteSyncedSession,
-  hasDiscordPostReference
+  getDiscordSyncStateModifier,
+  getDiscordSyncUiMessage,
+  hasDiscordPostReference,
+  syncUpdatedSession
 } from "./discordSyncClient.js?v=20260606-discord-auto-sync";
 
 const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";
@@ -27,6 +31,13 @@ const DELETE_ERROR_MESSAGES = {
   session_id_required: "対象の依頼書が見つかりません。",
   discord_sync_delete_failed: "Discord同期削除に失敗しました。依頼書は削除していません。管理パネルで確認してください。"
 };
+const CLOSING_MARK = "〆";
+const CLOSE_BEFORE_DEADLINE_CONFIRM_MESSAGE = "募集締切時刻より前ですが、〆マークを付けて募集終了表示にしますか？";
+const CLOSE_CONFIRM_MESSAGE = "〆マークを付けて募集終了表示にしますか？";
+const CLOSE_REMOVE_CONFIRM_MESSAGE = "〆マークを外して募集終了表示を解除しますか？";
+const CLOSE_OVERDUE_NOTE = "募集締切時刻を過ぎています。〆ボタンを押し忘れていませんか？";
+const CLOSE_SUCCESS_MESSAGE = "〆マークを更新しました。";
+const CLOSE_ERROR_MESSAGE = "〆マークの更新に失敗しました。";
 
 function parseIsoDate(value) {
   const text = String(value || "").trim();
@@ -121,6 +132,78 @@ function setManageState(target, message, modifier = "") {
   target.className = `session-detail-manage-note${modifier ? ` ${modifier}` : ""}`;
 }
 
+function normalizeTitleText(value) {
+  return String(value ?? "").trim();
+}
+
+function addClosingMarkToTitle(title) {
+  const withoutMarks = normalizeTitleText(title).replace(/^(?:〆\s*)+/, "").trim();
+  return `${CLOSING_MARK}${withoutMarks || "無題のセッション"}`;
+}
+
+function removeClosingMarkFromTitle(title) {
+  return normalizeTitleText(title).replace(/^〆\s*/, "").trim() || "無題のセッション";
+}
+
+function toNullableText(value) {
+  const text = String(value ?? "").trim();
+  return text || null;
+}
+
+function toOptionalInteger(value) {
+  if (value === null || value === undefined || String(value).trim() === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.trunc(number) : null;
+}
+
+function toRpcEndAt(session) {
+  const endAt = String(session?.endAt || "").trim();
+  if (/^\d{4}-\d{2}-\d{2} [0-2]\d:[0-5]\d$/.test(endAt)) return endAt;
+  const date = String(session?.date || "").trim();
+  const endTime = String(session?.endTime || "").trim();
+  return date && endTime ? `${date} ${endTime}` : null;
+}
+
+function buildTitleUpdatePayload(session, title) {
+  const sessionId = String(session?.id ?? "").trim();
+  if (!sessionId) throw new Error("session_not_found");
+  return {
+    p_session_id: sessionId,
+    p_title: normalizeTitleText(title),
+    p_session_date: toNullableText(session?.date),
+    p_start_time: toNullableText(session?.startTime),
+    p_end_time: toNullableText(session?.endTime),
+    p_end_at: toRpcEndAt(session),
+    p_application_deadline: toNullableText(session?.applicationDeadline),
+    p_session_type: toNullableText(session?.sessionType) || "other",
+    p_session_tool: String(session?.sessionTool ?? session?.session_tool ?? "").trim(),
+    p_player_min: toOptionalInteger(session?.playerMin),
+    p_player_max: toOptionalInteger(session?.playerMax),
+    p_summary: toNullableText(session?.summary),
+    p_visibility: toNullableText(session?.visibility) || "hidden",
+    p_status: toNullableText(session?.status) || "draft"
+  };
+}
+
+function parseLocalDateTime(value) {
+  const text = String(value || "").trim();
+  const match = text.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+  if (!match) return null;
+  const [, year, month, day, hour, minute] = match.map(Number);
+  const date = new Date(year, month - 1, day, hour, minute);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function isBeforeApplicationDeadline(session) {
+  const deadline = parseLocalDateTime(session?.applicationDeadline);
+  return Boolean(deadline && Date.now() < deadline.getTime());
+}
+
+function isAfterApplicationDeadline(session) {
+  const deadline = parseLocalDateTime(session?.applicationDeadline);
+  return Boolean(deadline && Date.now() > deadline.getTime());
+}
+
 function buildDeletePayload(session) {
   const sessionId = String(session?.id ?? "").trim();
   if (!sessionId) throw new Error("session_not_found");
@@ -148,10 +231,24 @@ function getSessionManageElements(root) {
   return {
     panel,
     editButton: panel?.querySelector("[data-session-detail-edit]") || null,
+    closeButton: panel?.querySelector("[data-session-detail-close]") || null,
+    closeNote: panel?.querySelector("[data-session-detail-close-note]") || null,
     deleteButton: panel?.querySelector("[data-session-detail-delete]") || null,
     state: panel?.querySelector("[data-session-detail-manage-state]") || null,
     discordSync: panel?.querySelector("[data-session-detail-discord-sync]") || null
   };
+}
+
+function hideClosingMarkControl(elements) {
+  if (elements.closeButton) {
+    elements.closeButton.hidden = true;
+    elements.closeButton.disabled = true;
+  }
+  if (elements.closeNote) {
+    elements.closeNote.hidden = true;
+    elements.closeNote.textContent = "";
+    elements.closeNote.className = "session-detail-manage-close-note";
+  }
 }
 
 function hideDiscordSyncPanel(elements) {
@@ -187,18 +284,86 @@ async function hasSessionEditAccess(client, sessionId) {
   const isAdmin = adminResult.status === "fulfilled" && !adminResult.value.error && adminResult.value.data === true;
   const isSessionGm = gmResult.status === "fulfilled" && !gmResult.value.error && gmResult.value.data === true;
   if (isAdmin || isSessionGm) {
-    return { allowed: true, message: "この依頼書を編集できます。" };
+    return { allowed: true, isAdmin, isSessionGm, message: "この依頼書を編集できます。" };
   }
 
-  return { allowed: false, message: "この予定は編集できません。" };
+  return { allowed: false, isAdmin, isSessionGm, message: "この予定は編集できません。" };
+}
+
+function setManageButtonsDisabled(elements, disabled) {
+  if (elements.editButton) elements.editButton.disabled = disabled;
+  if (elements.deleteButton) elements.deleteButton.disabled = disabled;
+  if (elements.closeButton && !elements.closeButton.hidden) elements.closeButton.disabled = disabled;
+}
+
+function configureClosingMarkControl(elements, session, client, access) {
+  if (!elements.closeButton || access?.isSessionGm !== true) {
+    hideClosingMarkControl(elements);
+    return;
+  }
+
+  const marked = hasSessionClosingMark(session);
+  elements.closeButton.hidden = false;
+  elements.closeButton.disabled = false;
+  elements.closeButton.textContent = marked ? "〆解除" : "〆にする";
+  elements.closeButton.title = marked ? "タイトル先頭の〆マークを外します。" : "タイトル先頭に〆マークを付けます。";
+  elements.closeButton.addEventListener("click", () => {
+    applyToggleClosingMark(client, elements, session);
+  });
+
+  if (elements.closeNote) {
+    const showOverdueNote = !marked && isAfterApplicationDeadline(session);
+    elements.closeNote.hidden = !showOverdueNote;
+    elements.closeNote.textContent = showOverdueNote ? CLOSE_OVERDUE_NOTE : "";
+    elements.closeNote.className = `session-detail-manage-close-note${showOverdueNote ? " is-warn" : ""}`;
+  }
+}
+
+async function applyToggleClosingMark(client, elements, session) {
+  if (!elements.closeButton || elements.closeButton.disabled) return;
+  const marked = hasSessionClosingMark(session);
+  const nextTitle = marked
+    ? removeClosingMarkFromTitle(session?.title)
+    : addClosingMarkToTitle(session?.title);
+  if (nextTitle === normalizeTitleText(session?.title)) return;
+
+  const confirmMessage = marked
+    ? CLOSE_REMOVE_CONFIRM_MESSAGE
+    : (isBeforeApplicationDeadline(session) ? CLOSE_BEFORE_DEADLINE_CONFIRM_MESSAGE : CLOSE_CONFIRM_MESSAGE);
+  if (!window.confirm(confirmMessage)) return;
+
+  setManageButtonsDisabled(elements, true);
+  setManageState(elements.state, "〆マークを更新しています。");
+
+  try {
+    const payload = buildTitleUpdatePayload(session, nextTitle);
+    const { error } = await client.rpc("update_session_post", payload);
+    if (error) throw error;
+
+    const syncResult = await syncUpdatedSession(client, {
+      sessionId: payload.p_session_id,
+      payload,
+      session
+    });
+    const syncMessage = getDiscordSyncUiMessage(syncResult, {
+      successMessage: "Discord同期更新を実行しました。詳細は管理パネルで確認してください。"
+    });
+    const message = syncMessage ? `${CLOSE_SUCCESS_MESSAGE} ${syncMessage}` : CLOSE_SUCCESS_MESSAGE;
+    setManageState(elements.state, message, getDiscordSyncStateModifier(syncResult, "is-ok"));
+    window.setTimeout(() => {
+      window.location.reload();
+    }, 900);
+  } catch {
+    setManageState(elements.state, CLOSE_ERROR_MESSAGE, "is-error");
+    setManageButtonsDisabled(elements, false);
+  }
 }
 
 async function applyDeleteSessionPost(client, elements, session) {
   if (!elements.deleteButton || elements.deleteButton.disabled) return;
   if (!window.confirm(DELETE_CONFIRM_MESSAGE)) return;
 
-  elements.deleteButton.disabled = true;
-  if (elements.editButton) elements.editButton.disabled = true;
+  setManageButtonsDisabled(elements, true);
   setManageState(elements.state, "削除しています。");
 
   try {
@@ -225,6 +390,7 @@ async function applyDeleteSessionPost(client, elements, session) {
     setManageState(elements.state, getDeleteErrorMessage(error), "is-error");
     elements.deleteButton.disabled = false;
     if (elements.editButton) elements.editButton.disabled = false;
+    if (elements.closeButton && !elements.closeButton.hidden) elements.closeButton.disabled = false;
   }
 }
 
@@ -232,6 +398,7 @@ async function initSessionDetailManageActionsWithDelete(root, session) {
   const elements = getSessionManageElements(root);
   if (!elements.panel) return;
   hideDiscordSyncPanel(elements);
+  hideClosingMarkControl(elements);
 
   if (elements.deleteButton) {
     elements.deleteButton.disabled = true;
@@ -244,6 +411,7 @@ async function initSessionDetailManageActionsWithDelete(root, session) {
       elements.deleteButton.disabled = true;
       elements.deleteButton.title = "この予定は静的データ由来のため、この画面では削除できません。";
     }
+    hideClosingMarkControl(elements);
     setManageState(elements.state, "この予定は静的データ由来のため、この画面では編集できません。この予定は静的データ由来のため、この画面では削除できません。");
     return;
   }
@@ -253,6 +421,7 @@ async function initSessionDetailManageActionsWithDelete(root, session) {
     if (!client) {
       if (elements.editButton) elements.editButton.disabled = true;
       if (elements.deleteButton) elements.deleteButton.disabled = true;
+      hideClosingMarkControl(elements);
       setManageState(elements.state, "接続設定が未構成のため、編集・削除できません。", "is-error");
       return;
     }
@@ -270,6 +439,7 @@ async function initSessionDetailManageActionsWithDelete(root, session) {
           applyDeleteSessionPost(client, elements, session);
         });
       }
+      configureClosingMarkControl(elements, session, client, access);
       showDiscordSyncPanel(elements, session);
       setManageState(elements.state, access.message, "is-ok");
       return;
@@ -280,6 +450,7 @@ async function initSessionDetailManageActionsWithDelete(root, session) {
       elements.deleteButton.disabled = true;
       elements.deleteButton.title = "この依頼書を操作する権限がありません。";
     }
+    hideClosingMarkControl(elements);
     hideDiscordSyncPanel(elements);
     setManageState(elements.state, getAccessDeniedManageMessage(access));
   } catch {
@@ -288,6 +459,7 @@ async function initSessionDetailManageActionsWithDelete(root, session) {
       elements.deleteButton.disabled = true;
       elements.deleteButton.title = "権限確認に失敗しました。";
     }
+    hideClosingMarkControl(elements);
     hideDiscordSyncPanel(elements);
     setManageState(elements.state, "編集権限を確認できませんでした。", "is-error");
   }

@@ -72,8 +72,17 @@ export function getSessionTitle(session) {
   return String(session?.title || "無題のセッション").trim();
 }
 
+export function hasSessionClosingMark(session) {
+  return getSessionTitle(session).startsWith("〆");
+}
+
+export function getSessionTitleWithoutClosingMark(session) {
+  return getSessionTitle(session).replace(/^〆\s*/, "").trim() || "無題のセッション";
+}
+
 export function getSessionDisplayTitle(session) {
-  return isClosedSession(session) ? `〆 ${getSessionTitle(session)}` : getSessionTitle(session);
+  if (hasSessionClosingMark(session)) return getSessionTitle(session);
+  return isClosedSession(session) ? `〆${getSessionTitle(session)}` : getSessionTitle(session);
 }
 
 export function shouldShowSessionState(session) {
@@ -242,8 +251,10 @@ function renderSessionDetailManageRow(session, options = {}) {
       <dd>
         <div class="session-detail-manage-buttons">
           <button class="session-detail-manage-button session-detail-manage-edit" type="button" data-session-detail-edit disabled>編集</button>
+          <button class="session-detail-manage-button session-detail-manage-close" type="button" data-session-detail-close disabled hidden>〆にする</button>
           <button class="session-detail-manage-button session-detail-manage-delete" type="button" data-session-detail-delete disabled title="権限確認後に有効化します">削除</button>
         </div>
+        <p class="session-detail-manage-close-note" data-session-detail-close-note hidden></p>
         <p class="session-detail-manage-note" data-session-detail-manage-state>${escapeHtml(note)}</p>
         <div class="session-detail-discord-sync" data-session-detail-discord-sync hidden></div>
       </dd>

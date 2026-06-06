@@ -10,10 +10,12 @@ import {
   getSessionStatusLabel,
   getSessionTypeLabel,
   getSessionTitle,
+  getSessionTitleWithoutClosingMark,
+  hasSessionClosingMark,
   isClosedSession,
   renderSessionTags,
   shouldShowSessionState
-} from "./sessionDisplay.js?v=20260602-session-edit-route";
+} from "./sessionDisplay.js?v=20260607-gm-close-mark";
 
 const CONFIG_URL = "data/calendarConfig.json?v=20260529-calendar-cap-start";
 const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";
@@ -426,14 +428,14 @@ function renderSessionBadges(sessions) {
   return `
     <span class="calendar-session-badges" aria-label="この日の予定 ${sessions.length}件">
       ${sessions.map((session) => {
-        const closed = isClosedSession(session);
+        const closed = isClosedSession(session) || hasSessionClosingMark(session);
         const time = String(session.startTime || "未定").trim() || "未定";
         const gmName = String(session.gmName || "GM未設定").trim() || "GM未設定";
-        const title = getSessionTitle(session);
+        const title = getSessionTitleWithoutClosingMark(session);
         return `
         <a class="calendar-session-row ${closed ? "is-closed" : ""}" href="${escapeHtml(sessionDetailHref(session))}">
-          ${closed ? `<span class="calendar-session-close" aria-label="締切">〆</span>` : ""}
           <span class="calendar-session-time">${escapeHtml(time)}</span>
+          ${closed ? `<span class="calendar-session-close" aria-label="締切">〆</span>` : ""}
           <span class="calendar-session-gm">${escapeHtml(gmName)}</span>
           <span class="calendar-session-title">${escapeHtml(title)}</span>
         </a>

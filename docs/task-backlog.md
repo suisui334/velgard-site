@@ -2712,3 +2712,53 @@ Next:
 - Public-site visual confirmation for calendar/session-detail/mypage.
 - Manual Discord channel cleanup if any remnants are found.
 - Prelaunch smoke check for a new production session post if desired.
+
+## M-14E-19 GM手動〆マーク機能
+
+Status: implemented. No DB/RPC change, SQL execution, Edge Function deploy, dry-run, Discord operation, or secret switch was performed.
+
+Implemented scope:
+
+- Added a GM-only manual close-mark control to the `session-detail` GM/admin management area.
+- The control is shown only when the logged-in user is the session GM. Admin-only access does not expose this close-mark operation.
+- `〆にする` updates the session title by prefixing the fullwidth `〆` mark through the existing `update_session_post` RPC.
+- `〆解除` removes the leading `〆` mark and preserves the rest of the title.
+- Duplicate close marks are avoided when adding `〆`.
+- The title update reuses the existing frontend Discord update auto-sync path, so posted sessions should update Discord through the same `update` route as normal edits.
+- The calendar display treats a leading `〆` title as closed display and renders the mark before the GM name rather than after it in the title text.
+- Session detail and Discord update formatting can keep the actual title with `〆`.
+
+Policy decisions:
+
+- Application deadline remains a GM judgment reference, not an automatic wall.
+- Comments remain available after the deadline in this task.
+- Application availability is not forcibly changed by deadline time in this task.
+- No new extension mode was added.
+- No new DB column was added.
+- Static JSON fixture sessions remain retired from normal UI and are not made Discord sync targets.
+
+GM prompts and notes:
+
+- If GM presses `〆にする` before the application deadline, the UI asks for confirmation before applying the mark.
+- If the deadline has passed and the title is not marked, the GM management area shows a lightweight reminder instead of repeated modal prompts.
+- Non-GM users, normal players, and logged-out users do not see the close-mark button or deadline reminder.
+
+QA checklist:
+
+- GM本人にだけ `〆にする` / `〆解除` が見えること。
+- 通常PL、未ログインユーザー、GMではないadminに〆ボタンが見えないこと。
+- 締切前に `〆にする` を押すと確認ダイアログが出ること。
+- OK時のみタイトル先頭に `〆` が付き、キャンセル時は変わらないこと。
+- 締切後で `〆` なしの場合、GM管理領域に押し忘れ注意が出ること。
+- 締切後もコメント機能がこの変更で無効化されないこと。
+- `〆〆タイトル` のような二重付与にならないこと。
+- `〆解除` で先頭の `〆` だけ外れること。
+- カレンダーでは `〆` がGM名より前に表示されること。
+- Discord update自動同期が既存導線で発火し、余分なcreate投稿が増えないこと。
+- create / update / delete自動同期、依頼書0件状態、静的JSON退役状態が壊れないこと。
+
+Next:
+
+- Public-site reflection check for calendar and session-detail.
+- GM account browser QA for `〆にする` / `〆解除`.
+- Discord update reflection check for a posted session, if needed, in a separate QA gate.
