@@ -62,6 +62,7 @@ function normalizeSupabaseSession(row) {
     gmName: normalizeText(row?.gm_name) || "GM未設定",
     status: normalizeText(row?.status),
     sessionType: normalizeText(row?.session_type) || "other",
+    sessionTool: normalizeText(row?.session_tool),
     applicationDeadline: formatJapanDateTime(row?.application_deadline),
     levelRange: normalizeText(row?.level_range),
     playerMin: row?.player_min,
@@ -83,7 +84,7 @@ async function loadSupabaseSessions() {
 
   const { data, error } = await client
     .from("sessions")
-    .select("id,title,date,start_time,end_time,end_at,gm_user_id,gm_name,status,session_type,application_deadline,level_range,player_min,player_max,summary,detail,requirements,visibility,updated_at");
+    .select("id,title,date,start_time,end_time,end_at,gm_user_id,gm_name,status,session_type,session_tool,application_deadline,level_range,player_min,player_max,summary,detail,requirements,visibility,updated_at");
 
   if (error) {
     return { sessions: [], loadError: true };

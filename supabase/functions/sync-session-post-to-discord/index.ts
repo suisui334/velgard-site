@@ -32,6 +32,7 @@ interface SessionRow {
   status: string | null;
   visibility: string | null;
   session_type: string | null;
+  session_tool: string | null;
   date: string | null;
   start_time: string | null;
   end_time: string | null;
@@ -96,6 +97,7 @@ const SESSION_SELECT_COLUMNS = [
   "status",
   "visibility",
   "session_type",
+  "session_tool",
   "date",
   "start_time",
   "end_time",
@@ -618,26 +620,21 @@ function buildMessagePreview(session: SessionRow, action: SyncAction): string {
   const status = normalizeText(session.status, 40);
   const closePrefix = action === "close" || CLOSED_STATUSES.has(status) ? "【募集終了】" : "";
   const deletePrefix = action === "delete" ? "【削除予定】" : "";
-  const prefix = deletePrefix || closePrefix || "【依頼書】";
   const summary = normalizeMultiline(session.summary, 1400) || "概要未設定";
-  const detailUrl = buildDetailUrl(session.id);
+  const titlePrefix = deletePrefix || closePrefix || "";
 
   return [
-    `${prefix}${title}`,
+    "＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝",
     "",
-    `種別: ${labelFor(SESSION_TYPE_LABELS, session.session_type)}`,
-    `開催: ${formatSchedule(session)}`,
-    `募集状態: ${labelFor(STATUS_LABELS, session.status)}`,
-    `公開状態: ${labelFor(VISIBILITY_LABELS, session.visibility)}`,
-    `申請締切: ${formatOptionalValue(session.application_deadline)}`,
-    `募集人数: ${formatPlayerRange(session.player_min, session.player_max)}`,
-    `GM: ${normalizeText(session.gm_name, 80) || "未設定"}`,
+    `■依頼書【${titlePrefix}${title}】`,
+    `GM【${normalizeText(session.gm_name, 80) || "未定"}】`,
+    `開催場所【${formatSessionToolForDiscord(session.session_tool)}】`,
+    `日時【${formatSchedule(session)}】`,
+    `参加人数【${formatPlayerRange(session.player_min, session.player_max)}】`,
+    `参加締切【${formatDateTimeForDiscord(session.application_deadline)}】`,
     "",
-    "概要:",
+    "概要",
     summary,
-    "",
-    "詳細:",
-    detailUrl,
     action === "delete" ? "\n※この依頼書は削除相当処理の確認用previewです。" : "",
     action === "close" ? "\n※募集または開催終了として更新するpreviewです。" : ""
   ].filter(Boolean).join("\n");
@@ -665,52 +662,104 @@ function buildPlannedDbUpdate(action: SyncAction, hasExternalPostReference: bool
   };
 }
 
-function buildDetailUrl(sessionId: string): string {
-  const baseUrl = normalizeText(Deno.env.get("PUBLIC_SITE_BASE_URL"), 240).replace(/\/+$/, "");
-  const path = `session-detail.html?id=${encodeURIComponent(sessionId)}`;
-
-  return baseUrl ? `${baseUrl}/${path}` : `/${path}`;
-}
-
 function formatSchedule(session: SessionRow): string {
-  const date = normalizeText(session.date, 20);
-  const start = normalizeText(session.start_time, 20);
-  const end = normalizeText(session.end_time, 20);
-  const endAt = normalizeText(session.end_at, 40);
+  const start = formatPlainDateTimeForDiscord(session.date, session.start_time);
+  const end = formatDateTimeForDiscord(session.end_at, "")
+    || formatPlainDateTimeForDiscord(session.date, session.end_time);
 
-  if (date && start && endAt) {
-    return `${date} ${start} - ${endAt}`;
-  }
-
-  if (date && start && end) {
-    return `${date} ${start} - ${end}`;
-  }
-
-  if (date) {
-    return date;
-  }
-
-  return "未設定";
+  if (start && end) return `${start}　～　${end}`;
+  return start || end || "未定";
 }
 
-function formatOptionalValue(value: unknown): string {
-  return normalizeText(value, 80) || "未設定";
+function formatSessionToolForDiscord(value: unknown): string {
+  return normalizeText(value, 80) || "未定";
 }
 
 function formatPlayerRange(min: number | null, max: number | null): string {
   if (typeof min === "number" && typeof max === "number") {
-    return `${min} - ${max}名`;
+    return `${min}～${max}人`;
   }
 
   if (typeof min === "number") {
-    return `${min}名以上`;
+    return `最低${min}人`;
   }
 
   if (typeof max === "number") {
-    return `${max}名まで`;
+    return `最大${max}人`;
   }
 
-  return "未設定";
+  return "未定";
+}
+
+function formatPlainDateTimeForDiscord(dateValue: unknown, timeValue: unknown): string {
+  const dateParts = parsePlainDateParts(dateValue);
+  if (!dateParts) return "";
+  const time = normalizeClock(timeValue);
+  const dateLabel = formatPlainDateParts(dateParts);
+  return time ? `${dateLabel} ${time}` : dateLabel;
+}
+
+function formatDateTimeForDiscord(value: unknown, fallback = "未定"): string {
+  const text = normalizeText(value, 80);
+  if (!text) return fallback;
+
+  const plain = text.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/);
+  if (plain && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(text)) {
+    return formatPlainDateTimeForDiscord(plain[1], plain[2]) || fallback;
+  }
+
+  const date = new Date(text);
+  if (Number.isNaN(date.getTime())) return fallback;
+
+  const parts = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  }).formatToParts(date).reduce<Record<string, string>>((acc, part) => {
+    acc[part.type] = part.value;
+    return acc;
+  }, {});
+
+  if (!parts.month || !parts.day || !parts.weekday || !parts.hour || !parts.minute) {
+    return fallback;
+  }
+
+  return `${parts.month}/${parts.day}(${parts.weekday}) ${parts.hour}:${parts.minute}`;
+}
+
+function parsePlainDateParts(value: unknown): { year: number; month: number; day: number; weekday: string } | null {
+  const text = normalizeText(value, 20);
+  const match = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (
+    date.getUTCFullYear() !== year
+    || date.getUTCMonth() !== month - 1
+    || date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+  return { year, month, day, weekday: weekdays[date.getUTCDay()] };
+}
+
+function formatPlainDateParts(parts: { month: number; day: number; weekday: string }): string {
+  return `${String(parts.month).padStart(2, "0")}/${String(parts.day).padStart(2, "0")}(${parts.weekday})`;
+}
+
+function normalizeClock(value: unknown): string {
+  const match = normalizeText(value, 20).match(/^(\d{2}):(\d{2})/);
+  return match ? `${match[1]}:${match[2]}` : "";
 }
 
 function labelFor(labels: Record<string, string>, value: unknown): string {

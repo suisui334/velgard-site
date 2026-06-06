@@ -36,6 +36,7 @@ const MANAGE_SESSION_SELECT = [
   "end_at",
   "application_deadline",
   "session_type",
+  "session_tool",
   "player_min",
   "player_max",
   "summary",
@@ -97,6 +98,7 @@ const SESSION_POST_TEMPLATE_FIELD_KEYS = Object.freeze([
   "p_end_at",
   "p_application_deadline",
   "p_session_type",
+  "p_session_tool",
   "p_player_min",
   "p_player_max",
   "p_visibility",
@@ -188,8 +190,8 @@ function renderShell(initialStartAt = "") {
               ["special", "特殊"],
               ["other", "その他"]
             ], "one-shot")}
-            ${renderTextField("募集人数 min", "p_player_min", "number", { min: 0 })}
-            ${renderTextField("募集人数 max", "p_player_max", "number", { min: 0 })}
+            ${renderPlayerCountFields()}
+            ${renderTextField("開催場所", "p_session_tool", "text", { maxlength: 80, placeholder: "例：Tekey / ココフォリア / Discordボイス" })}
             ${renderSelectField("公開状態", "p_visibility", [
               ["hidden", "非公開"],
               ["private", "限定"],
@@ -268,6 +270,24 @@ function renderTextareaField(label, name, maxlength) {
       <span>${escapeHtml(label)}</span>
       <textarea name="${escapeHtml(name)}" maxlength="${Number(maxlength)}" rows="5"></textarea>
     </label>
+  `;
+}
+
+function renderPlayerCountFields() {
+  return `
+    <fieldset class="session-post-field session-post-player-field">
+      <legend>募集人数</legend>
+      <div class="session-post-player-inputs">
+        <label>
+          <span>min</span>
+          <input type="number" name="p_player_min" min="0">
+        </label>
+        <label>
+          <span>max</span>
+          <input type="number" name="p_player_max" min="0">
+        </label>
+      </div>
+    </fieldset>
   `;
 }
 
@@ -393,6 +413,7 @@ function buildSessionPayload(form) {
     p_end_at: toRpcDateTimeValue(endAt),
     p_application_deadline: toDeadlineValue(getValue(form, "p_application_deadline")),
     p_session_type: getValue(form, "p_session_type"),
+    p_session_tool: nullableText(getValue(form, "p_session_tool")),
     p_player_min: playerMin,
     p_player_max: playerMax,
     p_summary: nullableText(getValue(form, "p_summary")),
@@ -600,6 +621,7 @@ function applySessionPostTemplateFields(form, fields) {
   setFormValue(form, "p_start_at", fields.p_start_at);
   setFormValue(form, "p_end_at", fields.p_end_at);
   setFormValue(form, "p_application_deadline", fields.p_application_deadline);
+  setFormValue(form, "p_session_tool", fields.p_session_tool);
   setFormValue(form, "p_player_min", fields.p_player_min);
   setFormValue(form, "p_player_max", fields.p_player_max);
   setFormValue(form, "p_summary", fields.p_summary);
@@ -659,6 +681,7 @@ function normalizeManagedSession(row, options = {}) {
   const endTime = normalizeTime(row?.end_time);
   const endAt = formatJapanDateTime(row?.end_at);
   const applicationDeadline = formatJapanDateTime(row?.application_deadline);
+  const sessionTool = String(row?.session_tool ?? "").trim();
   const playerMin = toNumberOrNull(row?.player_min);
   const playerMax = toNumberOrNull(row?.player_max);
   const visibility = String(row?.visibility ?? "").trim();
@@ -677,6 +700,7 @@ function normalizeManagedSession(row, options = {}) {
     endLabel,
     scheduleLabel: `${startLabel} - ${endLabel}`,
     applicationDeadline: applicationDeadline || "未設定",
+    sessionTool,
     sessionType,
     sessionTypeLabel: getSessionTypeLabel(sessionType),
     playerMin,
@@ -756,6 +780,7 @@ function fillFormFromManagedSession(form, session) {
   setFormValue(form, "p_start_at", session.startInputValue);
   setFormValue(form, "p_end_at", session.endInputValue);
   setFormValue(form, "p_application_deadline", session.applicationDeadlineInputValue);
+  setFormValue(form, "p_session_tool", session.sessionTool);
   setFormValue(form, "p_player_min", Number.isFinite(session.playerMin) ? String(session.playerMin) : "");
   setFormValue(form, "p_player_max", Number.isFinite(session.playerMax) ? String(session.playerMax) : "");
   setFormValue(form, "p_summary", session.summary);
@@ -773,6 +798,7 @@ function resetFormForNewSession(form) {
   setFormValue(form, "p_start_at", "");
   setFormValue(form, "p_end_at", "");
   setFormValue(form, "p_application_deadline", "");
+  setFormValue(form, "p_session_tool", "");
   setFormValue(form, "p_player_min", "");
   setFormValue(form, "p_player_max", "");
   setFormValue(form, "p_summary", "");
@@ -914,6 +940,7 @@ function normalizeManagedSessionFromUpdate(previousSession, payload, result) {
     end_time: payload.p_end_time,
     end_at: payload.p_end_at,
     application_deadline: payload.p_application_deadline,
+    session_tool: payload.p_session_tool,
     session_type: payload.p_session_type,
     player_min: payload.p_player_min,
     player_max: payload.p_player_max,

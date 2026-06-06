@@ -1266,3 +1266,29 @@ SQL Editorへ貼る範囲:
 - authenticated EXECUTE、anon/public不可の権限状態。
 
 これらの詳細確認が必要な場合は、次工程でSELECT-only確認として分ける。実データ行、ユーザーID、メールアドレス、認証情報、外部投稿先実値は記録しない。
+
+## M-14E-15I/J/K session_tool UI/Discord IO反映
+SQL適用後SELECT-only確認により、`public.sessions.session_tool` は `text` / NULL許容で存在し、`create_session_post` / `update_session_post` は `p_session_tool` 引数を持ち、`delete_session_post` は変更対象外のまま存在することを確認済みとして記録した。`public.sessions` のRLSは `rls=true, force_rls=false`。
+
+フロントIO:
+
+- session-post作成/編集フォームは `p_session_tool` をRPC payloadへ渡す。
+- session-post管理一覧取得のSELECT列に `session_tool` を含め、既存依頼書編集時にフォームへ反映する。
+- mypageの依頼書テンプレートJSONにも `p_session_tool` を含め、依頼書用テンプレートのフォーム編集UIで保持できるようにする。
+- 空欄はRPC側のtrim/NULL化に任せ、画面表示では未設定値を `未定` へ丸める。
+
+session-detail IO:
+
+- Supabase由来セッション取得列に `session_tool` を含める。
+- detail表示では `開催場所` として表示する。
+- GM/admin管理操作は参加者向け基本情報から外し、補足情報の募集状態の下へ移動する。
+
+Discord IO:
+
+- Edge FunctionのSELECT列に `session_tool` を含める。
+- Discord本文では `開催場所【session_toolまたは未定】` として出力する。
+- `dry_run = true` previewと実送信本文は同一フォーマットを使う。
+- Discord本文にはサイト詳細URL、クエリ付き詳細導線、Webhook URL、投稿先実値、JWT、確認対象ID、project ref、Supabase URL全文、Discord message id相当の実値を含めない。
+- 日時はISO/UTC形式ではなく、曜日つきの `MM/DD(曜) HH:mm　～　MM/DD(曜) HH:mm` へ整形する。
+
+この工程ではコード実装とdocs整理のみ行い、SQL Editor再実行、DB/RPC追加変更、Edge Function deploy、Discord追加実送信、dry-run再実行、`updates.json` 変更、commit / pushは行わない。

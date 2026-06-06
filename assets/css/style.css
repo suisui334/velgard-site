@@ -4011,6 +4011,38 @@ body[data-page="session-post"] .session-post-field span {
   font-size: 0.86rem;
 }
 
+body[data-page="session-post"] .session-post-player-field {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+body[data-page="session-post"] .session-post-player-field legend {
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+body[data-page="session-post"] .session-post-player-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+
+body[data-page="session-post"] .session-post-player-inputs label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+body[data-page="session-post"] .session-post-player-inputs span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
 body[data-page="session-post"] .session-post-field input,
 body[data-page="session-post"] .session-post-field select,
 body[data-page="session-post"] .session-post-field textarea {

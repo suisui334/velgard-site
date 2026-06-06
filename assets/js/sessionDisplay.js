@@ -95,6 +95,10 @@ export function formatSessionApplicationDeadline(session) {
   return String(session?.applicationDeadline || "").trim() || "未定";
 }
 
+export function formatSessionTool(session) {
+  return String(session?.sessionTool || session?.session_tool || "").trim() || "未定";
+}
+
 export function formatPlayerCount(session, options = {}) {
   const count = Number.isFinite(Number(session?.playerCount)) ? Number(session.playerCount) : null;
   const max = Number.isFinite(Number(session?.playerMax)) ? Number(session.playerMax) : null;
@@ -220,11 +224,11 @@ export function renderSessionDetailContent(session, options = {}) {
   const basicRows = [
     renderSessionDetailRow("開催日", session?.date ? formatDate(session.date) : ""),
     renderSessionDetailRow("種別", getSessionTypeLabel(session?.sessionType)),
+    renderSessionDetailRow("開催場所", formatSessionTool(session)),
     renderSessionDetailRow("開催時刻", formatSessionTime(session)),
     renderSessionDetailRow("申請締切", formatSessionApplicationDeadline(session)),
     renderSessionDetailRow("レベル帯", session?.levelRange),
-    renderSessionDetailRow("募集人数", playerCount),
-    renderSessionDetailManageRow(session, options)
+    renderSessionDetailRow("募集人数", playerCount)
   ].join("");
   const detailBlocks = [
     session?.detail ? `<section class="calendar-session-modal-block"><h3>詳細</h3><p>${escapeHtml(session.detail)}</p></section>` : "",
@@ -233,6 +237,7 @@ export function renderSessionDetailContent(session, options = {}) {
   const supplementalRows = [
     renderSessionDetailRow("公開状態", getSessionVisibilityLabel(session?.visibility), { attrs: "data-session-detail-visibility-row" }),
     renderSessionDetailRow("募集状態", getSessionStatusLabel(session?.status), { attrs: "data-session-detail-status-row" }),
+    renderSessionDetailManageRow(session, options),
     renderSessionDetailRow("更新日時", formatSessionUpdatedAt(session?.updatedAt))
   ].join("");
   const supplementalHtml = supplementalRows

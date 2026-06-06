@@ -1581,3 +1581,46 @@ Get-Content -Raw -Encoding UTF8 .\docs\supabase\sql\027_session_tool_apply_revie
 5. M-14E-15M: `dry_run = true` QA。
 
 この工程ではdocs記録のみ行い、SQL Editor再実行、追加SQL apply、DB/RPC追加変更、Edge Functionコード変更、deploy、Discord追加実送信、dry-run再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15I/J/K session_tool UI・詳細表示・Discord投稿フォーマット実装
+M-14E-15G/Hで適用済みの `session_tool` について、ユーザー手元のSELECT-only確認結果を記録し、フロントUI、session-detail表示、Edge Functionの投稿本文生成へ反映した。この工程ではSQL Editor再実行、DB/RPC追加変更、Edge Function deploy、Discord追加実送信、dry-run再実行は行わない。
+
+SQL適用後SELECT-only確認結果:
+
+- `public.sessions.session_tool exists`: ok。型は `text`、NULL許容。
+- `create_session_post has session_tool argument`: ok。
+- `update_session_post has session_tool argument`: ok。
+- `delete_session_post unchanged presence`: ok。
+- `public.sessions rls enabled`: ok。`rls=true, force_rls=false`。
+
+フロント反映:
+
+- 依頼書投稿/編集フォームに `開催場所` 入力を追加した。内部名は `session_tool`。
+- 開催場所は物理会場ではなく、Tekey、ココフォリア、ユドナリウムリリィ、Discordボイスなどのセッションツール/開催環境を指す。
+- 初期実装では自由入力とし、空欄はRPC側のtrim/NULL化に任せる。
+- `create_session_post` / `update_session_post` のRPC payloadへ `p_session_tool` を渡す。
+- session-postテンプレートJSONとmypageの依頼書用テンプレート編集UIにも `p_session_tool` を含めた。
+- 既存依頼書編集時は、取得済み `session_tool` があればフォームへ反映し、未設定なら空欄にする。
+
+session-detail表示:
+
+- session-detailの基本情報へ `開催場所` を追加し、未設定時は `未定` と表示する。
+- 参加者向け情報を上に置き、GM/admin管理操作は補足情報内の募集状態の下へ移動した。
+- raw user_id、email、token、認証情報、外部投稿先実値、Discord message id相当の実値は画面へ出さない。
+
+Discord投稿フォーマット:
+
+- `dry_run = true` previewと `dry_run = false` 実送信は同じ本文生成処理を使う。
+- 新本文は参加者向け依頼書形式へ変更した。
+- 冒頭に `＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝` を置き、タイトル、GM、開催場所、日時、参加人数、参加締切、概要だけを出す。
+- 下部区切り線、`詳細` 欄、サイト詳細URL、クエリ付き詳細導線は入れない。
+- 日時はISO/UTC表記を避け、`MM/DD(曜) HH:mm　～　MM/DD(曜) HH:mm` の短い日本語向け形式に整形する。
+- 募集人数は `2～5人` のように表示し、開催場所/申請締切/概要が未設定の場合は `未定` または概要未設定のfallbackを使う。
+- Webhook URL、Discord投稿先実値、JWT、確認対象ID、project ref、Supabase URL全文、Discord message id相当の実値は本文・レスポンス・docsへ出さない方針を維持する。
+
+次工程候補:
+
+1. M-14E-15L: `dry_run = true` QAで新フォーマットpreviewを確認する。
+2. M-14E-15M: テスト用チャンネルで新フォーマット実送信QAを行う。
+3. M-14E-15N: DB更新連携、外部投稿識別子保存、二重投稿防止を設計する。
+4. M-14E-15O: 本番募集チャンネル切り替え判断を行う。

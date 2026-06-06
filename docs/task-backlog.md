@@ -1580,3 +1580,12 @@
 - 実データ行、ユーザーID、メールアドレス、認証情報、project ref、Supabase URL全文、外部投稿先実値、Discord message id相当の実値は記録していない。
 - 次工程候補は、M-14E-15I 必要なら適用後SELECT-only確認、M-14E-15J フロントUIへ `session_tool` 追加、M-14E-15K session-detail表示調整、M-14E-15L Edge Function Discord投稿フォーマット変更、M-14E-15M dry_run QA。
 - この工程ではdocs記録のみ行い、SQL Editor再実行、追加SQL apply、DB/RPC追加変更、Edge Functionコード変更、deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、フロント実装、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15I/J/K session_tool UI・詳細表示・Discord投稿フォーマット実装
+- SQL適用後SELECT-only確認として、`public.sessions.session_tool` は `text` / NULL許容、create/update RPCは `p_session_tool` 引数あり、delete RPCは変更対象外、`public.sessions` RLSは `rls=true, force_rls=false` と記録した。
+- session-post作成/編集フォームへ `開催場所` 入力を追加し、`create_session_post` / `update_session_post` のpayloadへ `p_session_tool` を渡す。
+- session-post管理一覧取得、既存依頼書編集反映、session-postテンプレートJSON、mypage依頼書用テンプレートフォームにも `session_tool` / `p_session_tool` を含める。
+- session-detailの基本情報へ `開催場所` を追加し、未設定時は `未定`。GM/admin管理操作は補足情報内の募集状態の下へ移動する。
+- Edge FunctionのDiscord本文生成を参加者向け依頼書形式へ変更し、詳細URLやクエリ付き導線を本文に入れない。日時は曜日つき短縮形式、参加人数は `2～5人` 形式、開催場所未設定は `未定`。
+- 次工程候補は M-14E-15L `dry_run = true` QA、M-14E-15M テスト用チャンネル実送信QA、M-14E-15N DB更新連携/二重投稿防止設計。
+- この工程ではコード実装とdocs整理のみ行い、SQL Editor再実行、DB/RPC追加変更、Edge Function deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、`updates.json` 変更、commit / pushは行わない。

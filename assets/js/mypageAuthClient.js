@@ -22,6 +22,7 @@
   const TEMPLATE_BODY_MAX_LENGTH = 5000;
   const SESSION_POST_TEMPLATE_FORMAT = "velgard.session_post_template.v1";
   const SESSION_POST_TITLE_MAX_LENGTH = 120;
+  const SESSION_POST_TOOL_MAX_LENGTH = 80;
   const SESSION_POST_SUMMARY_MAX_LENGTH = 1000;
   const APPLICATION_STATUSES = ["pending", "waitlisted", "accepted"];
   const APPLICATION_STATUS_GROUPS = Object.freeze({
@@ -87,6 +88,7 @@
     "p_end_at",
     "p_application_deadline",
     "p_session_type",
+    "p_session_tool",
     "p_player_min",
     "p_player_max",
     "p_visibility",
@@ -99,6 +101,7 @@
     p_end_at: "",
     p_application_deadline: "",
     p_session_type: "one-shot",
+    p_session_tool: "",
     p_player_min: "",
     p_player_max: "",
     p_visibility: "hidden",
@@ -677,6 +680,7 @@
     fields.p_end_at = normalizeDateTimeLocalText(source.p_end_at);
     fields.p_application_deadline = normalizeDateTimeLocalText(source.p_application_deadline);
     fields.p_session_type = normalizeSessionPostSelectValue(source.p_session_type, SESSION_POST_TYPE_OPTIONS, fields.p_session_type);
+    fields.p_session_tool = redactSensitiveText(source.p_session_tool).replace(/[\r\n]+/g, " ").trim();
     fields.p_player_min = normalizeSessionPostIntegerText(source.p_player_min);
     fields.p_player_max = normalizeSessionPostIntegerText(source.p_player_max);
     fields.p_visibility = normalizeSessionPostSelectValue(source.p_visibility, SESSION_POST_VISIBILITY_OPTIONS, fields.p_visibility);
@@ -719,6 +723,9 @@
 
     if (countTemplateCharacters(normalized.p_title) > SESSION_POST_TITLE_MAX_LENGTH) {
       return { valid: false, message: `タイトルは${SESSION_POST_TITLE_MAX_LENGTH}文字以内で入力してください。` };
+    }
+    if (countTemplateCharacters(normalized.p_session_tool) > SESSION_POST_TOOL_MAX_LENGTH) {
+      return { valid: false, message: `開催場所は${SESSION_POST_TOOL_MAX_LENGTH}文字以内で入力してください。` };
     }
     if (countTemplateCharacters(normalized.p_summary) > SESSION_POST_SUMMARY_MAX_LENGTH) {
       return { valid: false, message: `概要は${SESSION_POST_SUMMARY_MAX_LENGTH}文字以内で入力してください。` };
@@ -832,6 +839,7 @@
       p_end_at: fields.endAtInput?.value || "",
       p_application_deadline: fields.applicationDeadlineInput?.value || "",
       p_session_type: fields.sessionTypeSelect?.value || "",
+      p_session_tool: fields.sessionToolInput?.value || "",
       p_player_min: fields.playerMinInput?.value || "",
       p_player_max: fields.playerMaxInput?.value || "",
       p_visibility: fields.visibilitySelect?.value || "",
@@ -2077,6 +2085,12 @@
     const sessionTypeSelect = document.createElement("select");
     appendTemplateSelectOptions(sessionTypeSelect, SESSION_POST_TYPE_OPTIONS, "one-shot");
 
+    const sessionToolInput = document.createElement("input");
+    sessionToolInput.type = "text";
+    sessionToolInput.maxLength = SESSION_POST_TOOL_MAX_LENGTH;
+    sessionToolInput.autocomplete = "off";
+    sessionToolInput.placeholder = "例：Tekey / ココフォリア / Discordボイス";
+
     const playerMinInput = document.createElement("input");
     playerMinInput.type = "number";
     playerMinInput.min = "0";
@@ -2109,6 +2123,7 @@
       createInputField("終了日時", endAtInput),
       createInputField("申請締切", applicationDeadlineInput),
       createInputField("種別", sessionTypeSelect),
+      createInputField("開催場所", sessionToolInput),
       createInputField("募集人数 min", playerMinInput),
       createInputField("募集人数 max", playerMaxInput),
       createInputField("公開状態", visibilitySelect),
@@ -2126,6 +2141,7 @@
         endAtInput,
         applicationDeadlineInput,
         sessionTypeSelect,
+        sessionToolInput,
         playerMinInput,
         playerMaxInput,
         visibilitySelect,
@@ -2143,6 +2159,7 @@
     if (controls.endAtInput) controls.endAtInput.value = normalized.p_end_at;
     if (controls.applicationDeadlineInput) controls.applicationDeadlineInput.value = normalized.p_application_deadline;
     if (controls.sessionTypeSelect) controls.sessionTypeSelect.value = normalized.p_session_type;
+    if (controls.sessionToolInput) controls.sessionToolInput.value = normalized.p_session_tool;
     if (controls.playerMinInput) controls.playerMinInput.value = normalized.p_player_min;
     if (controls.playerMaxInput) controls.playerMaxInput.value = normalized.p_player_max;
     if (controls.visibilitySelect) controls.visibilitySelect.value = normalized.p_visibility;
