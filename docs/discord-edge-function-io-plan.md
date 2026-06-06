@@ -2509,3 +2509,34 @@ Next IO gate:
 
 - Edge Function deployゲート。
 - deploy後に、update/delete同期RPCのEXECUTE権限を実呼び出しで確認する。
+
+## M-14E-17 Edge Function deploy IO result
+
+IO precheck:
+
+- git stateはclean。
+- latest commitは `36cca94 Record Discord update delete RPC apply success`。
+- `deno check` は成功。
+- project refはクリップボードからPowerShell環境変数へ読み込み、実値を表示しない方針で扱った。
+- project ref実値、Webhook URL、JWT、DB password、Direct connection string、実ID、URL全文は記録していない。
+
+IO deploy result:
+
+- `sync-session-post-to-discord` のEdge Function deployを1回だけ実行した。
+- deployは成功した。
+- Docker未起動WARNINGは表示されたが、deploy自体は成功。
+- `deno.lock` は生成物として削除済み。
+- `supabase/.temp` はCLI生成物として削除済み。
+- DB側update/delete RPC 5本はユーザー手元SQL Editorで適用済み。
+
+IO not executed:
+
+- `dry_run = true` / `dry_run = false` は未実行。
+- Discord投稿、編集、削除は未実行。
+- SQL Editor再実行、SQL apply再実行、DB/RPC追加変更は未実施。
+- secret設定/切替は未実施。
+
+Next IO gate:
+
+- update/delete本番QAまとめゲート。
+- deploy後QAでRPC実呼び出し可否と既存create同期への影響なしを確認する。

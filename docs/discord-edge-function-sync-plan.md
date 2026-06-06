@@ -3214,3 +3214,36 @@ Edge Function準備実装:
 
 - Edge Function deployゲートへ進む。
 - deploy後QAでは、update/delete用RPCの実呼び出し可否、EXECUTE権限、既存create同期への影響なしを確認する。
+
+## M-14E-17 Edge Function deploy結果
+
+`36cca94 Record Discord update delete RPC apply success` の状態から、update/delete対応準備済みの `sync-session-post-to-discord` をdeployした。
+
+事前確認:
+
+- `git status --short` はclean。
+- latest commitは `36cca94 Record Discord update delete RPC apply success`。
+- `deno check supabase/functions/sync-session-post-to-discord/index.ts` は成功。
+- 通常PATHの `deno` が見つからないため、既存のローカルDeno実行ファイルを使用した。
+- `deno.lock` は生成物として削除し、commit対象にしていない。
+- deploy用project refはPowerShell環境変数で扱い、実値はdocs、GitHub、チャット、consoleへ記録していない。
+
+deploy結果:
+
+- `npx.cmd supabase functions deploy sync-session-post-to-discord --project-ref <PROJECT_REF>` を1回だけ実行した。
+- deployは成功した。
+- deploy時にDocker未起動WARNINGは出たが、deploy自体は成功扱い。
+- `supabase/.temp` はCLI生成物として削除済みで、commit対象外。
+- DB側update/delete RPC 5本はSQL Editorで適用済み。
+
+未実施:
+
+- `dry_run = true`、`dry_run = false` は未実行。
+- Discord投稿、編集、削除は未実行。
+- SQL Editor再実行、SQL apply再実行、DB/RPC追加変更は未実施。
+- secret設定/切替、Webhook URL実値確認は未実施。
+
+次工程:
+
+- update/delete本番QAまとめゲートへ進む。
+- deploy後QAでは、`dry_run = true` でpreviewとRPC実呼び出し可否を確認し、危険ゲートを分けてupdate/deleteの実動確認へ進む。
