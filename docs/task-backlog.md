@@ -1957,3 +1957,21 @@ Discord成功後DB更新失敗時:
 - 不明なエラー。
 
 この工程ではdocs記録と静的確認のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 実送信、Discord追加実送信、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16M 表示・導線・Discord本文追加改善
+- DB同期込み実送信QAへ進む前に、Discord本文、依頼書保存後導線、session-detail概要表示を改善した。
+- Discord投稿本文では、概要本文直前の `概要` ラベル行を削除した。概要本文そのものは維持し、ユーザー入力本文が参加締切行の下に続く。
+- Discord本文には詳細URL、詳細リンク、ISO/UTC表記を追加しない。
+- Edge Function本文生成を変更したため、反映には別ゲートでEdge Function deployが必要。
+- 依頼書作成成功後、公開かつ非draftで保存された場合は対象依頼書の `session-detail.html?id=...` へ遷移する。
+- 依頼書編集成功後も、公開かつ非draftで保存された場合は対象依頼書の詳細画面へ遷移する。
+- 非公開保存、下書き保存、遷移先IDを安全に解決できない場合は既存挙動を維持する。
+- session-detail / calendar modalの概要表示では見出し `概要` を削除し、本文だけを表示する。
+- 概要本文はHTMLとして解釈せず、escape済み表示を維持する。
+- CSSで概要本文に `white-space: pre-wrap` を指定し、改行と空行を保持する。
+- フロント側はcommit/push後、GitHub Pages反映待ちで手動QAする。
+- QA項目は、公開作成後の詳細遷移、公開編集後の詳細遷移、非公開/下書き保存の既存挙動、概要改行保持、概要見出し非表示、raw id/user_id/email/token等の露出なし。
+- Edge Function deployは別ゲート。
+- deploy後 `dry_run = true` previewで `概要` ラベル削除、URL/詳細リンクなし、ISO/UTC表記なしを確認する。
+- DB同期込み `dry_run = false` 実送信QA、Discord追加投稿、二重投稿防止実動確認、本番投稿、secret切替はさらに別ゲート。
+- この工程ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Function deploy、追加deploy、`dry_run = false` 実送信、Discord追加実送信、本番投稿、secret設定/切替、`updates.json` 変更は行わない。

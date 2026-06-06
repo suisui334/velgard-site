@@ -2278,6 +2278,10 @@ body[data-page="calendar"] .calendar-session-modal-block pre {
   white-space: pre-wrap;
 }
 
+body[data-page="calendar"] .calendar-session-modal-summary-text {
+  white-space: pre-wrap;
+}
+
 body[data-page="calendar"] .calendar-session-modal-supplement {
   display: grid;
   gap: 8px;
@@ -2456,6 +2460,10 @@ body[data-page="session-detail"] .calendar-session-modal-block pre {
 }
 
 body[data-page="session-detail"] .calendar-session-modal-block pre {
+  white-space: pre-wrap;
+}
+
+body[data-page="session-detail"] .calendar-session-modal-summary-text {
   white-space: pre-wrap;
 }
 

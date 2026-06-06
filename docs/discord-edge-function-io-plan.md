@@ -2005,3 +2005,33 @@ IO判断:
 6. Discord投稿増加数が想定どおりか確認する。
 
 C以降は危険工程を含むため、今回のdocsでは手順案と停止条件だけを整理する。
+
+## M-14E-16M 表示・導線・本文IO改善
+DB同期込み `dry_run = false` QAへ進む前に、参加者が見る本文と、公開保存後の導線を改善する。
+
+Discord本文IO:
+
+- `message_preview` / 実送信本文から、概要本文直前の `概要` ラベル行を削除する。
+- 概要本文はユーザー入力をそのまま本文として扱い、詳細URLや詳細リンクは入れない。
+- ISO/UTC表記、Webhook URL、外部投稿識別子実値、投稿先実値は本文に含めない。
+- `dry_run = true` と `dry_run = false` は同じ本文生成処理を使う。
+- 反映にはEdge Function deployが必要だが、この工程ではdeployしない。
+
+フロント保存後IO:
+
+- 作成RPC成功後、返却値から詳細画面用IDを解決でき、保存payloadが公開かつ非draftなら詳細画面へ遷移する。
+- 編集RPC成功後も同条件で詳細画面へ遷移する。
+- 非公開保存、下書き保存、ID解決不可の場合は既存の画面内結果表示と管理一覧更新を維持する。
+- raw user_id、email、token、認証情報は表示しない。
+
+概要表示IO:
+
+- 詳細表示の概要見出しは非表示化し、本文だけを表示する。
+- 本文はescape済み文字列として出力し、HTMLとして解釈しない。
+- CSSで `white-space: pre-wrap` を指定し、改行と空行を保持する。
+
+後続IO:
+
+- GitHub Pages反映後にフロント手動QAを行う。
+- Edge Function deploy後に `dry_run = true` previewで本文差分を確認する。
+- `dry_run = false` 実送信、DB同期状態保存、二重投稿防止実動確認は独立ゲートで扱う。

@@ -2548,3 +2548,38 @@ post-deploy `create` / `dry_run = true` 確認:
 - 少しでも不明なエラーが出た場合。
 
 この工程ではdocs記録と静的確認のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 実送信、Discord追加実送信、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16M 表示・導線・Discord本文追加改善
+DB同期込み実送信QAへ進む前に、依頼書の表示、保存後導線、Discord本文をまとめて改善した。この工程ではフロント軽微修正とEdge Function本文生成修正、docs更新のみを行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Function deploy、`dry_run = false` 実送信、Discord追加実送信、本番投稿、secret設定/切替は行わない。
+
+Discord本文:
+
+- `buildMessagePreview(...)` の依頼書本文から、概要本文直前の `概要` ラベル行を削除した。
+- 概要本文そのものは削除せず、参加締切行の下に空行を挟んでユーザー入力本文が続く形にした。
+- 依頼人、報酬、備考、タグ等は概要本文内にユーザーが書いた内容として扱う。
+- Discord本文に詳細URL、詳細リンク、ISO/UTC表記は追加しない。
+- `message_preview` 本文全文や外部投稿識別子実値はdocs/consoleへ出さない。
+- この変更はEdge Functionコード変更のため、反映には別ゲートでEdge Function deployが必要。
+
+保存後導線:
+
+- 依頼書作成成功後、保存payloadが公開かつ非draftの場合は `session-detail.html?id=...` へ遷移する。
+- 依頼書編集成功後も、対象が公開かつ非draftの場合は詳細画面へ遷移する。
+- 非公開保存、下書き保存、結果から遷移先IDを安全に解決できない場合は既存画面内挙動を維持する。
+- 遷移URLには既存の `session-detail.html?id=...` 構造を使う。
+- raw user_id、email、token、認証情報は画面、docs、consoleへ出さない。
+
+概要表示:
+
+- session-detail / calendar modal向けの概要表示から見出し `概要` を削除した。
+- 概要本文はHTMLとして解釈せず、既存のescape処理を維持する。
+- 概要本文に `white-space: pre-wrap` を適用し、保存済みの改行と空行を自然に保持する。
+- 長い行は既存の折り返し指定を維持する。
+
+次工程:
+
+1. フロント側はcommit/push後、GitHub Pages反映を待って作成/編集/詳細表示の手動QAを行う。
+2. Edge Function側のDiscord本文変更は別ゲートでdeployする。
+3. deploy後に `dry_run = true` previewで `概要` ラベルが消え、URL/詳細リンク/ISO/UTC表記が混入していないことを確認する。
+4. DB同期込み `dry_run = false` 実送信QAは、上記の文面/表示/遷移改善確認後のさらに別ゲートで扱う。
+5. 本番募集チャンネル切替は引き続き停止する。

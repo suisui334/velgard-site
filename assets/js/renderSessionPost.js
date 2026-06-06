@@ -910,6 +910,27 @@ function getSaveSuccessMessage(payload) {
   return payload.p_visibility === "public" ? PUBLIC_SAVE_SUCCESS_MESSAGE : SAVE_SUCCESS_MESSAGE;
 }
 
+function shouldRedirectToSessionDetailAfterSave(payload) {
+  return payload?.p_visibility === "public" && payload?.p_status !== "draft";
+}
+
+function normalizeSessionDetailId(value) {
+  return String(value ?? "").trim();
+}
+
+function resolveSavedSessionId(result, fallbackId = "") {
+  return normalizeSessionDetailId(result?.id)
+    || normalizeSessionDetailId(result?.session_id)
+    || normalizeSessionDetailId(fallbackId);
+}
+
+function redirectToSessionDetail(sessionId) {
+  const targetId = normalizeSessionDetailId(sessionId);
+  if (!targetId) return false;
+  window.location.assign(`session-detail.html?id=${encodeURIComponent(targetId)}`);
+  return true;
+}
+
 function getUpdateErrorMessage(error) {
   const text = [
     error?.message,
@@ -1002,6 +1023,9 @@ async function saveManagedSession(client, elements) {
     elements.refreshTemplateControls?.();
     setState(elements.formState, getSaveSuccessMessage(payload), "is-ok");
     setState(elements.manageState, "");
+    if (shouldRedirectToSessionDetailAfterSave(payload)) {
+      redirectToSessionDetail(resolveSavedSessionId(result, updatedSession.id));
+    }
   } catch (error) {
     setState(elements.formState, getUpdateErrorMessage(error), "is-error");
   } finally {
@@ -1499,6 +1523,9 @@ async function initializeForm(root, client, access = {}) {
       setState(state, "作成しました。", "is-ok");
       renderResult(resultList, result);
       resultPanel.hidden = false;
+      if (shouldRedirectToSessionDetailAfterSave(payload) && redirectToSessionDetail(resolveSavedSessionId(result))) {
+        return;
+      }
       await loadManagedSessions(client, manageElements);
     } catch (error) {
       setState(state, error?.message === "end-before-start" ? END_BEFORE_START_MESSAGE : ERROR_MESSAGE, "is-error");

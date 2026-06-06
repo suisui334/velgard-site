@@ -917,7 +917,6 @@ function buildMessagePreview(session: SessionRow, action: SyncAction): string {
     `参加人数【${formatPlayerRange(session.player_min, session.player_max)}】`,
     `参加締切【${formatDateTimeForDiscord(session.application_deadline)}】`,
     "",
-    "概要",
     summary,
     action === "delete" ? "\n※この依頼書は削除相当処理の確認用previewです。" : "",
     action === "close" ? "\n※募集または開催終了として更新するpreviewです。" : ""

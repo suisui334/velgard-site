@@ -177,7 +177,7 @@ function renderSessionDetailManageRow(session, options = {}) {
 
 export function renderSessionSummary(session) {
   return session?.summary
-    ? `<section class="calendar-session-modal-block"><h3>概要</h3><p>${escapeHtml(session.summary)}</p></section>`
+    ? `<section class="calendar-session-modal-block calendar-session-modal-summary-block"><p class="calendar-session-modal-summary-text">${escapeHtml(session.summary)}</p></section>`
     : "";
 }
 
