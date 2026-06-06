@@ -1898,3 +1898,19 @@ Discord成功後DB更新失敗時:
 - apply後確認計画は、3RPC存在、signature、security_definer、search_path、EXECUTE権限、既存create/update/delete RPC影響なし、Discord同期系カラム維持、RLS enabled、`updates.json` 差分なしをSELECT-onlyで確認する。
 - SQL applyゲート停止条件は、030内容不一致、レビュー結果と異なる変更、CHECK外値、secret/URL/ID実値混入、貼り付け欠落、SQL Editorエラー、Supabase側の予期しない警告/挙動。
 - 030は次のSQL applyゲートへ進める候補。ただしSQL Editor実行、DB/RPC変更、SQL applyは独立ゲートであり、この工程では実施しない。
+
+## M-14E-16K SQL apply結果記録とEdge Function DB更新連携実装
+- ユーザー手元のSQL applyゲートで `docs/supabase/sql/030_discord_sync_rpc_apply_draft.sql` をSQL Editor実行済み。
+- SQL Editor画面上、`check_discord_session_post_create_ready(text)`、`record_discord_session_post_create_failure(text,text)`、`record_discord_session_post_create_success(text,text,text,text,text)` の作成を確認。
+- 確認画面では `security_definer = true`、`has_search_path = true` を確認。
+- エラー表示なし。030は再実行していない。
+- EXECUTE権限の詳細行は確認画面に表示された範囲では未確認として扱い、後続の `dry_run = true` QAまたはSELECT-only確認で実動確認する。
+- `supabase/functions/sync-session-post-to-discord/index.ts` にDB更新連携を実装した。
+- `dry_run = true` はpreview専用を維持し、guard RPC、記録RPC、DB更新、Discord送信を行わない。
+- `dry_run = false` + `action = create` では、Discord送信前に `check_discord_session_post_create_ready` を呼び、既存外部投稿識別子があれば送信前に拒否する。
+- Discord送信成功後に `record_discord_session_post_create_success` を呼び、DBへ外部投稿識別子相当と同期状態を記録する。
+- Discord送信失敗時は、可能な範囲で `record_discord_session_post_create_failure` を呼び、一般化エラーだけを保存する。
+- Discord送信成功後にDB記録が失敗した場合はpartial failureとして返し、同じcreate再実行禁止を一般化warningとして返す。
+- `dry_run = false` レスポンスではmessage preview本文全文、Discord message id実値、post URL全文、Webhook URL、確認対象ID実値を返さない。
+- 同時実行でDiscord送信自体が二重化する理論上のリスクは残るため、予約状態更新、より強いDB側排他、単発運用を後続TODOとして維持。
+- この工程ではSQL Editor再実行、DB/RPC追加変更、SQL apply再実行、Edge Function deploy、Discord追加実送信、本番投稿、secret設定/切替、`updates.json` 変更は行わない。

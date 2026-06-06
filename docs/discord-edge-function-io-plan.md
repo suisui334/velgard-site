@@ -1928,3 +1928,33 @@ apply後SELECT-only確認候補:
 - `updates.json` 差分なし。
 
 SQL applyゲートでは、貼り付け範囲欠落、CHECK外値、secret/URL/ID実値混入、SQL Editorエラー、予期しない警告があれば停止する。
+
+## M-14E-16K SQL apply後のDB更新連携IO実装
+ユーザー手元のSQL applyゲートで030を実行し、対象RPC 3本の作成、`security_definer = true`、`has_search_path = true` を確認した。SQL Editor再実行はしていない。この工程ではEdge Functionコード変更とdocs記録のみを行い、Edge Function deploy、Discord追加実送信、DB/RPC追加変更、secret設定/切替は行わない。
+
+実装したIO:
+
+- `dry_run = true`
+  - 従来どおりmessage previewと予定情報だけを返す。
+  - create guard RPC、success記録RPC、failure記録RPCは呼ばない。
+  - DB更新なし、Discord送信なし。
+- `dry_run = false` + `action = create`
+  - 送信前に `check_discord_session_post_create_ready` を呼ぶ。
+  - 既存外部投稿識別子がある場合はDiscord送信前に拒否する。
+  - Discord送信成功後に `record_discord_session_post_create_success` を呼ぶ。
+  - Discord送信失敗時は `record_discord_session_post_create_failure` を可能な範囲で呼ぶ。
+  - success記録RPCが失敗した場合はpartial failureとして返し、同じcreate再実行禁止を一般化warningに含める。
+
+レスポンスIO:
+
+- `dry_run = false` では `message_preview` 本文全文を返さない。
+- `discord_send` は `posted` / `failed` / `not_sent` などの一般化状態と、message referenceの有無だけを返す。
+- `db_update` は `success`、`reason`、`status`、`external_post_identifier_saved` などの一般化情報だけを返す。
+- Discord message id実値、post URL全文、Webhook URL、JWT、確認対象ID実値、Discord投稿先実値は返さない。
+- console出力は追加しない。
+
+残るIOリスク:
+
+- 送信前guardとsuccess記録RPCの条件更新でDB記録の二重化は抑止するが、同時実行でDiscord送信自体が二重化する理論上のリスクは残る。
+- Discord送信成功後にDB記録失敗した場合はmanual repair/resyncが必要になる。
+- deploy後の最初の確認は `dry_run = true` とし、DB更新なしとDiscord投稿なしを確認する。

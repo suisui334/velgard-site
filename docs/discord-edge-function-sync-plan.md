@@ -2446,3 +2446,44 @@ SQL applyゲートでの停止条件:
 - 古いSQL Editor内容を消していない、または貼り付け範囲が不明。
 
 このレビュー結果により、030は次のSQL applyゲートへ進める候補になった。ただしSQL applyは独立ゲートであり、ユーザーの明示確認なしには実行しない。
+
+## M-14E-16K SQL apply結果記録とEdge Function DB更新連携実装バッチ
+ユーザー手元のSQL applyゲートで `docs/supabase/sql/030_discord_sync_rpc_apply_draft.sql` をSQL Editor実行済み。SQL Editor画面上、対象RPC 3本の作成を確認した。この工程でCodexはSQL Editor再実行、DB/RPC追加変更、SQL apply再実行、Edge Function deploy、Discord追加実送信、本番投稿、secret設定/切替を行っていない。
+
+SQL apply結果:
+
+- `check_discord_session_post_create_ready(text)` 作成確認。
+- `record_discord_session_post_create_failure(text, text)` 作成確認。
+- `record_discord_session_post_create_success(text, text, text, text, text)` 作成確認。
+- 確認画面では `security_definer = true`、`has_search_path = true` を確認。
+- エラー表示なし。
+- 同じapply SQLは再実行していない。
+- EXECUTE権限の詳細行は確認画面に表示された範囲では未確認として扱う。後続の `dry_run = true` QAまたはSELECT-only確認で実動確認する。
+- 030の再実行は禁止。
+
+Edge Function実装内容:
+
+- `sync-session-post-to-discord` にDB更新連携を追加した。
+- `dry_run = true` は従来どおりpreview生成のみで、guard RPC、記録RPC、DB更新、Discord送信へ進まない。
+- `dry_run = false` かつ `action = create` の場合だけ、Discord送信前に `check_discord_session_post_create_ready` を呼ぶ。
+- guardが拒否した場合はDiscord送信前に停止し、一般化エラーを返す。
+- Discord送信成功後に `record_discord_session_post_create_success` を呼び、外部投稿識別子相当と同期状態をDBへ記録する。
+- Discord送信失敗時は、可能な範囲で `record_discord_session_post_create_failure` を呼び、一般化エラーのみを保存する。
+- Discord送信成功後にsuccess記録RPCが失敗した場合はpartial failureとして扱い、同じcreate再実行を禁止する注意を返す。
+- `dry_run = false` レスポンスではmessage preview本文全文を返さず、外部投稿識別子実値や投稿URL全文も返さない。
+- `discord_send` / `db_update` / `warnings` の既存レスポンス構造は一般化情報として維持する。
+- Webhook URL、認証情報、確認対象ID実値、外部投稿識別子実値、投稿URL全文、Discord投稿先実値、message preview本文全文をdocs、console、レスポンスへ出さない方針を維持する。
+
+二重投稿防止:
+
+- 送信前guard RPCで既存 `discord_message_id` がある場合はDiscord送信前に拒否する。
+- success記録RPC側でも既存 `discord_message_id` がある場合は拒否するため、DB記録の二重化を抑止する。
+- 同時実行で複数リクエストが送信前guardを通過してDiscord送信が二重化するリスクは理論上残る。予約状態更新、より強いDB側排他、または運用上の単発実行は後続TODOとして残す。
+
+次の確認:
+
+- Edge Function deployはまだ行わない。
+- 次工程はdeployゲート前の静的確認またはdeployゲート。
+- deploy後はまず `dry_run = true` を確認し、guard RPCやDB更新が呼ばれないことを確認する。
+- その後、独立ゲートでテスト用チャンネル向け `dry_run = false` を1回だけ確認する候補。
+- 本番募集チャンネル切替は、DB更新連携QA、二重投稿防止QA、update/resync方針、secret切替レビュー、本番初回投稿手順レビューが揃うまで停止。

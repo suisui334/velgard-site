@@ -4,6 +4,9 @@ type SyncAction = "create" | "update" | "close" | "delete" | "resync";
 
 type ErrorCode =
   | "config_missing"
+  | "db_update_failed"
+  | "discord_create_already_synced"
+  | "discord_sent_db_update_failed"
   | "invalid_action"
   | "invalid_payload"
   | "login_required"
@@ -61,6 +64,49 @@ type IsSessionGmRpcClient = ReturnType<typeof createClient> & {
   rpc: IsSessionGmRpc;
 };
 
+interface DiscordCreateReadyRow {
+  can_send: boolean | null;
+  has_existing_post: boolean | null;
+}
+
+interface DiscordCreateRecordRow {
+  discord_sync_status: string | null;
+  discord_last_action: string | null;
+  has_external_post_identifier?: boolean | null;
+}
+
+interface DiscordFailureRecordRow {
+  discord_sync_status: string | null;
+  discord_last_action: string | null;
+}
+
+type DiscordCreateReadyRpcResult = Promise<{ data: DiscordCreateReadyRow[] | null; error: unknown }>;
+type DiscordCreateSuccessRpcResult = Promise<{ data: DiscordCreateRecordRow[] | null; error: unknown }>;
+type DiscordCreateFailureRpcResult = Promise<{ data: DiscordFailureRecordRow[] | null; error: unknown }>;
+type DiscordSyncRpc = {
+  (
+    functionName: "check_discord_session_post_create_ready",
+    args: { p_session_id: string }
+  ): DiscordCreateReadyRpcResult;
+  (
+    functionName: "record_discord_session_post_create_success",
+    args: {
+      p_session_id: string;
+      p_discord_message_id: string;
+      p_discord_channel_id: string | null;
+      p_discord_thread_id: string | null;
+      p_discord_post_url: string | null;
+    }
+  ): DiscordCreateSuccessRpcResult;
+  (
+    functionName: "record_discord_session_post_create_failure",
+    args: { p_session_id: string; p_error_code: string | null }
+  ): DiscordCreateFailureRpcResult;
+};
+type DiscordSyncRpcClient = ReturnType<typeof createClient> & {
+  rpc: DiscordSyncRpc;
+};
+
 interface SyncTargetJudgment {
   isTarget: boolean;
   reason: string;
@@ -79,7 +125,13 @@ type DiscordWebhookErrorCode =
   | "webhook_response_invalid";
 
 type DiscordWebhookDraftResult =
-  | { ok: true; messageId: string | null }
+  | {
+    ok: true;
+    messageId: string | null;
+    channelId: string | null;
+    threadId: string | null;
+    postUrl: string | null;
+  }
   | {
     ok: false;
     status: number;
@@ -235,8 +287,28 @@ Deno.serve(async (request: Request) => {
     });
   }
 
+  const createGuard = await checkDiscordCreateReady(supabase, payload.value.sessionId);
+  if (!createGuard.ok) {
+    return jsonError(createGuard.status, createGuard.errorCode, createGuard.message, false, {
+      action: payload.value.action,
+      sync_target: {
+        eligible: syncTarget.isTarget,
+        reason: syncTarget.reason
+      },
+      discord_send: {
+        status: "not_sent"
+      },
+      db_update: {
+        success: false,
+        reason: "create_guard_failed"
+      },
+      warnings: mergeWarnings(warnings, createGuard.warning)
+    });
+  }
+
   const sendResult = await sendDiscordWebhookDraft(messagePreview);
   if (!sendResult.ok) {
+    const failureRecord = await recordDiscordCreateFailure(supabase, payload.value.sessionId, sendResult.errorCode);
     return jsonError(
       sendResult.status,
       sendResult.errorCode,
@@ -248,7 +320,53 @@ Deno.serve(async (request: Request) => {
           eligible: syncTarget.isTarget,
           reason: syncTarget.reason
         },
-        warnings
+        discord_send: {
+          status: "failed"
+        },
+        db_update: {
+          success: failureRecord.ok,
+          reason: failureRecord.ok ? "failure_recorded" : "failure_record_failed"
+        },
+        warnings: mergeWarnings(
+          warnings,
+          failureRecord.ok ? null : "同期失敗の記録にも失敗しました。再実行せず、手動確認してください。"
+        )
+      }
+    );
+  }
+
+  const successRecord = await recordDiscordCreateSuccess(supabase, payload.value.sessionId, sendResult);
+  if (!successRecord.ok) {
+    const failureRecord = await recordDiscordCreateFailure(
+      supabase,
+      payload.value.sessionId,
+      "discord_sent_db_update_failed"
+    );
+
+    return jsonError(
+      500,
+      "discord_sent_db_update_failed",
+      "Discord投稿は完了しましたが、同期状態の記録に失敗しました。再実行せず、手動確認してください。",
+      false,
+      {
+        action: payload.value.action,
+        sync_target: {
+          eligible: syncTarget.isTarget,
+          reason: syncTarget.reason
+        },
+        discord_send: {
+          status: "posted",
+          message_reference: sendResult.messageId ? "received" : "not_returned"
+        },
+        db_update: {
+          success: false,
+          reason: "success_record_failed",
+          failure_recorded: failureRecord.ok
+        },
+        warnings: mergeWarnings(
+          warnings,
+          "Discord投稿済みのため、同じcreateを再実行しないでください。"
+        )
       }
     );
   }
@@ -266,8 +384,11 @@ Deno.serve(async (request: Request) => {
       message_reference: sendResult.messageId ? "received" : "not_returned"
     },
     db_update: {
-      will_update: false,
-      reason: "db_update_deferred"
+      success: true,
+      status: "recorded",
+      sync_status: successRecord.syncStatus,
+      last_action: successRecord.lastAction,
+      external_post_identifier_saved: successRecord.hasExternalPostIdentifier
     },
     warnings
   });
@@ -410,7 +531,10 @@ async function sendDiscordWebhookDraft(messagePreview: string): Promise<DiscordW
 
   return {
     ok: true,
-    messageId: extractDiscordMessageId(responseBody.value)
+    messageId: extractDiscordMessageId(responseBody.value),
+    channelId: extractDiscordTextField(responseBody.value, "channel_id"),
+    threadId: extractDiscordThreadId(responseBody.value),
+    postUrl: null
   };
 }
 
@@ -459,11 +583,23 @@ async function readDiscordWebhookResponse(
 }
 
 function extractDiscordMessageId(value: unknown): string | null {
-  if (!isRecord(value) || typeof value.id !== "string") {
+  return extractDiscordTextField(value, "id");
+}
+
+function extractDiscordTextField(value: unknown, fieldName: string): string | null {
+  if (!isRecord(value) || typeof value[fieldName] !== "string") {
     return null;
   }
 
-  return normalizeText(value.id, 80) || null;
+  return normalizeText(value[fieldName], 120) || null;
+}
+
+function extractDiscordThreadId(value: unknown): string | null {
+  if (!isRecord(value) || !isRecord(value.thread) || typeof value.thread.id !== "string") {
+    return null;
+  }
+
+  return normalizeText(value.thread.id, 120) || null;
 }
 
 function truncateDiscordContent(value: string): string {
@@ -506,6 +642,154 @@ async function verifyManagementPermission(
   return {
     ok: true,
     allowed: Boolean(adminResult.data) || Boolean(gmResult.data)
+  };
+}
+
+async function checkDiscordCreateReady(
+  supabase: ReturnType<typeof createClient>,
+  sessionId: string
+): Promise<{ ok: true } | {
+  ok: false;
+  status: number;
+  errorCode: ErrorCode;
+  message: string;
+  warning: string | null;
+}> {
+  const rpcClient = supabase as unknown as DiscordSyncRpcClient;
+  const { data, error } = await rpcClient.rpc("check_discord_session_post_create_ready", {
+    p_session_id: sessionId
+  });
+
+  if (error) {
+    return mapDiscordSyncRpcError(error, "db_update_failed", "Discord同期の事前確認に失敗しました。");
+  }
+
+  const row = firstRow(data);
+  if (!row || row.can_send !== true || row.has_existing_post === true) {
+    return {
+      ok: false,
+      status: 409,
+      errorCode: "discord_create_already_synced",
+      message: "既存のDiscord投稿があるため、新規投稿は実行できません。",
+      warning: "既存投稿がある場合はupdateまたはresyncを検討してください。"
+    };
+  }
+
+  return { ok: true };
+}
+
+async function recordDiscordCreateSuccess(
+  supabase: ReturnType<typeof createClient>,
+  sessionId: string,
+  sendResult: Extract<DiscordWebhookDraftResult, { ok: true }>
+): Promise<{
+  ok: true;
+  syncStatus: string | null;
+  lastAction: string | null;
+  hasExternalPostIdentifier: boolean;
+} | { ok: false }> {
+  const rpcClient = supabase as unknown as DiscordSyncRpcClient;
+  const { data, error } = await rpcClient.rpc("record_discord_session_post_create_success", {
+    p_session_id: sessionId,
+    p_discord_message_id: sendResult.messageId ?? "",
+    p_discord_channel_id: sendResult.channelId,
+    p_discord_thread_id: sendResult.threadId,
+    p_discord_post_url: sendResult.postUrl
+  });
+
+  if (error) {
+    return { ok: false };
+  }
+
+  const row = firstRow(data);
+  if (!row) {
+    return { ok: false };
+  }
+
+  return {
+    ok: true,
+    syncStatus: normalizeText(row.discord_sync_status, 40) || null,
+    lastAction: normalizeText(row.discord_last_action, 40) || null,
+    hasExternalPostIdentifier: row.has_external_post_identifier === true
+  };
+}
+
+async function recordDiscordCreateFailure(
+  supabase: ReturnType<typeof createClient>,
+  sessionId: string,
+  errorCode: string
+): Promise<{ ok: true } | { ok: false }> {
+  const rpcClient = supabase as unknown as DiscordSyncRpcClient;
+  const { data, error } = await rpcClient.rpc("record_discord_session_post_create_failure", {
+    p_session_id: sessionId,
+    p_error_code: normalizeErrorCode(errorCode)
+  });
+
+  if (error) {
+    return { ok: false };
+  }
+
+  return firstRow(data) ? { ok: true } : { ok: false };
+}
+
+function mapDiscordSyncRpcError(
+  error: unknown,
+  fallbackCode: ErrorCode,
+  fallbackMessage: string
+): {
+  ok: false;
+  status: number;
+  errorCode: ErrorCode;
+  message: string;
+  warning: string | null;
+} {
+  const message = extractErrorMessage(error);
+  if (message.includes("discord_create_already_synced")) {
+    return {
+      ok: false,
+      status: 409,
+      errorCode: "discord_create_already_synced",
+      message: "既存のDiscord投稿があるため、新規投稿は実行できません。",
+      warning: "既存投稿がある場合はupdateまたはresyncを検討してください。"
+    };
+  }
+
+  if (message.includes("session_not_found")) {
+    return {
+      ok: false,
+      status: 404,
+      errorCode: "session_not_found",
+      message: "対象の依頼書が見つかりません。",
+      warning: null
+    };
+  }
+
+  if (message.includes("login_required")) {
+    return {
+      ok: false,
+      status: 401,
+      errorCode: "login_required",
+      message: "ログインが必要です。",
+      warning: null
+    };
+  }
+
+  if (message.includes("not_allowed")) {
+    return {
+      ok: false,
+      status: 403,
+      errorCode: "not_allowed",
+      message: "この依頼書を同期する権限がありません。",
+      warning: null
+    };
+  }
+
+  return {
+    ok: false,
+    status: 500,
+    errorCode: fallbackCode,
+    message: fallbackMessage,
+    warning: "同期状態の事前確認に失敗しました。"
   };
 }
 
@@ -769,6 +1053,26 @@ function labelFor(labels: Record<string, string>, value: unknown): string {
 
 function hasPostReference(session: SessionRow): boolean {
   return normalizeText(session.discord_message_id, 180).length > 0;
+}
+
+function firstRow<T>(data: T[] | null): T | null {
+  return Array.isArray(data) && data.length > 0 ? data[0] : null;
+}
+
+function mergeWarnings(warnings: string[], extra: string | null): string[] {
+  return extra ? [...warnings, extra] : warnings;
+}
+
+function extractErrorMessage(error: unknown): string {
+  if (isRecord(error) && typeof error.message === "string") {
+    return error.message;
+  }
+
+  return String(error ?? "");
+}
+
+function normalizeErrorCode(value: unknown): string {
+  return normalizeText(value, 120).replace(/[^a-z0-9_:-]/gi, "_") || "discord_sync_error";
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
