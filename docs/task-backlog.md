@@ -1589,3 +1589,25 @@
 - Edge FunctionのDiscord本文生成を参加者向け依頼書形式へ変更し、詳細URLやクエリ付き導線を本文に入れない。日時は曜日つき短縮形式、参加人数は `2～5人` 形式、開催場所未設定は `未定`。
 - 次工程候補は M-14E-15L `dry_run = true` QA、M-14E-15M テスト用チャンネル実送信QA、M-14E-15N DB更新連携/二重投稿防止設計。
 - この工程ではコード実装とdocs整理のみ行い、SQL Editor再実行、DB/RPC追加変更、Edge Function deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15L/M deploy後 dry_run=true新フォーマットpreview確認
+- `f76064f Add session tool UI and Discord post format` の状態でdeploy済みの `sync-session-post-to-discord` について、ユーザー手元で `create / dry_run = true` を再確認した。
+- 前回のHTTP 401は、JWT期限切れまたは無効化の可能性が高く、Edge Functionや新フォーマットの失敗とは判断しない。
+- ユーザー手元でJWTをPowerShell待機方式により再取得した。JWT本体は記録していない。JWTは3パート形式として確認済み。
+- 確認対象IDも待機方式により再取得した。ID本体は記録していない。値は出力していない。
+- 再確認結果はHTTP 200、HTTP errorなし、JSON parse成功、`ok = true`、`dry_run = true`、`action = create`。
+- `message_preview` は返却あり。ただし本文全文は記録しない。previewは125文字、9行。
+- 新フォーマット確認として、冒頭区切り線あり、開催場所ラベルあり、詳細URLなし、詳細ラベルなし、ISO/UTC表記なしを確認した。
+- `planned_db_update` と `warnings` は返却あり。ただしdry-run上の予定情報であり、DB更新実行ではない。
+- Discordテスト用チャンネルをユーザーが目視確認し、新規投稿が増えていないことを確認済み。
+- `dry_run = false` 実送信、追加Discord投稿、DB更新連携、外部投稿識別子保存、同期状態更新は未実施。
+- M-14E-15L/M相当のdeploy後 `dry_run = true` 新フォーマットpreview確認は完了扱いとする。
+
+次工程候補:
+
+- UI手動QAを優先する。依頼書作成で開催場所入力、依頼書編集で開催場所変更、保存後session-detailで開催場所表示、未入力時の `未定` 表示を確認する。
+- 募集人数min/maxの同一行UI崩れ、GM/admin管理ブロックの配置を確認する。
+- 必要なら、その後に新しい検証用依頼書で新フォーマット実送信を1回だけ別工程として扱う。
+- 旧フォーマットで送信済みの既存検証用依頼書は、二重投稿防止のため再利用しない。
+- DB更新連携、二重投稿防止、action拡張、GM/admin同期UI、本番募集チャンネル切り替えは後続工程として残す。
+- この工程ではdocs記録のみ行い、SQL Editor再実行、DB/RPC追加変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。

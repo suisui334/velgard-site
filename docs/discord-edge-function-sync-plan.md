@@ -1624,3 +1624,56 @@ Discord投稿フォーマット:
 2. M-14E-15M: テスト用チャンネルで新フォーマット実送信QAを行う。
 3. M-14E-15N: DB更新連携、外部投稿識別子保存、二重投稿防止を設計する。
 4. M-14E-15O: 本番募集チャンネル切り替え判断を行う。
+
+## M-14E-15L/M deploy後 dry_run=true 新フォーマットpreview確認
+`sync-session-post-to-discord` の `f76064f Add session tool UI and Discord post format` 版をdeploy済みの状態で、ユーザー手元により `create / dry_run = true` を再確認した。Codex側ではdry-run実行、追加deploy、Discord送信、SQL Editor実行、DB/RPC変更、フロント追加実装は行っていない。
+
+前回のdeploy後確認ではHTTP 401が返っていたが、今回PowerShell待機方式でJWTを再取得し、確認対象IDも安全に再取得したうえで再確認したところHTTP 200で成功した。したがって前回のHTTP 401はJWT期限切れまたは無効化の可能性が高く、Edge Functionや新フォーマットの失敗とは判断しない。
+
+認証文脈と確認対象:
+
+- JWTはユーザー手元で再取得済み。JWT本体は記録していない。
+- `TOKEN_CAPTURED = true`、`USER_JWT_SET = true`、`USER_JWT_PARTS = 3`、`USER_JWT_LOOKS_JWT = true`。
+- 確認対象IDはユーザー手元で再取得済み。ID本体は記録していない。
+- `SESSION_ID_CAPTURED = true`、`SESSION_ID_SET = true`、`SESSION_ID_LENGTH = 27`、`SESSION_ID_VALUE_OUTPUT = false`。
+
+dry-run再確認結果:
+
+- `USER_JWT_READY = true`、`SESSION_ID_READY = true`、`SUPABASE_URL_READY = true`。
+- `DRY_RUN_EXECUTED = true`。
+- requestは `action = create`、`dry_run = true`。
+- `HTTP_ERROR = false`、`HTTP_STATUS = 200`。
+- JSON parse成功。
+- `ok = true`、`dry_run = true`、`action = create`。
+- `message_preview` は返却あり。ただし本文全文は記録しない。
+- previewは `PREVIEW_LENGTH = 125`、`PREVIEW_LINES = 9`。
+- 冒頭区切り線あり。
+- `詳細` URLなし。
+- `詳細` ラベルなし。
+- `開催場所` ラベルあり。
+- ISO/UTC表記なし。
+- `planned_db_update` あり。
+- `warnings` あり。
+- Discordテスト用チャンネルをユーザーが目視確認し、新規投稿が増えていないことを確認済み。
+
+判断:
+
+- deploy済み `sync-session-post-to-discord` は `dry_run = true` preview専用を維持している。
+- 新Discord投稿フォーマットはpreviewへ反映されている。
+- 投稿本文は、冒頭区切り線あり、開催場所ラベルあり、URL/詳細リンクなし、詳細ラベルなし、ISO/UTC表記なしの方針に沿っている。
+- `dry_run = false` 実送信、追加Discord投稿、DB更新連携、外部投稿識別子保存、同期状態更新は未実施。
+
+次工程候補:
+
+1. M-14E-15N: UI手動QAを優先する。
+2. 依頼書作成で開催場所を入力できることを確認する。
+3. 依頼書編集で開催場所を変更できることを確認する。
+4. 保存後session-detailに開催場所が表示されることを確認する。
+5. 開催場所未入力時に `未定` 表示になることを確認する。
+6. 募集人数min/maxの同一行UIが崩れていないことを確認する。
+7. GM/admin管理ブロックの位置が参加者向け情報より目立ちすぎないことを確認する。
+8. 必要なら、別工程で新しい検証用依頼書を使い、新フォーマットのテスト用チャンネル実送信を1回だけ行う。
+9. 旧フォーマットで送信済みの既存検証用依頼書は、二重投稿防止のため再利用しない。
+10. DB更新連携、二重投稿防止、action拡張、GM/admin同期UI、本番募集チャンネル切り替えは後続工程に残す。
+
+この工程ではdocs記録のみ行い、SQL Editor再実行、DB/RPC追加変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。

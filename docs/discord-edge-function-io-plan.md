@@ -1292,3 +1292,53 @@ Discord IO:
 - 日時はISO/UTC形式ではなく、曜日つきの `MM/DD(曜) HH:mm　～　MM/DD(曜) HH:mm` へ整形する。
 
 この工程ではコード実装とdocs整理のみ行い、SQL Editor再実行、DB/RPC追加変更、Edge Function deploy、Discord追加実送信、dry-run再実行、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15L/M deploy後 dry_run=true IO確認
+deploy済み `sync-session-post-to-discord` について、ユーザー手元で `create / dry_run = true` を再確認した。Codex側ではリクエスト実行、追加deploy、Discord送信、SQL Editor実行、DB/RPC変更、フロント追加実装は行っていない。
+
+入力IO:
+
+- Authorization用JWTはユーザー手元でPowerShell待機方式により再取得済み。JWT本体は記録しない。
+- JWTは3パート形式として確認済み。
+- 確認対象IDはユーザー手元で待機方式により再取得済み。ID本体は記録しない。
+- 確認対象IDの値は出力されていない。
+- Supabase URLはユーザー手元で準備済み。URL全文は記録しない。
+- requestは `action = create`、`dry_run = true`。
+
+レスポンスIO:
+
+- HTTP 200。
+- HTTP errorなし。
+- JSON parse成功。
+- `ok = true`。
+- `dry_run = true`。
+- `action = create`。
+- `message_preview` 返却あり。ただし本文全文は記録しない。
+- previewは125文字、9行。
+- `planned_db_update` 返却あり。dry-run上の予定情報であり、DB更新実行ではない。
+- `warnings` 返却あり。
+
+preview確認:
+
+- 冒頭区切り線あり。
+- サイト詳細URLなし。
+- `詳細` ラベルなし。
+- `開催場所` ラベルあり。
+- ISO/UTC形式の日時表記なし。
+- message preview本文全文、確認対象ID、JWT、project ref、Supabase URL全文、Discord投稿先実値、Discord message id相当の実値は記録していない。
+
+副作用確認:
+
+- Discordテスト用チャンネルに新規投稿が増えていないことをユーザーが目視確認済み。
+- `dry_run = true` preview専用のためDiscord送信なし。
+- DB更新連携、外部投稿識別子保存、同期状態更新は未実施。
+- `dry_run = false` 実送信は再実行していない。
+
+次のIO確認候補:
+
+- まずUI手動QAを優先する。依頼書作成/編集で `session_tool` を入力し、保存後にsession-detailへ開催場所が表示されること、未入力時に `未定` へ丸められることを確認する。
+- 募集人数min/maxの同一行表示、GM/admin管理ブロックの位置も確認する。
+- 新フォーマットの実送信確認が必要な場合は、旧フォーマットで送信済みの既存検証用依頼書を再利用せず、新しい検証用依頼書を使う。
+- DB更新連携、二重投稿防止、action拡張、GM/admin同期UI、本番募集チャンネル切り替えは後続IO設計に残す。
+
+この工程ではdocs記録のみ行い、SQL Editor再実行、DB/RPC追加変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 再実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
