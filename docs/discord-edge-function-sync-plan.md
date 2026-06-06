@@ -2583,3 +2583,76 @@ Discord本文:
 3. deploy後に `dry_run = true` previewで `概要` ラベルが消え、URL/詳細リンク/ISO/UTC表記が混入していないことを確認する。
 4. DB同期込み `dry_run = false` 実送信QAは、上記の文面/表示/遷移改善確認後のさらに別ゲートで扱う。
 5. 本番募集チャンネル切替は引き続き停止する。
+
+## M-14E-16N DB sync real-send verification result
+DB更新連携入り `sync-session-post-to-discord` のdeploy後、ユーザー手元で新しい検証用依頼書 `M14E16_sync_db_QA_01` に対して `create` / `dry_run = false` の実送信を1回だけ実施した。Codex側では SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、Discord追加実送信、本番投稿、secret設定/切替を行っていない。同じ実送信コマンドは再実行禁止とする。
+
+実送信結果:
+
+- 対象は新しい検証用依頼書 `M14E16_sync_db_QA_01`。
+- JWT、対象依頼書、Supabase接続先はユーザー手元で準備し、実値はdocsへ記録しない。
+- requestは `action = create` / `dry_run = false`。
+- HTTP 200、HTTP errorなし、JSON parse成功。
+- response keysは `ok` / `dry_run` / `action` / `sync_target` / `discord_send` / `db_update` / `warnings`。
+- `ok = true`、`dry_run = false`、`action = create`。
+- `discord_send`、`db_update`、`warnings` が返却された。
+- `db_update.success = true` 相当を確認済み。
+- `message_preview` は返却されていない。
+- Discord message id実値、post URL全文、Webhook URL、JWT、対象session id実値、Supabase URL全文は記録しない。
+
+Discord目視確認:
+
+- Discordテスト用チャンネルに新規投稿が1件増えた。
+- 対象タイトルは `M14E16_sync_db_QA_01` 相当。
+- 冒頭区切り線あり、開催場所あり、`概要` ラベルなし。
+- 概要本文の改行が反映されている。
+- 詳細URL/詳細リンクなし、ISO/UTC表記なし。
+- 本番募集チャンネルへの投稿なし。
+
+DB同期状態SELECT確認:
+
+- 最初の確認SQLは列名誤りで失敗したが、SELECT確認のみでDB変更は発生していない。
+- 修正版のSELECT確認では、対象タイトルで確認した。
+- `target_found = true`。
+- `discord_message_id` 相当は保存済み。
+- `discord_channel_id` 相当は保存済み。
+- `discord_post_url` 相当は未保存。
+- `discord_sync_status = posted`。
+- `discord_last_action = create`。
+- `discord_synced_at` 相当は保存済み。
+- `discord_sync_error` は空。
+
+判断:
+
+- 外部投稿識別子の主軸である `discord_message_id` と、投稿先識別子である `discord_channel_id` が保存されたため、DB同期成功として扱う。
+- `discord_sync_status = posted`、`discord_last_action = create`、同期成功時刻あり、同期エラー空を確認できた。
+- `discord_post_url` 未保存は現時点では非致命。管理UIの投稿リンク導線やrepair/resyncの補助情報として、後続課題に残す。
+- 同一対象への `create` 再実行は二重投稿防止確認ゲートで扱う。`dry_run = false` を伴う可能性があるため、独立ゲートとする。
+
+二重投稿防止確認ゲート案:
+
+- 対象は投稿済みの `M14E16_sync_db_QA_01`。
+- 目的は、同じ対象で `action = create` を再実行した際に、送信前guardで拒否され、Discord投稿が増えないことを確認すること。
+- 実行前に、DB上で外部投稿識別子保存済みであることを実値を出さずに確認する。
+- 実行後にDiscord投稿増加なしを確認する。
+- responseやログには一般化エラーだけを記録し、Discord message id実値、post URL全文、session id実値、Webhook URL、JWTは記録しない。
+- 同じコマンドを再実行しない。
+
+二重投稿防止ゲート停止条件:
+
+- 対象が `M14E16_sync_db_QA_01` ではない。
+- DB上で外部投稿識別子保存済みを確認できていない。
+- JWT、対象依頼書、Supabase接続先の準備に不備がある。
+- Discord投稿先がテスト用チャンネルと確認できない。
+- 本番募集チャンネル投稿の疑いがある。
+- 不明なエラーが出る。
+- 送信コマンドが確認コマンドと分離されていない。
+
+後続課題:
+
+- `discord_post_url` 保存の補強。
+- 二重投稿防止の実動確認。
+- `update` / `close` / `delete` / `resync` 方針整理。
+- 管理UIでの同期状態表示。
+- 本番切替前レビュー。
+- 本番募集チャンネル切替ゲート。

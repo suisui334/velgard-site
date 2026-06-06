@@ -2035,3 +2035,52 @@ Discord本文IO:
 - GitHub Pages反映後にフロント手動QAを行う。
 - Edge Function deploy後に `dry_run = true` previewで本文差分を確認する。
 - `dry_run = false` 実送信、DB同期状態保存、二重投稿防止実動確認は独立ゲートで扱う。
+
+## M-14E-16N DB sync real-send IO verification
+DB更新連携入りEdge Function deploy後、ユーザー手元で新しい検証用依頼書 `M14E16_sync_db_QA_01` を対象に `create` / `dry_run = false` を1回だけ実行し、Discord送信とDB同期状態保存のIOを確認した。Codex側では実行操作を行わず、結果記録のみを行う。同じ実送信コマンドは再実行禁止。
+
+request / response IO:
+
+- requestは `action = create` / `dry_run = false`。
+- HTTP 200、JSON parse成功。
+- response keysは `ok` / `dry_run` / `action` / `sync_target` / `discord_send` / `db_update` / `warnings`。
+- `ok = true`、`dry_run = false`、`action = create`。
+- `discord_send` と `db_update` が返り、`db_update.success = true` 相当を確認した。
+- `message_preview` は返らない。本文全文をレスポンス/docsへ残さない方針を維持。
+- Discord message id実値、post URL全文、Webhook URL、JWT、対象session id実値、Supabase URL全文はレスポンス記録やdocsへ出さない。
+
+Discord output:
+
+- テスト用チャンネルに新規投稿1件。
+- 投稿タイトルは対象検証用依頼書相当。
+- 冒頭区切り線、開催場所、概要本文改行が反映された。
+- `概要` ラベル、詳細URL、詳細リンク、ISO/UTC表記はない。
+- 本番募集チャンネル投稿なし。
+
+DB sync output:
+
+- `discord_message_id` 相当: saved。
+- `discord_channel_id` 相当: saved。
+- `discord_post_url` 相当: not saved。
+- `discord_sync_status`: `posted`。
+- `discord_last_action`: `create`。
+- `discord_synced_at` 相当: present。
+- `discord_sync_error`: empty。
+
+IO判断:
+
+- Discord送信成功後のsuccess記録RPC呼び出しにより、二重投稿防止の主軸になる外部投稿識別子保存は成功した。
+- `discord_post_url` 未保存は、現在のDB同期成功判定では非致命。投稿リンク導線が必要になる管理UIやrepair/resync工程で補強する。
+- `dry_run = false` 実送信済み対象の再実行は禁止。二重投稿防止の実動確認は独立ゲートで、送信前guardの拒否とDiscord投稿増加なしを確認する。
+
+二重投稿防止確認IO案:
+
+1. 対象が投稿済み検証用依頼書であることを実値なしで確認する。
+2. DB上で外部投稿識別子保存済みを確認する。
+3. `action = create` / `dry_run = false` を別ゲートで1回だけ確認する。
+4. 期待値は送信前guard拒否、Discord投稿増加なし、一般化エラーのみ。
+5. Discord message id実値、post URL全文、session id実値、Webhook URL、JWTは記録しない。
+
+停止条件:
+
+- 対象不一致、外部投稿識別子未確認、認証/接続準備不備、テスト用チャンネル未確認、本番投稿疑い、不明エラー、確認コマンドと送信コマンド未分離。

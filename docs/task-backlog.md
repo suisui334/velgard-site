@@ -1975,3 +1975,15 @@ Discord成功後DB更新失敗時:
 - deploy後 `dry_run = true` previewで `概要` ラベル削除、URL/詳細リンクなし、ISO/UTC表記なしを確認する。
 - DB同期込み `dry_run = false` 実送信QA、Discord追加投稿、二重投稿防止実動確認、本番投稿、secret切替はさらに別ゲート。
 - この工程ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Function deploy、追加deploy、`dry_run = false` 実送信、Discord追加実送信、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16N DB同期込み実送信QA結果
+- DB更新連携入り `sync-session-post-to-discord` deploy後、新しい検証用依頼書 `M14E16_sync_db_QA_01` に対して `create` / `dry_run = false` を1回だけ実施済み。同じコマンドの再実行は禁止。
+- 実送信結果はHTTP 200、JSON parse成功、`ok = true`、`dry_run = false`、`action = create`。`discord_send`、`db_update`、`warnings` が返り、`db_update.success = true` 相当を確認した。
+- `message_preview` は返っていない。message preview本文全文、Discord message id実値、post URL全文、Webhook URL、JWT、対象session id実値、Supabase URL全文は記録しない。
+- Discordテスト用チャンネルには新規投稿が1件増えた。対象タイトル相当、冒頭区切り線、開催場所、概要本文改行を確認し、`概要` ラベル、詳細URL/詳細リンク、ISO/UTC表記はない。本番募集チャンネル投稿なし。
+- DB同期状態SELECT確認では、外部投稿識別子相当と投稿先識別子相当の保存、`discord_sync_status = posted`、`discord_last_action = create`、同期成功時刻あり、同期エラー空を確認した。
+- `discord_post_url` 相当は未保存。現時点では非致命とし、管理UIの投稿リンク導線やrepair/resync補助情報として後続課題に残す。
+- 次工程は二重投稿防止確認ゲート。投稿済みの `M14E16_sync_db_QA_01` を対象に、`action = create` 再実行が送信前guardで拒否され、Discord投稿が増えないことを確認する。ただし `dry_run = false` を伴う可能性があるため独立ゲートで扱う。
+- 二重投稿防止ゲート停止条件は、対象不一致、外部投稿識別子保存済み未確認、JWT/対象依頼書/Supabase接続先不備、テスト用チャンネル未確認、本番投稿疑い、不明エラー、確認コマンドと送信コマンド未分離、同一コマンド再実行。
+- 後続課題は `discord_post_url` 保存補強、二重投稿防止の実動確認、`update` / `close` / `delete` / `resync` 方針整理、管理UI同期状態表示、本番切替前レビュー、本番募集チャンネル切替ゲート。
+- この記録作業ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 再実行、Discord追加実送信、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
