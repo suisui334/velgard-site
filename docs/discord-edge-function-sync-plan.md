@@ -2487,3 +2487,64 @@ Edge Function実装内容:
 - deploy後はまず `dry_run = true` を確認し、guard RPCやDB更新が呼ばれないことを確認する。
 - その後、独立ゲートでテスト用チャンネル向け `dry_run = false` を1回だけ確認する候補。
 - 本番募集チャンネル切替は、DB更新連携QA、二重投稿防止QA、update/resync方針、secret切替レビュー、本番初回投稿手順レビューが揃うまで停止。
+
+## M-14E-16L DB更新連携版 deploy結果とpost-deploy dry_run=true確認
+DB更新連携入りの `sync-session-post-to-discord` はユーザー手元でdeploy済み。deployは `npx.cmd` と別プロセス起動の手順で行い、Codex側ではEdge Function deployを実行していない。
+
+deploy結果:
+
+- `DEPLOY_EXECUTED = true`。
+- `DEPLOY_EXIT_CODE = 0`。
+- `DEPLOY_REPORTED_SUCCESS = true`。
+- WARNING表示はあったが、認証問題を示すものではなく、deploy自体は成功扱い。
+- project linkに関するヒントは表示された。
+- deploy前後で `deno.lock` / `supabase/.temp` は生成物として掃除済み。
+- deploy後の作業ツリーはclean。
+- `deno check supabase/functions/sync-session-post-to-discord/index.ts` は成功済み。
+
+post-deploy `create` / `dry_run = true` 確認:
+
+- JWTはユーザー手元で再取得し、docsには実値を記録しない。
+- 確認対象は既存の検証用依頼書 `M14E15P_discord_format_QA_01`。
+- requestは `action = create`、`dry_run = true`。
+- `REAL_SEND_EXECUTED = false`、`DRY_RUN_EXECUTED = true`。
+- HTTP 200、HTTP errorなし、JSON parse成功。
+- レスポンスキーは `ok` / `dry_run` / `action` / `sync_target` / `message_preview` / `planned_db_update` / `warnings`。
+- `ok = true`、`dry_run = true`、`action = create`。
+- `message_preview` 返却あり。ただし本文全文は記録しない。
+- `planned_db_update` と `warnings` 返却あり。ただしdry-run上の予定情報であり、DB更新実行ではない。
+- previewは冒頭区切り線あり、詳細URLなし、詳細ラベルなし、開催場所ラベルあり、対象タイトルあり、ISO/UTC表記なし。
+- Discordテスト用チャンネルへの新規投稿増加なし。
+
+判断:
+
+- DB更新連携入りEdge Functionはdeploy済み。
+- `dry_run = true` はpreview専用を維持し、Discord投稿、DB更新、guard RPC、記録RPCへ進んでいない。
+- 新Discord投稿フォーマットのpreviewは期待どおり。
+- `dry_run = false` はまだ未実行。
+- 次の危険工程は、DB更新連携込みの `dry_run = false` 実送信QA。
+- 次回の実送信QAでは、既に投稿済みの `M14E15P_discord_format_QA_01` を再利用しない。新しい検証用依頼書を使う。
+- 既に投稿済み対象の二重投稿防止実動確認は、Discord送信を伴う可能性があるため別ゲートとして扱う。
+
+次のまとめQAバッチ案:
+
+1. 新しい検証用依頼書を作成する。
+2. deploy後 `dry_run = true` previewを確認する。
+3. 独立ゲートで `dry_run = false` 実送信を1回だけ確認する。
+4. DB同期状態が保存されたか、実値IDを出さずに確認する。
+5. 同じ対象でcreate再実行が送信前に拒否されるか確認する。ただしDiscord送信リスクがあるため別ゲート化する。
+6. Discord投稿増加数が想定どおりか確認する。
+
+停止条件:
+
+- JWT、確認対象、Supabase接続先の準備に不備がある。
+- `dry_run = true` が通らない。
+- previewにURL、詳細リンク、ISO/UTC表記が混入する。
+- 対象依頼書が誤っている。
+- 既に投稿済み対象を実送信用に使っている疑いがある。
+- DB同期状態確認で実値IDを出す必要がありそうな場合。
+- Discord投稿先がテスト用チャンネルであると確認できない。
+- 本番募集チャンネル投稿の疑いがある。
+- 少しでも不明なエラーが出た場合。
+
+この工程ではdocs記録と静的確認のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 実送信、Discord追加実送信、本番投稿、secret設定/切替、`updates.json` 変更は行わない。

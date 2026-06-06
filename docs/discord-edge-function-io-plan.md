@@ -1958,3 +1958,50 @@ SQL applyゲートでは、貼り付け範囲欠落、CHECK外値、secret/URL/I
 - 送信前guardとsuccess記録RPCの条件更新でDB記録の二重化は抑止するが、同時実行でDiscord送信自体が二重化する理論上のリスクは残る。
 - Discord送信成功後にDB記録失敗した場合はmanual repair/resyncが必要になる。
 - deploy後の最初の確認は `dry_run = true` とし、DB更新なしとDiscord投稿なしを確認する。
+
+## M-14E-16L deploy後 dry_run=true IO確認
+DB更新連携入りの `sync-session-post-to-discord` はユーザー手元でdeploy済み。Codex側ではdeploy、追加dry-run、Discord送信、SQL Editor実行、DB/RPC追加変更、secret切替を行っていない。
+
+deploy IO結果:
+
+- deployは成功扱い。終了コードは0。
+- WARNING表示はあったが、認証問題ではない。
+- project linkに関するヒントは表示された。
+- `deno.lock` / `supabase/.temp` は生成物として掃除済み。
+- deploy後の作業ツリーはclean。
+- Deno構文確認は成功済み。
+
+post-deploy dry-run入力IO:
+
+- JWT、確認対象、Supabase接続先はユーザー手元で用意し、実値は記録しない。
+- requestは `action = create`、`dry_run = true`。
+- 対象タイトルは `M14E15P_discord_format_QA_01`。
+- `dry_run = false` は実行していない。
+
+post-deploy dry-runレスポンスIO:
+
+- HTTP 200、JSON parse成功。
+- レスポンスキーは `ok` / `dry_run` / `action` / `sync_target` / `message_preview` / `planned_db_update` / `warnings`。
+- `ok = true`、`dry_run = true`、`action = create`。
+- `message_preview` は返ったが本文全文は記録しない。
+- `planned_db_update` は返ったが、dry-run上の予定情報でありDB更新ではない。
+- previewは冒頭区切り線あり、開催場所ラベルあり、対象タイトルあり、詳細URLなし、詳細ラベルなし、ISO/UTC表記なし。
+- Discordテスト用チャンネルへの新規投稿増加なし。
+
+IO判断:
+
+- `dry_run = true` はpreview専用を維持している。
+- `dry_run = true` ではDiscord送信なし、DB更新なし、同期状態保存なし。
+- DB更新連携入りの `dry_run = false` はまだ未確認。
+- 既に投稿済みの `M14E15P_discord_format_QA_01` は次の実送信用に再利用しない。
+
+次のまとめQA IO案:
+
+1. 新しい検証用依頼書を作成する。
+2. `dry_run = true` で新フォーマットpreviewを確認する。
+3. 独立ゲートで `dry_run = false` の実送信を1回だけ確認する。
+4. DB同期状態が保存されたかを、実値IDを記録せず確認する。
+5. 同じ対象のcreate再実行が送信前に拒否されるかを別ゲートで確認する。
+6. Discord投稿増加数が想定どおりか確認する。
+
+C以降は危険工程を含むため、今回のdocsでは手順案と停止条件だけを整理する。

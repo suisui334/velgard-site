@@ -1914,3 +1914,46 @@ Discord成功後DB更新失敗時:
 - `dry_run = false` レスポンスではmessage preview本文全文、Discord message id実値、post URL全文、Webhook URL、確認対象ID実値を返さない。
 - 同時実行でDiscord送信自体が二重化する理論上のリスクは残るため、予約状態更新、より強いDB側排他、単発運用を後続TODOとして維持。
 - この工程ではSQL Editor再実行、DB/RPC追加変更、SQL apply再実行、Edge Function deploy、Discord追加実送信、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16L DB更新連携版deploy結果とpost-deploy dry_run=true確認
+- DB更新連携入りの `sync-session-post-to-discord` はユーザー手元でdeploy済み。
+- deployは終了コード0で成功扱い。WARNING表示はあったが認証問題ではない。
+- deploy前後で `deno.lock` / `supabase/.temp` は生成物として掃除済み。deploy後の作業ツリーはclean。
+- `deno check supabase/functions/sync-session-post-to-discord/index.ts` は成功済み。
+- deploy後、ユーザー手元で `create` / `dry_run = true` を再確認した。
+- JWT、確認対象、Supabase接続先はユーザー手元だけで扱い、実値はdocsへ記録しない。
+- 対象は `M14E15P_discord_format_QA_01`。
+- dry-run結果はHTTP 200、JSON parse成功、`ok = true`、`dry_run = true`、`action = create`。
+- レスポンスキーは `ok,dry_run,action,sync_target,message_preview,planned_db_update,warnings`。
+- `message_preview` あり。ただし本文全文は記録しない。
+- `planned_db_update` と `warnings` あり。ただしdry-run上の予定情報であり、DB更新実行ではない。
+- previewは冒頭区切り線あり、開催場所ラベルあり、対象タイトルあり、詳細URLなし、詳細ラベルなし、ISO/UTC表記なし。
+- Discordテスト用チャンネルへの新規投稿増加なし。
+- `dry_run = true` はpreview専用を維持し、Discord投稿、DB更新、guard RPC、記録RPCへ進んでいないと判断する。
+- `dry_run = false` はまだ未実行。
+- 次の危険工程はDB更新連携込みの `dry_run = false` 実送信QA。
+- 次回の実送信QAでは、既に投稿済みの `M14E15P_discord_format_QA_01` を再利用せず、新しい検証用依頼書を使う。
+- 二重投稿防止の実動確認はDiscord送信を伴う可能性があるため、独立ゲートとして扱う。
+
+次のまとめQAバッチ:
+
+1. 新しい検証用依頼書を作成する。
+2. deploy後 `dry_run = true` previewを確認する。
+3. 独立ゲートで `dry_run = false` 実送信を1回だけ確認する。
+4. DB同期状態保存を確認する。ただし実値IDは記録しない。
+5. 同じ対象でcreate再実行が送信前に拒否されるか確認する。ただし別ゲート化する。
+6. Discord投稿増加数が想定どおりか確認する。
+
+停止条件:
+
+- JWT、確認対象、Supabase接続先の準備不備。
+- `dry_run = true` 不通過。
+- previewへのURL、詳細リンク、ISO/UTC表記混入。
+- 対象依頼書の誤り。
+- 既に投稿済み対象を実送信用に使っている疑い。
+- DB同期状態確認で実値IDを出す必要がありそうな場合。
+- Discord投稿先がテスト用チャンネルであると確認できない。
+- 本番募集チャンネル投稿の疑い。
+- 不明なエラー。
+
+この工程ではdocs記録と静的確認のみ行い、SQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 実送信、Discord追加実送信、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
