@@ -2025,3 +2025,20 @@ Discord成功後DB更新失敗時:
 - 停止条件は、対象不一致、認証/対象/Supabase接続先不備、dry-run失敗、詳細URL/ISO/UTC/`概要` ラベル混入、テスト用チャンネル未確認、本番投稿疑い、実値IDやURL全文の記録が必要になりそうな場合、不明エラー、同一実送信コマンド再実行。
 - 後続課題は、post URL保存補強QA、`update` / `close` / `delete` / `resync` / `repair` 実装、GM/admin同期状態表示UI、本番切替前レビュー、本番secret切替ゲート、本番初回投稿ゲート。
 - この工程ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 実送信、Discord追加投稿、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16R post URL保存補強QA結果
+- `M14E16_post_url_QA_01` を使ったpost URL保存補強QAをユーザー手元で実施済み。
+- `dry_run = true` preview確認は成功済み。
+- `dry_run = false` 実送信は1回のみ実行済み。同じコマンドは再実行禁止。
+- Discordテスト用チャンネルに新規投稿1件を確認。本番募集チャンネル投稿なし。
+- 投稿は対象タイトル相当、`概要` ラベルなし、概要本文改行保持、詳細URLなし、ISO/UTC表記なし。
+- SELECT-onlyのDB同期状態確認では、対象あり、外部投稿識別子相当保存あり、投稿先チャンネル識別子相当保存あり、`discord_sync_status = posted`、`discord_last_action = create`、同期時刻あり、同期エラー空を確認した。
+- thread id相当は未使用または空。`discord_post_url` 相当は未保存。
+- `discord_post_url` 未保存は非致命の後続課題として扱う。原因候補は、Webhookレスポンスからguild/server id相当を取得できず、正確な投稿URLを組み立てられなかったこと。
+- 偽URLや不完全URLを保存しない現在の挙動は安全側。
+- 最小本番create投入では、message id相当、channel id相当、sync status、last action、synced atが保存されているため、post URL未保存をブロッカーにしない案を第一候補にする。
+- 本番create投稿に向けた到達済み項目は、テスト用チャンネル新フォーマットcreate成功、`概要` ラベル削除、概要改行保持、詳細URL/ISO/UTCなし、DB同期状態保存、外部投稿識別子保存、二重投稿防止guard、本番投稿なし。
+- 優先度高の残課題は、本番切替前レビュー、本番Webhook secret切替ゲート、本番向け `dry_run = true`、本番初回投稿ゲート、post URL未保存許容またはguild id設定補強判断。
+- 優先度中の残課題は、GM/admin同期状態表示UI、update/resync/repair方針詳細化、投稿済み依頼書resync導線、失敗時一般化エラー表示、本番投稿後DB確認手順。
+- 優先度低の残課題は、post URLリンク表示、close/delete/update実装、同期履歴表示、詳細監査ログ。
+- この工程ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 再実行、Discord追加投稿、本番投稿、secret設定/切替、`updates.json` 変更は行わない。

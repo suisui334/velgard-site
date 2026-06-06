@@ -2197,3 +2197,38 @@ post URL保存補強QA IO案:
 停止条件:
 
 - 対象不一致、認証/対象/Supabase接続先準備不備、dry-run失敗、本文への詳細URL/ISO/UTC/`概要` ラベル混入、テスト用チャンネル未確認、本番投稿疑い、実値IDやURL全文の記録が必要になりそうな場合、不明エラー、同一実送信コマンド再実行。
+
+## M-14E-16R post URL保存補強QA IO結果
+`M14E16_post_url_QA_01` を対象に、ユーザー手元でpost URL保存補強QAを実施した。この記録工程では、Codex側でSQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 再実行、Discord追加投稿、本番投稿、secret設定/切替を行わない。
+
+request / Discord IO:
+
+- `dry_run = true` preview確認は成功済み。
+- `dry_run = false` 実送信は1回だけ実行済み。同じコマンドは再実行しない。
+- Discordテスト用チャンネルに新規投稿が1件増えた。
+- 投稿は対象タイトル相当、`概要` ラベルなし、改行保持、詳細URLなし、ISO/UTC表記なし。
+- 本番募集チャンネル投稿なし。
+
+DB sync IO:
+
+- 外部投稿識別子相当は保存済み。
+- 投稿先チャンネル識別子相当は保存済み。
+- thread id相当は未使用または空。
+- post URL相当は未保存。
+- sync statusは `posted`。
+- last actionは `create`。
+- synced at相当は保存済み。
+- sync error相当は空。
+
+IO判断:
+
+- create投稿、DB同期状態保存、二重投稿防止の中核に必要な保存は成功。
+- `discord_post_url` 相当のみ未保存だが、post URL全文を不正確に組み立てて保存しない現在の挙動は安全側。
+- post URL保存を本番createのブロッカーにするかは別判断とする。
+- 最小本番投入では、message id相当とchannel id相当が保存されているため、post URL未保存を非致命として許容する案を第一候補にする。
+
+本番前IO残課題:
+
+- 高: 本番切替前レビュー、本番Webhook secret切替ゲート、本番向け `dry_run = true`、本番初回投稿ゲート、post URL未保存許容判断。
+- 中: GM/admin同期状態表示UI、update/resync/repair方針、投稿済み依頼書resync導線、失敗時一般化エラー表示、本番投稿後DB確認手順。
+- 低: post URLリンク表示、close/delete/update実装、同期履歴表示、詳細監査ログ。

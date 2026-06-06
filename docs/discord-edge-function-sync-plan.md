@@ -2823,3 +2823,82 @@ post URL保存補強QAゲート停止条件:
 - 本番初回投稿ゲート。
 
 この記録作業ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 実送信、Discord追加投稿、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16R post URL保存補強QA結果と本番create前整理
+`M14E16_post_url_QA_01` を使い、ユーザー手元でpost URL保存補強QAを実施した。Codex側ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 再実行、Discord追加投稿、本番投稿、secret設定/切替を行っていない。
+
+QA実施概要:
+
+- 対象は新規検証用依頼書 `M14E16_post_url_QA_01`。
+- `dry_run = true` preview確認は成功済み。
+- `dry_run = false` 実送信はユーザー手元で1回のみ実行済み。同じコマンドは再実行しない。
+- Discordテスト用チャンネルに新規投稿が1件増えた。
+- 投稿は対象タイトル相当、`概要` ラベルなし、概要本文改行保持、詳細URLなし、ISO/UTC表記なし。
+- 本番募集チャンネル投稿なし。
+- SQL EditorでSELECT-onlyのDB同期状態確認を実施済み。ただし、この記録工程ではSQL Editor再実行を行わない。
+
+DB同期状態確認結果:
+
+- `target_found`: ok / true。
+- `discord_message_id_saved`: ok / true。
+- `discord_channel_id_saved`: ok / true。
+- `discord_thread_id_saved`: empty_or_not_used / false。
+- `discord_post_url_saved`: missing / false。
+- `discord_sync_status`: ok / posted。
+- `discord_last_action`: ok / create。
+- `discord_synced_at_present`: ok / true。
+- `discord_sync_error_empty`: ok / empty。
+
+判断:
+
+- Discord投稿、外部投稿識別子保存、投稿先チャンネル識別子保存、同期状態保存、同期時刻保存、同期エラー空は成功。
+- `discord_post_url` 相当の保存のみ未達。
+- `discord_message_id` と `discord_channel_id` が保存されているため、二重投稿防止と同期状態管理の中核は成立している。
+- `discord_post_url` 未保存は非致命の後続課題として扱う。
+- 原因候補は、Webhook `wait = true` レスポンスからguild/server id相当を取得できず、正確なDiscord投稿URLを組み立てられなかったこと。
+- 偽URLや不完全URLを保存しない現在の挙動は安全側。
+- post URL保存を必須にする場合は、後続でguild id相当を安全な設定値として扱うか、別の取得手段を検討する。
+
+本番create投稿に向けた到達済み項目:
+
+- テスト用チャンネルで新フォーマットcreate投稿成功。
+- `概要` ラベル削除反映済み。
+- 概要本文改行保持確認済み。
+- 詳細URLなし、ISO/UTC表記なし確認済み。
+- DB同期状態 `posted` / `create` 保存確認済み。
+- 外部投稿識別子相当保存確認済み。
+- 二重投稿防止guard確認済み。
+- 本番募集チャンネル投稿なし維持。
+
+本番create投稿に向けた判断案:
+
+- 最小本番投入では、message id相当、channel id相当、sync status、last action、synced atが保存されているため、`discord_post_url` 未保存はブロッカーにしない案を第一候補にする。
+- ただし、運用利便性と管理UI導線のため、post URL補強は後続課題として残す。
+- 本番投稿前には、本番切替前レビュー、本番Webhook secret切替ゲート、本番向け `dry_run = true` 確認、本番初回投稿ゲートを独立して扱う。
+
+本番前残課題:
+
+優先度高:
+
+- 本番切替前レビュー。
+- 本番Webhook secret切替ゲート。
+- 本番向け `dry_run = true` 確認。
+- 本番初回投稿ゲート。
+- `discord_post_url` 未保存を許容するか、guild id設定で補強するかの判断。
+
+優先度中:
+
+- GM/admin同期状態表示UI。
+- `update` / `resync` / `repair` 方針の詳細化。
+- 投稿済み依頼書のresync導線。
+- 失敗時一般化エラー表示。
+- 本番投稿後のDB同期状態確認手順。
+
+優先度低:
+
+- post URLリンク表示。
+- `close` / `delete` / `update` 実装。
+- 同期履歴の表示。
+- 詳細な監査ログ。
+
+この記録作業ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 再実行、Discord追加投稿、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
