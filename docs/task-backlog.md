@@ -2172,3 +2172,29 @@ Discord成功後DB更新失敗時:
 - Discord投稿、編集、削除は未実行。
 - SQL Editor再実行、SQL apply再実行、DB/RPC追加変更、secret設定/切替、`updates.json` 変更は行っていない。
 - 次工程はupdate/delete本番QAまとめゲート。deploy後QAでRPC実呼び出し可否、EXECUTE権限、既存create同期への影響なしを確認する。
+## M-14E-17 Discord同期ライフサイクルQAまとめゲート
+
+ステータス: 完了
+
+実施内容:
+
+- 最新commit `c3e95c8 Deploy Discord update delete sync` のdeploy済みEdge Functionで、使い捨てQA依頼書を新規作成した。
+- QA対象は `M14E17_lifecycle_QA` prefix の新規依頼書。session id実値は記録していない。
+- `create / dry_run = true`、`create / dry_run = false` 1回、編集、`update / dry_run = true`、`update / dry_run = false` 1回、`delete / dry_run = true`、`delete / dry_run = false` 1回を実施した。
+- create後は `posted/create`、update後は `posted/update`、いずれも外部投稿識別子相当保存あり、channel識別子相当保存あり、synced atあり、sync error空を確認した。
+- delete後は対象DB行0件を確認し、QA依頼書の削除まで完了した。
+- `discord_post_url` は保存なしのままだが、既知の非致命制約として扱う。
+- update/delete用RPCの実呼び出しはEdge Function経由で成功し、EXECUTE権限の実動確認として扱える。
+
+安全境界:
+
+- `dry_run = false` はcreate / update / deleteそれぞれ1回のみ。失敗時再実行はしていない。
+- Edge Function deploy、SQL Editor実行、SQL apply、DB/RPC定義変更、secret設定/切替は行っていない。
+- JWT、session id、project ref、Supabase URL全文、Webhook URL、Discord message id、channel id、thread id、post URL全文、message preview本文全文、raw user id、email、token、selected character id、application id は記録していない。
+
+次工程候補:
+
+- GM/admin向け手動同期UI導線の設計・実装。
+- close / resync / repair の方針整理と実装ゲート。
+- 残存QA依頼書がある場合のadmin cleanup候補整理。
+- post URL保存補強またはリンク表示方針の再レビュー。

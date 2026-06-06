@@ -2540,3 +2540,44 @@ Next IO gate:
 
 - update/delete本番QAまとめゲート。
 - deploy後QAでRPC実呼び出し可否と既存create同期への影響なしを確認する。
+## M-14E-17 Discord lifecycle QA IO result
+
+`c3e95c8 Deploy Discord update delete sync` のdeploy済みEdge Functionで、新規使い捨てQA依頼書を作成し、create / update / delete のIOを確認した。
+
+Input handling:
+
+- JWTはクリップボードからPowerShell環境変数へ読み込み、実値は出力・記録していない。
+- QA targetは `M14E17_lifecycle_QA` prefix の新規作成依頼書。session id実値は出力・記録していない。
+- Supabase URL全文、project ref、Webhook URL、Discord投稿識別子実値は出力・記録していない。
+
+create IO:
+
+- create RPCでQA依頼書を新規作成した。
+- `create / dry_run = true` はHTTP 200、JSON parse成功、`ok = true`、`dry_run = true`、`action = create`、`message_preview` あり。
+- `create / dry_run = false` は1回だけ実行し、HTTP 200、JSON parse成功、`ok = true`、`action = create`、`discord_send` あり、`db_update.success = true`。
+- create後DB readbackは、外部投稿識別子相当あり、channel識別子相当あり、`posted/create`、synced atあり、sync error空。
+
+update IO:
+
+- QA依頼書を編集し、DB上のタイトル変更も確認した。
+- `update / dry_run = true` はHTTP 200、JSON parse成功、`ok = true`、`dry_run = true`、`action = update`、`message_preview` あり。
+- `update / dry_run = false` は1回だけ実行し、HTTP 200、JSON parse成功、`ok = true`、`action = update`、`discord_send` あり、`db_update.success = true`。
+- update後DB readbackは、外部投稿識別子相当あり、channel識別子相当あり、`posted/update`、synced atあり、sync error空。
+
+delete IO:
+
+- `delete / dry_run = true` はHTTP 200、JSON parse成功、`ok = true`、`dry_run = true`、`action = delete`、`message_preview` あり。
+- `delete / dry_run = false` は1回だけ実行し、HTTP 200、JSON parse成功、`ok = true`、`action = delete`、`discord_send` あり、`db_update.success = true`。
+- delete後DB readbackで対象行0件を確認した。
+
+Safety:
+
+- `message_preview` 本文全文、Discord message id / channel id / thread id / post URL全文、session id実値、JWT、Webhook URL、raw user id、email、token、selected character id、application id は記録していない。
+- Edge Function deploy、SQL Editor、SQL apply、DB/RPC定義変更、secret設定/切替は未実施。
+- `dry_run = false` はcreate / update / deleteそれぞれ1回のみで、再実行していない。
+
+Next IO:
+
+- GM/admin向け手動同期UI導線の設計・実装。
+- close / resync / repair IOの整理。
+- 残存QA依頼書がある場合のadmin cleanup候補整理。

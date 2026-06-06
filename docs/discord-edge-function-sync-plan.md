@@ -3247,3 +3247,39 @@ deploy結果:
 
 - update/delete本番QAまとめゲートへ進む。
 - deploy後QAでは、`dry_run = true` でpreviewとRPC実呼び出し可否を確認し、危険ゲートを分けてupdate/deleteの実動確認へ進む。
+## M-14E-17 Discord同期ライフサイクルQA結果
+
+`c3e95c8 Deploy Discord update delete sync` のdeploy済み `sync-session-post-to-discord` で、新しい使い捨てQA依頼書を作成し、create / update / delete の同期ライフサイクルを確認した。
+
+実施概要:
+
+- JWTはユーザー手元のクリップボードからPowerShell環境変数へ読み込み、実値は記録していない。
+- QA依頼書は `M14E17_lifecycle_QA` prefix の新規使い捨て対象として作成した。対象session id実値は記録していない。
+- `create / dry_run = true` はHTTP 200、JSON parse成功、`ok = true`、`dry_run = true`、`action = create`、`message_preview` ありを確認した。本文全文は記録していない。
+- `create / dry_run = false` は1回だけ実行し、HTTP 200、JSON parse成功、`ok = true`、`action = create`、`discord_send` あり、`db_update.success = true` を確認した。
+- create後DB状態は、外部投稿識別子相当保存あり、channel識別子相当保存あり、`discord_sync_status = posted`、`discord_last_action = create`、`discord_synced_at` あり、`discord_sync_error` 空を確認した。`discord_post_url` は保存なしで、既知の非致命制約として扱う。
+- QA依頼書を編集し、`update / dry_run = true` はHTTP 200、JSON parse成功、`ok = true`、`dry_run = true`、`action = update`、`message_preview` ありを確認した。本文全文は記録していない。
+- `update / dry_run = false` は1回だけ実行し、HTTP 200、JSON parse成功、`ok = true`、`action = update`、`discord_send` あり、`db_update.success = true` を確認した。
+- update後DB状態は、外部投稿識別子相当保存あり、channel識別子相当保存あり、`discord_sync_status = posted`、`discord_last_action = update`、`discord_synced_at` あり、`discord_sync_error` 空を確認した。
+- `delete / dry_run = true` はHTTP 200、JSON parse成功、`ok = true`、`dry_run = true`、`action = delete`、`message_preview` ありを確認した。本文全文は記録していない。
+- `delete / dry_run = false` は1回だけ実行し、HTTP 200、JSON parse成功、`ok = true`、`action = delete`、`discord_send` あり、`db_update.success = true` を確認した。
+- delete後DB確認では対象行が0件になり、QA依頼書のDB削除まで完了した。
+- `dry_run = false` はcreate / update / delete 各actionで1回ずつのみ実行した。再実行はしていない。
+
+安全確認:
+
+- JWT、session id、project ref、Supabase URL全文、Webhook URL、Discord message id、channel id、thread id、post URL全文、message preview本文全文、raw user id、email、token、selected character id、application id はdocs / GitHub / consoleへ記録していない。
+- Edge Function deploy、SQL Editor実行、SQL apply、DB/RPC定義変更、secret設定/切替は行っていない。
+- 既存の残存QA依頼書がある場合は、必要に応じて後続のadmin cleanup候補として扱う。
+
+判断:
+
+- deploy済みEdge Functionから、create / update / delete のDiscord同期ライフサイクルが本番Webhook設定下で一通り成功した。
+- update/delete用RPCのEXECUTE可否は、Edge Function経由の実呼び出し成功により実動確認できた。
+- deleteはDiscord側削除後に既存 `delete_session_post` RPCでDB行を削除する現行MVPとして成立した。
+
+後続候補:
+
+- GM/admin UIからの手動update/delete同期導線を設計・実装する。
+- close / resync / repair の運用方針と実装範囲を整理する。
+- post URL保存補強またはリンク表示方針は引き続き後続課題として扱う。
