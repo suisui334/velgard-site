@@ -2448,3 +2448,35 @@ next gates:
 - update/delete dry-run QA gate。
 - update/delete real-send QA gate。
 - frontend auto-sync implementation batch。
+## M-14E-17 SQL apply gate IO attempt result
+
+`031_discord_update_delete_rpc_apply_draft.sql` のIO apply gateとして、Codex側で安全に使える実行経路を確認した。
+
+IO precheck:
+
+- git stateはclean。
+- latest commitは `9cf71a4 Prepare Discord update delete sync`。
+- apply対象はrepo内の `docs/supabase/sql/031_discord_update_delete_rpc_apply_draft.sql` のみ。
+- `DO NOT RUN` / `NOT EXECUTED` / `DO NOT PASTE` の誤爆防止注記を確認した。
+- secret、Webhook URL、JWT、DB password、Direct connection string、実ID、URL全文の混入は検出されなかった。
+- `DROP TABLE`、`DROP COLUMN`、`TRUNCATE`、`CASCADE` の実行文は検出されなかった。
+
+IO route review:
+
+- Supabase CLIの `db query --linked --file` は確認できた。
+- ただしrepo内にlinked project情報がなく、project targetを秘匿値なしで確定できなかった。
+- DB passwordやDirect connection stringを扱う経路は採用しない。
+- 既存のDB apply用スクリプトは見つからなかった。
+- Chrome automationでSQL Editorを操作する経路は、Codex Chrome Extension未導入により利用できなかった。
+
+IO result:
+
+- 安全なSQL apply経路が見つからなかったため、SQL applyは実行していない。
+- 031のSQL Editor貼付、CLI apply、psql実行はいずれも行っていない。
+- apply後SELECT-only確認は未実施。
+- Edge Function deploy、dry-run、real-send、Discord投稿/編集/削除、secret設定/切替は未実施。
+
+Next IO gate:
+
+- 031 apply経路を安全に確定してから、SQL applyを1回だけ実行する。
+- apply成功後に、update/delete用5RPCの存在、security definer、search_path、EXECUTE権限、既存create用RPC維持、CHECK値整合をSELECT-onlyで確認する。

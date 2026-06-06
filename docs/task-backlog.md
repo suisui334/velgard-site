@@ -2124,3 +2124,18 @@ Discord成功後DB更新失敗時:
 - フロント自動同期はまだ有効化しない。backend update/delete対応deploy後に、編集保存後update、削除時delete orchestrationを検討する。
 - 次工程候補は、031 RPC apply前レビューゲート、031 RPC applyゲート、Edge Function deploy前レビューゲート、deployゲート、update/delete dry-run QA、update/delete real-send QA、フロント自動同期導線実装。
 - この工程ではSQL Editor実行、SQL apply、DB/RPC実変更、Edge Function deploy、`dry_run = true` 実行、`dry_run = false` 実行、Discord投稿/編集/削除、secret設定/切替、Webhook URL実値確認、`updates.json` 変更は行わない。
+## M-14E-17 SQL applyゲート Codex側実行経路確認
+- 最新commit `9cf71a4 Prepare Discord update delete sync`、git cleanの状態から、`docs/supabase/sql/031_discord_update_delete_rpc_apply_draft.sql` のSQL applyゲートを確認した。
+- 対象SQLには `DO NOT RUN`、`NOT EXECUTED`、`DO NOT PASTE` の誤爆防止注記が残っていることを確認した。
+- 対象SQLはupdate/delete用RPC追加draftで、既存create用RPCを破壊しない方針。CHECK値 `update` / `delete` / `posted` / `failed` と整合する。
+- secret、Webhook URL、JWT、DB password、Direct connection string、実ID、URL全文らしき値は検出されなかった。
+- `DROP TABLE`、`DROP COLUMN`、`TRUNCATE`、`CASCADE` の実行文は検出されなかった。
+- Supabase CLIの `db query --linked --file` は存在するが、このrepoには `supabase/.temp` や `supabase/config.toml` がなく、linked projectを秘匿値なしで確定できなかった。
+- 関連環境変数名にも安全に対象DBを特定できるものは見つからなかった。
+- 既存の安全なDB apply用スクリプトは見つからなかった。
+- Chrome連携は対象プロファイルにCodex Chrome Extensionがなく、Codex側からSQL Editorを操作できなかった。
+- 安全なSQL apply経路が確定しないため、停止条件に従ってSQL applyは未実行で停止した。
+- 031 SQLのSQL Editor貼付、CLI apply、psql実行はいずれも行っていない。
+- apply後SELECT-only確認はapply未実行のため未実施。
+- Edge Function deploy、`dry_run = true`、`dry_run = false`、Discord投稿/編集/削除、secret設定/切替、`updates.json` 変更は行っていない。
+- 次工程候補は、安全な031 apply経路の確定、031 SQL apply 1回実行、apply後SELECT-only確認、Edge Function deployゲート。

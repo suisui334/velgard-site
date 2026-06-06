@@ -3150,3 +3150,37 @@ Edge Function準備実装:
 - フロント自動同期導線実装バッチ。
 
 今回の工程では、secret類、JWT、対象session id実値、project ref、Supabase URL全文、Webhook URL、Discord message id、channel id、post URL全文、message preview本文全文は記録しない。
+## M-14E-17 SQL apply gate attempt result
+
+`031_discord_update_delete_rpc_apply_draft.sql` のSQL applyゲートとして、Codex側で安全に実行できる既存経路を確認した。
+
+事前確認:
+
+- `git status --short` はclean。
+- latest commitは `9cf71a4 Prepare Discord update delete sync`。
+- apply対象はリポジトリ内の `docs/supabase/sql/031_discord_update_delete_rpc_apply_draft.sql`。
+- 対象SQLには `DO NOT RUN`、`NOT EXECUTED`、`DO NOT PASTE` の誤爆防止注記が残っている。
+- 対象SQLはupdate/delete用RPC追加draftであり、既存create用RPCを破壊しない方針。
+- secret、Webhook URL、JWT、DB password、Direct connection string、実ID、URL全文らしき値は検出されなかった。
+- `DROP TABLE`、`DROP COLUMN`、`TRUNCATE`、`CASCADE` の実行文は検出されなかった。
+
+実行経路確認:
+
+- Supabase CLIには `db query --linked --file` が存在する。
+- ただし、この作業ツリーには `supabase/.temp` や `supabase/config.toml` がなく、linked projectを実値なしで確定できなかった。
+- 関連環境変数名にもSupabase project / DB接続を安全に特定できるものは見つからなかった。
+- 既存スクリプト内に、secretや接続文字列を表示せずに単体SQL applyできる安全なDB apply経路は見つからなかった。
+- Chrome連携は対象プロファイルにCodex Chrome Extensionがなく、SQL EditorをCodex側で直接操作できなかった。
+
+判断:
+
+- 安全なSQL apply経路が確定しないため、停止条件に従ってSQL applyは未実行で停止した。
+- `031` はSQL Editor、CLI、psql等いずれの経路でも実行していない。
+- apply後SELECT-only確認は、apply未実行のため実施していない。
+- Edge Function deploy、`dry_run = true`、`dry_run = false`、Discord投稿/編集/削除、secret設定/切替は行っていない。
+
+次工程:
+
+- 安全なapply経路を確定する。
+- 候補は、ユーザー手元SQL Editorでの1回実行、またはproject linkを秘匿値なしで安全に確定できる公式CLI経路。
+- apply成功後に、対象5RPCの存在、`security_definer`、`search_path`、EXECUTE権限、既存create用RPC維持、CHECK値整合をSELECT-onlyで確認する。
