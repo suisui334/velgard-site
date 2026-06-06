@@ -3080,3 +3080,73 @@ DB同期状態確認:
 - post URL未保存は本番create最小投入のブロッカーにしないが、運用利便性の後続課題として維持する。
 
 この工程では、secret設定/切替、Webhook URL実値確認、Edge Function deploy、SQL Editor実行、DB/RPC定義変更、`dry_run = false` の複数回実行、Discord追加投稿、`updates.json` 変更は行わない。
+
+## M-14E-17 Discord同期 update/delete/close/resync 大型実装準備
+本番初回create投稿が成功し、DB同期状態も `posted` / `create` として保存されたため、次の同期拡張として `update` / `delete` / `close` / `resync` / `repair` のMVP方針を整理し、未実行SQL draftとEdge Function側の準備実装を行う。この工程ではSQL Editor実行、SQL apply、DB/RPC実変更、Edge Function deploy、`dry_run = true` 実行、`dry_run = false` 実行、Discord投稿/編集/削除、secret設定/切替は行わない。
+
+本番初回create到達状態:
+
+- 開始commitは `801c561 Record first production Discord post`、作業開始時git状態はclean。
+- 本番create投稿は1回だけ成功済み。
+- DB同期状態は、外部投稿識別子保存あり、投稿先チャンネル識別子保存あり、`discord_sync_status = posted`、`discord_last_action = create`、同期時刻あり、同期エラー空。
+- `discord_post_url` 未保存は既知の非致命扱い。update/deleteのブロッカーにせず、message id相当とWebhook secretで既存投稿を扱う設計を優先する。
+- 本番依頼書チャンネルの目視確認項目は、本番投稿1件、タイトル一致、`概要` ラベルなし、概要改行保持、詳細URLなし、ISO/UTCなし。未確認項目が残る場合は「目視確認待ち」として扱う。
+
+update同期MVP:
+
+- 対象は、既に `discord_message_id` 相当が保存されているSupabase由来依頼書。
+- `action = update` は、既存Discord投稿本文を現在の依頼書内容で更新する。
+- 既存投稿識別子がない場合、新規投稿を増やさず、一般化エラーまたは手動確認扱いにする。
+- 成功時は `discord_sync_status = posted`、`discord_last_action = update`、`discord_synced_at` 更新、`discord_sync_error` クリアを記録する。
+- 失敗時も依頼書保存自体は巻き戻さず、一般化エラーを保存する。Discord APIレスポンス全文、message id実値、channel id実値、post URL全文はレスポンスやconsoleへ出さない。
+
+delete同期MVP:
+
+- 投稿済み依頼書を削除する場合、Discord投稿削除を先に行い、その後に既存 `delete_session_post` RPCでDB削除する案を第一候補にする。
+- Discord削除に失敗した場合はDB削除へ進めない。
+- DB削除後は `sessions` 行が残らないため、現行MVPでは永続監査ログなしの制約を受け入れる。監査ログは後続課題。
+- Discord削除成功後にDB削除が失敗した場合は、DB上の依頼書が残るため再削除可能。ただしDiscord側は削除済みのため、同じdelete再実行前に手動確認する。
+- 既存投稿識別子がない依頼書は、既存削除導線でDB削除する候補として扱う。Edge Functionの初期実装では投稿済み対象の削除を優先する。
+
+close / resync / repair:
+
+- `close` は物理削除ではなく、募集終了/締切/開催終了をDiscord本文へ反映する更新扱いにする。`discord_last_action = close`。
+- `resync` は、保存済み外部投稿識別子がある場合はupdate相当。外部投稿識別子がない場合のcreate再実行は二重投稿リスクがあるため手動確認必須。
+- `repair` は、Discord送信成功後DB更新失敗などの部分失敗修復として後続導線に残す。
+
+SQL/RPC draft:
+
+- `docs/supabase/sql/031_discord_update_delete_rpc_apply_draft.sql` を未実行apply draftとして追加した。
+- draft冒頭に `DO NOT RUN UNTIL REVIEWED`、未実行、SQL Editor貼付禁止を明記した。
+- 既存create専用RPCを壊さず、update/delete用RPCを追加する案を第一候補にした。
+- 候補RPCは `check_discord_session_post_update_ready(text)`、`record_discord_session_post_update_success(text)`、`record_discord_session_post_update_failure(text, text)`、`check_discord_session_post_delete_ready(text)`、`record_discord_session_post_delete_failure(text, text)`。
+- CHECK値は既存の `discord_last_action = close / create / delete / resync / update` と `discord_sync_status = failed / not_requested / pending / posted / skipped` に整合させた。
+
+Edge Function準備実装:
+
+- `sync-session-post-to-discord` に `action = update` と `action = delete` の `dry_run = false` 経路を追加した。ただしdeployは行わない。
+- `dry_run = true` はpreview専用のまま維持し、Discord送信/編集/削除、DB更新、RPC記録を行わない。
+- `update` は、update guard RPC、Webhook message PATCH、update success/failure RPCの順に進む設計。
+- `delete` は、delete guard RPC、Webhook message DELETE、既存 `delete_session_post` RPCの順に進む設計。
+- Webhook message URLはsecretから内部的に生成し、message id実値やURL全文はレスポンス、docs、consoleへ出さない。
+- DB直書き込み `.insert()` / `.update()` / `.delete()` / `.upsert()` は追加せず、必要なDB操作はRPC経由にした。
+- console出力は追加しない。
+- 031のSQL/RPC applyが未実施の状態では、update/delete実送信経路はdeployしない。deploy前にSQL/RPC applyゲートとpost-apply確認が必須。
+
+フロント導線:
+
+- 編集保存後の自動Discord update反映は最終目標。ただしEdge Function update対応がdeployされるまで、フロントから自動呼び出しを有効化しない。
+- 削除時は、投稿済みなら `action = delete` によるDiscord削除とDB削除オーケストレーションへ寄せる案を第一候補にする。未投稿なら既存削除RPCを使う。
+- GM/admin同期パネルには、後続で手動 `Discordへ反映` / `Discord投稿削除` ボタンを置ける余地を残す。
+
+次工程:
+
+- 031 RPC apply前レビューゲート。
+- 031 RPC applyゲート。
+- Edge Function deploy前レビューゲート。
+- Edge Function deployゲート。
+- `dry_run = true` update/delete preview QAゲート。
+- `dry_run = false` update/delete 実送信QAゲート。
+- フロント自動同期導線実装バッチ。
+
+今回の工程では、secret類、JWT、対象session id実値、project ref、Supabase URL全文、Webhook URL、Discord message id、channel id、post URL全文、message preview本文全文は記録しない。

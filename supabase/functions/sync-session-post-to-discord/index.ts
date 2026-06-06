@@ -6,7 +6,10 @@ type ErrorCode =
   | "config_missing"
   | "db_update_failed"
   | "discord_create_already_synced"
+  | "discord_delete_db_delete_failed"
+  | "discord_post_reference_missing"
   | "discord_sent_db_update_failed"
+  | "discord_update_db_update_failed"
   | "invalid_action"
   | "invalid_payload"
   | "login_required"
@@ -80,9 +83,26 @@ interface DiscordFailureRecordRow {
   discord_last_action: string | null;
 }
 
+interface DiscordActionReadyRow {
+  can_update?: boolean | null;
+  can_delete?: boolean | null;
+  needs_discord_delete?: boolean | null;
+  has_external_post_identifier?: boolean | null;
+  discord_sync_status: string | null;
+  discord_last_action: string | null;
+}
+
+interface DiscordActionRecordRow {
+  discord_sync_status: string | null;
+  discord_last_action: string | null;
+}
+
 type DiscordCreateReadyRpcResult = Promise<{ data: DiscordCreateReadyRow[] | null; error: unknown }>;
 type DiscordCreateSuccessRpcResult = Promise<{ data: DiscordCreateRecordRow[] | null; error: unknown }>;
 type DiscordCreateFailureRpcResult = Promise<{ data: DiscordFailureRecordRow[] | null; error: unknown }>;
+type DiscordActionReadyRpcResult = Promise<{ data: DiscordActionReadyRow[] | null; error: unknown }>;
+type DiscordActionRecordRpcResult = Promise<{ data: DiscordActionRecordRow[] | null; error: unknown }>;
+type DeleteSessionPostRpcResult = Promise<{ data: unknown[] | null; error: unknown }>;
 type DiscordSyncRpc = {
   (
     functionName: "check_discord_session_post_create_ready",
@@ -102,6 +122,30 @@ type DiscordSyncRpc = {
     functionName: "record_discord_session_post_create_failure",
     args: { p_session_id: string; p_error_code: string | null }
   ): DiscordCreateFailureRpcResult;
+  (
+    functionName: "check_discord_session_post_update_ready",
+    args: { p_session_id: string }
+  ): DiscordActionReadyRpcResult;
+  (
+    functionName: "record_discord_session_post_update_success",
+    args: { p_session_id: string }
+  ): DiscordActionRecordRpcResult;
+  (
+    functionName: "record_discord_session_post_update_failure",
+    args: { p_session_id: string; p_error_code: string | null }
+  ): DiscordActionRecordRpcResult;
+  (
+    functionName: "check_discord_session_post_delete_ready",
+    args: { p_session_id: string }
+  ): DiscordActionReadyRpcResult;
+  (
+    functionName: "record_discord_session_post_delete_failure",
+    args: { p_session_id: string; p_error_code: string | null }
+  ): DiscordActionRecordRpcResult;
+  (
+    functionName: "delete_session_post",
+    args: { p_session_id: string }
+  ): DeleteSessionPostRpcResult;
 };
 type DiscordSyncRpcClient = ReturnType<typeof createClient> & {
   rpc: DiscordSyncRpc;
@@ -132,6 +176,14 @@ type DiscordWebhookDraftResult =
     threadId: string | null;
     postUrl: string | null;
   }
+  | {
+    ok: false;
+    status: number;
+    errorCode: DiscordWebhookErrorCode;
+  };
+
+type DiscordWebhookMutationResult =
+  | { ok: true }
   | {
     ok: false;
     status: number;
@@ -218,7 +270,10 @@ Deno.serve(async (request: Request) => {
     return jsonError(payload.status, payload.errorCode, payload.message, payload.dryRun);
   }
 
-  if (!payload.value.dryRun && payload.value.action !== "create") {
+  if (
+    !payload.value.dryRun
+    && !["create", "update", "delete"].includes(payload.value.action)
+  ) {
     return jsonError(
       501,
       "unsupported_action",
@@ -285,6 +340,14 @@ Deno.serve(async (request: Request) => {
       planned_db_update: buildPlannedDbUpdate(payload.value.action, hasExternalPostReference),
       warnings
     });
+  }
+
+  if (payload.value.action === "update") {
+    return handleRealUpdate(supabase, payload.value.sessionId, session, syncTarget, messagePreview, warnings);
+  }
+
+  if (payload.value.action === "delete") {
+    return handleRealDelete(supabase, payload.value.sessionId, session, syncTarget, warnings);
   }
 
   const createGuard = await checkDiscordCreateReady(supabase, payload.value.sessionId);
@@ -542,6 +605,63 @@ async function sendDiscordWebhookDraft(messagePreview: string): Promise<DiscordW
   };
 }
 
+async function updateDiscordWebhookMessage(
+  messagePreview: string,
+  messageId: string
+): Promise<DiscordWebhookMutationResult> {
+  const messageUrl = buildDiscordWebhookMessageUrl(messageId, true);
+  if (!messageUrl.ok) {
+    return {
+      ok: false,
+      status: 500,
+      errorCode: messageUrl.errorCode
+    };
+  }
+
+  const response = await fetch(messageUrl.value, {
+    method: "PATCH",
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(buildDiscordWebhookPayload(messagePreview))
+  });
+
+  if (!response.ok) {
+    return {
+      ok: false,
+      status: response.status,
+      errorCode: "webhook_send_failed"
+    };
+  }
+
+  return { ok: true };
+}
+
+async function deleteDiscordWebhookMessage(messageId: string): Promise<DiscordWebhookMutationResult> {
+  const messageUrl = buildDiscordWebhookMessageUrl(messageId, false);
+  if (!messageUrl.ok) {
+    return {
+      ok: false,
+      status: 500,
+      errorCode: messageUrl.errorCode
+    };
+  }
+
+  const response = await fetch(messageUrl.value, {
+    method: "DELETE"
+  });
+
+  if (!response.ok && response.status !== 204) {
+    return {
+      ok: false,
+      status: response.status,
+      errorCode: "webhook_send_failed"
+    };
+  }
+
+  return { ok: true };
+}
+
 function readDiscordWebhookUrl(): { ok: true; value: string } | { ok: false } {
   const rawUrl = normalizeText(Deno.env.get(DISCORD_SESSION_POST_WEBHOOK_URL_ENV), 2048);
   if (!rawUrl) {
@@ -574,6 +694,32 @@ function buildDiscordWebhookPayload(messagePreview: string): DiscordWebhookPaylo
 function withDiscordWebhookWait(webhookUrl: string): string {
   const separator = webhookUrl.includes("?") ? "&" : "?";
   return `${webhookUrl}${separator}wait=true`;
+}
+
+function buildDiscordWebhookMessageUrl(
+  messageId: string,
+  wait: boolean
+): { ok: true; value: string } | { ok: false; errorCode: DiscordWebhookErrorCode } {
+  const webhookUrl = readDiscordWebhookUrl();
+  if (!webhookUrl.ok) {
+    return { ok: false, errorCode: "webhook_config_missing" };
+  }
+
+  if (!isDiscordSnowflakeLike(messageId)) {
+    return { ok: false, errorCode: "webhook_response_invalid" };
+  }
+
+  try {
+    const parsedUrl = new URL(webhookUrl.value);
+    parsedUrl.pathname = `${parsedUrl.pathname.replace(/\/+$/, "")}/messages/${messageId}`;
+    parsedUrl.search = "";
+    if (wait) {
+      parsedUrl.searchParams.set("wait", "true");
+    }
+    return { ok: true, value: parsedUrl.toString() };
+  } catch {
+    return { ok: false, errorCode: "webhook_config_missing" };
+  }
 }
 
 async function readDiscordWebhookResponse(
@@ -748,6 +894,370 @@ async function recordDiscordCreateFailure(
   return firstRow(data) ? { ok: true } : { ok: false };
 }
 
+async function handleRealUpdate(
+  supabase: ReturnType<typeof createClient>,
+  sessionId: string,
+  session: SessionRow,
+  syncTarget: SyncTargetJudgment,
+  messagePreview: string,
+  warnings: string[]
+): Promise<Response> {
+  const updateGuard = await checkDiscordUpdateReady(supabase, sessionId);
+  if (!updateGuard.ok) {
+    return jsonError(updateGuard.status, updateGuard.errorCode, updateGuard.message, false, {
+      action: "update",
+      sync_target: {
+        eligible: syncTarget.isTarget,
+        reason: syncTarget.reason
+      },
+      discord_send: {
+        status: "not_sent"
+      },
+      db_update: {
+        success: false,
+        reason: "update_guard_failed"
+      },
+      warnings: mergeWarnings(warnings, updateGuard.warning)
+    });
+  }
+
+  const messageId = normalizeDiscordMessageId(session.discord_message_id);
+  if (!messageId) {
+    return jsonError(409, "discord_post_reference_missing", "既存Discord投稿を更新するための参照情報がありません。", false, {
+      action: "update",
+      sync_target: {
+        eligible: syncTarget.isTarget,
+        reason: syncTarget.reason
+      },
+      discord_send: {
+        status: "not_sent"
+      },
+      db_update: {
+        success: false,
+        reason: "missing_post_reference"
+      },
+      warnings
+    });
+  }
+
+  const updateResult = await updateDiscordWebhookMessage(messagePreview, messageId);
+  if (!updateResult.ok) {
+    const failureRecord = await recordDiscordActionFailure(supabase, "update", sessionId, updateResult.errorCode);
+    return jsonError(updateResult.status, updateResult.errorCode, messageForWebhookError(updateResult.errorCode), false, {
+      action: "update",
+      sync_target: {
+        eligible: syncTarget.isTarget,
+        reason: syncTarget.reason
+      },
+      discord_send: {
+        status: "failed"
+      },
+      db_update: {
+        success: failureRecord.ok,
+        reason: failureRecord.ok ? "failure_recorded" : "failure_record_failed"
+      },
+      warnings: mergeWarnings(warnings, failureRecord.ok ? null : "同期失敗の記録にも失敗しました。再実行せず手動確認してください。")
+    });
+  }
+
+  const successRecord = await recordDiscordUpdateSuccess(supabase, sessionId);
+  if (!successRecord.ok) {
+    const failureRecord = await recordDiscordActionFailure(
+      supabase,
+      "update",
+      sessionId,
+      "discord_update_db_update_failed"
+    );
+
+    return jsonError(
+      500,
+      "discord_update_db_update_failed",
+      "Discord投稿の更新は完了しましたが、同期状態の記録に失敗しました。再実行せず手動確認してください。",
+      false,
+      {
+        action: "update",
+        sync_target: {
+          eligible: syncTarget.isTarget,
+          reason: syncTarget.reason
+        },
+        discord_send: {
+          status: "updated",
+          message_reference: "existing"
+        },
+        db_update: {
+          success: false,
+          reason: "success_record_failed",
+          failure_recorded: failureRecord.ok
+        },
+        warnings: mergeWarnings(warnings, "Discord更新済みのため、同じupdateを再実行する前に手動確認してください。")
+      }
+    );
+  }
+
+  return jsonOk({
+    ok: true,
+    dry_run: false,
+    action: "update",
+    sync_target: {
+      eligible: syncTarget.isTarget,
+      reason: syncTarget.reason
+    },
+    discord_send: {
+      status: "updated",
+      message_reference: "existing"
+    },
+    db_update: {
+      success: true,
+      status: "recorded",
+      sync_status: successRecord.syncStatus,
+      last_action: successRecord.lastAction
+    },
+    warnings
+  });
+}
+
+async function handleRealDelete(
+  supabase: ReturnType<typeof createClient>,
+  sessionId: string,
+  session: SessionRow,
+  syncTarget: SyncTargetJudgment,
+  warnings: string[]
+): Promise<Response> {
+  const deleteGuard = await checkDiscordDeleteReady(supabase, sessionId);
+  if (!deleteGuard.ok) {
+    return jsonError(deleteGuard.status, deleteGuard.errorCode, deleteGuard.message, false, {
+      action: "delete",
+      sync_target: {
+        eligible: syncTarget.isTarget,
+        reason: syncTarget.reason
+      },
+      discord_send: {
+        status: "not_sent"
+      },
+      db_update: {
+        success: false,
+        reason: "delete_guard_failed"
+      },
+      warnings: mergeWarnings(warnings, deleteGuard.warning)
+    });
+  }
+
+  const messageId = normalizeDiscordMessageId(session.discord_message_id);
+  if (!messageId) {
+    return jsonError(409, "discord_post_reference_missing", "既存Discord投稿を削除するための参照情報がありません。", false, {
+      action: "delete",
+      sync_target: {
+        eligible: syncTarget.isTarget,
+        reason: syncTarget.reason
+      },
+      discord_send: {
+        status: "not_sent"
+      },
+      db_update: {
+        success: false,
+        reason: "missing_post_reference"
+      },
+      warnings
+    });
+  }
+
+  const deleteResult = await deleteDiscordWebhookMessage(messageId);
+  if (!deleteResult.ok) {
+    const failureRecord = await recordDiscordActionFailure(supabase, "delete", sessionId, deleteResult.errorCode);
+    return jsonError(deleteResult.status, deleteResult.errorCode, messageForWebhookError(deleteResult.errorCode), false, {
+      action: "delete",
+      sync_target: {
+        eligible: syncTarget.isTarget,
+        reason: syncTarget.reason
+      },
+      discord_send: {
+        status: "failed"
+      },
+      db_update: {
+        success: failureRecord.ok,
+        reason: failureRecord.ok ? "failure_recorded" : "failure_record_failed"
+      },
+      warnings: mergeWarnings(warnings, failureRecord.ok ? null : "削除失敗の記録にも失敗しました。DB削除へ進まず手動確認してください。")
+    });
+  }
+
+  const dbDelete = await deleteSessionPostViaRpc(supabase, sessionId);
+  if (!dbDelete.ok) {
+    const failureRecord = await recordDiscordActionFailure(supabase, "delete", sessionId, "discord_delete_db_delete_failed");
+    return jsonError(
+      500,
+      "discord_delete_db_delete_failed",
+      "Discord投稿は削除されましたが、依頼書DB削除に失敗しました。再実行せず手動確認してください。",
+      false,
+      {
+        action: "delete",
+        sync_target: {
+          eligible: syncTarget.isTarget,
+          reason: syncTarget.reason
+        },
+        discord_send: {
+          status: "deleted",
+          message_reference: "existing"
+        },
+        db_update: {
+          success: false,
+          reason: "delete_session_post_failed",
+          failure_recorded: failureRecord.ok
+        },
+        warnings: mergeWarnings(warnings, "Discord削除済みのため、同じdeleteを再実行する前に手動確認してください。")
+      }
+    );
+  }
+
+  return jsonOk({
+    ok: true,
+    dry_run: false,
+    action: "delete",
+    sync_target: {
+      eligible: syncTarget.isTarget,
+      reason: syncTarget.reason
+    },
+    discord_send: {
+      status: "deleted",
+      message_reference: "existing"
+    },
+    db_update: {
+      success: true,
+      status: "deleted"
+    },
+    warnings
+  });
+}
+
+async function checkDiscordUpdateReady(
+  supabase: ReturnType<typeof createClient>,
+  sessionId: string
+): Promise<{ ok: true } | {
+  ok: false;
+  status: number;
+  errorCode: ErrorCode;
+  message: string;
+  warning: string | null;
+}> {
+  const rpcClient = supabase as unknown as DiscordSyncRpcClient;
+  const { data, error } = await rpcClient.rpc("check_discord_session_post_update_ready", {
+    p_session_id: sessionId
+  });
+
+  if (error) {
+    return mapDiscordSyncRpcError(error, "db_update_failed", "Discord同期更新の事前確認に失敗しました。");
+  }
+
+  const row = firstRow(data);
+  if (!row || row.can_update !== true || row.has_external_post_identifier !== true) {
+    return {
+      ok: false,
+      status: 409,
+      errorCode: "discord_post_reference_missing",
+      message: "既存Discord投稿を更新するための参照情報がありません。",
+      warning: "投稿済みではない依頼書は、updateではなくcreateまたは手動確認を検討してください。"
+    };
+  }
+
+  return { ok: true };
+}
+
+async function checkDiscordDeleteReady(
+  supabase: ReturnType<typeof createClient>,
+  sessionId: string
+): Promise<{ ok: true } | {
+  ok: false;
+  status: number;
+  errorCode: ErrorCode;
+  message: string;
+  warning: string | null;
+}> {
+  const rpcClient = supabase as unknown as DiscordSyncRpcClient;
+  const { data, error } = await rpcClient.rpc("check_discord_session_post_delete_ready", {
+    p_session_id: sessionId
+  });
+
+  if (error) {
+    return mapDiscordSyncRpcError(error, "db_update_failed", "Discord投稿削除の事前確認に失敗しました。");
+  }
+
+  const row = firstRow(data);
+  if (!row || row.can_delete !== true || row.has_external_post_identifier !== true) {
+    return {
+      ok: false,
+      status: 409,
+      errorCode: "discord_post_reference_missing",
+      message: "既存Discord投稿を削除するための参照情報がありません。",
+      warning: "未投稿の依頼書削除は既存の削除導線を検討してください。"
+    };
+  }
+
+  return { ok: true };
+}
+
+async function recordDiscordUpdateSuccess(
+  supabase: ReturnType<typeof createClient>,
+  sessionId: string
+): Promise<{ ok: true; syncStatus: string | null; lastAction: string | null } | { ok: false }> {
+  const rpcClient = supabase as unknown as DiscordSyncRpcClient;
+  const { data, error } = await rpcClient.rpc("record_discord_session_post_update_success", {
+    p_session_id: sessionId
+  });
+
+  if (error) {
+    return { ok: false };
+  }
+
+  const row = firstRow(data);
+  if (!row) {
+    return { ok: false };
+  }
+
+  return {
+    ok: true,
+    syncStatus: normalizeText(row.discord_sync_status, 40) || null,
+    lastAction: normalizeText(row.discord_last_action, 40) || null
+  };
+}
+
+async function recordDiscordActionFailure(
+  supabase: ReturnType<typeof createClient>,
+  action: "update" | "delete",
+  sessionId: string,
+  errorCode: string
+): Promise<{ ok: true } | { ok: false }> {
+  const rpcClient = supabase as unknown as DiscordSyncRpcClient;
+  const args = {
+    p_session_id: sessionId,
+    p_error_code: normalizeErrorCode(errorCode)
+  };
+  const { data, error } = action === "update"
+    ? await rpcClient.rpc("record_discord_session_post_update_failure", args)
+    : await rpcClient.rpc("record_discord_session_post_delete_failure", args);
+
+  if (error) {
+    return { ok: false };
+  }
+
+  return firstRow(data) ? { ok: true } : { ok: false };
+}
+
+async function deleteSessionPostViaRpc(
+  supabase: ReturnType<typeof createClient>,
+  sessionId: string
+): Promise<{ ok: true } | { ok: false }> {
+  const rpcClient = supabase as unknown as DiscordSyncRpcClient;
+  const { data, error } = await rpcClient.rpc("delete_session_post", {
+    p_session_id: sessionId
+  });
+
+  if (error) {
+    return { ok: false };
+  }
+
+  return firstRow(data) ? { ok: true } : { ok: false };
+}
+
 function mapDiscordSyncRpcError(
   error: unknown,
   fallbackCode: ErrorCode,
@@ -767,6 +1277,16 @@ function mapDiscordSyncRpcError(
       errorCode: "discord_create_already_synced",
       message: "既存のDiscord投稿があるため、新規投稿は実行できません。",
       warning: "既存投稿がある場合はupdateまたはresyncを検討してください。"
+    };
+  }
+
+  if (message.includes("discord_post_reference_required")) {
+    return {
+      ok: false,
+      status: 409,
+      errorCode: "discord_post_reference_missing",
+      message: "既存Discord投稿を扱うための参照情報がありません。",
+      warning: "投稿済みではない依頼書は、createまたは既存の削除導線を検討してください。"
     };
   }
 
@@ -1068,6 +1588,11 @@ function labelFor(labels: Record<string, string>, value: unknown): string {
 
 function hasPostReference(session: SessionRow): boolean {
   return normalizeText(session.discord_message_id, 180).length > 0;
+}
+
+function normalizeDiscordMessageId(value: unknown): string | null {
+  const text = normalizeText(value, 120);
+  return isDiscordSnowflakeLike(text) ? text : null;
 }
 
 function firstRow<T>(data: T[] | null): T | null {

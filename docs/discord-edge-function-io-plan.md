@@ -2382,3 +2382,69 @@ follow-up IO:
 - post URL未保存は本番create最小投入のブロッカーにしないが、リンク表示やguild id補強は後続IOに残す。
 
 このIO記録工程では、secret設定/切替、Webhook URL実値確認、Edge Function deploy、SQL Editor実行、DB/RPC定義変更、`dry_run = false` の複数回実行、Discord追加投稿、`updates.json` 変更は行わない。
+
+## M-14E-17 Update/delete sync preparation IO
+本番初回create投稿の成功を基準に、Discord同期IOを `update` / `delete` / `close` / `resync` / `repair` へ広げる準備を行う。この工程では設計、未実行SQL draft、Edge Function静的実装のみを扱い、SQL Editor、SQL apply、DB/RPC実変更、Edge Function deploy、dry-run/real-send、Discord投稿/編集/削除、secret設定/切替は行わない。
+
+current production baseline:
+
+- latest commit: `801c561 Record first production Discord post`。
+- production `create / dry_run = false` は1回だけ成功済み。
+- DB sync readbackは、message id相当保存あり、channel id相当保存あり、`discord_sync_status = posted`、`discord_last_action = create`、synced atあり、sync error空。
+- `discord_post_url` 未保存は既知の非致命制約。update/deleteではmessage id相当とWebhook secretを優先して使う。
+- production channel visual checksは、1件投稿、タイトル一致、`概要` ラベルなし、改行保持、詳細URLなし、ISO/UTCなしを確認項目にする。未確認が残る場合は目視確認待ちとして扱う。
+
+update IO:
+
+- targetはSupabase由来で外部投稿識別子が保存済みの依頼書。
+- request `action = update` は既存Discord投稿を現在の依頼書本文でPATCHする。
+- external post referenceがなければ新規投稿を増やさない。
+- success recordは `discord_sync_status = posted`、`discord_last_action = update`、synced at更新、sync error clear。
+- failure recordは `discord_sync_status = failed`、`discord_last_action = update`、一般化error codeのみ。
+
+delete IO:
+
+- 投稿済み依頼書削除は、Discord message DELETEを先に行い、その後に既存 `delete_session_post` RPCを呼ぶ案を第一候補にする。
+- Discord delete失敗時はDB deleteへ進まない。
+- DB delete成功後はsessions行が消えるため、success状態を同じ行へ永続保存できない。現行MVPでは永続監査ログなしの制約として扱う。
+- Discord delete成功後にDB delete失敗した場合は、DB上の依頼書が残るため再削除可能。ただしDiscord側は削除済みなので手動確認を必須にする。
+
+close / resync / repair IO:
+
+- `close` は既存投稿を募集終了表示へ更新するIOとして扱う。physical deleteではない。
+- `resync` は外部投稿識別子がある場合update相当。識別子がない場合のcreate相当再実行は手動確認必須。
+- `repair` はpartial failure修復の後続導線。
+
+SQL/RPC IO draft:
+
+- `docs/supabase/sql/031_discord_update_delete_rpc_apply_draft.sql` を追加。
+- draftはapply draftだが未実行。SQL Editorへ貼らない。
+- 追加候補RPCはupdate guard、update success、update failure、delete guard、delete failure。
+- create専用RPC、既存 `update_session_post`、既存 `delete_session_post` は壊さない。
+- CHECK値は既存のstatus/action許容値に整合。
+
+Edge Function IO preparation:
+
+- `action = update` / `action = delete` のreal-send経路を追加したが、deployは行わない。
+- `dry_run = true` はpreviewのみで、Discord送信/編集/削除、DB更新、RPC記録を行わない。
+- update real-sendは guard RPC -> message build -> Discord PATCH -> success/failure RPC。
+- delete real-sendは guard RPC -> Discord DELETE -> existing `delete_session_post` RPC。
+- responseにはmessage id実値、channel id実値、post URL全文、Webhook URL、Discord API raw bodyを出さない。
+- DB direct writeは追加せず、DB操作はRPC経由に限定。
+- 031 apply前にdeployしない。deploy前にRPC apply gateとpost-apply verificationが必要。
+
+frontend IO plan:
+
+- 編集保存後の自動update呼び出しは、backend update deploy後に有効化する。
+- 削除時は、投稿済みならEdge Function delete orchestration、未投稿なら既存delete RPCを使う案を比較する。
+- GM/admin同期パネルには手動反映/削除ボタンの余地を残す。
+
+next gates:
+
+- 031 RPC apply review gate。
+- 031 RPC apply gate。
+- Edge Function deploy review gate。
+- Edge Function deploy gate。
+- update/delete dry-run QA gate。
+- update/delete real-send QA gate。
+- frontend auto-sync implementation batch。
