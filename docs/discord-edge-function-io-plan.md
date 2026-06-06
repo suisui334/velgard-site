@@ -2839,3 +2839,37 @@ Next IO gate:
 - Run 034 SELECT-only once in SQL Editor.
 - Review the count/status output.
 - Decide separately whether to run 035 in an apply gate.
+## M-14E-18I DB-only cleanup 034 confirmation result
+
+Status: SELECT-only confirmation result recorded. No cleanup operation was executed.
+
+The user ran `docs/supabase/sql/034_prelaunch_db_only_cleanup_confirm_select_only.sql` once in SQL Editor. No error was shown and a result grid was displayed. The query was not rerun.
+
+034 result:
+
+- DB-only cleanup candidate_count: 19.
+- candidate_matches_032_reference: false.
+- external_identifier_in_candidate_count: 0.
+- non_qa_candidate_count: 0.
+- excluded discord_identifier_rows: 2.
+- excluded non_qa_rows: 1.
+- FK checks: `session_applications -> sessions cascade = true`, `session_comments -> sessions cascade = true`.
+
+Candidate distribution:
+
+- status: canceled 3, closed 1, draft 6, finished 1, full 1, recruiting 6, tentative 1.
+- visibility: hidden 11, private 1, public 7.
+- discord_sync_status: not_requested 8, pending 1, skipped 10.
+- discord_last_action: null-like 18, create 1.
+
+IO judgment:
+
+- The 032 reference count was 21, but the latest 034 confirmation count is 19. The old 21-count apply draft must not be run as-is.
+- The latest 034 output shows no external identifier mix-in, no non-QA candidate mix-in, and FK cascade readiness OK.
+- `docs/supabase/sql/035_prelaunch_db_only_cleanup_apply_draft.sql` remains not executed, but its expected candidate count was updated to 19 for the next apply gate review.
+- Rows with Discord external identifiers remain outside DB-only cleanup.
+- Non-QA rows remain outside cleanup.
+
+Next IO gate:
+
+- Independent 035 apply gate after confirming the draft still matches the latest reviewed 034 result.

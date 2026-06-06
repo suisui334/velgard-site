@@ -3604,3 +3604,36 @@ inventory結果概要:
 
 - ユーザー手元SQL Editorで034を1回だけ実行し、件数とguard項目を確認する。
 - 034結果が想定どおりの場合のみ、035を実行するかを別ゲートで判断する。
+## M-14E-18I DB-only cleanup 034確認結果
+
+ユーザー手元で `docs/supabase/sql/034_prelaunch_db_only_cleanup_confirm_select_only.sql` をSQL Editorへ貼り付け、1回だけ実行した。エラー表示はなく、結果グリッドが表示された。再実行はしていない。この工程ではSELECT-only確認結果の記録と035 draftの期待件数更新のみを行い、035実行、実削除、Discord投稿削除、SQL apply、DB/RPC変更、Edge Function deploy、dry-run、real-send、secret設定/切替は行わない。
+
+034確認結果:
+
+- DB-only cleanup candidate_count: 19。
+- candidate_matches_032_reference: false。
+- external_identifier_in_candidate_count: 0。
+- non_qa_candidate_count: 0。
+- excluded discord_identifier_rows: 2。
+- excluded non_qa_rows: 1。
+- FK check: `session_applications -> sessions cascade = true`、`session_comments -> sessions cascade = true`。
+
+候補内訳:
+
+- status: canceled 3、closed 1、draft 6、finished 1、full 1、recruiting 6、tentative 1。
+- visibility: hidden 11、private 1、public 7。
+- discord_sync_status: not_requested 8、pending 1、skipped 10。
+- discord_last_action: null相当18、create 1。
+
+判断:
+
+- 032時点の参照値21件から現在19件へ変化しているため、21件固定の旧035 apply draftはそのまま実行しない。
+- 外部識別子混入0、非QA候補混入0、FK CASCADE確認OKのため、現在の再確認結果としてはDB-only cleanup候補19件を次工程の対象候補として扱える。
+- Discord外部識別子あり2件はDB-only cleanup対象外のまま、delete同期/手動確認ゲートへ分離する。
+- 非QA系1件はcleanup対象外として扱う。
+- `docs/supabase/sql/035_prelaunch_db_only_cleanup_apply_draft.sql` は未実行のまま、期待件数を19件へ更新した。
+
+次工程:
+
+- 035 applyゲートを独立工程として扱う。
+- 035実行前に、対象ファイルが19件前提であること、実行禁止注記が維持されていること、034結果と矛盾しないことを再確認する。

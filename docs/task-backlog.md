@@ -2450,3 +2450,35 @@ Next:
 Not executed:
 
 - No actual deletion, Discord post deletion, SQL Editor execution, SQL apply, DB/RPC change, Edge Function deploy, dry-run, real-send, secret switch, or `updates.json` change.
+## M-14E-18I DB-only cleanup 034確認結果
+
+Status: SELECT-only confirmation result recorded. No destructive cleanup was run.
+
+- User ran `docs/supabase/sql/034_prelaunch_db_only_cleanup_confirm_select_only.sql` once in SQL Editor.
+- No SQL Editor error was shown, and a result grid was displayed.
+- The query was not rerun.
+- No 035 execution, actual deletion, Discord post deletion, SQL apply, DB/RPC change, Edge Function deploy, dry-run, real-send, secret switch, or `updates.json` change was performed.
+
+034 summary:
+
+- DB-only cleanup candidate_count: 19.
+- candidate_matches_032_reference: false.
+- external_identifier_in_candidate_count: 0.
+- non_qa_candidate_count: 0.
+- excluded discord_identifier_rows: 2.
+- excluded non_qa_rows: 1.
+- FK readiness: `session_applications -> sessions cascade = true`, `session_comments -> sessions cascade = true`.
+
+Candidate distribution:
+
+- status: canceled 3, closed 1, draft 6, finished 1, full 1, recruiting 6, tentative 1.
+- visibility: hidden 11, private 1, public 7.
+- discord_sync_status: not_requested 8, pending 1, skipped 10.
+- discord_last_action: null-like 18, create 1.
+
+Decision:
+
+- The candidate count changed from the 032 reference value 21 to 19, so the old 21-count 035 draft must not be executed.
+- Current confirmation shows 19 DB-only cleanup candidates, external identifier mix-in 0, non-QA mix-in 0, and FK cascade OK.
+- `docs/supabase/sql/035_prelaunch_db_only_cleanup_apply_draft.sql` remains a DO NOT RUN / NOT EXECUTED draft, but its expected candidate count was updated to 19.
+- Next step is an independent 035 apply gate if the user approves actual DB-only cleanup.

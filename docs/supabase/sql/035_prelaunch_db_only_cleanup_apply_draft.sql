@@ -19,7 +19,8 @@
 --
 -- Important:
 -- - 032 inventory observed 21 DB-only cleanup candidates.
--- - 034 must be rerun before apply; if the 034 count differs, update
+-- - 034 confirmation later observed 19 DB-only cleanup candidates.
+-- - 034 must be rerun before apply; if the latest 034 count differs, update
 --   v_expected_candidate_count after review or do not run this draft.
 -- - This direct DELETE is guarded by candidate count, external identifier,
 --   QA-like title, and FK cascade checks.
@@ -34,7 +35,7 @@ begin;
 do $$
 declare
   -- Review and adjust only after running 034 immediately before this apply.
-  v_expected_candidate_count integer := 21;
+  v_expected_candidate_count integer := 19;
   v_candidate_count integer;
   v_external_identifier_count integer;
   v_non_qa_count integer;
