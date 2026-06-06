@@ -2056,3 +2056,16 @@ Discord成功後DB更新失敗時:
 - 本番切替前レビューの前に、画面上で投稿済み/同期失敗などの状態をGM/adminが確認できる足場ができた。
 - 次工程候補は、GitHub Pages反映後のGM/admin表示QA、本番切替前レビュー、または本番secret切替ゲート準備。
 - この工程ではSQL Editor実行、DB/RPC変更、SQL apply、Edge Functionコード変更、Edge Function deploy、`dry_run = false` 実送信、Discord追加投稿、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16T 本番切替前レビュー準備
+- 最新commit `a41abd5 Add Discord sync status panel` の公開サイト反映後、GM/admin向けDiscord同期状態UIの軽量QAを記録した。
+- 折りたたみ式 `Discord同期` パネルはGM/admin管理ブロック内に表示され、GM本人またはadmin確認後だけ表示される。
+- summaryは `Discord同期：投稿済み` 相当。詳細では投稿済み、新規投稿、最終同期日時、同期エラーなし、投稿リンク保存なしを確認する。
+- Discord message id、channel id、thread id、post URL全文、raw session id、raw user id、email、token、selected character id、application idは表示されない。
+- post URL未保存は、本番create最小投入のブロッカーにしない案を第一候補にする。message id相当、channel id相当、`posted` / `create`、同期時刻、同期エラー空、二重投稿防止が確認済みで、偽URLや不完全URLを保存しない挙動が安全側であるため。
+- 本番Webhook secret切替ゲートは独立ゲート。secret実値はチャット、docs、GitHub、consoleへ出さず、設定後も本番投稿は行わない。
+- 本番向け `dry_run = true` 確認ゲートは独立ゲート。本番Webhook設定後に行い、Discord投稿が増えないこと、message preview本文全文を貼らないことを守る。
+- 本番初回投稿ゲートは独立ゲート。本番向け `dry_run = true` 確認済みの依頼書だけを対象にし、確認コマンドと送信コマンドを分離し、`dry_run = false` は1回だけ行う。
+- 本番初回投稿後は、SELECT-onlyでDB同期状態を確認し、GM/admin同期状態UIで投稿済み表示を確認する。
+- 停止条件は、git dirty、最新commit不一致、GM/admin同期状態UI未反映、テスト用create/DB同期/二重投稿防止記録未確認、本番Webhook secret未準備、本番投稿対象未確定、本番向け `dry_run = true` 未確認、本番募集チャンネル未目視確認、post URL未保存を許容しない判断、不明エラー。
+- 今回はSQL Editor実行、DB/RPC変更、SQL apply、Edge Function変更、Edge Function deploy、`dry_run = true` 実行、`dry_run = false` 実送信、Discord本番投稿、secret設定/切替、Discord追加投稿、`updates.json` 変更は行わない。

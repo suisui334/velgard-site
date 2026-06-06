@@ -2261,3 +2261,42 @@ session-detailのGM/admin管理ブロック内に、Discord同期状態を確認
 - post URL全文リンク表示は別レビュー。
 - resync/repair/update/close/deleteボタンは未実装。
 - 本番切替前に、公開サイト反映後のGM/admin手動QAで表示条件と表示ラベルを確認する。
+
+## M-14E-16T Production gate review IO plan
+公開サイト反映後のGM/admin Discord同期状態UIを軽量QA済みとして扱い、本番切替に向けたIOゲートを整理する。この工程では実行IOを行わず、docs記録のみを行う。
+
+GM/admin status panel QA:
+
+- 折りたたみ式の `Discord同期` パネルがGM/admin管理ブロック内に表示される。
+- GM本人またはadmin確認後だけ表示される。
+- summaryは投稿済み相当。
+- 詳細には同期状態、最終操作、最終同期日時、同期エラーなし、投稿リンク保存なしが表示される。
+- Discord message id、channel id、thread id、post URL全文、raw session id、raw user id、email、token、selected character id、application idは出力されない。
+
+production secret switch gate:
+
+- 本番Webhook secret切替は独立ゲート。
+- secret実値はチャット、docs、GitHub、consoleへ出さない。
+- 設定後も本番投稿は行わず、本番向け `dry_run = true` 確認へ進む。
+
+production `dry_run = true` gate:
+
+- 本番Webhook設定後に独立ゲートで行う。
+- Discord投稿が増えないことを確認する。
+- message preview本文全文は記録しない。
+- 詳細URL、ISO/UTC表記、`概要` ラベルが混入していないことを見る。
+
+first production send gate:
+
+- 本番向け `dry_run = true` 確認済みの依頼書だけを対象にする。
+- 確認コマンドと送信コマンドを分離する。
+- `dry_run = false` は1回だけ。
+- 本番募集チャンネルに1件だけ投稿されることを確認する。
+- 投稿後、SELECT-onlyでDB同期状態を確認する。
+- GM/admin同期状態UIで投稿済み表示を確認する。
+
+production gate blockers:
+
+- git dirty、最新commit不一致、GM/admin同期状態UI未反映、テスト用create/DB同期/二重投稿防止記録未確認、本番Webhook secret未準備、本番投稿対象未確定、本番向け `dry_run = true` 未確認、本番募集チャンネル未目視確認、post URL未保存を許容しない判断、不明エラー。
+
+post URL未保存は、message id相当、channel id相当、`posted` / `create`、同期時刻、同期エラー空、二重投稿防止が確認済みであるため、最小本番create投入のブロッカーにしない案を第一候補にする。

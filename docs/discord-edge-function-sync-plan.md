@@ -2931,3 +2931,68 @@ session-detailのGM/admin管理ブロック内に、Discord同期状態を確認
 - 本番切替前レビューと本番secret切替ゲート。
 
 この工程では、raw user id、email、token、selected character id、application id、Discord message id実値、channel id実値、post URL全文、JWT、Supabase URL全文、Webhook URLを画面、DOM、docs、consoleへ出さない方針を維持する。
+
+## M-14E-16T 本番切替前レビュー準備
+最新commit `a41abd5 Add Discord sync status panel` の公開サイト反映後、GM/admin向けDiscord同期状態UIの軽量QAを実施済みとして記録する。この工程ではdocs記録とレビュー準備のみを行い、SQL Editor実行、DB/RPC変更、SQL apply、Edge Function変更、Edge Function deploy、`dry_run = true` 実行、`dry_run = false` 実送信、Discord本番投稿、secret設定/切替は行わない。
+
+GM/admin同期状態UI QA結果:
+
+- session-detailのGM/admin管理ブロック内に、折りたたみ式の `Discord同期` パネルが表示される。
+- GM本人またはadmin確認後だけ表示される。
+- summaryは `Discord同期：投稿済み` 相当になる。
+- 同期状態は投稿済みとして表示される。
+- 最終操作は新規投稿として表示される。
+- 最終同期日時が表示される。
+- 同期エラーはなしとして表示される。
+- 投稿リンク保存はなしとして表示される。
+- Discord message id、channel id、thread id、post URL全文、raw session id、raw user id、email、token、selected character id、application idは表示されない。
+
+本番切替前レビュー判断:
+
+- post URL未保存は、本番create最小投入のブロッカーにしない案を第一候補にする。
+- 理由は、message id相当、channel id相当、`posted` / `create`、同期時刻、同期エラー空、二重投稿防止が確認済みであるため。
+- 偽URLや不完全URLを保存しない現在の挙動は安全側である。
+- post URLリンク表示やguild id設定による補強は、運用利便性向上の後続課題として扱う。
+
+本番Webhook secret切替ゲート:
+
+1. 独立ゲートとして実施する。
+2. secret実値はチャット、docs、GitHub、consoleへ出さない。
+3. secret設定/切替はユーザー手元またはSupabase管理画面側で扱う。
+4. 設定後も本番投稿は行わない。
+5. 設定後は、次工程の本番向け `dry_run = true` 確認ゲートへ進む。
+
+本番向け `dry_run = true` 確認ゲート:
+
+1. 独立ゲートとして実施する。
+2. 本番Webhook設定後に行う。
+3. 対象依頼書、JWT、Supabase URLはユーザー手元だけで扱い、実値はdocsへ記録しない。
+4. Discord投稿が増えないことを確認する。
+5. message preview本文全文はdocsやチャットに貼らない。
+6. previewに詳細URL、ISO/UTC表記、`概要` ラベルがないことを確認する。
+
+本番初回投稿ゲート:
+
+1. 独立ゲートとして実施する。
+2. 本番向け `dry_run = true` 確認済みの依頼書だけを対象にする。
+3. 確認コマンドと送信コマンドを分離する。
+4. `dry_run = false` は1回だけ実行する。
+5. 本番募集チャンネルに1件だけ投稿されることを確認する。
+6. 投稿後、SELECT-onlyでDB同期状態を確認する。
+7. GM/admin同期状態UIで投稿済み表示を確認する。
+8. Discord message id、channel id、post URL全文、session id実値、JWT、Supabase URL全文は記録しない。
+
+停止条件:
+
+- gitがdirty。
+- 最新commitが `a41abd5 Add Discord sync status panel` ではない。
+- GM/admin同期状態UIが公開サイトへ反映されていない。
+- テスト用create、DB同期、二重投稿防止の記録が確認できない。
+- 本番Webhook secretが未準備。
+- 本番投稿対象が未確定。
+- 本番向け `dry_run = true` が未確認。
+- 本番募集チャンネルをユーザーが目視確認していない。
+- post URL未保存を許容しない判断になった。
+- 不明なエラーがある。
+
+本番切替は、secret切替ゲート、本番向け `dry_run = true` 確認ゲート、本番初回投稿ゲートを順に独立して扱う。今回のレビュー準備では危険工程を実行しない。
