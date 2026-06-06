@@ -1656,3 +1656,25 @@
 - Discord投稿後も、DB更新連携、外部投稿識別子保存、同期状態更新は未実装のまま。
 - 実送信確認後も、二重投稿防止、DB更新連携、action拡張、GM/admin同期UI、本番募集チャンネル切り替えは後続工程として残す。
 - この工程ではdocs記録と安全レビューのみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15P-B 新規検証用依頼書 dry_run=true preview確認
+- 新しい検証用依頼書 `M14E15P_discord_format_QA_01` を対象に、ユーザー手元で `create / dry_run = true` previewを確認した。
+- 旧 `TEST_1` は再利用していない。
+- UI QA用依頼書も再利用していない。
+- PowerShell待機方式で確認対象IDを安全に取得した。ID本体は記録しない。
+- JWTはユーザー手元で再取得した。JWT本体は記録しない。
+- `SESSION_ID_CAPTURED = true`、`SESSION_ID_SET = true`、`SESSION_ID_LENGTH = 27`。
+- `USER_JWT_READY = true`、`SESSION_ID_READY = true`、`SUPABASE_URL_READY = true`。
+- preview確認結果は、HTTP 200、HTTP errorなし、JSON parse成功、`ok = true`、`dry_run = true`、`action = create`。
+- `message_preview` は返却あり。ただし本文全文は記録しない。previewは145文字、9行。
+- 新フォーマット確認として、冒頭区切り線あり、開催場所ラベルあり、対象タイトル一致、詳細URLなし、詳細ラベルなし、ISO/UTC表記なしを確認した。
+- `planned_db_update` と `warnings` は返却あり。ただしdry-run上の予定情報であり、DB更新実行ではない。
+- Discordテスト用チャンネルをユーザーが目視確認し、新規投稿が増えていないことを確認済み。
+- M-14E-15P-B `dry_run = true` preview確認は完了扱いとする。
+
+次工程候補:
+
+- M-14E-15P-C: テスト用チャンネルへの `create / dry_run = false` 実送信1回確認。
+- 実送信時は確認コマンドと送信コマンドを分離し、対話プロンプト依存の送信手順を使わない。
+- DB更新連携、外部投稿識別子保存、二重投稿防止、action拡張、本番募集チャンネル切り替えは後続工程として維持する。
+- この工程ではdocs記録と静的確認のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 実送信、secret設定/切替、`updates.json` 変更、commit / pushは行わない。

@@ -1787,3 +1787,53 @@ M-14E-15Pで確認すべきpreview項目:
 4. M-14E-15S: DB更新連携、外部投稿識別子保存、二重投稿防止設計。
 
 この工程ではdocs記録と安全レビューのみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15P-B 新規検証用依頼書 dry_run=true preview確認結果
+新しい検証用依頼書 `M14E15P_discord_format_QA_01` を作成し、deploy済み `sync-session-post-to-discord` で `create / dry_run = true` previewをユーザー手元で確認した。Codex側ではSQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord送信、dry-run実行、secret設定/切替を行っていない。
+
+対象と事前準備:
+
+- 対象依頼書は `M14E15P_discord_format_QA_01`。
+- 旧 `TEST_1` は再利用していない。
+- UI QA用依頼書も再利用していない。
+- session-detailで開催場所表示OKを確認済み。
+- Discord投稿増加なしを確認済み。
+- PowerShell待機方式で対象IDを安全に取得した。ID本体は記録しない。
+- `SESSION_ID_CAPTURED = true`、`SESSION_ID_SET = true`、`SESSION_ID_LENGTH = 27`。
+- JWT再取得後、`USER_JWT_READY = true`、`SESSION_ID_READY = true`、`SUPABASE_URL_READY = true`。JWT本体とSupabase URL全文は記録しない。
+
+dry-run preview確認結果:
+
+- `DRY_RUN_EXECUTED = true`。
+- requestは `action = create`、`dry_run = true`。
+- `TARGET_SESSION_TITLE = M14E15P_discord_format_QA_01`。
+- `HTTP_ERROR = false`、`HTTP_STATUS = 200`。
+- JSON parse成功。
+- `ok = true`、`dry_run = true`、`action = create`。
+- `message_preview` 返却あり。ただし本文全文は記録しない。
+- previewは145文字、9行。
+- 冒頭区切り線あり。
+- 詳細URLなし。
+- 詳細ラベルなし。
+- 開催場所ラベルあり。
+- 対象タイトル一致。
+- ISO/UTC表記なし。
+- `planned_db_update` 返却あり。ただしdry-run上の予定情報であり、DB更新実行ではない。
+- `warnings` 返却あり。
+- Discordテスト用チャンネルをユーザーが目視確認し、新規投稿が増えていないことを確認済み。
+
+判断:
+
+- deploy済み `sync-session-post-to-discord` は `dry_run = true` preview専用を維持している。
+- 新Discord投稿フォーマットpreviewは期待どおり反映されている。
+- URL/詳細リンクなし、開催場所ラベルあり、対象タイトル一致、ISO/UTC表記なしを確認した。
+- 次工程として `dry_run = false` 実送信1回確認へ進める前提は整った。
+- ただし実送信は別工程とし、確認コマンドと送信コマンドを分離する。
+
+次工程候補:
+
+1. M-14E-15P-C: テスト用チャンネルへの `create / dry_run = false` 実送信1回確認。
+2. M-14E-15P-D: 実送信結果docs記録。
+3. DB更新連携、外部投稿識別子保存、二重投稿防止、action拡張、GM/admin同期UI、本番募集チャンネル切り替えは後続工程として維持する。
+
+この工程ではdocs記録と静的確認のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 実送信、secret設定/切替、`updates.json` 変更、commit / pushは行わない。

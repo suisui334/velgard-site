@@ -1442,3 +1442,55 @@ preview IO確認項目:
 - 本番募集チャンネル切り替え。
 
 この工程ではdocs記録と安全レビューのみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = true` / `dry_run = false` 実行、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
+
+## M-14E-15P-B 新規検証用依頼書 dry_run=true preview IO結果
+新しい検証用依頼書 `M14E15P_discord_format_QA_01` を対象に、ユーザー手元で `create / dry_run = true` previewを確認した。Codex側ではリクエスト実行、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord送信を行っていない。
+
+入力IO:
+
+- 対象依頼書は `M14E15P_discord_format_QA_01`。
+- 旧 `TEST_1` とUI QA用依頼書は再利用していない。
+- 確認対象IDはPowerShell待機方式で取得済み。ID本体は出力・記録していない。
+- `SESSION_ID_CAPTURED = true`、`SESSION_ID_SET = true`、`SESSION_ID_LENGTH = 27`。
+- JWTはユーザー手元で再取得済み。JWT本体は出力・記録していない。
+- `USER_JWT_READY = true`、`SESSION_ID_READY = true`、`SUPABASE_URL_READY = true`。
+- requestは `action = create`、`dry_run = true`。
+
+レスポンスIO:
+
+- `DRY_RUN_EXECUTED = true`。
+- `TARGET_SESSION_TITLE = M14E15P_discord_format_QA_01`。
+- `HTTP_ERROR = false`、`HTTP_STATUS = 200`。
+- JSON parse成功。
+- `ok = true`。
+- `dry_run = true`。
+- `action = create`。
+- `message_preview` 返却あり。ただし本文全文は記録しない。
+- previewは145文字、9行。
+- `planned_db_update` 返却あり。dry-run上の予定情報であり、DB更新実行ではない。
+- `warnings` 返却あり。
+
+preview検証IO:
+
+- 冒頭区切り線あり。
+- 詳細URLなし。
+- 詳細ラベルなし。
+- 開催場所ラベルあり。
+- 対象タイトル一致。
+- ISO/UTC表記なし。
+- message preview本文全文、JWT、確認対象ID、project ref、Supabase URL全文、Discord投稿先実値、Discord message id実値は記録していない。
+
+副作用確認:
+
+- Discordテスト用チャンネルに新規投稿増加なし。
+- `dry_run = true` はpreview専用として維持されている。
+- `dry_run = false` 実送信は未実行。
+- DB更新連携、外部投稿識別子保存、同期状態更新は未実装のまま。
+
+次のIO候補:
+
+- M-14E-15P-Cとして、テスト用チャンネルへ `create / dry_run = false` を1回だけ確認する。
+- 実送信前に、確認コマンドと送信コマンドを分離し、対話プロンプト依存の送信手順を使わない。
+- DB更新連携、外部投稿識別子保存、二重投稿防止、action拡張、本番募集チャンネル切り替えは後続IO設計に残す。
+
+この工程ではdocs記録と静的確認のみ行い、SQL Editor実行、DB/RPC変更、Edge Functionコード変更、追加deploy、Discord追加実送信、`dry_run = false` 実送信、secret設定/切替、`updates.json` 変更、commit / pushは行わない。
