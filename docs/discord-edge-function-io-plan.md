@@ -2232,3 +2232,32 @@ IO判断:
 - 高: 本番切替前レビュー、本番Webhook secret切替ゲート、本番向け `dry_run = true`、本番初回投稿ゲート、post URL未保存許容判断。
 - 中: GM/admin同期状態表示UI、update/resync/repair方針、投稿済み依頼書resync導線、失敗時一般化エラー表示、本番投稿後DB確認手順。
 - 低: post URLリンク表示、close/delete/update実装、同期履歴表示、詳細監査ログ。
+
+## M-14E-16S GM/admin Discord同期状態UI IO
+session-detailのGM/admin管理ブロック内に、Discord同期状態を確認する折りたたみUIを追加した。この工程ではフロント側IOの追加のみを行い、Edge Function、DB/RPC、SQL、Discord送信は変更しない。
+
+入力IO:
+
+- Supabase由来session取得で、同期状態、最終操作、最終同期日時、同期エラー、post URL保存有無を表示用に取得する。
+- `discord_sync_error` は有無へ丸める。
+- `discord_post_url` は保存有無へ丸める。
+- message id、channel id、thread idは取得・表示対象にしない。
+
+表示IO:
+
+- 管理権限確認前は同期状態パネルを空のまま非表示にする。
+- GM本人またはadminとして管理権限が確認できた場合だけ、管理ブロック内に同期状態パネルを表示する。
+- summaryは `Discord同期：投稿済み` などの1行表示。
+- 展開時は同期状態、最終操作、最終同期日時、同期エラー有無、投稿リンク保存有無を表示する。
+- 静的JSON由来、未ログイン、権限なし、権限確認失敗では表示しない。
+
+出力しない情報:
+
+- Discord message id実値、channel id実値、thread id実値、post URL全文、raw session id、raw user id、email、token、selected character id、application id。
+- `discord_sync_error` の生テキスト。エラーがある場合は一般化表示だけにする。
+
+後続IO:
+
+- post URL全文リンク表示は別レビュー。
+- resync/repair/update/close/deleteボタンは未実装。
+- 本番切替前に、公開サイト反映後のGM/admin手動QAで表示条件と表示ラベルを確認する。

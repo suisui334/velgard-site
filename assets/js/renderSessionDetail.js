@@ -1,10 +1,11 @@
 import { getParams } from "./dataLoader.js";
-import { loadMergedSessions } from "./sessionData.js?v=20260605-gm-count-fix";
+import { loadMergedSessions } from "./sessionData.js?v=20260606-discord-sync-status";
 import {
   escapeHtml,
   getSessionDisplayTitle,
+  renderSessionDiscordSyncPanel,
   renderSessionDetailContent
-} from "./sessionDisplay.js?v=20260603-management-qa";
+} from "./sessionDisplay.js?v=20260606-discord-sync-status";
 import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260607-pl-application-template";
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js?v=20260601-session-post";
 
@@ -143,8 +144,21 @@ function getSessionManageElements(root) {
     panel,
     editButton: panel?.querySelector("[data-session-detail-edit]") || null,
     deleteButton: panel?.querySelector("[data-session-detail-delete]") || null,
-    state: panel?.querySelector("[data-session-detail-manage-state]") || null
+    state: panel?.querySelector("[data-session-detail-manage-state]") || null,
+    discordSync: panel?.querySelector("[data-session-detail-discord-sync]") || null
   };
+}
+
+function hideDiscordSyncPanel(elements) {
+  if (!elements.discordSync) return;
+  elements.discordSync.hidden = true;
+  elements.discordSync.replaceChildren();
+}
+
+function showDiscordSyncPanel(elements, session) {
+  if (!elements.discordSync) return;
+  elements.discordSync.innerHTML = renderSessionDiscordSyncPanel(session);
+  elements.discordSync.hidden = false;
 }
 
 async function hasSessionEditAccess(client, sessionId) {
@@ -202,6 +216,7 @@ async function applyDeleteSessionPost(client, elements, session) {
 async function initSessionDetailManageActionsWithDelete(root, session) {
   const elements = getSessionManageElements(root);
   if (!elements.panel) return;
+  hideDiscordSyncPanel(elements);
 
   if (elements.deleteButton) {
     elements.deleteButton.disabled = true;
@@ -240,6 +255,7 @@ async function initSessionDetailManageActionsWithDelete(root, session) {
           applyDeleteSessionPost(client, elements, session);
         });
       }
+      showDiscordSyncPanel(elements, session);
       setManageState(elements.state, access.message, "is-ok");
       return;
     }
@@ -249,6 +265,7 @@ async function initSessionDetailManageActionsWithDelete(root, session) {
       elements.deleteButton.disabled = true;
       elements.deleteButton.title = "この依頼書を操作する権限がありません。";
     }
+    hideDiscordSyncPanel(elements);
     setManageState(elements.state, getAccessDeniedManageMessage(access));
   } catch {
     if (elements.editButton) elements.editButton.disabled = true;
@@ -256,6 +273,7 @@ async function initSessionDetailManageActionsWithDelete(root, session) {
       elements.deleteButton.disabled = true;
       elements.deleteButton.title = "権限確認に失敗しました。";
     }
+    hideDiscordSyncPanel(elements);
     setManageState(elements.state, "編集権限を確認できませんでした。", "is-error");
   }
 }

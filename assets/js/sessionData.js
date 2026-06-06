@@ -71,6 +71,11 @@ function normalizeSupabaseSession(row) {
     detail: normalizeText(row?.detail),
     requirements: normalizeText(row?.requirements),
     visibility: normalizeText(row?.visibility),
+    discordSyncStatus: normalizeText(row?.discord_sync_status),
+    discordLastAction: normalizeText(row?.discord_last_action),
+    discordSyncedAt: formatJapanDateTime(row?.discord_synced_at),
+    discordSyncErrorPresent: Boolean(normalizeText(row?.discord_sync_error)),
+    discordPostUrlSaved: Boolean(normalizeText(row?.discord_post_url)),
     updatedAt: normalizeText(row?.updated_at),
     source: "supabase"
   };
@@ -84,7 +89,7 @@ async function loadSupabaseSessions() {
 
   const { data, error } = await client
     .from("sessions")
-    .select("id,title,date,start_time,end_time,end_at,gm_user_id,gm_name,status,session_type,session_tool,application_deadline,level_range,player_min,player_max,summary,detail,requirements,visibility,updated_at");
+    .select("id,title,date,start_time,end_time,end_at,gm_user_id,gm_name,status,session_type,session_tool,application_deadline,level_range,player_min,player_max,summary,detail,requirements,visibility,discord_sync_status,discord_last_action,discord_synced_at,discord_sync_error,discord_post_url,updated_at");
 
   if (error) {
     return { sessions: [], loadError: true };

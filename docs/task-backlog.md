@@ -2042,3 +2042,17 @@ Discord成功後DB更新失敗時:
 - 優先度中の残課題は、GM/admin同期状態表示UI、update/resync/repair方針詳細化、投稿済み依頼書resync導線、失敗時一般化エラー表示、本番投稿後DB確認手順。
 - 優先度低の残課題は、post URLリンク表示、close/delete/update実装、同期履歴表示、詳細監査ログ。
 - この工程ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 再実行、Discord追加投稿、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16S GM/admin Discord同期状態パネル
+- session-detailのGM/admin管理ブロック内に、Discord同期状態の最小パネルを追加した。
+- UIは `details` / `summary` による折りたたみ式。通常は1行サマリーとして `Discord同期：投稿済み` などを表示し、展開時に詳細を表示する。
+- 表示項目は、同期状態、最終操作、最終同期日時、同期エラー有無、投稿リンク保存有無。
+- `discord_sync_status` と `discord_last_action` は安全な日本語ラベルへ変換する。
+- `discord_sync_error` は生テキストを表示せず、エラーあり/なしの一般化表示にする。
+- `discord_post_url` はURL全文リンクにせず、保存あり/保存なしだけを表示する。
+- Discord message id、channel id、thread id、post URL全文、raw session id、raw user id、email、token、selected character id、application idは画面やDOMへ出さない。
+- 管理権限確認前は非表示。GM本人またはadminとして権限確認できた場合だけ表示する。静的JSON由来、未ログイン、権限なし、権限確認失敗では表示しない。
+- post URL全文リンク表示、resync/repair/update/close/deleteボタン、同期履歴表示は後続課題。
+- 本番切替前レビューの前に、画面上で投稿済み/同期失敗などの状態をGM/adminが確認できる足場ができた。
+- 次工程候補は、GitHub Pages反映後のGM/admin表示QA、本番切替前レビュー、または本番secret切替ゲート準備。
+- この工程ではSQL Editor実行、DB/RPC変更、SQL apply、Edge Functionコード変更、Edge Function deploy、`dry_run = false` 実送信、Discord追加投稿、本番投稿、secret設定/切替、`updates.json` 変更は行わない。

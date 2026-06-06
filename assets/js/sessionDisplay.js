@@ -21,6 +21,22 @@ const SESSION_TYPES = {
   other: "その他"
 };
 
+const DISCORD_SYNC_STATUS_LABELS = {
+  not_requested: "未投稿",
+  pending: "処理中",
+  posted: "投稿済み",
+  failed: "同期失敗",
+  skipped: "スキップ"
+};
+
+const DISCORD_LAST_ACTION_LABELS = {
+  create: "新規投稿",
+  update: "更新",
+  close: "募集終了",
+  delete: "削除",
+  resync: "再同期"
+};
+
 export function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
@@ -99,6 +115,65 @@ export function formatSessionTool(session) {
   return String(session?.sessionTool || session?.session_tool || "").trim() || "未定";
 }
 
+function getDiscordSyncStatusLabel(status) {
+  const normalized = String(status || "").trim();
+  return DISCORD_SYNC_STATUS_LABELS[normalized] || "未確認";
+}
+
+function getDiscordLastActionLabel(action) {
+  const normalized = String(action || "").trim();
+  return DISCORD_LAST_ACTION_LABELS[normalized] || "なし";
+}
+
+function getDiscordSyncFields(session) {
+  const statusLabel = getDiscordSyncStatusLabel(session?.discordSyncStatus || session?.discord_sync_status);
+  const lastActionLabel = getDiscordLastActionLabel(session?.discordLastAction || session?.discord_last_action);
+  const syncedAt = String(session?.discordSyncedAt || session?.discord_synced_at || "").trim() || "なし";
+  const hasError = session?.discordSyncErrorPresent === true;
+  const hasPostUrl = session?.discordPostUrlSaved === true;
+  return {
+    statusLabel,
+    lastActionLabel,
+    syncedAt,
+    errorLabel: hasError ? "同期エラーあり。確認が必要です。" : "なし",
+    postUrlLabel: hasPostUrl ? "保存あり" : "保存なし"
+  };
+}
+
+export function renderSessionDiscordSyncPanel(session) {
+  const fields = getDiscordSyncFields(session);
+  return `
+    <details class="session-detail-discord-sync-details">
+      <summary class="session-detail-discord-sync-summary">${escapeHtml(`Discord同期：${fields.statusLabel}`)}</summary>
+      <div class="session-detail-discord-sync-body">
+        <dl class="session-detail-discord-sync-list">
+          <div>
+            <dt>同期状態</dt>
+            <dd>${escapeHtml(fields.statusLabel)}</dd>
+          </div>
+          <div>
+            <dt>最終操作</dt>
+            <dd>${escapeHtml(fields.lastActionLabel)}</dd>
+          </div>
+          <div>
+            <dt>最終同期日時</dt>
+            <dd>${escapeHtml(fields.syncedAt)}</dd>
+          </div>
+          <div>
+            <dt>同期エラー</dt>
+            <dd>${escapeHtml(fields.errorLabel)}</dd>
+          </div>
+          <div>
+            <dt>投稿リンク</dt>
+            <dd>${escapeHtml(fields.postUrlLabel)}</dd>
+          </div>
+        </dl>
+        <p class="session-detail-discord-sync-note">外部投稿IDや投稿URL全文は表示しません。</p>
+      </div>
+    </details>
+  `;
+}
+
 export function formatPlayerCount(session, options = {}) {
   const count = Number.isFinite(Number(session?.playerCount)) ? Number(session.playerCount) : null;
   const max = Number.isFinite(Number(session?.playerMax)) ? Number(session.playerMax) : null;
@@ -170,6 +245,7 @@ function renderSessionDetailManageRow(session, options = {}) {
           <button class="session-detail-manage-button session-detail-manage-delete" type="button" data-session-detail-delete disabled title="権限確認後に有効化します">削除</button>
         </div>
         <p class="session-detail-manage-note" data-session-detail-manage-state>${escapeHtml(note)}</p>
+        <div class="session-detail-discord-sync" data-session-detail-discord-sync hidden></div>
       </dd>
     </div>
   `;

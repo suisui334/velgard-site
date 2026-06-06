@@ -2902,3 +2902,32 @@ DB同期状態確認結果:
 - 詳細な監査ログ。
 
 この記録作業ではSQL Editor再実行、DB/RPC変更、SQL apply、Edge Functionコード変更、追加deploy、`dry_run = false` 再実行、Discord追加投稿、本番投稿、secret設定/切替、`updates.json` 変更は行わない。
+
+## M-14E-16S GM/admin Discord同期状態パネル最小実装
+session-detailのGM/admin管理ブロック内に、Discord同期状態を確認するための最小UIを追加した。この工程ではフロント実装とdocs整理のみを行い、SQL Editor実行、DB/RPC変更、SQL apply、Edge Functionコード変更、Edge Function deploy、`dry_run = false` 実送信、Discord追加投稿、本番投稿、secret設定/切替は行わない。
+
+実装内容:
+
+- Supabase由来のsession取得で、Discord同期状態表示に必要な `discord_sync_status`、`discord_last_action`、`discord_synced_at`、`discord_sync_error`、`discord_post_url` を取得する。
+- 表示用データでは、`discord_sync_error` は有無だけ、`discord_post_url` は保存有無だけに丸める。
+- `discord_message_id`、`discord_channel_id`、`discord_thread_id`、post URL全文は画面やDOMへ出さない。
+- session-detailの管理ブロック内に、`details` / `summary` による折りたたみパネルを追加する。
+- 初期状態では非表示にし、GM本人またはadminとして管理権限が確認できた場合のみパネル内容を差し込んで表示する。
+- 静的JSON由来、未ログイン、権限なし、権限確認失敗では同期状態パネルを表示しない。
+
+表示ラベル:
+
+- `discord_sync_status`: `not_requested` は未投稿、`pending` は処理中、`posted` は投稿済み、`failed` は同期失敗、`skipped` はスキップ、その他/nullは未確認。
+- `discord_last_action`: `create` は新規投稿、`update` は更新、`close` は募集終了、`delete` は削除、`resync` は再同期、その他/nullはなし。
+- 展開時は、同期状態、最終操作、最終同期日時、同期エラー有無、投稿リンク保存有無を表示する。
+- `discord_sync_error` が空ならなし、値がある場合も本文をそのまま出さず、同期エラーありとして一般化表示する。
+- `discord_post_url` が保存されていてもURL全文リンクは表示せず、保存あり/保存なしだけを表示する。
+
+後続に残すもの:
+
+- post URL全文リンク表示。
+- `resync` / `repair` / `update` / `close` / `delete` ボタン。
+- 同期履歴表示。
+- 本番切替前レビューと本番secret切替ゲート。
+
+この工程では、raw user id、email、token、selected character id、application id、Discord message id実値、channel id実値、post URL全文、JWT、Supabase URL全文、Webhook URLを画面、DOM、docs、consoleへ出さない方針を維持する。

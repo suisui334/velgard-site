@@ -2436,6 +2436,110 @@ body[data-page="session-detail"] .session-detail-manage-note.is-error {
   color: var(--rust);
 }
 
+body[data-page="session-detail"] .session-detail-discord-sync[hidden] {
+  display: none;
+}
+
+body[data-page="session-detail"] .session-detail-discord-sync {
+  min-width: 0;
+}
+
+body[data-page="session-detail"] .session-detail-discord-sync-details {
+  min-width: 0;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 250, 0.66);
+}
+
+body[data-page="session-detail"] .session-detail-discord-sync-details[open] {
+  background: rgba(250, 252, 247, 0.76);
+}
+
+body[data-page="session-detail"] .session-detail-discord-sync-summary {
+  display: flex;
+  min-width: 0;
+  min-height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 900;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-detail-discord-sync-summary::-webkit-details-marker {
+  display: none;
+}
+
+body[data-page="session-detail"] .session-detail-discord-sync-summary::after {
+  content: "+";
+  flex: 0 0 auto;
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1;
+}
+
+body[data-page="session-detail"] .session-detail-discord-sync-details[open] .session-detail-discord-sync-summary::after {
+  content: "-";
+}
+
+body[data-page="session-detail"] .session-detail-discord-sync-body {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 10px 10px;
+}
+
+body[data-page="session-detail"] .session-detail-discord-sync-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+body[data-page="session-detail"] .session-detail-discord-sync-list div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid rgba(86, 96, 106, 0.12);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.7);
+}
+
+body[data-page="session-detail"] .session-detail-discord-sync-list dt {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+body[data-page="session-detail"] .session-detail-discord-sync-list dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-detail-discord-sync-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
 body[data-page="session-detail"] .calendar-session-modal-block {
   display: grid;
   gap: 6px;
@@ -4994,6 +5098,10 @@ body.is-modal-open .back-to-top {
   }
 
   body[data-page="session-detail"] .calendar-session-modal-meta {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page="session-detail"] .session-detail-discord-sync-list {
     grid-template-columns: 1fr;
   }
 
