@@ -3528,3 +3528,74 @@ Next gates:
 - SQL apply must be a separate explicit gate.
 - After apply, run SELECT-only confirmation for RPC existence, security definer, search_path, authenticated EXECUTE, anon blocked, removed GM/admin gate, and retained initial status guard.
 - Any public non-draft retry can trigger Discord create and remains a separate explicit gate.
+
+## M-14E-26D General user create RPC apply draft review
+
+Status: apply-preflight review only. No SQL Editor execution, SQL apply, DB/RPC/RLS change, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, public non-draft retry, or `updates.json` change was performed.
+
+Review target:
+
+- `docs/supabase/sql/041_general_user_session_post_create_rpc_apply_draft.sql`.
+- 041 remains an unexecuted apply draft with `DO NOT RUN` / `NOT EXECUTED` / user approval warnings.
+- Review result: ready to move to a separate SQL apply gate if the user explicitly approves and the apply-time stop conditions below remain clear.
+
+SQL safety review:
+
+- The draft is limited to replacing `public.create_session_post(...)`.
+- No `DROP TABLE`, `DROP COLUMN`, `TRUNCATE`, `CASCADE`, standalone `DELETE`, standalone `UPDATE`, or RLS policy change was found.
+- `DROP FUNCTION IF EXISTS` appears only for the current/legacy `create_session_post` signatures to avoid PostgREST overload ambiguity before recreating the target RPC.
+- The intended `INSERT INTO public.sessions` appears inside the replacement function body only; it is the normal create RPC behavior and is not a standalone data mutation executed by the draft review.
+- `GRANT` / `REVOKE` handling is limited to the target function execute permissions: PUBLIC/anon are revoked and authenticated is granted.
+- No secret, token, Webhook URL, JWT, project ref, Supabase URL, Discord ID, post URL, user row, or raw personal identifier was recorded.
+
+Signature / frontend compatibility:
+
+- The RPC arguments match the existing frontend create payload shape, including `p_session_tool`.
+- Existing placeholder arguments `p_level_range`, `p_request_body`, and `p_requirements` remain compatible with the current frontend payload.
+- The return shape remains `session_id`, `discord_sync_status`, and `created_at`, matching the current frontend expectation.
+- `discord_mention_mode` is not saved by this RPC and remains a frontend-to-Discord-sync input after successful create; this is compatible with the current mention design.
+- Existing Discord sync metadata initialization is preserved.
+
+Permission boundary review:
+
+- Auth is still required through `auth.uid()`.
+- Create-time GM/admin role gating is removed only from `create_session_post`.
+- The new session creator is saved as the owner/GM via `gm_user_id = auth.uid()`.
+- `update_session_post`, `delete_session_post`, close/delete/update sync RPCs, and GM manual close-mark flows are not changed by 041.
+- This draft does not grant general users permission to edit, delete, close-mark, or manage other users' session posts.
+- Admin management behavior remains delegated to the existing update/delete/management flows.
+
+Input validation review:
+
+- Initial create status remains limited to `draft` / `tentative` / `recruiting`.
+- `closed` / `finished` / `canceled` remain disallowed for create.
+- Existing validation for title, date/time, deadline, visibility, session type, player min/max, summary, and session tool is preserved.
+- The three-choice frontend status policy remains aligned with the draft.
+
+Apply gate stop conditions:
+
+- Stop if the SQL file is not the reviewed 041 draft.
+- Stop if the live RPC signature differs from the reviewed signature.
+- Stop if the SQL Editor reports any error or unexpected warning.
+- Stop if the pasted SQL is incomplete or modified unexpectedly.
+- Stop if any secret, URL, token, raw ID, personal identifier, or Discord external identifier appears.
+- Stop if update/delete/close permissions, RLS policies, table structure, Edge Function code, or Discord operations become necessary.
+
+Apply-after confirmation plan:
+
+- Confirm `create_session_post` exists with the expected signature.
+- Confirm `security_definer = true`.
+- Confirm search_path is set.
+- Confirm authenticated EXECUTE is available and anon EXECUTE is blocked.
+- Confirm the create-time GM/admin gate is removed from the live RPC body.
+- Confirm the initial status guard still limits create to `draft` / `tentative` / `recruiting`.
+- Confirm a logged-in general user can create a safe session post in a later explicit QA gate.
+- Confirm the created session owner/GM is the actor without recording raw IDs.
+- Confirm general users still cannot edit/delete/close-mark another user's session post.
+- Confirm admin management remains available.
+- Confirm public non-draft + `@everyone通知を送らない` creates a Discord post without `@everyone` only in a separate explicit Discord-risk gate.
+
+Next gate:
+
+- Run 041 SQL apply only after explicit approval.
+- Keep public non-draft create retry, Discord create verification, and `@everyone通知を送る` verification as later independent gates.
