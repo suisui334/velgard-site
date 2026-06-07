@@ -82,6 +82,14 @@
     call: GM_TEMPLATE_VARIABLE_HELP,
     result: GM_TEMPLATE_VARIABLE_HELP
   });
+  const TEMPLATE_EXAMPLES_BY_TYPE = Object.freeze({
+    call: [],
+    result: [],
+    session_post: [],
+    application: [],
+    other: []
+  });
+  const DISCORD_MENTION_MODES = new Set(["everyone", "none"]);
   const SESSION_POST_TEMPLATE_FIELD_KEYS = Object.freeze([
     "p_title",
     "p_start_at",
@@ -93,6 +101,7 @@
     "p_player_max",
     "p_visibility",
     "p_status",
+    "discord_mention_mode",
     "p_summary"
   ]);
   const SESSION_POST_TEMPLATE_DEFAULT_FIELDS = Object.freeze({
@@ -106,6 +115,7 @@
     p_player_max: "",
     p_visibility: "hidden",
     p_status: "draft",
+    discord_mention_mode: "",
     p_summary: ""
   });
   const SESSION_POST_TYPE_OPTIONS = Object.freeze([
@@ -795,6 +805,16 @@
     return TEMPLATE_VARIABLE_HELP_BY_TYPE[templateType] || [];
   }
 
+  function getTemplateExamples(value) {
+    const templateType = normalizeTemplateType(value);
+    return TEMPLATE_EXAMPLES_BY_TYPE[templateType] || [];
+  }
+
+  function normalizeDiscordMentionMode(value) {
+    const text = String(value || "").trim();
+    return DISCORD_MENTION_MODES.has(text) ? text : "";
+  }
+
   function normalizeTemplateName(value) {
     return redactSensitiveText(value).replace(/[\r\n]+/g, " ").trim();
   }
@@ -845,6 +865,7 @@
     fields.p_player_max = normalizeSessionPostIntegerText(source.p_player_max);
     fields.p_visibility = normalizeSessionPostSelectValue(source.p_visibility, SESSION_POST_VISIBILITY_OPTIONS, fields.p_visibility);
     fields.p_status = normalizeSessionPostSelectValue(source.p_status, SESSION_POST_STATUS_OPTIONS, fields.p_status);
+    fields.discord_mention_mode = normalizeDiscordMentionMode(source.discord_mention_mode);
     fields.p_summary = redactSensitiveText(source.p_summary).trim();
     return fields;
   }
@@ -1004,6 +1025,7 @@
       p_player_max: fields.playerMaxInput?.value || "",
       p_visibility: fields.visibilitySelect?.value || "",
       p_status: fields.statusSelect?.value || "",
+      discord_mention_mode: fields.discordMentionSelect?.value || "",
       p_summary: fields.summaryTextarea?.value || ""
     };
   }
@@ -2218,6 +2240,43 @@
     if (!items.length) panel.variableHelp.open = false;
   }
 
+  function createTemplateExamplePanel() {
+    const container = document.createElement("details");
+    container.className = "mypage-template-example-help";
+    container.dataset.mypageTemplateExampleHelp = "";
+
+    const summary = document.createElement("summary");
+    summary.className = "mypage-template-variable-summary";
+    summary.textContent = "テンプレート例";
+
+    const body = document.createElement("div");
+    body.className = "mypage-template-example-body";
+    body.dataset.mypageTemplateExampleBody = "";
+
+    container.append(summary, body);
+    return { container, body };
+  }
+
+  function renderTemplateExamples(panel) {
+    const examples = getTemplateExamples(panel.typeSelect.value);
+    panel.exampleBody.replaceChildren();
+
+    if (!examples.length) {
+      const empty = document.createElement("p");
+      empty.textContent = "この種別の例はまだありません。";
+      panel.exampleBody.append(empty);
+      return;
+    }
+
+    const list = document.createElement("ul");
+    examples.forEach((example) => {
+      const item = document.createElement("li");
+      item.textContent = example;
+      list.append(item);
+    });
+    panel.exampleBody.append(list);
+  }
+
   function createSessionPostTemplateEditor() {
     const container = document.createElement("section");
     container.className = "mypage-template-session-post-editor";
@@ -2276,6 +2335,13 @@
     const statusSelect = document.createElement("select");
     appendTemplateSelectOptions(statusSelect, SESSION_POST_STATUS_OPTIONS, "draft");
 
+    const discordMentionSelect = document.createElement("select");
+    appendTemplateSelectOptions(discordMentionSelect, [
+      { value: "", label: "未設定" },
+      { value: "everyone", label: "@everyone通知を送る" },
+      { value: "none", label: "@everyone通知を送らない" }
+    ], "");
+
     const summaryTextarea = document.createElement("textarea");
     summaryTextarea.maxLength = SESSION_POST_SUMMARY_MAX_LENGTH;
     summaryTextarea.rows = 5;
@@ -2295,6 +2361,7 @@
       createInputField("募集人数 max", playerMaxInput),
       createInputField("公開状態", visibilitySelect),
       createInputField("募集状態", statusSelect),
+      createInputField("Discord通知", discordMentionSelect),
       summaryField
     );
 
@@ -2313,6 +2380,7 @@
         playerMaxInput,
         visibilitySelect,
         statusSelect,
+        discordMentionSelect,
         summaryTextarea
       }
     };
@@ -2331,6 +2399,7 @@
     if (controls.playerMaxInput) controls.playerMaxInput.value = normalized.p_player_max;
     if (controls.visibilitySelect) controls.visibilitySelect.value = normalized.p_visibility;
     if (controls.statusSelect) controls.statusSelect.value = normalized.p_status;
+    if (controls.discordMentionSelect) controls.discordMentionSelect.value = normalized.discord_mention_mode;
     if (controls.summaryTextarea) controls.summaryTextarea.value = normalized.p_summary;
   }
 
@@ -2343,6 +2412,7 @@
     const isSessionPost = templateType === "session_post";
     panel.bodyField.hidden = isSessionPost;
     panel.sessionPostEditor.hidden = !isSessionPost;
+    renderTemplateExamples(panel);
     renderTemplateVariableHelp(panel);
   }
 
@@ -2460,6 +2530,7 @@
     const bodyField = createInputField("本文", bodyTextarea);
     bodyField.classList.add("mypage-template-body-field");
 
+    const exampleHelp = createTemplateExamplePanel();
     const variableHelp = createTemplateVariableHelpPanel();
     const sessionPostEditor = createSessionPostTemplateEditor();
 
@@ -2470,6 +2541,7 @@
       typeNote,
       bodyField,
       sessionPostEditor.container,
+      exampleHelp.container,
       variableHelp.container,
       actions
     );
@@ -2490,6 +2562,8 @@
       bodyTextarea,
       bodyField,
       typeNote,
+      exampleHelp: exampleHelp.container,
+      exampleBody: exampleHelp.body,
       variableHelp: variableHelp.container,
       variableHelpList: variableHelp.list,
       sessionPostEditor: sessionPostEditor.container,

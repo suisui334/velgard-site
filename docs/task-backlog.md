@@ -3213,3 +3213,38 @@ Next gate:
 - Post-deploy `dry_run=true` verification for `discord_mention_mode=none` and `discord_mention_mode=everyone`.
 - Record only booleans/status such as preview presence and mention presence checks; do not record the preview body.
 - Any real `@everyone` Discord send remains a separate explicit gate with one selected QA request.
+
+## M-14E-23B Discord mention selection UI and template prep
+
+Status: implemented in frontend/docs only. No SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, dry-run, real-send, Discord post/edit/delete, secret/Webhook change, cleanup apply, or `updates.json` change was performed.
+
+Context:
+
+- Post-deploy `dry_run=true` verification for `discord_mention_mode` was not completed in the previous gate because there was no safe candidate request to use at that time.
+- The dry-run verification remains folded into a later actual registration QA gate, where a new safe QA request can be selected without exposing IDs or preview text.
+- `message_preview` body text, JWT, session ID, project ref, Supabase URL, Webhook URL, Discord IDs, post URL, and raw user/account identifiers are not recorded.
+
+Implemented scope:
+
+- session-post create form now shows a create-only `Discord通知` radio choice with `@everyone通知を送る` and `@everyone通知を送らない`.
+- The mention UI is hidden in edit/update mode, and edit/update/delete sync calls do not pass `discord_mention_mode`.
+- Public non-draft creation requires an explicit mention choice before DB save and before Discord auto-create sync.
+- Draft, hidden/private, or otherwise non-create-sync saves may leave the mention choice unset.
+- If `@everyone` is selected for a public non-draft create during JST 00:00-05:59, the form asks for one confirmation before saving.
+- The frontend passes `discord_mention_mode` only to the create auto-sync path. Update/delete paths remain mention-free.
+- session-post templates now preserve `discord_mention_mode` as `everyone`, `none`, or unset. Older templates without the field remain unset.
+- Applying a template on the new-create page restores the mention selection; applying a template while editing ignores the mention field because the edit UI is hidden.
+- session-post and mypage template management now include a display-only `テンプレート例` details block by template type. No example text was invented; empty types show `この種別の例はまだありません。`.
+- Cache-bust values were updated for session-post, mypage, `renderSessionPost`, `discordSyncClient`, and the shared CSS path so the public site does not keep stale mention/template UI assets.
+
+QA checklist:
+
+- New public non-draft request creation cannot proceed until either `@everyone通知を送る` or `@everyone通知を送らない` is selected.
+- New draft or non-public request creation can proceed with the mention choice unset.
+- Edit mode does not show the mention radio group.
+- Create sync payload includes `discord_mention_mode` only for the create path.
+- Update/delete sync payloads do not include the mention mode.
+- JST late-night warning appears only for public non-draft create with `@everyone` selected.
+- Template save/apply preserves the mention choice on new-create forms and ignores it on edit forms.
+- Template example display is read-only and does not overwrite form body/template content.
+- No PC select, DB schema/RPC change, Edge Function change, or Discord operation is part of this gate.

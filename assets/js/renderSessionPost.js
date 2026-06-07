@@ -15,7 +15,7 @@ import {
   hasDiscordPostReference,
   syncCreatedSession,
   syncUpdatedSession
-} from "./discordSyncClient.js?v=20260606-discord-auto-sync";
+} from "./discordSyncClient.js?v=20260608-discord-mention-ui";
 
 const ERROR_MESSAGE = "依頼書を投稿できませんでした。権限または入力内容を確認してください。";
 const END_BEFORE_START_MESSAGE = "終了日時は開始日時より後にしてください。";
@@ -96,11 +96,18 @@ const TEMPLATE_NAME_MAX_LENGTH = 80;
 const TEMPLATE_BODY_MAX_LENGTH = 5000;
 const SESSION_POST_TEMPLATE_FORMAT = "velgard.session_post_template.v1";
 const SESSION_POST_TEMPLATE_APPLY_CONFIRM_MESSAGE = "保存せずにテンプレートを反映すると、現在の入力内容が失われます。続けますか？";
+const DISCORD_MENTION_REQUIRED_MESSAGE = "Discord通知を送るか送らないかを選択してください。";
+const DISCORD_MENTION_LATE_NIGHT_CONFIRM_MESSAGE = "現在は日本時間の深夜帯です。@everyone通知を送信しますか？";
+const DISCORD_MENTION_MODES = new Set(["everyone", "none"]);
 const SESSION_POST_TEMPLATE_TYPE_OPTIONS = Object.freeze([
   { value: "session_post", label: "依頼書用" },
   { value: "other", label: "その他" }
 ]);
 const SESSION_POST_TEMPLATE_TYPE_VALUES = new Set(SESSION_POST_TEMPLATE_TYPE_OPTIONS.map((option) => option.value));
+const SESSION_POST_TEMPLATE_EXAMPLES_BY_TYPE = Object.freeze({
+  session_post: [],
+  other: []
+});
 const SESSION_POST_TEMPLATE_FIELD_KEYS = Object.freeze([
   "p_title",
   "p_start_at",
@@ -112,6 +119,7 @@ const SESSION_POST_TEMPLATE_FIELD_KEYS = Object.freeze([
   "p_player_max",
   "p_visibility",
   "p_status",
+  "discord_mention_mode",
   "p_summary"
 ]);
 const TEMPLATE_PRESET_FIELD_NAMES = new Set([
@@ -151,6 +159,12 @@ function renderSessionPostTemplatePanel() {
           </select>
         </label>
       </div>
+      <details class="session-post-template-examples">
+        <summary>テンプレート例</summary>
+        <div class="session-post-template-example-body" data-session-post-template-example-body>
+          <p>この種別の例はまだありません。</p>
+        </div>
+      </details>
       <p class="session-post-template-note">秘匿情報や認証情報はテンプレート本文に入れないでください。</p>
       <div class="session-post-template-actions">
         <button class="button" type="button" data-session-post-template-create disabled>新規保存</button>
@@ -221,6 +235,7 @@ function renderShell(initialStartAt = "") {
               </select>
               <span data-session-post-manage-state aria-live="polite" hidden>読み込み中</span>
             </label>
+            ${renderDiscordMentionField()}
             <p class="session-post-publication-note" data-session-post-publication-note aria-live="polite" hidden></p>
             ${renderTextareaField("概要", "p_summary", 1000)}
           </div>
@@ -300,6 +315,25 @@ function renderPlayerCountFields() {
   `;
 }
 
+function renderDiscordMentionField() {
+  return `
+    <fieldset class="session-post-field session-post-discord-mention-field session-post-field--wide" data-session-post-discord-mention-field>
+      <legend>Discord通知</legend>
+      <p>公開依頼書を新規投稿するとき、Discordで@everyone通知を送るか選んでください。</p>
+      <div class="session-post-discord-mention-options">
+        <label>
+          <input type="radio" name="discord_mention_mode" value="everyone">
+          <span>@everyone通知を送る</span>
+        </label>
+        <label>
+          <input type="radio" name="discord_mention_mode" value="none">
+          <span>@everyone通知を送らない</span>
+        </label>
+      </div>
+    </fieldset>
+  `;
+}
+
 function setState(target, message, modifier = "") {
   if (!target) return;
   target.textContent = message;
@@ -311,6 +345,40 @@ function setState(target, message, modifier = "") {
 
 function getValue(form, name) {
   return String(new FormData(form).get(name) ?? "").trim();
+}
+
+function normalizeDiscordMentionMode(value) {
+  const text = String(value ?? "").trim();
+  return DISCORD_MENTION_MODES.has(text) ? text : "";
+}
+
+function getDiscordMentionMode(form) {
+  return normalizeDiscordMentionMode(new FormData(form).get("discord_mention_mode"));
+}
+
+function setDiscordMentionMode(form, value) {
+  const mode = normalizeDiscordMentionMode(value);
+  form?.querySelectorAll?.('input[name="discord_mention_mode"]').forEach((radio) => {
+    radio.checked = Boolean(mode) && radio.value === mode;
+  });
+}
+
+function updateDiscordMentionFieldVisibility(elements) {
+  const field = elements?.discordMentionField;
+  if (!field) return;
+  const isEditing = Boolean(elements.currentSession);
+  field.hidden = isEditing;
+  if (isEditing) setDiscordMentionMode(elements.form, "");
+}
+
+function isJstLateNightNow(date = new Date()) {
+  const hourText = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tokyo",
+    hour: "2-digit",
+    hour12: false
+  }).format(date);
+  const hour = Number(hourText === "24" ? "0" : hourText);
+  return Number.isInteger(hour) && hour >= 0 && hour <= 5;
 }
 
 function nullableText(value) {
@@ -482,6 +550,21 @@ function normalizeTemplateType(value) {
   return SESSION_POST_TEMPLATE_TYPE_VALUES.has(templateType) ? templateType : "";
 }
 
+function renderSessionPostTemplateExamples(target, typeValue) {
+  if (!target) return;
+  const templateType = normalizeTemplateType(typeValue) || "session_post";
+  const examples = SESSION_POST_TEMPLATE_EXAMPLES_BY_TYPE[templateType] || [];
+  if (!examples.length) {
+    target.innerHTML = "<p>この種別の例はまだありません。</p>";
+    return;
+  }
+  target.innerHTML = `
+    <ul>
+      ${examples.map((example) => `<li>${escapeHtml(example)}</li>`).join("")}
+    </ul>
+  `;
+}
+
 function getTemplateTypeLabel(value) {
   const templateType = normalizeTemplateType(value);
   const option = SESSION_POST_TEMPLATE_TYPE_OPTIONS.find((item) => item.value === templateType);
@@ -625,7 +708,7 @@ async function deactivateTemplatePreset(client, templateId) {
   assertOnlyTemplatePresetFields(data);
 }
 
-function applySessionPostTemplateFields(form, fields) {
+function applySessionPostTemplateFields(form, fields, options = {}) {
   if (!fields || typeof fields !== "object") return;
   setFormValue(form, "p_title", fields.p_title);
   setFormValue(form, "p_start_at", fields.p_start_at);
@@ -638,6 +721,9 @@ function applySessionPostTemplateFields(form, fields) {
   setSelectValue(form, "p_session_type", fields.p_session_type, "one-shot", getSessionTypeLabel);
   setSelectValue(form, "p_visibility", fields.p_visibility, "hidden", (value) => VISIBILITY_LABELS[value] || value);
   setSelectValue(form, "p_status", fields.p_status, "draft", getSessionStatusLabel);
+  if (options.applyDiscordMention !== false) {
+    setDiscordMentionMode(form, fields.discord_mention_mode);
+  }
   const publicConfirm = getFormControl(form, "public_confirm");
   if (publicConfirm && "checked" in publicConfirm) publicConfirm.checked = false;
 }
@@ -794,6 +880,7 @@ function fillFormFromManagedSession(form, session) {
   setSelectValue(form, "p_session_type", session.sessionType, "one-shot", getSessionTypeLabel);
   setSelectValue(form, "p_visibility", session.visibility, "hidden", (value) => VISIBILITY_LABELS[value] || value);
   setSelectValue(form, "p_status", session.status, "draft", getSessionStatusLabel);
+  setDiscordMentionMode(form, "");
   const publicConfirm = getFormControl(form, "public_confirm");
   if (publicConfirm && "checked" in publicConfirm) publicConfirm.checked = false;
 }
@@ -812,6 +899,7 @@ function resetFormForNewSession(form) {
   setSelectValue(form, "p_session_type", "one-shot", "one-shot", getSessionTypeLabel);
   setSelectValue(form, "p_visibility", "hidden", "hidden", (value) => VISIBILITY_LABELS[value] || value);
   setSelectValue(form, "p_status", "draft", "draft", getSessionStatusLabel);
+  setDiscordMentionMode(form, "");
   const publicConfirm = getFormControl(form, "public_confirm");
   if (publicConfirm && "checked" in publicConfirm) publicConfirm.checked = false;
 }
@@ -851,6 +939,7 @@ function enterEditMode(elements, session) {
   elements.resultPanel.hidden = true;
   setState(elements.formState, "選択中の依頼書を編集中です。");
   setState(elements.manageState, "");
+  updateDiscordMentionFieldVisibility(elements);
   updatePublicationHint(elements);
   elements.refreshTemplateControls?.();
   replaceSelectedSessionId("");
@@ -867,6 +956,7 @@ function enterNewMode(elements, options = {}) {
   if (options.clearResult) elements.resultPanel.hidden = true;
   if (options.clearForm) setState(elements.formState, "");
   setState(elements.manageState, "");
+  updateDiscordMentionFieldVisibility(elements);
   updatePublicationHint(elements);
   elements.refreshTemplateControls?.();
   replaceSelectedSessionId("");
@@ -877,6 +967,24 @@ function validatePublicSave(payload) {
     return DRAFT_PUBLIC_MESSAGE;
   }
   return "";
+}
+
+function shouldAutoSyncCreatedSession(payload) {
+  return payload?.p_visibility === "public" && payload?.p_status !== "draft";
+}
+
+function validateDiscordMentionSelection(payload, mentionMode) {
+  if (shouldAutoSyncCreatedSession(payload) && !normalizeDiscordMentionMode(mentionMode)) {
+    return DISCORD_MENTION_REQUIRED_MESSAGE;
+  }
+  return "";
+}
+
+function confirmLateNightEveryoneMention(payload, mentionMode) {
+  if (!shouldAutoSyncCreatedSession(payload)) return true;
+  if (normalizeDiscordMentionMode(mentionMode) !== "everyone") return true;
+  if (!isJstLateNightNow()) return true;
+  return window.confirm(DISCORD_MENTION_LATE_NIGHT_CONFIRM_MESSAGE);
 }
 
 function requirePublicConfirm(form, payload) {
@@ -1286,6 +1394,7 @@ async function initializeSessionPostTemplateUi(client, elements) {
     if (!preset) return;
     ui.name.value = preset.templateName;
     ui.type.value = normalizeTemplateType(preset.templateType) || "session_post";
+    renderSessionPostTemplateExamples(ui.exampleBody, ui.type.value);
     updateTemplateControls(false);
   };
 
@@ -1409,7 +1518,9 @@ async function initializeSessionPostTemplateUi(client, elements) {
 
     if (elements.currentSession && !window.confirm(SESSION_POST_TEMPLATE_APPLY_CONFIRM_MESSAGE)) return;
 
-    applySessionPostTemplateFields(elements.form, selectedPreset.fields);
+    applySessionPostTemplateFields(elements.form, selectedPreset.fields, {
+      applyDiscordMention: !elements.currentSession
+    });
     updatePublicationHint(elements);
     updateTemplateControls(false);
     setState(ui.state, "テンプレートをフォームに反映しました。", "is-ok");
@@ -1435,6 +1546,7 @@ async function initializeSessionPostTemplateUi(client, elements) {
   });
 
   ui.type.addEventListener("change", () => {
+    renderSessionPostTemplateExamples(ui.exampleBody, ui.type.value);
     updateTemplateControls(false);
     if (!isTemplateOperation) setState(ui.state, "");
   });
@@ -1460,6 +1572,7 @@ async function initializeSessionPostTemplateUi(client, elements) {
   });
 
   elements.refreshTemplateControls = () => updateTemplateControls(false);
+  renderSessionPostTemplateExamples(ui.exampleBody, ui.type.value);
   updateTemplateControls(false);
   setState(ui.state, "保存済みテンプレートを読み込んでいます。", "is-warn");
 
@@ -1493,6 +1606,7 @@ async function initializeForm(root, client, access = {}) {
     resultPanel,
     modeTitle: root.querySelector("[data-session-post-mode-title]"),
     modeNote: root.querySelector("[data-session-post-mode-note]"),
+    discordMentionField: root.querySelector("[data-session-post-discord-mention-field]"),
     publicationNote: root.querySelector("[data-session-post-publication-note]"),
     panel: root.querySelector("[data-session-post-manage-panel]"),
     select: root.querySelector("[data-session-post-manage-select]"),
@@ -1504,6 +1618,7 @@ async function initializeForm(root, client, access = {}) {
       select: root.querySelector("[data-session-post-template-select]"),
       name: root.querySelector("[data-session-post-template-name]"),
       type: root.querySelector("[data-session-post-template-type]"),
+      exampleBody: root.querySelector("[data-session-post-template-example-body]"),
       createButton: root.querySelector("[data-session-post-template-create]"),
       updateButton: root.querySelector("[data-session-post-template-update]"),
       deleteButton: root.querySelector("[data-session-post-template-delete]"),
@@ -1515,6 +1630,7 @@ async function initializeForm(root, client, access = {}) {
   formPanel.hidden = false;
   await loadManagedSessions(client, manageElements);
   await initializeSessionPostTemplateUi(client, manageElements);
+  updateDiscordMentionFieldVisibility(manageElements);
   save.addEventListener("click", () => {
     saveManagedSession(client, manageElements);
   });
@@ -1538,14 +1654,26 @@ async function initializeForm(root, client, access = {}) {
 
     try {
       const payload = buildCreatePayload(form);
+      const discordMentionMode = getDiscordMentionMode(form);
       const validationMessage = validatePublicSave(payload);
       if (validationMessage) {
         setState(state, validationMessage, "is-error");
         submit.disabled = false;
         return;
       }
+      const mentionValidationMessage = validateDiscordMentionSelection(payload, discordMentionMode);
+      if (mentionValidationMessage) {
+        setState(state, mentionValidationMessage, "is-error");
+        submit.disabled = false;
+        return;
+      }
       if (requirePublicConfirm(form, payload)) {
         setState(state, "公開状態で保存する場合は確認してください。", "is-error");
+        submit.disabled = false;
+        return;
+      }
+      if (!confirmLateNightEveryoneMention(payload, discordMentionMode)) {
+        setState(state, "保存を中止しました。", "is-warn");
         submit.disabled = false;
         return;
       }
@@ -1556,7 +1684,8 @@ async function initializeForm(root, client, access = {}) {
       if (!result || typeof result !== "object") throw new Error("invalid-result");
       const syncResult = await syncCreatedSession(client, {
         sessionId: resolveSavedSessionId(result),
-        payload
+        payload,
+        discordMentionMode
       });
       setState(
         state,

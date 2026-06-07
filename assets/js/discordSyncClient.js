@@ -1,4 +1,5 @@
 const DISCORD_SYNC_ACTIONS = new Set(["create", "update", "delete"]);
+const DISCORD_MENTION_MODES = new Set(["everyone", "none"]);
 const PUBLIC_VISIBILITY = "public";
 const DRAFT_STATUS = "draft";
 
@@ -9,6 +10,11 @@ function normalizeText(value) {
 function normalizeAction(action) {
   const normalized = normalizeText(action);
   return DISCORD_SYNC_ACTIONS.has(normalized) ? normalized : "";
+}
+
+function normalizeDiscordMentionMode(value) {
+  const normalized = normalizeText(value);
+  return DISCORD_MENTION_MODES.has(normalized) ? normalized : "";
 }
 
 function hasSessionId(value) {
@@ -89,13 +95,19 @@ export async function runDiscordSessionSync(client, options) {
     return makeFailureResult(action || "unknown", "invalid_request");
   }
 
+  const body = {
+    session_id: sessionId,
+    action,
+    dry_run: false,
+    request_source: normalizeText(options?.requestSource) || "frontend_auto_sync"
+  };
+  const discordMentionMode = action === "create" ? normalizeDiscordMentionMode(options?.discordMentionMode) : "";
+  if (discordMentionMode) {
+    body.discord_mention_mode = discordMentionMode;
+  }
+
   const { data, error } = await client.functions.invoke("sync-session-post-to-discord", {
-    body: {
-      session_id: sessionId,
-      action,
-      dry_run: false,
-      request_source: normalizeText(options?.requestSource) || "frontend_auto_sync"
-    }
+    body
   });
 
   if (error) {
@@ -133,6 +145,7 @@ export async function syncCreatedSession(client, options) {
   return runDiscordSessionSync(client, {
     sessionId,
     action: "create",
+    discordMentionMode: options?.discordMentionMode,
     requestSource: "frontend_auto_create"
   });
 }
