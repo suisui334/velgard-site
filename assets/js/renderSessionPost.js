@@ -264,10 +264,7 @@ function renderShell(initialStartAt = "") {
             ${renderSelectField("募集状態", "p_status", [
               ["draft", "下書き"],
               ["tentative", "仮予定"],
-              ["recruiting", "募集中"],
-              ["closed", "募集終了"],
-              ["finished", "開催終了"],
-              ["canceled", "中止"]
+              ["recruiting", "募集中"]
             ], "draft")}
             <label class="session-post-field" id="my-sessions" data-session-post-manage-panel hidden>
               <span data-session-post-manage-label>自分の依頼書</span>

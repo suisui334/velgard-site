@@ -3470,3 +3470,61 @@ Next gate:
 - Run 040 once in SQL Editor after explicit approval.
 - Do not rerun 038.
 - If 040 confirms the GM/admin gate, prepare a full reviewed `create_session_post` replacement draft in a later gate.
+
+## M-14E-26C General user create preflight result and RPC draft
+
+Status: docs/SQL draft/frontend UI update only. No SQL Editor execution by Codex, DB/RPC/RLS change, SQL apply, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, public non-draft retry, or `updates.json` change was performed.
+
+040 SELECT-only result:
+
+- User ran `docs/supabase/sql/040_general_user_session_post_create_preflight_select_only_fix.sql` once in SQL Editor.
+- Result was shared as boolean/status values only; no real IDs, URLs, user rows, JWT, session IDs, or Discord IDs were recorded.
+- Key results:
+  - `authenticated_role_exists`: ok / true.
+  - `create_rpc_anon_execute`: ok / false.
+  - `create_rpc_authenticated_execute`: ok / true.
+  - `create_rpc_exists`: ok / 1.
+  - `create_rpc_has_gm_admin_gate`: review / true.
+  - `create_rpc_has_search_path`: ok / true.
+  - `create_rpc_initial_status_limited`: review / true.
+  - `create_rpc_security_definer`: ok / true.
+  - `general_user_create_change_needed`: review / true.
+  - `helper_has_role_exists`: ok / 1.
+  - `helper_is_admin_exists`: ok / 1.
+  - `status_check_constraints_present`: ok / 2.
+
+Interpretation:
+
+- `create_session_post` exists and authenticated can execute it.
+- The RPC body still has a GM/admin gate, so authenticated EXECUTE alone does not let logged-in non-GM users create session posts.
+- General logged-in user create requires a `create_session_post` RPC replacement.
+- The initial create status guard remains aligned with the intended UI policy: `draft` / `tentative` / `recruiting`.
+
+Prepared RPC apply draft:
+
+- Added `docs/supabase/sql/041_general_user_session_post_create_rpc_apply_draft.sql`.
+- 041 is an apply draft and was not executed.
+- 041 keeps the existing signature, return shape, security definer, search_path, input validation, `session_tool`, Discord sync metadata, and authenticated grant pattern.
+- 041 removes only the create-time GM/admin role gate.
+- The creator remains the owner/GM for the new session via `gm_user_id = auth.uid()`.
+- `update_session_post` / `delete_session_post` are not changed.
+- Edit/delete/close/manual-close remain owner-GM/admin scoped by existing flows.
+- Initial create statuses remain limited to `draft` / `tentative` / `recruiting`.
+- `closed` / `finished` / `canceled` are not allowed as initial create statuses.
+
+Frontend UI update:
+
+- The base session-post status select now shows only:
+  - `下書き`.
+  - `仮予定`.
+  - `募集中`.
+- `募集終了` / `開催終了` / `中止` were removed from the normal user-selectable options.
+- Existing old data compatibility is preserved: if an existing managed session has an old/broader status, the current temporary-option path can still display that value for edit compatibility.
+- The frontend pre-submit guard from the previous gate still prevents invalid initial create statuses before calling the RPC.
+
+Next gates:
+
+- Review 041 before any SQL apply.
+- SQL apply must be a separate explicit gate.
+- After apply, run SELECT-only confirmation for RPC existence, security definer, search_path, authenticated EXECUTE, anon blocked, removed GM/admin gate, and retained initial status guard.
+- Any public non-draft retry can trigger Discord create and remains a separate explicit gate.
