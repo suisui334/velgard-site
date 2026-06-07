@@ -736,10 +736,7 @@ export async function renderCalendar(root) {
       return;
     }
     if (event.target.closest("[data-calendar-this-month]")) {
-      const today = parseIsoDate(todayInJapan());
-      displayYear = today.year;
-      displayMonth = today.month;
-      drawMonth();
+      selectDate(todayInJapan(), true);
     }
   });
 

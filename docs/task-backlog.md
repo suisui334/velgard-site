@@ -3009,3 +3009,44 @@ QA checklist:
 - 募集状態の右に管理対象の依頼書がある。
 - 概要だけが横長エリアになる。
 - 公開サイト反映後、session-postページが新しいcache-bustのJS/CSSを読んでいる。
+
+## M-14E-22 UI安定化バッチ
+
+Status: implemented. No SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, dry-run, Discord operation, secret/Webhook change, or cleanup apply was performed.
+
+Implemented scope:
+
+- session-postフォームの二列構造を維持し、募集人数を全幅化させないまま右列内のまとまりとして表示するようにした。
+- 募集人数は `募集人数` ラベルと min/max 入力を近づけ、右列内で一行に近い見た目へ整理した。
+- session-postの行構成は、タイトル/開始日時、終了日時/申請締切、種別/募集人数、開催場所/公開状態、募集状態/管理対象の依頼書、概要のまま維持した。
+- mypageのログアウトボタンを本文上部ではなく、ナビゲーションの `ACCOUNT` 直後へ移動した。
+- ログアウトボタンはログイン中のみ生成し、未ログイン表示では撤去する。
+- ログアウトの赤系表示と `ログアウトしますか？` 確認ダイアログは維持した。
+- mypageの折りたたみUIはsummary行を強調せず、detailsセクション全体の外枠を2px相当にする方針を維持した。
+- calendarのスマホ幅では月カレンダーを一列リスト化せず、7列月表示を横スクロールで使えるようにした。
+- calendarの選択日一覧/詳細パネルは残し、月表示と併用する。
+- calendar月表示内の `今日へ` は、今日の月へ移動するだけでなく、今日の日付を選択するようにした。
+- session-post / calendar / mypage のcache-bustを更新し、公開側で古いUIが残らないようにした。
+
+Preserved scope:
+
+- calendarの `今日へ` 文言と種別別色分け。
+- calendarの `〆` がGM名より前に出る既存表示。
+- 一般ログインユーザーの依頼書投稿入口解放。
+- 本人GM/adminの編集・削除境界。
+- Discord create/update/delete自動同期導線。
+- GM手動〆マーク機能。
+- 静的JSON fixtureの通常UI退役。
+
+QA checklist:
+
+- session-postで募集人数が右列内にあり、min/maxが横並びで見える。
+- 募集人数が全幅ブロック化していない。
+- session-postの二列構造がPC幅で維持され、スマホ幅では一列に自然に積まれる。
+- mypageのログアウトボタンが `ACCOUNT` 横付近に表示される。
+- ログアウトボタンはログイン中のみ表示される。
+- ログアウト確認でキャンセルするとログアウトしない。
+- mypageのsummary行ではなく、details外枠が太くなっている。
+- スマホcalendarで月表示が使え、必要に応じて横スクロールできる。
+- `今日へ` を押すと今日が選択状態になり、今日の予定が選択日パネルへ反映される。
+- Discord同期、DB/RPC、secret、Webhook、Edge Functionには影響していない。

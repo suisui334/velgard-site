@@ -1178,6 +1178,7 @@
 
   function renderAnonymous(client, elements, message, mode = "login") {
     ensureAuthElements(elements);
+    removeNavLogoutButton();
     setStatus(
       elements,
       "ログインすると、今後ここで参加申請状況や参加予定を確認できるようになります。",
@@ -2789,8 +2790,23 @@
     return logout;
   }
 
+  function removeNavLogoutButton() {
+    document.querySelector("[data-mypage-nav-logout]")?.remove();
+  }
+
+  function renderNavLogoutButton(client, elements) {
+    removeNavLogoutButton();
+    const accountLink = document.querySelector(".account-nav__link");
+    if (!accountLink) return null;
+    const logout = createLogoutButton(client, elements, "button danger account-nav__logout");
+    logout.dataset.mypageNavLogout = "";
+    accountLink.insertAdjacentElement("afterend", logout);
+    return logout;
+  }
+
   function renderAuthenticated(client, elements, message, session) {
     ensureAuthElements(elements);
+    renderNavLogoutButton(client, elements);
     setStatus(
       elements,
       "ログイン済みです。",
@@ -2808,10 +2824,6 @@
     const scheduleDetails = createMypageDetails("予定 / 申請履歴", "読み込み中");
     const templateDetails = createMypageDetails("テンプレート管理", "保存済みテンプレート");
     applicationsPanel.summaryDetails = scheduleDetails;
-
-    const topActions = document.createElement("div");
-    topActions.className = "mypage-top-actions";
-    topActions.append(createLogoutButton(client, elements));
 
     const actions = document.createElement("div");
     actions.className = "actions";
@@ -2831,7 +2843,6 @@
     scheduleDetails.body.append(applicationsPanel.container);
     templateDetails.body.append(templatePanel.container);
     elements.content.append(
-      topActions,
       accountDetails.details,
       profileDetails.details,
       scheduleDetails.details,
@@ -2847,6 +2858,7 @@
 
   function renderPasswordChangeForm(client, elements, message) {
     ensureAuthElements(elements);
+    renderNavLogoutButton(client, elements);
     setStatus(
       elements,
       "ログイン済みです。",
@@ -2900,9 +2912,7 @@
       renderAuthenticated(client, elements);
     });
 
-    const logout = createLogoutButton(client, elements);
-
-    actions.append(back, logout);
+    actions.append(back);
     elements.content.append(form, actions);
     setMessage(elements, message || "");
   }
@@ -3139,6 +3149,7 @@
         return;
       }
 
+      removeNavLogoutButton();
       renderAnonymous(client, elements);
     } catch (error) {
       setMessage(elements, "ログアウトに失敗しました。時間を置いて再度お試しください。");

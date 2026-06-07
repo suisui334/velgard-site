@@ -284,8 +284,8 @@ function renderTextareaField(label, name, maxlength) {
 
 function renderPlayerCountFields() {
   return `
-    <fieldset class="session-post-field session-post-player-field">
-      <legend>募集人数</legend>
+    <div class="session-post-field session-post-player-field" role="group" aria-labelledby="session-post-player-count-label">
+      <span class="session-post-player-label" id="session-post-player-count-label">募集人数</span>
       <div class="session-post-player-inputs">
         <label>
           <span>min</span>
@@ -296,7 +296,7 @@ function renderPlayerCountFields() {
           <input type="number" name="p_player_max" min="0">
         </label>
       </div>
-    </fieldset>
+    </div>
   `;
 }
 

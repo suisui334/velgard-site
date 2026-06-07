@@ -209,6 +209,13 @@ img {
   outline-offset: 2px;
 }
 
+.global-nav .account-nav__logout {
+  min-height: 40px;
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
 .site-main {
   min-height: 64vh;
 }
@@ -3642,18 +3649,6 @@ body[data-page="mypage"] .mypage-applications {
   gap: 16px;
 }
 
-body[data-page="mypage"] .mypage-top-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  min-width: 0;
-}
-
-body[data-page="mypage"] .mypage-top-actions .button {
-  min-height: 36px;
-  padding: 7px 12px;
-}
-
 body[data-page="mypage"] .mypage-details {
   min-width: 0;
   border: 2px solid rgba(86, 96, 106, 0.24);
@@ -4283,6 +4278,10 @@ body[data-page="session-post"] .session-post-field span {
 }
 
 body[data-page="session-post"] .session-post-player-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 10px;
+  align-items: end;
   grid-column: auto;
   width: auto;
   margin: 0;
@@ -4290,11 +4289,12 @@ body[data-page="session-post"] .session-post-player-field {
   border: 0;
 }
 
-body[data-page="session-post"] .session-post-player-field legend {
-  padding: 0;
+body[data-page="session-post"] .session-post-player-label {
+  padding-bottom: 10px;
   color: var(--muted);
   font-size: 0.86rem;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 body[data-page="session-post"] .session-post-player-inputs {
@@ -5139,21 +5139,27 @@ body.is-modal-open .back-to-top {
   }
 
   .calendar-weekdays {
-    display: none;
+    min-width: 700px;
   }
 
   .calendar-month-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(7, minmax(88px, 1fr));
+    min-width: 700px;
   }
 
   .calendar-day-empty {
-    display: none;
+    display: block;
+    min-height: 96px;
   }
 
   .calendar-day-cell {
-    min-height: 0;
-    gap: 7px;
-    padding: 10px;
+    min-height: 96px;
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .calendar-month-panel {
+    overflow-x: auto;
   }
 
   .calendar-day-laxia {
@@ -5235,6 +5241,14 @@ body.is-modal-open .back-to-top {
   body[data-page="session-post"] .session-post-template-grid,
   body[data-page="session-post"] .session-post-result-list {
     grid-template-columns: 1fr;
+  }
+
+  body[data-page="session-post"] .session-post-player-field {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page="session-post"] .session-post-player-label {
+    padding-bottom: 0;
   }
 
   body[data-page="session-post"] .session-post-submit-row,
