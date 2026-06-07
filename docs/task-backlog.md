@@ -3290,3 +3290,56 @@ Next gate:
 - Continue to actual registration QA only after selecting a safe QA request path.
 - `dry_run=true` mention verification remains deferred until a safe request candidate exists.
 - Any `dry_run=false` or real Discord post involving `@everyone` remains a separate explicit gate.
+
+## M-14E-24 Registration QA gate prep: mention none and calendar colors
+
+Status: static/public-reflection review only. No public non-draft save, DB write, dry-run, real-send, Discord post/edit/delete, SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, secret/Webhook change, cleanup apply, or `updates.json` change was performed.
+
+Scope decision:
+
+- This gate can involve Discord production posts if public non-draft requests are actually saved.
+- Because each save that triggers Discord create must be explicitly approved one by one, Codex stopped before any real save.
+- Past-three-session registration and any public non-draft registration remain user/manual gated work.
+- The `@everyone通知を送る` real notification path remains deferred to the later unheld-session gate.
+
+Confirmed by public asset fetch / static review:
+
+- Public `session-post.html` and `mypage.html` still serve the latest mention UI cache-bust.
+- Public `renderSessionPost.js` contains the new-create `Discord通知` UI, required-selection validation, and edit-mode hiding path.
+- Public `discordSyncClient.js` passes `discord_mention_mode` only for create sync.
+- Public `mypageAuthClient.js` includes template mention save/restore and display-only template example UI.
+- General logged-in users are allowed to open the posting form path; the current code reports `ログインユーザーとして投稿できます。` for non-admin users.
+- Managed edit/delete listing remains filtered to own GM sessions unless admin, based on the current user ID check inside `normalizeManageSessions`.
+- Calendar type color classes exist:
+  - one-shot: blue tone.
+  - campaign: green tone.
+  - special: red tone.
+  - other/unknown: purple tone.
+- Calendar session rows/cards use `sessionType` to apply the type color class.
+- Static JSON fixture remains outside normal UI flow from the earlier retirement work.
+
+Not executed:
+
+- Public/non-draft request save.
+- `@everyone通知を送らない` actual registration.
+- Past-three-session admin registration.
+- Calendar visual confirmation with newly registered sessions.
+- Template save/apply by logged-in browser operation.
+- JST late-night warning runtime check.
+
+Reason not executed:
+
+- Logged-in Chrome UI operation is still unavailable from Codex because browser-client tab control cannot attach to the selected Chrome profile.
+- More importantly, public non-draft save can trigger Discord production create, so it must be a separate explicit user-confirmed action per request.
+
+Next gated checklist:
+
+- Before each public non-draft save, confirm the exact request title and that `@everyone通知を送らない` is selected.
+- For mention-none registration, record only booleans/status:
+  - `mention_mode_selected=none`
+  - `discord_post_created=true/false`
+  - `discord_everyone_present=false`
+  - `unexpected_extra_create=false`
+- Do not record Discord message ID, channel ID, post URL, session ID, JWT, project ref, Supabase URL, Webhook URL, or message body text.
+- If three past sessions are registered manually, record which session types were covered and leave missing type colors as unverified rather than creating fake data.
+- Keep `@everyone通知を送る` real notification for a later independent gate.
