@@ -2965,3 +2965,25 @@ QA checklist:
 - 新規依頼書作成画面と編集画面の両方で破綻しない。
 - スマホ幅では従来どおり一列に自然に積まれる。
 - mypage、calendar、ログアウト、一般ログイン投稿入口解放、GM手動〆マーク、Discord自動同期導線は巻き戻っていない。
+
+## M-14E-21B mypage折りたたみ外枠調整 / session-post再確認
+
+Status: implemented. No SQL Editor execution, DB/RPC change, SQL apply, Edge Function deploy, dry-run, Discord operation, or secret/Webhook change was performed.
+
+Implemented scope:
+
+- session-postフォームの募集人数配置は、M-14E-21Aの目標レイアウトどおりであることを再確認した。
+- mypageの折りたたみセクションでは、summary行の背景、下線、右端の開閉表示のボタン風装飾を戻した。
+- 強調対象をsummary行ではなく、`details` セクション全体の外枠へ寄せた。
+- details外枠は2px相当にして、閉じている状態でも独立した箱として見えるようにした。
+- 開いているdetailsは外枠色だけを少し変え、中身のカードや入力欄の枠線は太くしていない。
+- ログアウト外出し、赤系化、確認ダイアログ、calendar `今日へ`、calendar種別色分け、一般ログイン投稿入口解放は維持した。
+
+QA checklist:
+
+- mypageの項目名/summary行だけが妙に目立たない。
+- mypageの各detailsセクション外枠だけが以前より分かりやすい。
+- 複数セクションを開いても、各セクションの外側の境界が分かる。
+- session-postでは募集人数 min/max が右列内で横並びになっている。
+- 募集状態は左列にあり、管理対象の依頼書が出る場合は右列側と自然に並ぶ。
+- `95b193b` 以降の他改善は巻き戻っていない。
