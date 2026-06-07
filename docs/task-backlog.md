@@ -3248,3 +3248,45 @@ QA checklist:
 - Template save/apply preserves the mention choice on new-create forms and ignores it on edit forms.
 - Template example display is read-only and does not overwrite form body/template content.
 - No PC select, DB schema/RPC change, Edge Function change, or Discord operation is part of this gate.
+
+## M-14E-23C Discord mention UI public reflection and no-send QA
+
+Status: partially verified by public asset fetch and static/code-path review. No SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, dry-run, real-send, Discord post/edit/delete, public non-draft save, secret/Webhook change, cleanup apply, or `updates.json` change was performed.
+
+Public reflection:
+
+- `session-post.html` on the public site references the `20260608-discord-mention-ui` cache-bust for CSS and main JS.
+- Public `main.js` references the updated `renderSessionPost.js` cache-bust.
+- Public `renderSessionPost.js` references the updated `discordSyncClient.js` cache-bust.
+- Public `renderSessionPost.js` includes `discord_mention_mode`, `everyone`, `none`, the required-selection message, and the JST late-night confirmation message.
+- Public `discordSyncClient.js` includes the create-only `discord_mention_mode` payload path.
+- Public `mypage.html` / `mypageAuthClient.js` include the template mention field and display-only template example UI.
+- Public CSS includes the session-post mention field and template example styling.
+
+No-send QA result:
+
+- Logged-in Chrome UI operation was not completed because the Codex Chrome Extension was not available/enabled in the selected Chrome profile, so browser-client tab control could not attach.
+- Because logged-in browser control was unavailable, actual form clicking, template save/apply operation, and edit-mode UI inspection remain user/browser QA items.
+- Static/code-path review confirms the new-create form renders a `Discord通知` radio group with `@everyone通知を送る` and `@everyone通知を送らない`.
+- Static/code-path review confirms the mention field is hidden and cleared in edit mode.
+- Static/code-path review confirms public non-draft creation validates the mention selection before `create_session_post` RPC is called.
+- Static/code-path review confirms `discord_mention_mode` is passed only to create auto-sync and not to update/delete auto-sync.
+- Static/code-path review confirms templates can persist `discord_mention_mode` as `everyone`, `none`, or unset, and older templates remain unset.
+- Static/code-path review confirms template mention values are applied only on new-create forms and ignored on edit forms.
+- Static/code-path review confirms the template example UI is display-only and does not write into the template body or request body.
+- JST late-night warning was not runtime-tested because no safe logged-in browser operation was available; the JST 00:00-05:59 branch remains covered by static/code-path review.
+
+User/browser QA items still open:
+
+- On the public site while logged in, confirm the `Discord通知` radio group appears only on new create.
+- Confirm initial mention state is unset and the radio choices are mutually exclusive.
+- Confirm public non-draft save with no mention choice stops before DB save with `Discord通知を送るか送らないかを選択してください。`.
+- Confirm edit mode does not show the mention UI.
+- Confirm template save/apply can restore `everyone` / `none` / unset on the new-create form without sending Discord.
+- Confirm template example UI shows the empty state naturally and does not insert text into the form.
+
+Next gate:
+
+- Continue to actual registration QA only after selecting a safe QA request path.
+- `dry_run=true` mention verification remains deferred until a safe request candidate exists.
+- Any `dry_run=false` or real Discord post involving `@everyone` remains a separate explicit gate.
