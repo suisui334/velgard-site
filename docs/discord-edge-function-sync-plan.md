@@ -3920,3 +3920,25 @@ QA観点:
 - Edge Function deployは別ゲート。
 - deploy後はまず `dry_run=true` で、本文全文を記録せずに `@everyone` あり/なしのpreview生成をboolean/statusで確認する。
 - `dry_run=false` で実際に `@everyone` を送るQAは、対象依頼書を1件に限定した別ゲートにする。
+
+## M-14E-23A Discord @everyone対応版deploy
+
+`sync-session-post-to-discord` を `9210598 Support Discord everyone mention mode` の内容で1回deployした。project refは環境変数経由で渡し、実値はdocs、チャット、GitHub、consoleへ記録していない。
+
+確認結果:
+
+- deploy前の `deno check` は成功。
+- deploy exit codeは0。
+- deploy成功扱い。
+- CLI警告はあったが、認証失敗の兆候はなかった。
+- `deno.lock` / `supabase/.temp` の生成物は削除し、commit対象にしていない。
+
+未実施:
+
+- `dry_run=true` 確認。
+- `dry_run=false` 実送信。
+- Discord投稿/編集/削除。
+- secret/Webhook設定変更。
+- SQL Editor実行、DB/RPC/RLS変更、SQL apply。
+
+次工程は、`discord_mention_mode=none` と `discord_mention_mode=everyone` の `create / dry_run=true` post-deploy確認を、本文全文を記録せずに行う。

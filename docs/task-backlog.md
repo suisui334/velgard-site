@@ -3182,3 +3182,34 @@ QA checklist:
 - Repeated processing does not add duplicate mention lines because the message body is rebuilt from session data.
 - `update` / `delete` / `close` / `resync` do not include `@everyone` even if `discord_mention_mode=everyone` is passed.
 - `allowed_mentions.parse` is `["everyone"]` only on the create/everyone send path and `[]` otherwise.
+
+## M-14E-23A Discord everyone mention Edge deploy
+
+Status: deployed. No dry-run, real-send, Discord post/edit/delete, SQL Editor execution, DB/RPC/RLS change, SQL apply, secret/Webhook change, cleanup apply, frontend UI change, template change, or `updates.json` change was performed.
+
+Deploy result:
+
+- Target function: `sync-session-post-to-discord`.
+- Target source commit: `9210598 Support Discord everyone mention mode`.
+- Project ref was read from the clipboard into an environment variable and was not recorded.
+- Project ref format check passed.
+- `deno check supabase/functions/sync-session-post-to-discord/index.ts` succeeded before deploy.
+- Edge Function deploy was executed once.
+- Deploy exit code was 0 and the CLI reported success.
+- A deploy warning was present, but no authentication failure hint was detected.
+- CLI raw output was not copied into docs because it may contain project metadata.
+- Generated `deno.lock` and `supabase/.temp` artifacts were removed and are not commit targets.
+
+Still not performed:
+
+- `dry_run=true` verification.
+- `dry_run=false` real send.
+- Discord post/edit/delete.
+- Secret/Webhook setting or switch.
+- SQL/DB/RPC/RLS change.
+
+Next gate:
+
+- Post-deploy `dry_run=true` verification for `discord_mention_mode=none` and `discord_mention_mode=everyone`.
+- Record only booleans/status such as preview presence and mention presence checks; do not record the preview body.
+- Any real `@everyone` Discord send remains a separate explicit gate with one selected QA request.

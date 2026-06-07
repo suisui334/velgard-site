@@ -3164,3 +3164,21 @@ Next IO gate:
 - Deploy is separate.
 - Post-deploy dry-run checks should confirm booleans/status only: mention key path, preview present, no Discord post, no DB update, no secret/ID/URL exposure.
 - Real Discord send with `@everyone` is a separate explicit gate.
+
+## M-14E-23A Discord everyone mention deploy IO record
+
+Status: deployed once. No dry-run, real-send, Discord post/edit/delete, SQL execution, DB/RPC/RLS change, frontend UI change, template change, or secret/Webhook operation was performed.
+
+Deploy notes:
+
+- `sync-session-post-to-discord` was deployed from commit `9210598 Support Discord everyone mention mode`.
+- Project ref was passed through an environment variable and not recorded.
+- `deno check` succeeded before deploy.
+- Deploy exit code was 0 and success was reported.
+- CLI raw output was not recorded because project metadata may appear there.
+
+Next IO gate:
+
+- Run `create / dry_run=true` checks for mention mode `none` and `everyone`.
+- Confirm preview existence and mention-presence booleans only.
+- Do not paste `message_preview` body.
