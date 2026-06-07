@@ -5230,23 +5230,25 @@ body.is-modal-open .back-to-top {
 
   .calendar-day-empty {
     display: block;
-    min-height: 46px;
+    min-height: 116px;
   }
 
   .calendar-day-cell {
-    min-height: 46px;
-    gap: 2px;
-    padding: 3px 2px;
+    min-height: 116px;
+    gap: 3px;
+    padding: 4px 2px;
     border-left-width: 2px;
     border-radius: 4px;
+    align-content: start;
   }
 
   .calendar-day-number {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
   }
 
   .calendar-day-weekday {
-    display: none;
+    display: inline;
+    font-size: 0.5rem;
   }
 
   .calendar-day-cell.is-today .calendar-day-number::after {
@@ -5265,27 +5267,43 @@ body.is-modal-open .back-to-top {
   }
 
   .calendar-day-laxia {
-    display: none;
+    display: block;
+    overflow-wrap: anywhere;
+    font-size: 0.47rem;
+    font-weight: 800;
+    line-height: 1.16;
+    text-align: center;
   }
 
   .calendar-day-tags {
+    display: grid;
     justify-content: center;
+    justify-items: stretch;
     gap: 2px;
   }
 
   .calendar-mini-tag {
-    width: 6px;
-    min-width: 6px;
-    height: 6px;
-    min-height: 6px;
-    padding: 0;
-    border-radius: 999px;
-    font-size: 0;
+    width: auto;
+    min-width: 0;
+    height: auto;
+    min-height: 12px;
+    justify-content: center;
+    padding: 1px 2px;
+    border-radius: 5px;
+    font-size: 0.43rem;
+    line-height: 1.08;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
     overflow: hidden;
   }
 
   .calendar-day-status {
-    display: none;
+    display: block;
+    font-size: 0.48rem;
+    line-height: 1.14;
+    text-align: center;
+    overflow-wrap: anywhere;
   }
 
   body[data-page="calendar"] .calendar-session-badges {
@@ -5301,7 +5319,7 @@ body.is-modal-open .back-to-top {
     gap: 0;
     padding: 1px 3px;
     border-radius: 4px;
-    font-size: 0.5rem;
+    font-size: 0.46rem;
     line-height: 1.1;
   }
 
@@ -5313,9 +5331,10 @@ body.is-modal-open .back-to-top {
 
   body[data-page="calendar"] .calendar-session-title {
     max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   body[data-page="calendar"] .calendar-session-count {
@@ -5334,10 +5353,13 @@ body.is-modal-open .back-to-top {
 
   body[data-page="calendar"] .calendar-session-post-link {
     width: auto;
-    min-height: 14px;
+    min-height: 16px;
     padding: 1px 3px;
-    font-size: 0.5rem;
-    line-height: 1;
+    font-size: 0.46rem;
+    line-height: 1.1;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   body[data-page="calendar"] .calendar-day-cell.calendar-session-type-one-shot .calendar-session-count {

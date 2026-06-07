@@ -3129,3 +3129,27 @@ QA checklist:
 - calendarヘッダーは `年月左上 / ‹ 今日 ›右上` を維持している。
 - `‹` / `›` / `今日` の挙動が正常で、`今日` では今日の日付が選択される。
 - calendar種別別色分け、`〆` 表示、静的JSON通常UI退役、Discord同期導線には影響しない。
+
+## M-14E-22D スマホ版calendar月グリッド可読性改善
+
+Status: implemented. No SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, dry-run, Discord operation, secret/Webhook change, or cleanup apply was performed.
+
+Implemented scope:
+
+- web版calendarの正常な7列月グリッドには大きく触れず、スマホ用media query内の月セル表示だけを再調整した。
+- スマホ版calendarは7列グリッドを維持したまま、日付セルの高さを確保して縦方向に情報を積む方針へ変更した。
+- ラクシア日付、季節、新月/満月/通常、レベル表示をドット化・非表示化せず、小さな文字バッジとして読めるように戻した。
+- 予定/依頼書タイトルはスマホ幅でも省略しっぱなしにせず、必要に応じて折り返して表示するようにした。
+- 依頼書作成導線は `+` だけにせず、短いテキスト表示として意味が分かる状態を維持した。
+- スマホでは月全体が縦に長くなることを許容し、日ごとの縦リスト表示には戻さない方針を明記した。
+- `calendar.html` のCSS cache-bustを更新し、公開反映時に古いスマホ用CSSが残りにくいようにした。
+
+QA checklist:
+
+- web版calendarは引き続き7列月グリッドで表示される。
+- スマホ版calendarも `日/月/火/水/木/金/土` の7列グリッドを維持している。
+- スマホ版の日付セルが縦長になり、ラクシア日付、季節、新月/満月/通常、レベル、依頼書導線の文字が読める。
+- 依頼書導線が `+` だけではなく、意味が分かる短い表示になっている。
+- ページ全体が横に広がらず、スマホでは縦スクロールで月全体を読める。
+- calendarヘッダーの `年月左上 / ‹ 今日 ›右上` 形式と、`今日` で今日の日付を選択する挙動は維持されている。
+- calendar種別別色分け、`〆` 表示、mypage/session-post、Discord同期導線には影響しない。
