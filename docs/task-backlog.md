@@ -2942,3 +2942,26 @@ Next:
 
 - Public-site reflection QA for mypage logout placement, calendar type colors, session-post form alignment, and general logged-in session post creation.
 - If general logged-in creation is blocked by DB/RPC/RLS, stop before changing DB and prepare a separate permission gate.
+
+## M-14E-21A 依頼書投稿フォーム 募集人数レイアウト是正
+
+Status: implemented. No SQL Editor execution, DB/RPC change, SQL apply, Edge Function deploy, dry-run, Discord operation, or secret/Webhook change was performed.
+
+Implemented scope:
+
+- `95b193b` のmypage境界強化、ログアウト外出し、calendar `今日へ`、calendar種別色分け、一般ログイン投稿入口解放は維持した。
+- session-postフォームだけを対象に、募集人数ブロックの過剰な全幅化を戻した。
+- 募集人数はPC幅で右列側に戻し、min/maxは同じブロック内で横並びのまま表示する。
+- フォーム順序は、タイトル/開始日時、終了日時/申請締切、種別/募集人数、開催場所/公開状態、募集状態/管理対象の依頼書、概要の流れに整理した。
+- negative margin や強引な位置補正は追加していない。
+- テンプレート反映、保存、編集、Discord同期処理には触れていない。
+
+QA checklist:
+
+- 依頼書作成フォームで募集人数 min/max が右列内のまとまりとして表示される。
+- 募集人数が横いっぱいの不自然な全幅ブロックになっていない。
+- 募集状態が左列にあり、管理対象の依頼書が表示される編集/管理時は右列側に自然に並ぶ。
+- 開催場所、公開状態、募集状態、管理対象の依頼書の並びが読みやすい。
+- 新規依頼書作成画面と編集画面の両方で破綻しない。
+- スマホ幅では従来どおり一列に自然に積まれる。
+- mypage、calendar、ログアウト、一般ログイン投稿入口解放、GM手動〆マーク、Discord自動同期導線は巻き戻っていない。

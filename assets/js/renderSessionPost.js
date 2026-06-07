@@ -199,8 +199,8 @@ function renderShell(initialStartAt = "") {
               ["special", "特殊"],
               ["other", "その他"]
             ], "one-shot")}
-            ${renderTextField("開催場所", "p_session_tool", "text", { maxlength: 80, placeholder: "例：Tekey / ココフォリア / Discordボイス" })}
             ${renderPlayerCountFields()}
+            ${renderTextField("開催場所", "p_session_tool", "text", { maxlength: 80, placeholder: "例：Tekey / ココフォリア / Discordボイス" })}
             ${renderSelectField("公開状態", "p_visibility", [
               ["hidden", "非公開"],
               ["private", "限定"],

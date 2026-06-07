@@ -4298,12 +4298,9 @@ body[data-page="session-post"] .session-post-field span {
 }
 
 body[data-page="session-post"] .session-post-player-field {
-  grid-column: 1 / -1;
   margin: 0;
-  padding: 10px;
-  border: 1px solid rgba(86, 96, 106, 0.16);
-  border-radius: 6px;
-  background: rgba(255, 255, 250, 0.5);
+  padding: 0;
+  border: 0;
 }
 
 body[data-page="session-post"] .session-post-player-field legend {
