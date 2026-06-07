@@ -23,6 +23,7 @@ const SAVE_ERROR_MESSAGE = "保存に失敗しました。";
 const SAVE_SUCCESS_MESSAGE = "変更を保存しました。";
 const PUBLIC_SAVE_SUCCESS_MESSAGE = "変更を保存しました。公開カレンダーに反映されます。";
 const DRAFT_PUBLIC_MESSAGE = "下書きは公開にできません。募集状態を変更するか、公開状態を非公開にしてください。";
+const CREATE_INITIAL_STATUS_MESSAGE = "新規作成時の募集状態は「下書き」「仮予定」「募集中」のいずれかを選んでください。募集終了・開催終了・中止は作成後の編集で設定してください。";
 const DELETE_CONFIRM_MESSAGE = "この依頼書を完全に削除します。\n削除すると、依頼書本体に加えて参加申請・コメントも削除されます。\n中止として残したい場合は、削除せず募集状態を「中止」にしてください。\nDiscord投稿済みの場合は同期削除を試みます。\n本当に削除しますか？";
 const DELETE_SUCCESS_MESSAGE = "この依頼書を削除しました。";
 const DELETE_ERROR_MESSAGE = "依頼書の削除に失敗しました。";
@@ -82,6 +83,34 @@ const UPDATE_ERROR_MESSAGES = {
   "invalid-player-count": "募集人数の範囲を確認してください。",
   "end-before-start": END_BEFORE_START_MESSAGE
 };
+const CREATE_ERROR_MESSAGES = {
+  login_required: "依頼書投稿にはログインが必要です。",
+  gm_or_admin_required: "現在のDB設定では、依頼書の新規作成にGM/admin権限が必要です。一般ユーザー作成を許可するにはDB側RPCの見直しが必要です。",
+  title_required: "タイトルを入力してください。",
+  title_too_long: "タイトルが長すぎます。",
+  invalid_session_date: "開始日時を確認してください。",
+  missing_start_at: "開始日時を入力してください。",
+  "missing-start-at": "開始日時を入力してください。",
+  missing_end_at: "終了日時を入力してください。",
+  "missing-end-at": "終了日時を入力してください。",
+  invalid_start_time: "開始日時を確認してください。",
+  invalid_end_time: "終了日時を確認してください。",
+  invalid_end_at: "終了日時を確認してください。",
+  end_at_before_start_at: END_BEFORE_START_MESSAGE,
+  "end-before-start": END_BEFORE_START_MESSAGE,
+  invalid_application_deadline: "申請締切を確認してください。",
+  invalid_session_type: "種別を確認してください。",
+  invalid_visibility: "公開状態を確認してください。",
+  invalid_initial_status: CREATE_INITIAL_STATUS_MESSAGE,
+  draft_must_not_be_public: DRAFT_PUBLIC_MESSAGE,
+  invalid_player_min: "募集人数の範囲を確認してください。",
+  invalid_player_max: "募集人数の範囲を確認してください。",
+  invalid_player_range: "募集人数の範囲を確認してください。",
+  "invalid-player-count": "募集人数の範囲を確認してください。",
+  summary_too_long: "概要が長すぎます。",
+  session_tool_must_be_single_line: "開催場所は1行で入力してください。",
+  session_tool_too_long: "開催場所が長すぎます。"
+};
 const DELETE_ERROR_MESSAGES = {
   login_required: "ログインが必要です。",
   not_allowed: "この依頼書を削除する権限がありません。",
@@ -99,6 +128,7 @@ const SESSION_POST_TEMPLATE_APPLY_CONFIRM_MESSAGE = "保存せずにテンプレ
 const DISCORD_MENTION_REQUIRED_MESSAGE = "Discord通知を送るか送らないかを選択してください。";
 const DISCORD_MENTION_LATE_NIGHT_CONFIRM_MESSAGE = "現在は日本時間の深夜帯です。@everyone通知を送信しますか？";
 const DISCORD_MENTION_MODES = new Set(["everyone", "none"]);
+const CREATE_INITIAL_STATUS_VALUES = new Set(["draft", "tentative", "recruiting"]);
 const SESSION_POST_TEMPLATE_TYPE_OPTIONS = Object.freeze([
   { value: "session_post", label: "依頼書用" },
   { value: "other", label: "その他" }
@@ -981,6 +1011,13 @@ function validatePublicSave(payload) {
   return "";
 }
 
+function validateCreateInitialStatus(payload) {
+  if (!CREATE_INITIAL_STATUS_VALUES.has(payload?.p_status)) {
+    return CREATE_INITIAL_STATUS_MESSAGE;
+  }
+  return "";
+}
+
 function shouldAutoSyncCreatedSession(payload) {
   return payload?.p_visibility === "public" && payload?.p_status !== "draft";
 }
@@ -1071,6 +1108,17 @@ function getUpdateErrorMessage(error) {
   ].map((value) => String(value || "")).join(" ");
   const key = Object.keys(UPDATE_ERROR_MESSAGES).find((name) => text.includes(name));
   return key ? UPDATE_ERROR_MESSAGES[key] : SAVE_ERROR_MESSAGE;
+}
+
+function getCreateErrorMessage(error) {
+  const text = [
+    error?.message,
+    error?.details,
+    error?.hint,
+    error?.code
+  ].map((value) => String(value || "")).join(" ");
+  const key = Object.keys(CREATE_ERROR_MESSAGES).find((name) => text.includes(name));
+  return key ? CREATE_ERROR_MESSAGES[key] : ERROR_MESSAGE;
 }
 
 function getDeleteErrorMessage(error) {
@@ -1667,6 +1715,12 @@ async function initializeForm(root, client, access = {}) {
     try {
       const payload = buildCreatePayload(form);
       const discordMentionMode = getDiscordMentionMode(form);
+      const initialStatusMessage = validateCreateInitialStatus(payload);
+      if (initialStatusMessage) {
+        setState(state, initialStatusMessage, "is-error");
+        submit.disabled = false;
+        return;
+      }
       const validationMessage = validatePublicSave(payload);
       if (validationMessage) {
         setState(state, validationMessage, "is-error");
@@ -1713,7 +1767,7 @@ async function initializeForm(root, client, access = {}) {
       }
       await loadManagedSessions(client, manageElements);
     } catch (error) {
-      setState(state, error?.message === "end-before-start" ? END_BEFORE_START_MESSAGE : ERROR_MESSAGE, "is-error");
+      setState(state, getCreateErrorMessage(error), "is-error");
     } finally {
       submit.disabled = false;
     }

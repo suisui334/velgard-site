@@ -3384,3 +3384,51 @@ Next:
 
 - Continue to the gated registration QA only after explicitly selecting a safe request registration path.
 - Keep `@everyone通知を送る` real notification for a later independent gate.
+
+## M-14E-26 General user session-post create failure triage
+
+Status: frontend triage/docs update only. No SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, public non-draft retry, or `updates.json` change was performed.
+
+Observed failure:
+
+- A logged-in general user could open the session-post new-create form.
+- The user selected `@everyone通知を送らない`, `公開`, and `開催終了`.
+- Pressing create showed `依頼書を投稿できませんでした。権限または入力内容を確認してください。`.
+- No Discord post verification or retry was performed in this gate.
+
+Repo-side finding:
+
+- Frontend access was intentionally loosened so logged-in users can open the create form.
+- The create payload still calls `create_session_post` with the existing RPC argument set, including `p_session_tool` and `discord_mention_mode` only for Discord auto-sync after successful create.
+- `discord_mention_mode` does not change the RPC payload sent to `create_session_post`.
+- The local SQL draft for the currently applied `create_session_post` still has a GM/admin gate in the function body: logged-in non-GM users are likely rejected by the RPC even though the frontend form is visible.
+- The same draft limits initial create status to `draft` / `tentative` / `recruiting`; `closed` / `finished` / `canceled` are update-time statuses, not initial create statuses.
+- Therefore the failure has two likely causes:
+  - primary: DB/RPC policy still requires GM/admin for new create.
+  - secondary: `開催終了` maps to `finished`, which the create RPC rejects as `invalid_initial_status`.
+
+Frontend mitigation implemented:
+
+- New-create now validates initial status before calling `create_session_post`.
+- If the selected status is not `下書き` / `仮予定` / `募集中`, the form stops locally with a specific message and does not call the RPC.
+- Create RPC errors are mapped to safer, more specific user-facing messages, including the GM/admin-required case.
+- Edit/update status handling is unchanged; existing sessions can still use the broader status set through `update_session_post`.
+- No edit/delete ownership boundary was relaxed.
+
+SQL / DB follow-up prepared but not executed:
+
+- Added `docs/supabase/sql/038_general_user_session_post_create_preflight_select_only.sql`.
+  - SELECT-only.
+  - Confirms `create_session_post` existence, security definer, search_path, authenticated EXECUTE, anon/PUBLIC state, GM/admin gate presence, initial status limitation, and helper presence.
+  - Does not return real IDs, user rows, Discord IDs, URLs, or personal data.
+- Added `docs/supabase/sql/039_general_user_session_post_create_apply_design_draft.sql`.
+  - Design-only / not executable.
+  - Records the candidate policy: allow any authenticated user to create a session post while keeping owner/admin update/delete controls.
+  - Requires a later full `create_session_post` replacement draft after 038 confirms the live function body.
+
+Next gate:
+
+- Run/review 038 SELECT-only in SQL Editor only after explicit approval.
+- If 038 confirms the GM/admin gate, prepare a full reviewed `create_session_post` replacement draft that removes only the create-time GM/admin role gate.
+- Keep initial create statuses limited to `draft` / `tentative` / `recruiting` unless a separate policy review decides past-session direct create is safe.
+- Any public non-draft retry can trigger Discord create and remains a separate explicit gate.
