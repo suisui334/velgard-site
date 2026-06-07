@@ -438,6 +438,7 @@ function renderSessionBadges(sessions) {
   if (!sessions.length) return "";
   return `
     <span class="calendar-session-badges" aria-label="この日の予定 ${sessions.length}件">
+      <span class="calendar-session-count" aria-hidden="true">${sessions.length}件</span>
       ${sessions.map((session) => {
         const closed = isClosedSession(session) || hasSessionClosingMark(session);
         const time = String(session.startTime || "未定").trim() || "未定";
@@ -543,11 +544,14 @@ function renderMonthCalendar(year, month, selectedIso, todayIso, config, session
     const result = calculateCalendarResult(isoDate, config);
     const daySessions = result.inCampaign ? sessionsForDate(sessionsByDate, isoDate) : [];
     const weekday = REAL_WEEKDAYS[new Date(parseIsoDate(isoDate).time).getUTCDay()];
+    const primarySessionTypeClass = daySessions.length ? getCalendarSessionTypeClass(daySessions[0]) : "";
     const classes = [
       "calendar-day-cell",
       result.inCampaign ? seasonClass(result.season) : "calendar-period-outside",
       result.inCampaign ? moonClass(result.moonPhase) : "",
       `calendar-cap-${result.levelCap.state}`,
+      primarySessionTypeClass,
+      daySessions.length ? "has-sessions" : "",
       result.levelCap.isStart ? "is-cap-start" : "",
       isoDate === selectedIso ? "is-selected" : "",
       isoDate === todayIso ? "is-today" : ""
@@ -583,10 +587,12 @@ function renderMonthCalendar(year, month, selectedIso, todayIso, config, session
   return `
     <article class="article-box calendar-month-panel">
       <div class="calendar-month-toolbar">
-        <button class="button" type="button" data-calendar-prev>前月へ</button>
-        <h2>${year}年${month}月</h2>
-        <button class="button" type="button" data-calendar-next>次月へ</button>
-        <button class="button calendar-this-month" type="button" data-calendar-this-month>今日へ</button>
+        <h2 class="calendar-month-title">${year}年${month}月</h2>
+        <div class="calendar-month-nav" aria-label="月表示の操作">
+          <button class="button calendar-month-nav-button" type="button" data-calendar-prev aria-label="前月へ" title="前月へ">‹</button>
+          <button class="button calendar-this-month calendar-month-today-button" type="button" data-calendar-this-month aria-label="今日へ" title="今日へ">今日</button>
+          <button class="button calendar-month-nav-button" type="button" data-calendar-next aria-label="次月へ" title="次月へ">›</button>
+        </div>
       </div>
       <div class="calendar-weekdays" aria-hidden="true">
         ${REAL_WEEKDAYS.map((day) => `<span>${day}</span>`).join("")}
