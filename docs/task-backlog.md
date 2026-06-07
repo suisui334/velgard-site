@@ -2864,3 +2864,37 @@ Next:
 - Public-site reflection QA for the folded mypage layout.
 - Browser QA with zero sessions, GM schedule only, application only, participant schedule only, and mixed data.
 - Follow-up UI pass only if the folded sections feel too terse or counts need richer labels.
+
+## M-14E-20A mypage折りたたみUI 公開反映確認
+
+Status: public static delivery verified. Logged-in browser QA was not executed by Codex because Chrome extension control was unavailable in this environment.
+
+Public delivery checks:
+
+- `mypage.html` is served with the updated `mypageAuthClient.js` cache-bust for the folded mypage layout.
+- `mypage.html` is served with the updated `style.css` cache-bust for the folded mypage layout.
+- Served `mypageAuthClient.js` contains the native mypage `details` / `summary` helper.
+- Served `mypageAuthClient.js` contains the default-open account overview section.
+- Served `mypageAuthClient.js` contains the folded section labels `プロフィール / PC情報`, `予定 / 申請履歴`, and `テンプレート管理`.
+- Served `mypageAuthClient.js` contains the schedule categories `GM予定`, `参加申請中`, and `参加予定`.
+- Served `mypageAuthClient.js` contains the schedule summary count expression for GM / pending applications / accepted schedule counts.
+- Served `mypageAuthClient.js` contains the GM schedule detail link and edit/manage route.
+- Served `style.css` contains `mypage-details`, `mypage-details-summary`, and `mypage-application-count` styles.
+
+Safety / non-regression checks:
+
+- No visible PC selection label or PC selection control name was found in the served mypage JS.
+- Static JSON sessions remain opt-in only through the existing static fixture flags and were not reintroduced into normal mypage behavior.
+- No additional SQL Editor execution, DB/RPC change, SQL apply, Edge Function deploy, dry-run, Discord operation, or secret/Webhook change was performed.
+- No JWT, session id, project ref, Supabase URL, Discord message id, channel id, post URL, Webhook URL, raw user id, email, token, selected character id, application id, or message preview body was recorded.
+
+Logged-in QA status:
+
+- Codex attempted Chrome-backed browser confirmation, but Chrome extension control was unavailable.
+- Therefore, logged-in visual confirmation of the actual folded authenticated mypage body remains user-side QA.
+- Remaining user-side QA: account overview open by default, profile/PC info folded, schedule/application history folded, template management folded, schedule counts update after login, GM schedule / pending applications / accepted schedules render correctly, and zero-data states do not break layout.
+
+Next:
+
+- User-side public mypage visual QA with a logged-in account.
+- If the folded sections feel too terse, refine summary labels without changing DB/RPC or Discord sync behavior.
