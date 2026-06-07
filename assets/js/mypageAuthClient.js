@@ -83,10 +83,48 @@
     result: GM_TEMPLATE_VARIABLE_HELP
   });
   const TEMPLATE_EXAMPLES_BY_TYPE = Object.freeze({
-    call: [],
-    result: [],
-    session_post: [],
-    application: [],
+    call: [[
+      "■依頼書【{{session_title}}】",
+      "",
+      "お待たせしました。以下のX名で開催します！",
+      "{{approved_call_list}}",
+      "",
+      "- ここにTekey部屋リンクなどを置く",
+      "",
+      "お部屋を解放しました。入室後、ご準備をお願い致します。"
+    ].join("\n")],
+    result: [[
+      "■依頼名【{{session_title}}】リザルト",
+      "獲得資金【G】",
+      "名誉点【点】",
+      "参加者【{{approved_pc_names}}】",
+      "【戦利品から全額補填】",
+      "【買取（キャラクター名）／内容】",
+      "称号【なし】",
+      "コネクション【なし】",
+      "フレーバーアイテム【なし】",
+      "",
+      "備考",
+      "【】"
+    ].join("\n")],
+    session_post: [[
+      "依頼人【】　報酬【規定額G】",
+      "",
+      "依頼内容文",
+      "",
+      "備考",
+      "[部位数制限：なし] [環境：自然環境] [第二戦闘準備：あり] [シナリオ傾向：戦闘、RP]",
+      "",
+      "【】",
+      "【】",
+      "【】"
+    ].join("\n")],
+    application: [[
+      "キャラクター名【】　性別【】　年齢【】",
+      "技能【】",
+      "役割【】",
+      "URL【】"
+    ].join("\n")],
     other: []
   });
   const DISCORD_MENTION_MODES = new Set(["everyone", "none"]);
@@ -2268,13 +2306,19 @@
       return;
     }
 
-    const list = document.createElement("ul");
+    const note = document.createElement("p");
+    note.className = "mypage-template-example-note";
+    note.textContent = "これは例です。本文には自動挿入されません。";
+
+    const list = document.createElement("div");
+    list.className = "mypage-template-example-list";
     examples.forEach((example) => {
-      const item = document.createElement("li");
+      const item = document.createElement("pre");
+      item.className = "mypage-template-example-text";
       item.textContent = example;
       list.append(item);
     });
-    panel.exampleBody.append(list);
+    panel.exampleBody.append(note, list);
   }
 
   function createSessionPostTemplateEditor() {

@@ -3343,3 +3343,44 @@ Next gated checklist:
 - Do not record Discord message ID, channel ID, post URL, session ID, JWT, project ref, Supabase URL, Webhook URL, or message body text.
 - If three past sessions are registered manually, record which session types were covered and leave missing type colors as unverified rather than creating fake data.
 - Keep `@everyone通知を送る` real notification for a later independent gate.
+
+## M-14E-25 Template example content and mention template QA prep
+
+Status: frontend/docs update only. No public non-draft save, DB write, dry-run, real-send, Discord post/edit/delete, SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, secret/Webhook change, cleanup apply, or `updates.json` change was performed.
+
+Implemented:
+
+- Added display-only template examples for the four template types:
+  - application template.
+  - call template.
+  - result template.
+  - session post template.
+- The mypage template management UI now shows only the example matching the selected template type.
+- The session-post template UI shows only the session-post example; unsupported/other types keep the existing empty state.
+- Template examples are rendered with preserved line breaks in a separated example area.
+- A short note clarifies that examples are not automatically inserted into the body.
+- Updated cache-bust values for `mypage.html`, `session-post.html`, and the session-post module import.
+
+Safety / behavior boundaries:
+
+- Examples are not inserted into the template body.
+- Examples do not overwrite current template text or request form text.
+- Examples are not saved as user templates.
+- Examples are not mixed into the user template list or shared as presets.
+- Template type separation is maintained: application/call/result/session-post examples do not cross-display.
+- Existing template save/edit/delete/apply logic was not changed except for the read-only example rendering.
+- Existing `discord_mention_mode` template save/restore paths were left intact.
+- Edit-mode mention UI hiding remains unchanged.
+
+Mention template QA status:
+
+- Static/code-path review confirms the mention setting remains part of session-post template fields.
+- Static/code-path review confirms `everyone`, `none`, and unset values can be represented by existing template parsing.
+- Static/code-path review confirms edit mode still ignores/hides the mention UI even if a template contains a mention value.
+- Logged-in browser operation for saving/applying mention templates was not executed in this gate.
+- User/browser QA remains: save/apply `@everyone通知を送らない`, save/apply `@everyone通知を送る`, confirm unset old templates remain unset, and confirm no Discord post is triggered during template-only work.
+
+Next:
+
+- Continue to the gated registration QA only after explicitly selecting a safe request registration path.
+- Keep `@everyone通知を送る` real notification for a later independent gate.

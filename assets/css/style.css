@@ -3982,6 +3982,31 @@ body[data-page="mypage"] .mypage-template-example-body ul {
   margin: 0;
 }
 
+body[data-page="mypage"] .mypage-template-example-note {
+  margin: 0;
+}
+
+body[data-page="mypage"] .mypage-template-example-list {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+body[data-page="mypage"] .mypage-template-example-text {
+  min-width: 0;
+  max-height: 240px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 10px;
+  border: 1px solid rgba(86, 96, 106, 0.14);
+  border-radius: 7px;
+  background: rgba(255, 255, 250, 0.72);
+  color: var(--soot);
+  font: 800 0.82rem/1.65 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
 body[data-page="mypage"] .mypage-template-variable-help h4,
 body[data-page="mypage"] .mypage-template-variable-help p,
 body[data-page="mypage"] .mypage-template-session-post-editor h4,
@@ -4312,6 +4337,31 @@ body[data-page="session-post"] .session-post-template-example-body {
 body[data-page="session-post"] .session-post-template-example-body p,
 body[data-page="session-post"] .session-post-template-example-body ul {
   margin: 0;
+}
+
+body[data-page="session-post"] .session-post-template-example-note {
+  margin: 0;
+}
+
+body[data-page="session-post"] .session-post-template-example-list {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+body[data-page="session-post"] .session-post-template-example-text {
+  min-width: 0;
+  max-height: 220px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 10px;
+  border: 1px solid rgba(60, 113, 95, 0.16);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.72);
+  color: var(--soot);
+  font: 800 0.82rem/1.65 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
 body[data-page="session-post"] .session-post-template-grid {

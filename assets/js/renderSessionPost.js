@@ -105,7 +105,18 @@ const SESSION_POST_TEMPLATE_TYPE_OPTIONS = Object.freeze([
 ]);
 const SESSION_POST_TEMPLATE_TYPE_VALUES = new Set(SESSION_POST_TEMPLATE_TYPE_OPTIONS.map((option) => option.value));
 const SESSION_POST_TEMPLATE_EXAMPLES_BY_TYPE = Object.freeze({
-  session_post: [],
+  session_post: [[
+    "依頼人【】　報酬【規定額G】",
+    "",
+    "依頼内容文",
+    "",
+    "備考",
+    "[部位数制限：なし] [環境：自然環境] [第二戦闘準備：あり] [シナリオ傾向：戦闘、RP]",
+    "",
+    "【】",
+    "【】",
+    "【】"
+  ].join("\n")],
   other: []
 });
 const SESSION_POST_TEMPLATE_FIELD_KEYS = Object.freeze([
@@ -559,9 +570,10 @@ function renderSessionPostTemplateExamples(target, typeValue) {
     return;
   }
   target.innerHTML = `
-    <ul>
-      ${examples.map((example) => `<li>${escapeHtml(example)}</li>`).join("")}
-    </ul>
+    <p class="session-post-template-example-note">これは例です。本文には自動挿入されません。</p>
+    <div class="session-post-template-example-list">
+      ${examples.map((example) => `<pre class="session-post-template-example-text">${escapeHtml(example)}</pre>`).join("")}
+    </div>
   `;
 }
 
