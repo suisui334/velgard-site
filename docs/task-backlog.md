@@ -2898,3 +2898,47 @@ Next:
 
 - User-side public mypage visual QA with a logged-in account.
 - If the folded sections feel too terse, refine summary labels without changing DB/RPC or Discord sync behavior.
+
+## M-14E-21 mypage / calendar / session-post 軽微UI調整
+
+Status: implemented. No SQL Editor execution, DB/RPC change, SQL apply, Edge Function deploy, dry-run, Discord operation, or secret/Webhook change was performed.
+
+Implemented scope:
+
+- mypageの折りたたみ `details / summary` の境界線、背景、開閉表示を少し強め、閉じている項目と開いている項目を見分けやすくした。
+- ログイン済みmypageのログアウト導線を本文上部の右寄せ操作へ移動し、アカウント概要内の重複ログアウトボタンを外した。
+- ログアウト押下時に `ログアウトしますか？` の確認を出すようにした。
+- calendarの `今日の月へ` を `今日へ` に短縮した。
+- calendar上の依頼書表示に種別色を追加した。単発は青、キャンペーンは緑、特殊は赤、その他/不明は紫で扱う。
+- calendarの `〆` 表示は既存どおりGM名より前に置き、タイトル本文側に二重表示しない。
+- 依頼書投稿フォームでは、開催場所と種別、公開状態と募集状態が自然に揃うようにフォーム順と募集人数ブロックを調整した。
+- 依頼書投稿入口は、GM/admin限定ではなくログインユーザー向けに変更した。
+- 投稿済み依頼書の編集/削除一覧は、既存どおり本人GM分またはadmin対象に限定する。
+- PC選択selectは追加していない。
+- 静的JSON fixtureを通常UIへ戻す変更は行っていない。
+
+Permission notes:
+
+- 未ログインユーザーは引き続き依頼書投稿フォームへ進めない。
+- 一般ログインユーザーは新規依頼書作成フォームへ進める。
+- 他人の依頼書編集/削除を許可するフロント変更は行っていない。
+- DB/RPC/RLSは変更していないため、実際の一般ログインユーザー作成可否は公開サイトQAで確認する。DB側で拒否される場合は、別ゲートでDB/RPC/RLS設計を行う。
+
+QA checklist:
+
+- mypageでログイン中のみ右寄せログアウトボタンが表示される。
+- ログアウト押下時に確認ダイアログが出る。
+- mypage各折りたたみの開閉状態が視覚的に分かる。
+- calendarの今日ボタンが `今日へ` と表示される。
+- calendar依頼書の色が種別別に変わり、文字が読める。
+- `〆` 付き依頼書はcalendarでGM名より前に `〆` が出る。
+- session-postで募集人数、開催場所、公開状態、募集状態が不自然に縦ずれしない。
+- 一般ログインユーザーが新規依頼書投稿画面へ入れる。
+- 投稿者本人/admin以外に既存依頼書の編集/削除導線が出ない。
+- Discord create/update/delete自動同期に余分なcreate投稿が混ざらない。
+- raw user id, email, token, selected character id, application id, Discord message id, channel id, post URL, JWT, project ref, Webhook URL, message preview body are not shown.
+
+Next:
+
+- Public-site reflection QA for mypage logout placement, calendar type colors, session-post form alignment, and general logged-in session post creation.
+- If general logged-in creation is blocked by DB/RPC/RLS, stop before changing DB and prepare a separate permission gate.

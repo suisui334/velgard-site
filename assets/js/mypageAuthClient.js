@@ -2777,6 +2777,18 @@
     }
   }
 
+  function createLogoutButton(client, elements, className = "button danger") {
+    const logout = document.createElement("button");
+    logout.className = className;
+    logout.type = "button";
+    logout.dataset.mypageLogout = "";
+    logout.textContent = "ログアウト";
+    logout.addEventListener("click", () => {
+      handleLogout(client, elements, logout);
+    });
+    return logout;
+  }
+
   function renderAuthenticated(client, elements, message, session) {
     ensureAuthElements(elements);
     setStatus(
@@ -2797,6 +2809,10 @@
     const templateDetails = createMypageDetails("テンプレート管理", "保存済みテンプレート");
     applicationsPanel.summaryDetails = scheduleDetails;
 
+    const topActions = document.createElement("div");
+    topActions.className = "mypage-top-actions";
+    topActions.append(createLogoutButton(client, elements));
+
     const actions = document.createElement("div");
     actions.className = "actions";
 
@@ -2809,21 +2825,13 @@
       renderPasswordChangeForm(client, elements);
     });
 
-    const logout = document.createElement("button");
-    logout.className = "button";
-    logout.type = "button";
-    logout.dataset.mypageLogout = "";
-    logout.textContent = "ログアウト";
-    logout.addEventListener("click", () => {
-      handleLogout(client, elements, logout);
-    });
-
-    actions.append(changePassword, logout);
+    actions.append(changePassword);
     accountDetails.body.append(displayNameEditor.container, actions);
     profileDetails.body.append(playerCharacterPanel.container, discordIdEditor.container);
     scheduleDetails.body.append(applicationsPanel.container);
     templateDetails.body.append(templatePanel.container);
     elements.content.append(
+      topActions,
       accountDetails.details,
       profileDetails.details,
       scheduleDetails.details,
@@ -2892,14 +2900,7 @@
       renderAuthenticated(client, elements);
     });
 
-    const logout = document.createElement("button");
-    logout.className = "button";
-    logout.type = "button";
-    logout.dataset.mypageLogout = "";
-    logout.textContent = "ログアウト";
-    logout.addEventListener("click", () => {
-      handleLogout(client, elements, logout);
-    });
+    const logout = createLogoutButton(client, elements);
 
     actions.append(back, logout);
     elements.content.append(form, actions);
@@ -3123,6 +3124,8 @@
   }
 
   async function handleLogout(client, elements, button) {
+    if (!window.confirm("ログアウトしますか？")) return;
+
     try {
       setMessage(elements, "");
       button.disabled = true;

@@ -23,6 +23,12 @@ const CALENDAR_SELECTED_DATE_KEY = "velgard.calendar.selectedDate";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const CALENDAR_EXCLUDED_STATUSES = new Set(["draft", "canceled", "cancelled"]);
+const CALENDAR_SESSION_TYPE_CLASS = {
+  "one-shot": "calendar-session-type-one-shot",
+  campaign: "calendar-session-type-campaign",
+  special: "calendar-session-type-special",
+  other: "calendar-session-type-other"
+};
 
 function isVisibleSession(session) {
   const status = String(session?.status || "").trim();
@@ -61,6 +67,11 @@ function sessionDetailHref(session) {
 
 function sessionPostHref(isoDate) {
   return `session-post.html?date=${encodeURIComponent(isoDate)}`;
+}
+
+function getCalendarSessionTypeClass(session) {
+  const type = String(session?.sessionType || "").trim();
+  return CALENDAR_SESSION_TYPE_CLASS[type] || CALENDAR_SESSION_TYPE_CLASS.other;
 }
 
 function isValidIsoDate(value) {
@@ -432,8 +443,9 @@ function renderSessionBadges(sessions) {
         const time = String(session.startTime || "未定").trim() || "未定";
         const gmName = String(session.gmName || "GM未設定").trim() || "GM未設定";
         const title = getSessionTitleWithoutClosingMark(session);
+        const typeClass = getCalendarSessionTypeClass(session);
         return `
-        <a class="calendar-session-row ${closed ? "is-closed" : ""}" href="${escapeHtml(sessionDetailHref(session))}">
+        <a class="calendar-session-row ${typeClass} ${closed ? "is-closed" : ""}" href="${escapeHtml(sessionDetailHref(session))}">
           <span class="calendar-session-time">${escapeHtml(time)}</span>
           ${closed ? `<span class="calendar-session-close" aria-label="締切">〆</span>` : ""}
           <span class="calendar-session-gm">${escapeHtml(gmName)}</span>
@@ -453,7 +465,7 @@ function renderSessionCard(session) {
     ? `<div class="calendar-session-actions">${detailButton}</div>`
     : "";
   return `
-    <article class="calendar-session-card">
+    <article class="calendar-session-card ${getCalendarSessionTypeClass(session)}">
       <div class="calendar-session-card-head">
         <h3>${escapeHtml(getSessionDisplayTitle(session))}</h3>
         ${shouldShowSessionState(session) ? `<span class="calendar-session-state-note calendar-session-status-${getSessionStatusClass(session.status)}">${escapeHtml(getSessionStatusLabel(session.status))}</span>` : ""}
@@ -574,7 +586,7 @@ function renderMonthCalendar(year, month, selectedIso, todayIso, config, session
         <button class="button" type="button" data-calendar-prev>前月へ</button>
         <h2>${year}年${month}月</h2>
         <button class="button" type="button" data-calendar-next>次月へ</button>
-        <button class="button calendar-this-month" type="button" data-calendar-this-month>今日の月へ</button>
+        <button class="button calendar-this-month" type="button" data-calendar-this-month>今日へ</button>
       </div>
       <div class="calendar-weekdays" aria-hidden="true">
         ${REAL_WEEKDAYS.map((day) => `<span>${day}</span>`).join("")}

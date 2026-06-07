@@ -1963,6 +1963,26 @@ body[data-page="calendar"] .calendar-session-row.is-closed {
   background: rgba(255, 239, 221, 0.78);
 }
 
+body[data-page="calendar"] .calendar-session-row.calendar-session-type-one-shot {
+  border-color: rgba(49, 112, 160, 0.36);
+  background: rgba(232, 244, 255, 0.86);
+}
+
+body[data-page="calendar"] .calendar-session-row.calendar-session-type-campaign {
+  border-color: rgba(60, 132, 95, 0.34);
+  background: rgba(232, 247, 238, 0.86);
+}
+
+body[data-page="calendar"] .calendar-session-row.calendar-session-type-special {
+  border-color: rgba(165, 76, 76, 0.36);
+  background: rgba(255, 235, 235, 0.86);
+}
+
+body[data-page="calendar"] .calendar-session-row.calendar-session-type-other {
+  border-color: rgba(94, 80, 145, 0.34);
+  background: rgba(241, 235, 255, 0.86);
+}
+
 body[data-page="calendar"] .calendar-session-close {
   color: var(--rust);
   white-space: nowrap;
@@ -2064,6 +2084,26 @@ body[data-page="calendar"] .calendar-session-card {
   border: 1px solid rgba(86, 96, 106, 0.18);
   border-radius: 7px;
   background: rgba(255, 255, 250, 0.62);
+}
+
+body[data-page="calendar"] .calendar-session-card.calendar-session-type-one-shot {
+  border-left: 5px solid rgba(49, 112, 160, 0.56);
+  background: rgba(237, 247, 255, 0.7);
+}
+
+body[data-page="calendar"] .calendar-session-card.calendar-session-type-campaign {
+  border-left: 5px solid rgba(60, 132, 95, 0.52);
+  background: rgba(236, 249, 241, 0.7);
+}
+
+body[data-page="calendar"] .calendar-session-card.calendar-session-type-special {
+  border-left: 5px solid rgba(165, 76, 76, 0.54);
+  background: rgba(255, 239, 239, 0.72);
+}
+
+body[data-page="calendar"] .calendar-session-card.calendar-session-type-other {
+  border-left: 5px solid rgba(94, 80, 145, 0.5);
+  background: rgba(245, 240, 255, 0.72);
 }
 
 body[data-page="calendar"] .calendar-session-card-head {
@@ -3602,15 +3642,30 @@ body[data-page="mypage"] .mypage-applications {
   gap: 16px;
 }
 
+body[data-page="mypage"] .mypage-top-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+}
+
+body[data-page="mypage"] .mypage-top-actions .button {
+  min-height: 36px;
+  padding: 7px 12px;
+}
+
 body[data-page="mypage"] .mypage-details {
   min-width: 0;
-  border: 1px solid rgba(86, 96, 106, 0.18);
+  border: 1px solid rgba(86, 96, 106, 0.24);
   border-radius: 7px;
-  background: rgba(255, 255, 250, 0.66);
+  background: rgba(255, 255, 250, 0.72);
+  box-shadow: 0 1px 0 rgba(37, 44, 49, 0.04);
 }
 
 body[data-page="mypage"] .mypage-details[open] {
-  background: rgba(255, 255, 250, 0.82);
+  border-color: rgba(75, 63, 99, 0.32);
+  background: rgba(255, 255, 250, 0.9);
+  box-shadow: 0 8px 20px rgba(37, 44, 49, 0.06);
 }
 
 body[data-page="mypage"] .mypage-details-summary {
@@ -3623,6 +3678,8 @@ body[data-page="mypage"] .mypage-details-summary {
   cursor: pointer;
   color: var(--soot);
   font-weight: 900;
+  border-radius: 7px;
+  background: rgba(247, 247, 243, 0.54);
 }
 
 body[data-page="mypage"] .mypage-details-summary::-webkit-details-marker {
@@ -3632,6 +3689,11 @@ body[data-page="mypage"] .mypage-details-summary::-webkit-details-marker {
 body[data-page="mypage"] .mypage-details-summary::after {
   content: "開く";
   flex: 0 0 auto;
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid rgba(75, 63, 99, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 250, 0.72);
   color: var(--deep);
   font-size: 0.78rem;
   font-weight: 900;
@@ -3639,6 +3701,12 @@ body[data-page="mypage"] .mypage-details-summary::after {
 
 body[data-page="mypage"] .mypage-details[open] .mypage-details-summary::after {
   content: "閉じる";
+}
+
+body[data-page="mypage"] .mypage-details[open] .mypage-details-summary {
+  border-bottom: 1px solid rgba(86, 96, 106, 0.16);
+  border-radius: 7px 7px 0 0;
+  background: rgba(247, 247, 243, 0.8);
 }
 
 body[data-page="mypage"] .mypage-details-title {
@@ -4214,6 +4282,7 @@ body[data-page="session-post"] .session-post-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  align-items: start;
 }
 
 body[data-page="session-post"] .session-post-field {
@@ -4229,9 +4298,12 @@ body[data-page="session-post"] .session-post-field span {
 }
 
 body[data-page="session-post"] .session-post-player-field {
+  grid-column: 1 / -1;
   margin: 0;
-  padding: 0;
-  border: 0;
+  padding: 10px;
+  border: 1px solid rgba(86, 96, 106, 0.16);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.5);
 }
 
 body[data-page="session-post"] .session-post-player-field legend {
@@ -4290,7 +4362,7 @@ body[data-page="session-post"] .session-post-field--wide {
 
 body[data-page="session-post"] .session-post-publication-note {
   grid-column: 1 / -1;
-  margin: -2px 0 0;
+  margin: 0;
   color: var(--muted);
   font-size: 0.86rem;
   font-weight: 800;

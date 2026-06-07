@@ -168,7 +168,7 @@ function renderShell(initialStartAt = "") {
     <header class="page-title">
       <div class="eyebrow">Session Post</div>
       <h1>依頼書投稿</h1>
-      <p class="lead">GM/admin向けのセッション予定投稿フォームです。</p>
+      <p class="lead">ログインユーザー向けのセッション予定投稿フォームです。</p>
     </header>
     <section class="section session-post-section">
       <article class="article-box session-post-auth-panel">
@@ -199,8 +199,8 @@ function renderShell(initialStartAt = "") {
               ["special", "特殊"],
               ["other", "その他"]
             ], "one-shot")}
-            ${renderPlayerCountFields()}
             ${renderTextField("開催場所", "p_session_tool", "text", { maxlength: 80, placeholder: "例：Tekey / ココフォリア / Discordボイス" })}
+            ${renderPlayerCountFields()}
             ${renderSelectField("公開状態", "p_visibility", [
               ["hidden", "非公開"],
               ["private", "限定"],
@@ -643,16 +643,12 @@ function applySessionPostTemplateFields(form, fields) {
 }
 
 async function getPostingAccess(client) {
-  const [gmResult, adminResult] = await Promise.all([
-    client.rpc("has_role", { role_name: "gm" }),
-    client.rpc("is_admin")
-  ]);
-  const isGm = !gmResult.error && Boolean(gmResult.data);
+  const adminResult = await client.rpc("is_admin");
   const isAdmin = !adminResult.error && Boolean(adminResult.data);
   return {
-    canPost: isGm || isAdmin,
+    canPost: true,
     isAdmin,
-    isGm
+    isGm: false
   };
 }
 
@@ -1601,13 +1597,9 @@ export async function renderSessionPost(root) {
     }
 
     const access = await getPostingAccess(client);
-    if (!access.canPost) {
-      setState(authState, "依頼書投稿はGM/admin向けです。", "is-error");
-      return;
-    }
     access.userId = String(data.session.user?.id || "").trim();
 
-    setState(authState, access.isAdmin ? "admin権限で管理できます。" : "投稿できます。", "is-ok");
+    setState(authState, access.isAdmin ? "admin権限で管理できます。" : "ログインユーザーとして投稿できます。", "is-ok");
     await initializeForm(root, client, access);
   } catch {
     setState(authState, "依頼書投稿の準備に失敗しました。", "is-error");
