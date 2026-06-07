@@ -16,7 +16,7 @@ import { renderTerms } from "./renderTerms.js?v=20260526-term-anchor";
 import { renderGallery } from "./renderGallery.js?v=20260529-gallery-swipe";
 import { renderUpdates } from "./renderUpdates.js";
 import { renderTools } from "./renderTools.js?v=20260529-calendar-date-tools-history";
-import { renderCalendar } from "./renderCalendar.js?v=20260608-ui-stability";
+import { renderCalendar } from "./renderCalendar.js?v=20260608-ui-stability-2";
 import { renderMypage } from "./renderMypage.js?v=20260605-user-name-ui";
 
 const navItems = [

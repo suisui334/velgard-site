@@ -2158,13 +2158,17 @@
   }
 
   function createTemplateVariableHelpPanel() {
-    const container = document.createElement("section");
+    const container = document.createElement("details");
     container.className = "mypage-template-variable-help";
     container.dataset.mypageTemplateVariableHelp = "";
     container.hidden = true;
 
-    const title = document.createElement("h4");
-    title.textContent = "利用できる変数";
+    const summary = document.createElement("summary");
+    summary.className = "mypage-template-variable-summary";
+    summary.textContent = "使用できる変数一覧";
+
+    const body = document.createElement("div");
+    body.className = "mypage-template-variable-help-body";
 
     const description = document.createElement("p");
     description.className = "mypage-template-variable-help-description";
@@ -2174,7 +2178,8 @@
     list.className = "mypage-template-variable-help-list";
     list.dataset.mypageTemplateVariableHelpList = "";
 
-    container.append(title, description, list);
+    body.append(description, list);
+    container.append(summary, body);
     return { container, list };
   }
 
@@ -2210,6 +2215,7 @@
     });
 
     panel.variableHelp.hidden = !items.length;
+    if (!items.length) panel.variableHelp.open = false;
   }
 
   function createSessionPostTemplateEditor() {
@@ -2819,7 +2825,7 @@
     const discordIdEditor = createDiscordIdEditor(client, elements, session);
     const templatePanel = createTemplateManagementPanel(client, elements, session);
     const applicationsPanel = createApplicationsPanel();
-    const accountDetails = createMypageDetails("アカウント概要", "ログイン中", { open: true });
+    const accountDetails = createMypageDetails("アカウント概要", "ログイン中");
     const profileDetails = createMypageDetails("プロフィール / PC情報", "PC名・Discord ID");
     const scheduleDetails = createMypageDetails("予定 / 申請履歴", "読み込み中");
     const templateDetails = createMypageDetails("テンプレート管理", "保存済みテンプレート");

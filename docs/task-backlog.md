@@ -3050,3 +3050,27 @@ QA checklist:
 - スマホcalendarで月表示が使え、必要に応じて横スクロールできる。
 - `今日へ` を押すと今日が選択状態になり、今日の予定が選択日パネルへ反映される。
 - Discord同期、DB/RPC、secret、Webhook、Edge Functionには影響していない。
+
+## M-14E-22A UI安定化バッチ追加調整
+
+Status: implemented. No SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, dry-run, Discord operation, secret/Webhook change, or cleanup apply was performed.
+
+Implemented scope:
+
+- スマホ版calendarの月表示で、700px固定幅によるページ全体の横伸びを避けるように調整した。
+- スマホ幅ではcalendarの7列構造を維持しつつ、セルの余白、最小高さ、タグ、予定ラベルをコンパクト化した。
+- calendarの季節色、月齢、レベルキャップ、種別別色分け、`〆` 表示、`今日へ` で今日を選択する挙動は維持した。
+- mypageのログイン後初期表示で、アカウント概要を含む全detailsが閉じた状態になるようにした。
+- mypageのログアウトボタンは引き続きACCOUNT横に表示し、赤系表示と確認ダイアログを維持した。
+- テンプレート管理内の「使用できる変数一覧」を入れ子のdetailsにし、初期状態では閉じるようにした。
+- `calendar.html` / `mypage.html` / `main.js` のcache-bustを更新し、公開反映時に古いUIが残りにくいようにした。
+
+QA checklist:
+
+- スマホ幅でページ全体に横スクロールが出ず、月カレンダー表示が画面内に収まる。
+- calendarの予定ラベルがセル外へ大きくはみ出さない。
+- `今日へ` を押すと今日の月へ移動し、今日の日付が選択される。
+- mypageをログイン済みで開いた直後、アカウント概要、プロフィール/PC情報、予定/申請履歴、テンプレート管理がすべて閉じている。
+- 各detailsのsummaryを押すと正常に開閉できる。
+- テンプレート管理を開いた中で、「使用できる変数一覧」がさらに折りたたみとして表示され、開くと従来の変数一覧を確認できる。
+- テンプレート保存/編集/削除/反映UI、session-post募集人数表示、Discord自動同期導線、GM手動〆マーク機能には影響しない。
