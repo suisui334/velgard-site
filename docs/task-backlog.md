@@ -2987,3 +2987,25 @@ QA checklist:
 - session-postでは募集人数 min/max が右列内で横並びになっている。
 - 募集状態は左列にあり、管理対象の依頼書が出る場合は右列側と自然に並ぶ。
 - `95b193b` 以降の他改善は巻き戻っていない。
+
+## M-14E-21C session-postフォーム配置 再是正
+
+Status: implemented. No SQL Editor execution, DB/RPC change, SQL apply, Edge Function deploy, dry-run, Discord operation, or secret/Webhook change was performed.
+
+Implemented scope:
+
+- 前回修正後も公開側で募集人数が全幅ブロックに見える状態が残ったため、`59989fe` の良状態と照合してsession-postフォーム配置だけを再確認した。
+- DOM順は、タイトル/開始日時、終了日時/申請締切、種別/募集人数、開催場所/公開状態、募集状態/管理対象の依頼書、概要の順で維持した。
+- 募集人数フィールドに `grid-column: auto` と `width: auto` を明示し、フォーム全幅へ広がらないことをCSS側でも固定した。
+- session-postページのCSSとmain module、main内の `renderSessionPost` importに新しいcache-bustを付け、古い公開配信JS/CSSが残らないようにした。
+- mypage、ログアウト、calendar、一般ログイン投稿入口解放、本人GM/admin管理境界、Discord同期導線、GM手動〆マーク機能は巻き戻していない。
+
+QA checklist:
+
+- 種別の右に募集人数がある。
+- 募集人数 min/max は右列内で横並びになっている。
+- 募集人数が左右列をまたぐ全幅ブロックになっていない。
+- 開催場所の右に公開状態がある。
+- 募集状態の右に管理対象の依頼書がある。
+- 概要だけが横長エリアになる。
+- 公開サイト反映後、session-postページが新しいcache-bustのJS/CSSを読んでいる。

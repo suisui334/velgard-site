@@ -4283,6 +4283,8 @@ body[data-page="session-post"] .session-post-field span {
 }
 
 body[data-page="session-post"] .session-post-player-field {
+  grid-column: auto;
+  width: auto;
   margin: 0;
   padding: 0;
   border: 0;
