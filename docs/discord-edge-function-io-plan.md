@@ -3140,3 +3140,27 @@ Next IO boundary:
 
 - Draft / hidden / unposted session QA can be used for UI-only checks.
 - A posted public session check can trigger Discord production update and must be a separate explicit gate with one target only.
+
+## M-14E-23 Discord everyone mention IO notes
+
+Status: Edge Function source updated only. No Edge Function deploy, dry-run, real-send, Discord operation, SQL execution, DB/RPC change, frontend UI change, template change, or secret/Webhook operation was performed in this batch.
+
+Input boundary:
+
+- A future frontend payload may send `discord_mention_mode` as a string.
+- `everyone` means create-post notification opt-in.
+- `none`, missing, null, or unexpected values are treated as no mention.
+- The field is honored only for `action=create`; `update` / `delete` / `close` / `resync` do not add `@everyone`.
+
+Output boundary:
+
+- When `action=create` and `discord_mention_mode=everyone`, the generated Discord content includes one `@everyone` line directly below the top separator.
+- Default output has no mention line.
+- `message_preview` body must not be copied into docs or chat during QA.
+- `allowed_mentions.parse` remains `[]` unless the explicit create/everyone path is used; that path enables only `everyone`, not users or roles.
+
+Next IO gate:
+
+- Deploy is separate.
+- Post-deploy dry-run checks should confirm booleans/status only: mention key path, preview present, no Discord post, no DB update, no secret/ID/URL exposure.
+- Real Discord send with `@everyone` is a separate explicit gate.

@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 type SyncAction = "create" | "update" | "close" | "delete" | "resync";
+type DiscordMentionMode = "none" | "everyone";
 
 type ErrorCode =
   | "config_missing"
@@ -29,6 +30,7 @@ interface ValidPayload {
   action: SyncAction;
   dryRun: boolean;
   requestSource: string | null;
+  discordMentionMode: DiscordMentionMode;
 }
 
 interface SessionRow {
@@ -325,7 +327,7 @@ Deno.serve(async (request: Request) => {
     });
   }
 
-  const messagePreview = buildMessagePreview(session, payload.value.action);
+  const messagePreview = buildMessagePreview(session, payload.value.action, payload.value.discordMentionMode);
 
   if (payload.value.dryRun) {
     return jsonOk({
@@ -369,7 +371,7 @@ Deno.serve(async (request: Request) => {
     });
   }
 
-  const sendResult = await sendDiscordWebhookDraft(messagePreview);
+  const sendResult = await sendDiscordWebhookDraft(messagePreview, payload.value.discordMentionMode);
   if (!sendResult.ok) {
     const failureRecord = await recordDiscordCreateFailure(supabase, payload.value.sessionId, sendResult.errorCode);
     return jsonError(
@@ -508,7 +510,8 @@ function validatePayload(
       sessionId,
       action: action as SyncAction,
       dryRun: readDryRunFlag(value),
-      requestSource
+      requestSource,
+      discordMentionMode: readDiscordMentionMode(value, action as SyncAction)
     }
   };
 }
@@ -531,6 +534,11 @@ function invalidPayload(message: string): {
 
 function readDryRunFlag(value: Record<string, unknown>): boolean {
   return typeof value.dry_run === "boolean" ? value.dry_run : true;
+}
+
+function readDiscordMentionMode(value: Record<string, unknown>, action: SyncAction): DiscordMentionMode {
+  if (action !== "create") return "none";
+  return value.discord_mention_mode === "everyone" ? "everyone" : "none";
 }
 
 function createCallerSupabaseClient(authHeader: string): { ok: true; client: ReturnType<typeof createClient> } | { ok: false } {
@@ -557,7 +565,10 @@ function createCallerSupabaseClient(authHeader: string): { ok: true; client: Ret
   };
 }
 
-async function sendDiscordWebhookDraft(messagePreview: string): Promise<DiscordWebhookDraftResult> {
+async function sendDiscordWebhookDraft(
+  messagePreview: string,
+  mentionMode: DiscordMentionMode
+): Promise<DiscordWebhookDraftResult> {
   const webhookUrl = readDiscordWebhookUrl();
   if (!webhookUrl.ok) {
     return {
@@ -572,7 +583,7 @@ async function sendDiscordWebhookDraft(messagePreview: string): Promise<DiscordW
     headers: {
       "content-type": "application/json"
     },
-    body: JSON.stringify(buildDiscordWebhookPayload(messagePreview))
+    body: JSON.stringify(buildDiscordWebhookPayload(messagePreview, mentionMode))
   });
 
   if (!response.ok) {
@@ -682,11 +693,14 @@ function readDiscordWebhookUrl(): { ok: true; value: string } | { ok: false } {
   }
 }
 
-function buildDiscordWebhookPayload(messagePreview: string): DiscordWebhookPayload {
+function buildDiscordWebhookPayload(
+  messagePreview: string,
+  mentionMode: DiscordMentionMode = "none"
+): DiscordWebhookPayload {
   return {
     content: truncateDiscordContent(messagePreview),
     allowed_mentions: {
-      parse: []
+      parse: mentionMode === "everyone" ? ["everyone"] : []
     }
   };
 }
@@ -1435,16 +1449,22 @@ function buildWarnings(
   return warnings;
 }
 
-function buildMessagePreview(session: SessionRow, action: SyncAction): string {
+function buildMessagePreview(
+  session: SessionRow,
+  action: SyncAction,
+  mentionMode: DiscordMentionMode = "none"
+): string {
   const title = normalizeText(session.title, 120) || "タイトル未設定";
   const status = normalizeText(session.status, 40);
   const closePrefix = action === "close" || CLOSED_STATUSES.has(status) ? "【募集終了】" : "";
   const deletePrefix = action === "delete" ? "【削除予定】" : "";
   const summary = normalizeMultiline(session.summary, 1400) || "概要未設定";
   const titlePrefix = deletePrefix || closePrefix || "";
+  const mentionLine = action === "create" && mentionMode === "everyone" ? "@everyone" : "";
 
   return [
     "＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝",
+    mentionLine,
     "",
     `■依頼書【${titlePrefix}${title}】`,
     `GM【${normalizeText(session.gm_name, 80) || "未定"}】`,

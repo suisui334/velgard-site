@@ -3900,3 +3900,23 @@ QA観点:
 
 - まずdraft / hidden / 未投稿のQA依頼書で、ボタン表示、確認ダイアログ、タイトル整形、二重付与防止、解除、カレンダー表示を確認する。
 - Discord投稿済み依頼書で確認する場合は、実行前に対象を明確化し、1件だけのDiscord本番編集ゲートとして扱う。
+
+## M-14E-23 Discord @everyone mention support
+
+`sync-session-post-to-discord` に、将来のフロントUIから明示的に参加者呼び出しを選ぶための `discord_mention_mode` 入力を追加した。この工程ではEdge Function deploy、dry-run、Discord実送信/編集/削除、フロントUI変更、テンプレート変更、SQL Editor実行、DB/RPC変更、secret/Webhook変更は行っていない。
+
+仕様:
+
+- `discord_mention_mode` は文字列として扱う。
+- `everyone`: `action=create` の投稿本文だけに `@everyone` を入れる。
+- `none`: メンションなし。
+- 未指定、null、想定外の値は `none` と同じ扱い。
+- `update` / `delete` / `close` / `resync` では、値が `everyone` でも `@everyone` を入れない。
+- `@everyone` はDiscord本文の冒頭区切り線の直下に1行だけ入る。
+- `allowed_mentions` は既定で無効のまま。明示 `create/everyone` の送信時だけ `everyone` を許可し、roles/usersは許可しない。
+
+次工程:
+
+- Edge Function deployは別ゲート。
+- deploy後はまず `dry_run=true` で、本文全文を記録せずに `@everyone` あり/なしのpreview生成をboolean/statusで確認する。
+- `dry_run=false` で実際に `@everyone` を送るQAは、対象依頼書を1件に限定した別ゲートにする。

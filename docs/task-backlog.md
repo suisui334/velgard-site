@@ -3153,3 +3153,32 @@ QA checklist:
 - ページ全体が横に広がらず、スマホでは縦スクロールで月全体を読める。
 - calendarヘッダーの `年月左上 / ‹ 今日 ›右上` 形式と、`今日` で今日の日付を選択する挙動は維持されている。
 - calendar種別別色分け、`〆` 表示、mypage/session-post、Discord同期導線には影響しない。
+
+## M-14E-23 Discord everyone mention Edge support
+
+Status: implemented in Edge Function source only. No frontend UI change, template change, Edge Function deploy, dry-run, real send, Discord operation, SQL Editor execution, DB/RPC/RLS change, SQL apply, secret/Webhook change, cleanup apply, or `updates.json` change was performed.
+
+Implemented scope:
+
+- `sync-session-post-to-discord` now accepts a future string payload field `discord_mention_mode`.
+- Supported values are `everyone` and `none`; missing, null, or unexpected values fall back to `none`.
+- `@everyone` is inserted into the Discord body only when `action=create` and `discord_mention_mode=everyone`.
+- The mention line is placed directly under the top separator line.
+- `update` / `delete` / `close` / `resync` ignore the mention mode and do not add `@everyone`.
+- Webhook `allowed_mentions` remains disabled by default, and opens only `everyone` for the explicit create opt-in path. Roles and users are not enabled.
+- Existing create/update/delete sync behavior, DB state recording, double-post guard, and message formatting remain otherwise unchanged.
+
+Next gate:
+
+- Deploy the Edge Function in a separate gate.
+- After deploy, first verify `create / dry_run=true` with `discord_mention_mode=none` and `discord_mention_mode=everyone` without recording the preview body.
+- Any `dry_run=false` Discord post that includes `@everyone` must be a separate explicit gate and should use one clearly selected QA request only.
+
+QA checklist:
+
+- Missing `discord_mention_mode` produces no mention.
+- `discord_mention_mode=none` produces no mention.
+- `discord_mention_mode=everyone` with `action=create` includes one `@everyone` directly under the top separator.
+- Repeated processing does not add duplicate mention lines because the message body is rebuilt from session data.
+- `update` / `delete` / `close` / `resync` do not include `@everyone` even if `discord_mention_mode=everyone` is passed.
+- `allowed_mentions.parse` is `["everyone"]` only on the create/everyone send path and `[]` otherwise.
