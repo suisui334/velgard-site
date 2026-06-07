@@ -3432,3 +3432,41 @@ Next gate:
 - If 038 confirms the GM/admin gate, prepare a full reviewed `create_session_post` replacement draft that removes only the create-time GM/admin role gate.
 - Keep initial create statuses limited to `draft` / `tentative` / `recruiting` unless a separate policy review decides past-session direct create is safe.
 - Any public non-draft retry can trigger Discord create and remains a separate explicit gate.
+
+## M-14E-26B General user create preflight SQL fix
+
+Status: docs/SQL draft correction only. No SQL Editor rerun, DB/RPC/RLS change, SQL apply, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, public non-draft retry, or `updates.json` change was performed.
+
+038 execution result:
+
+- User ran `docs/supabase/sql/038_general_user_session_post_create_preflight_select_only.sql` once in SQL Editor.
+- SQL Editor stopped with `ERROR: 42704: role "PUBLIC" does not exist`.
+- The user did not rerun 038.
+- No DB mutation occurred.
+
+Cause:
+
+- 038 treated PostgreSQL `PUBLIC` as if it were a normal role in `has_function_privilege(...)`.
+- PostgreSQL `PUBLIC` is a pseudo-role/pseudo-grantee and should not be passed as a normal role name for this check.
+
+Fix prepared:
+
+- Added `docs/supabase/sql/040_general_user_session_post_create_preflight_select_only_fix.sql`.
+- 040 is SELECT-only and keeps 038 as the failed historical draft.
+- 040 does not reference `PUBLIC` as a role.
+- 040 uses `to_regrole(...)` for role lookup and focuses on:
+  - `create_session_post` existence.
+  - security definer.
+  - search_path.
+  - authenticated EXECUTE.
+  - anon EXECUTE state.
+  - GM/admin gate presence in the RPC body.
+  - initial status limitation to `draft` / `tentative` / `recruiting`.
+  - whether general-user create likely needs an RPC change.
+- 040 does not return real IDs, user rows, Discord IDs, URLs, or personal data.
+
+Next gate:
+
+- Run 040 once in SQL Editor after explicit approval.
+- Do not rerun 038.
+- If 040 confirms the GM/admin gate, prepare a full reviewed `create_session_post` replacement draft in a later gate.
