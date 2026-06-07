@@ -3100,3 +3100,32 @@ QA checklist:
 - `‹` で前月、`›` で次月、`今日` で今日の日付選択まで行われる。
 - PC版の月カレンダー情報量は極端に劣化していない。
 - mypage、session-post、Discord同期導線、GM手動〆マーク機能には影響しない。
+
+## M-14E-22C calendar月表示の縦リスト化是正
+
+Status: implemented. No SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, dry-run, Discord operation, secret/Webhook change, or cleanup apply was performed.
+
+Context:
+
+- `d8eef8c` 後、web版/スマホ版calendarの月表示が7列月カレンダーではなく、日ごとの縦リストのように見える問題があった。
+- スマホ版では予定表示や依頼書導線も圧縮されすぎ、文字省略で意味が分かりづらい状態になっていた。
+
+Implemented scope:
+
+- calendar月表示のCSSを見直し、web版/スマホ版とも `日/月/火/水/木/金/土` の7列グリッドを明示的に維持するよう是正した。
+- `d8eef8c` で混入していたcalendarヘッダー直後の余分なCSS閉じ括弧を削除した。
+- スマホ幅でも日付セルを1日ずつ縦に積まず、7列月カレンダーとして表示する方針へ戻した。
+- スマホ幅では、予定ありの日に件数チップと短い予定行を表示し、詳細は日付選択後のパネルで確認する方針にした。
+- 依頼書作成導線はスマホでも `+` だけにせず、短いテキストとして意味が分かる表示に戻した。
+- calendarヘッダーの `年月左上 / ‹ 今日 ›右上` 形式、旧長文ボタン廃止、`今日` で今日の日付を選択する挙動は維持した。
+- `calendar.html` / `main.js` のcache-bustを更新し、公開反映時に古いcalendar UIが残りにくいようにした。
+
+QA checklist:
+
+- web版で7列の月カレンダー表示になり、日ごとの縦リスト表示になっていない。
+- スマホ版でも7列の月カレンダー表示になり、日ごとの縦リスト表示になっていない。
+- スマホ版で予定ありの日が分かり、詳細情報は日付選択後のパネルで確認できる。
+- ページ全体が横に広がらない。
+- calendarヘッダーは `年月左上 / ‹ 今日 ›右上` を維持している。
+- `‹` / `›` / `今日` の挙動が正常で、`今日` では今日の日付が選択される。
+- calendar種別別色分け、`〆` 表示、静的JSON通常UI退役、Discord同期導線には影響しない。

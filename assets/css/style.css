@@ -1751,13 +1751,18 @@ input[type="search"] {
   background: var(--deep);
   color: var(--paper);
 }
-}
 
 .calendar-weekdays,
 .calendar-month-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
+}
+
+body[data-page="calendar"] .calendar-weekdays,
+body[data-page="calendar"] .calendar-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .calendar-weekdays span {
@@ -5206,6 +5211,8 @@ body.is-modal-open .back-to-top {
   }
 
   .calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     min-width: 0;
     gap: 1px;
   }
@@ -5215,6 +5222,7 @@ body.is-modal-open .back-to-top {
   }
 
   .calendar-month-grid {
+    display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
     min-width: 0;
     gap: 1px;
@@ -5281,14 +5289,33 @@ body.is-modal-open .back-to-top {
   }
 
   body[data-page="calendar"] .calendar-session-badges {
-    display: flex;
-    justify-content: center;
+    display: grid;
+    justify-content: stretch;
     gap: 2px;
   }
 
   body[data-page="calendar"] .calendar-session-row,
   body[data-page="calendar"] .calendar-session-row:not(.is-closed) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding: 1px 3px;
+    border-radius: 4px;
+    font-size: 0.5rem;
+    line-height: 1.1;
+  }
+
+  body[data-page="calendar"] .calendar-session-time,
+  body[data-page="calendar"] .calendar-session-gm,
+  body[data-page="calendar"] .calendar-session-close {
     display: none;
+  }
+
+  body[data-page="calendar"] .calendar-session-title {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   body[data-page="calendar"] .calendar-session-count {
@@ -5306,15 +5333,10 @@ body.is-modal-open .back-to-top {
   }
 
   body[data-page="calendar"] .calendar-session-post-link {
-    width: 18px;
-    min-height: 18px;
-    padding: 0;
-    font-size: 0;
-  }
-
-  body[data-page="calendar"] .calendar-session-post-link::after {
-    content: "+";
-    font-size: 0.82rem;
+    width: auto;
+    min-height: 14px;
+    padding: 1px 3px;
+    font-size: 0.5rem;
     line-height: 1;
   }
 
