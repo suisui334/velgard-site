@@ -4744,6 +4744,16 @@ Next actions:
 - If 054 is healthy, ask the user for the signup Network/Auth error status/code/message type only, without payloads or headers.
 - If 054 points to trigger/profile/RLS issues, prepare a dedicated SQL review/apply gate; do not combine it with session-post or Discord QA.
 
+Follow-up result:
+
+- 054 SELECT-only confirmation was reported healthy: profile handler, Auth users trigger, `profiles`, `display_name`, `public_profiles`, and auth-users-without-profile checks were all ok.
+- Supabase Dashboard manual confirmation found the Email provider enabled, the Site URL set for the public site, and the public site included in Redirect URLs.
+- User-side signup retry confirmed a new Auth user row exists and the account is confirmed.
+- Current conclusion: new account signup is confirmed working.
+- Audit Logs being empty in the Dashboard is not treated as abnormal here because DB write logging is disabled.
+- No real email, user id, JWT, token, full URL, or project ref was recorded.
+- No additional SQL Editor execution by Codex, DB/Auth/RLS change, SQL apply, or secret change was performed.
+
 ## M-14E-27C admin cap announcement RPC draft preparation
 
 Status: 052 RPC追加SQL draft、053 SELECT-only確認SQL、docs更新のみ。No SQL Editor execution, 052 SQL apply, DB/RPC/RLS actual change, Edge Function deploy, Discord post, dry_run=false, secret/env setting or change, cron setting, frontend RPC connection QA, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, `updates.json` change, `deno.lock` change, or `supabase/.temp` change was performed.
