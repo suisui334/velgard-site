@@ -4722,3 +4722,51 @@ QA focus:
 - The `予定 / 申請履歴` summary GM count should not include sessions whose title starts with `〆`.
 - Unclosed GM sessions should still be counted, and pending/accepted application counts should keep their existing logic.
 - Codex did not perform logged-in smartphone browser verification in this batch; final device-width visual confirmation remains a user QA item.
+
+## M-14E-27C admin cap announcement RPC draft preparation
+
+Status: 052 RPC追加SQL draft、053 SELECT-only確認SQL、docs更新のみ。No SQL Editor execution, 052 SQL apply, DB/RPC/RLS actual change, Edge Function deploy, Discord post, dry_run=false, secret/env setting or change, cron setting, frontend RPC connection QA, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, `updates.json` change, `deno.lock` change, or `supabase/.temp` change was performed.
+
+051 result handled:
+
+- 050 SQL Applyはユーザー操作を含む明示ゲートで一度だけ実行され、成功扱い。
+- 051 SELECT-only確認では、`table_exists`、`rls_enabled`、`admin_select_policy`、`status_check`、`mention_mode_check`、`announcement_type_check`、`target_channel_key_check`、`anon_table_privileges`、`authenticated_table_privileges`、`direct_write_policy_absent`、`rpc_anon_execute` がOK。
+- RPC未作成のため、`browser_admin_rpc_exists` は `missing 0/4`、`server_rpc_exists` は `missing 0/2`。
+- RPC未作成に起因する `browser_admin_rpc_admin_check`、`browser_admin_rpc_search_path`、`browser_admin_rpc_security_definer`、`browser_rpc_authenticated_execute`、`server_rpc_search_path`、`server_rpc_security_definer`、`server_rpc_contract_patterns`、`post_apply_ready_for_next_gate` はreview。
+- ルール通り、Edge Function deploy、Discord投稿、secret/env設定、cron設定、フロントRPC接続確認へは進まず停止した。
+
+Prepared 052 RPC apply draft:
+
+- Added `docs/supabase/sql/052_admin_discord_announcements_rpc_apply_draft.sql` as `DO NOT RUN` / `NOT EXECUTED` / explicit approval required.
+- The draft is for the post-050 RPC apply gate and exists because 051 found RPC missing/review rows.
+- Browser/admin RPCs: `create_admin_discord_announcement`, `update_admin_discord_announcement`, `cancel_admin_discord_announcement`, `list_admin_discord_announcements`.
+- Server/Edge RPCs: `claim_due_admin_discord_announcements`, `finalize_admin_discord_announcement`.
+- Browser/admin RPCs are `security definer`, pin `search_path`, call `public.is_admin()`, grant execute only to `authenticated`, and still reject non-admin users internally.
+- Server/Edge RPCs are `security definer`, pin `search_path`, check the service role boundary internally, revoke `anon` and normal `authenticated` execute, and grant execute to the service role boundary.
+- `claim_due_admin_discord_announcements` claims only due `scheduled` cap announcements, moves them to `processing`, sets `lock_token`, increments `attempt_count`, and returns only delivery fields needed by the Edge draft.
+- `finalize_admin_discord_announcement` updates only `id + lock_token` claimed rows and resolves to `posted`, retry `scheduled`, or terminal `failed`.
+- The draft includes an optional `discord_message_id` column for delivery success recording, but browser list RPCs do not return its values.
+- Webhook URL values, real channel values, tokens, JWTs, Supabase URLs, Discord IDs, and raw external response bodies are not recorded.
+
+Prepared 053 SELECT-only confirmation:
+
+- Added `docs/supabase/sql/053_admin_discord_announcements_rpc_post_apply_select_only.sql`.
+- Kept 051 as the post-050 schema/table check and separated 053 as the post-052 RPC check.
+- 053 returns `check_name / status / result_value / note`.
+- 053 checks browser/admin RPC 4本、server/Edge RPC 2本、anon execute不可、browser RPCのauthenticated execute、server RPCのauthenticated不可、service role execute、`security definer`、`search_path`、`public.is_admin()` pattern、service-role boundary pattern、claim/finalize契約、`discord_message_id` column、`post_apply_ready_for_next_gate`。
+- 053 does not return function bodies, row data, Webhook values, raw external IDs, JWTs, token values, or Supabase project URLs.
+
+Current scope confirmation:
+
+- The active feature remains admin-only cap update announcement scheduling.
+- It is not a general reminder feature, not a table/session reminder feature, not a GM/PL free reminder feature, not a Discord Bot slash command feature, and not a free-form multi-purpose Discord scheduler.
+- Static JS was not changed to add Supabase direct `.insert` / `.update` / `.delete` / `.upsert`.
+
+Next SQL Apply gate:
+
+- Review `docs/supabase/sql/052_admin_discord_announcements_rpc_apply_draft.sql`.
+- Confirm its `DO NOT RUN` / `NOT EXECUTED` / explicit approval requirement, then treat it as the one approved SQL apply target only if the user explicitly opens that gate.
+- Run 052 once only in SQL Editor.
+- If an error appears, stop and do not rerun.
+- If 052 succeeds, run `docs/supabase/sql/053_admin_discord_announcements_rpc_post_apply_select_only.sql`.
+- If 053 contains `missing` / `review` / `error`, stop before Edge deploy or frontend RPC connection.

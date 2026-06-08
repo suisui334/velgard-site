@@ -49,6 +49,52 @@
 - `051_admin_discord_announcements_post_apply_select_only.sql` はDB変更を行わず、`check_name / status / result_value / note` の形式で確認する。
 - Edge Function draftはdeployしない。Webhook URL実値、JWT、Supabase URL全文、Discord ID、token類は置かない。
 
+## 050/051結果と052準備
+
+050 SQL Applyはユーザー操作を含む明示ゲートで一度だけ実行され、成功扱いとする。続けて051 SELECT-only確認を行い、テーブル、RLS、CHECK、テーブル権限、direct write policy不在はOKだった。
+
+051で停止した理由:
+
+- `browser_admin_rpc_exists`: `missing 0/4`。
+- `server_rpc_exists`: `missing 0/2`。
+- RPC未作成に起因する `review` が複数出た。
+- ルール通り、Edge Function deploy、Discord投稿、secret/env設定、cron設定、フロントRPC接続確認へは進まなかった。
+
+052 RPC追加SQL draft:
+
+- `docs/supabase/sql/052_admin_discord_announcements_rpc_apply_draft.sql` を未実行draftとして追加する。
+- 冒頭に `DO NOT RUN` / `NOT EXECUTED` / 明示承認必須を残す。
+- 050 apply後に実行するRPC追加SQLとして扱う。
+- 051でRPC missing/reviewが出たため追加する。
+- `admin_discord_announcements` の成功記録用に任意の `discord_message_id` 列案も含める。ただしブラウザ一覧RPCでは返さず、Webhook URL、チャンネルID、secret、raw external response bodyは保存・返却しない。
+
+052で追加するbrowser/admin用RPC:
+
+- `create_admin_discord_announcement`: adminのみ作成。`status` は `draft` / `scheduled`、`announcement_type='cap_update'`、`target_channel_key='cap_announcement'`、`mention_mode` は `none` / `everyone`。
+- `update_admin_discord_announcement`: adminのみ更新。既存 `draft` / `scheduled` / `failed` だけを編集可能にし、`processing` / `posted` / `canceled` は更新不可。
+- `cancel_admin_discord_announcement`: adminのみ取消。`draft` / `scheduled` / `failed` だけを `canceled` にでき、`processing` / `posted` は不可。
+- `list_admin_discord_announcements`: adminのみ一覧取得。Webhook URL、secret、実チャンネル値、raw external response、外部メッセージID値は返さない。
+
+052で追加するserver/Edge用RPC:
+
+- `claim_due_admin_discord_announcements`: service role境界でのみ実行する。期限到来の `scheduled` 行を `processing` にし、`lock_token` を設定して二重投稿を避ける。返却は配送に必要な一般化済みフィールドだけにする。
+- `finalize_admin_discord_announcement`: service role境界でのみ実行する。`id + lock_token` でclaim済み行を検証し、成功なら `posted`、retry可能なら `scheduled`、終端失敗なら `failed` にする。`attempt_count`、`delivery_error_code`、`posted_at`、任意の `discord_message_id` を安全に更新する。
+
+052 RPC共通方針:
+
+- `security definer` と `set search_path = public` を明示する。
+- browser/admin用RPCは内部で `public.is_admin()` を確認する。
+- anonにはexecute権限を与えない。
+- browser/admin用RPCのみ authenticated executeを付与し、server/Edge用RPCは通常authenticatedブラウザから実行できない設計にする。
+- 静的JSにSupabase直接 `.insert` / `.update` / `.delete` / `.upsert` は追加しない。
+
+052後確認SQL:
+
+- `docs/supabase/sql/053_admin_discord_announcements_rpc_post_apply_select_only.sql` を新規追加する。
+- 050確認用の051とは分け、052 apply後のRPC確認専用にする。
+- `check_name / status / result_value / note` 形式を維持する。
+- browser/admin用RPC 4本、server/Edge用RPC 2本、anon不可、authenticated権限、service role境界、`security definer`、`search_path`、admin確認、claim/finalize契約、`post_apply_ready_for_next_gate` を確認する。
+
 ## UI仕様
 
 専用ページ名は `admin-cap-announcements.html` とする。公開グローバルナビには追加しない。
@@ -173,6 +219,7 @@ server-only RPC方針:
 - `attempt_count`, `max_attempts`, `next_attempt_at`: retry管理。
 - `locked_at`, `lock_token`: 二重投稿防止のclaim情報。
 - `posted_at`: 投稿完了時刻。
+- `discord_message_id`: 投稿成功時の外部メッセージ識別子。ブラウザ一覧RPCでは返さず、値の記録・表示は最小化する。
 - `delivery_error_code`, `delivery_error_at`: 一般化した失敗情報。
 - `created_at`, `updated_at`: 監査用時刻。
 
@@ -233,9 +280,10 @@ draft安全設計:
 
 次に必要なSQL applyゲート:
 
-1. `docs/supabase/sql/050_admin_discord_announcements_schema_apply_draft.sql` をレビューする。
-2. SQL Editorの旧内容を消して、050だけを貼る。
-3. ユーザー明示承認後に一度だけ実行する。
-4. エラーが出たら停止し、rerunしない。
-5. 適用後、`docs/supabase/sql/051_admin_discord_announcements_post_apply_select_only.sql` をSELECT-onlyで実行し、テーブル・CHECK・RLS・grant・admin限定RPC方針を確認する。
-6. 051の結果がreview/missingを含む場合は、Edge Function deployへ進まずSQL/RPC draftを修正する。
+1. `docs/supabase/sql/052_admin_discord_announcements_rpc_apply_draft.sql` をレビューする。
+2. ファイル冒頭の `DO NOT RUN` / `NOT EXECUTED` / 明示承認必須を確認し、今回の実行対象として明示承認を得る。
+3. SQL Editorの旧内容を消して、052だけを貼る。
+4. ユーザー明示承認後に一度だけ実行する。
+5. エラーが出たら停止し、rerunしない。
+6. 052成功後、`docs/supabase/sql/053_admin_discord_announcements_rpc_post_apply_select_only.sql` をSELECT-onlyで実行する。
+7. 053の結果が `missing` / `review` / `error` を含む場合は、Edge Function deployやフロントRPC接続へ進まず停止する。
