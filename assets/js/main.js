@@ -18,7 +18,7 @@ import { renderUpdates } from "./renderUpdates.js";
 import { renderTools } from "./renderTools.js?v=20260529-calendar-date-tools-history";
 import { renderCalendar } from "./renderCalendar.js?v=20260608-calendar-grid-fix";
 import { renderMypage } from "./renderMypage.js?v=20260605-user-name-ui";
-import { renderDiscordReminders } from "./renderDiscordReminders.js?v=20260608-discord-reminder-mvp";
+import { renderAdminCapAnnouncements } from "./renderAdminCapAnnouncements.js?v=20260608-admin-cap-announcements";
 
 const navItems = [
   { label: "TOP", href: "index.html", key: "home", enabled: true },
@@ -55,7 +55,7 @@ const renderers = {
   tools: renderTools,
   calendar: renderCalendar,
   mypage: renderMypage,
-  "discord-reminders": renderDiscordReminders
+  "admin-cap-announcements": renderAdminCapAnnouncements
 };
 
 function renderHeader(site, page) {

@@ -2928,6 +2928,44 @@
     return logout;
   }
 
+  function isAdminRpcResult(value) {
+    if (value === true) return true;
+    if (Array.isArray(value)) return value.some((item) => item === true || item?.is_admin === true);
+    return value?.is_admin === true;
+  }
+
+  function createAdminCapAnnouncementDetails() {
+    const adminDetails = createMypageDetails("admin専用", "キャップ更新告知");
+    adminDetails.details.dataset.mypageAdminCapAnnouncements = "";
+
+    const note = document.createElement("p");
+    note.className = "mypage-profile-note";
+    note.textContent = "キャップ更新案内をDiscordへ予約投稿するadmin専用機能です。SQL/RPC/Edge Function適用前は内容確認だけを行います。";
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const link = document.createElement("a");
+    link.className = "button primary";
+    link.href = "admin-cap-announcements.html";
+    link.textContent = "キャップ更新告知へ";
+
+    actions.append(link);
+    adminDetails.body.append(note, actions);
+    return adminDetails.details;
+  }
+
+  async function loadAdminCapAnnouncementLink(client, elements) {
+    try {
+      const { data, error } = await client.rpc("is_admin");
+      if (error || !isAdminRpcResult(data) || !elements?.content) return;
+      if (elements.content.querySelector("[data-mypage-admin-cap-announcements]")) return;
+      elements.content.append(createAdminCapAnnouncementDetails());
+    } catch {
+      // Fail closed: non-admin and unknown admin state should not see the admin-only link.
+    }
+  }
+
   function renderAuthenticated(client, elements, message, session) {
     ensureAuthElements(elements);
     renderNavLogoutButton(client, elements);
@@ -2978,6 +3016,7 @@
     loadProfileContact(client, discordIdEditor);
     loadTemplatePresets(client, templatePanel);
     loadApplications(client, applicationsPanel, session);
+    loadAdminCapAnnouncementLink(client, elements);
   }
 
   function renderPasswordChangeForm(client, elements, message) {

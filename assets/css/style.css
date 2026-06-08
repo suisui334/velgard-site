@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --bg: #eff1ef;
   --bg-soft: #f7f7f3;
   --panel: rgba(255, 255, 250, 0.86);
@@ -1816,7 +1816,7 @@ body[data-page="calendar"] .calendar-month-grid {
 }
 
 .calendar-day-cell.is-today .calendar-day-number::after {
-  content: "今日";
+  content: "莉頑律";
   margin-left: 6px;
   color: var(--rust);
   font-size: 0.68rem;
@@ -3723,7 +3723,7 @@ body[data-page="mypage"] .mypage-details-summary::-webkit-details-marker {
 }
 
 body[data-page="mypage"] .mypage-details-summary::after {
-  content: "開く";
+  content: "髢九￥";
   flex: 0 0 auto;
   color: var(--deep);
   font-size: 0.78rem;
@@ -3731,7 +3731,7 @@ body[data-page="mypage"] .mypage-details-summary::after {
 }
 
 body[data-page="mypage"] .mypage-details[open] .mypage-details-summary::after {
-  content: "閉じる";
+  content: "髢峨§繧・;
 }
 
 body[data-page="mypage"] .mypage-details-title {
@@ -5709,51 +5709,53 @@ body.is-modal-open .back-to-top {
   }
 }
 
-body[data-page="discord-reminders"] .discord-reminder-section {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-section {
   display: grid;
   gap: 16px;
   overflow: visible;
   padding-top: 4px;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-status-panel,
-body[data-page="discord-reminders"] .discord-reminder-form-panel,
-body[data-page="discord-reminders"] .discord-reminder-preview-panel {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-access-panel,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-status-panel,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-form-panel,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-preview-panel {
   display: grid;
   gap: 14px;
   padding: 18px;
 }
 
-body[data-page="discord-reminders"] [hidden] {
+body[data-page="admin-cap-announcements"] [hidden] {
   display: none !important;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-form-head {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-form-head {
   display: grid;
   gap: 4px;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-form-head p,
-body[data-page="discord-reminders"] .discord-reminder-status-panel p {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-form-head p,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-access-note,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-status-panel p {
   margin: 0;
   color: var(--muted);
   font-weight: 800;
   line-height: 1.65;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-form {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-form {
   display: grid;
   gap: 14px;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-grid {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   align-items: start;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-field {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-field {
   display: grid;
   gap: 6px;
   min-width: 0;
@@ -5761,13 +5763,13 @@ body[data-page="discord-reminders"] .discord-reminder-field {
   font-weight: 800;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-field span {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-field span {
   font-size: 0.86rem;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-field input,
-body[data-page="discord-reminders"] .discord-reminder-field select,
-body[data-page="discord-reminders"] .discord-reminder-field textarea {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-field input,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-field select,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-field textarea {
   width: 100%;
   min-width: 0;
   border: 1px solid rgba(86, 96, 106, 0.28);
@@ -5777,23 +5779,23 @@ body[data-page="discord-reminders"] .discord-reminder-field textarea {
   font: inherit;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-field input,
-body[data-page="discord-reminders"] .discord-reminder-field select {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-field input,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-field select {
   min-height: 42px;
   padding: 8px 10px;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-field textarea {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-field textarea {
   min-height: 150px;
   padding: 10px;
   resize: vertical;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-field--wide {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-field--wide {
   grid-column: 1 / -1;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-mention-field {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-mention-field {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 14px;
@@ -5805,14 +5807,14 @@ body[data-page="discord-reminders"] .discord-reminder-mention-field {
   background: rgba(241, 250, 245, 0.3);
 }
 
-body[data-page="discord-reminders"] .discord-reminder-mention-field legend {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-mention-field legend {
   padding: 0 4px;
   color: var(--ink);
   font-size: 0.9rem;
   font-weight: 900;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-mention-field label {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-mention-field label {
   display: inline-flex;
   gap: 8px;
   align-items: center;
@@ -5821,43 +5823,54 @@ body[data-page="discord-reminders"] .discord-reminder-mention-field label {
   font-weight: 900;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-mention-field input {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-mention-field input {
   width: 17px;
   height: 17px;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-submit-row {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-submit-row {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-state {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-state {
   min-height: 1.35em;
   margin: 0;
   color: var(--muted);
   font-weight: 800;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-state.is-ok {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-state.is-ok {
   color: var(--herb);
 }
 
-body[data-page="discord-reminders"] .discord-reminder-state.is-error {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-state.is-error {
   color: var(--rust);
 }
 
-body[data-page="discord-reminders"] .discord-reminder-rpc-list,
-body[data-page="discord-reminders"] .discord-reminder-preview-list {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-state.is-warn {
+  color: var(--gold);
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-rpc-list,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-preview-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 0;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-rpc-list div,
-body[data-page="discord-reminders"] .discord-reminder-preview-list div {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-rpc-list div,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-preview-list div {
   display: grid;
   gap: 3px;
   min-width: 0;
@@ -5867,15 +5880,15 @@ body[data-page="discord-reminders"] .discord-reminder-preview-list div {
   background: rgba(255, 255, 250, 0.58);
 }
 
-body[data-page="discord-reminders"] .discord-reminder-rpc-list dt,
-body[data-page="discord-reminders"] .discord-reminder-preview-list dt {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-rpc-list dt,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-preview-list dt {
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 800;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-rpc-list dd,
-body[data-page="discord-reminders"] .discord-reminder-preview-list dd {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-rpc-list dd,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-preview-list dd {
   min-width: 0;
   margin: 0;
   color: var(--ink);
@@ -5883,7 +5896,7 @@ body[data-page="discord-reminders"] .discord-reminder-preview-list dd {
   overflow-wrap: anywhere;
 }
 
-body[data-page="discord-reminders"] .discord-reminder-payload {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-payload {
   min-width: 0;
   max-height: 360px;
   margin: 0;
@@ -5899,13 +5912,13 @@ body[data-page="discord-reminders"] .discord-reminder-payload {
 }
 
 @media (max-width: 720px) {
-  body[data-page="discord-reminders"] .discord-reminder-grid,
-  body[data-page="discord-reminders"] .discord-reminder-rpc-list,
-  body[data-page="discord-reminders"] .discord-reminder-preview-list {
+  body[data-page="admin-cap-announcements"] .admin-cap-announcement-grid,
+  body[data-page="admin-cap-announcements"] .admin-cap-announcement-rpc-list,
+  body[data-page="admin-cap-announcements"] .admin-cap-announcement-preview-list {
     grid-template-columns: 1fr;
   }
 
-  body[data-page="discord-reminders"] .discord-reminder-submit-row .button {
+  body[data-page="admin-cap-announcements"] .admin-cap-announcement-submit-row .button {
     width: 100%;
   }
 }

@@ -4485,3 +4485,51 @@ Next SQL apply gate:
 - If approved, run 050 once in SQL Editor as an independent apply gate.
 - Stop without rerun on any SQL error.
 - After apply, prepare and run a SELECT-only confirmation for table existence, status CHECK, mention_mode CHECK, RLS state, grants, and owner SELECT policy.
+
+## M-14E-27A admin cap announcement direction change
+
+Status: direction change, rename, frontend skeleton update, docs update, and SQL apply draft replacement only. No SQL Editor execution, DB/RPC/RLS apply, Edge Function deploy, Discord post, dry_run=false, secret setting/change, Webhook URL recording, JWT/Supabase URL/Discord ID/token recording, or `updates.json` change was performed.
+
+Direction change:
+
+- The earlier Discord scheduled-post idea is no longer a general reminder feature.
+- The scope is now limited to admin-only Discord scheduled posting for cap update announcements.
+- GM/PL-created reminders, table/session reminders, general user creation, free-form multi-purpose scheduled posting, Discord Bot slash commands, and channel/Webhook URL free input are out of scope.
+
+Renamed and updated:
+
+- `reminders.html` was renamed to `admin-cap-announcements.html`.
+- `assets/js/renderDiscordReminders.js` was renamed to `assets/js/renderAdminCapAnnouncements.js`.
+- `assets/js/discordReminderClient.js` was renamed to `assets/js/adminCapAnnouncementClient.js`.
+- `docs/discord-reminder-plan.md` was renamed to `docs/discord-cap-announcement-plan.md`.
+- `docs/supabase/sql/050_discord_reminders_schema_apply_draft.sql` was renamed to `docs/supabase/sql/050_admin_discord_announcements_schema_apply_draft.sql`.
+- SQL table candidate changed from `discord_reminders` to `admin_discord_announcements`.
+
+Admin-only design:
+
+- `admin-cap-announcements.html` checks Supabase runtime config, login session, and `is_admin()` before showing the form.
+- If non-admin or not logged in opens the URL directly, the page displays an unavailable/no-permission state and leaves the form hidden.
+- `mypage` adds a small admin-only folded details link to `admin-cap-announcements.html` only when `is_admin()` returns true.
+- Frontend hiding is not treated as security. DB/RPC/Edge Function gates must also verify admin authority.
+- Future create/update/cancel/list RPCs must be authenticated admin only.
+- Future Edge Function claim/finalize path must validate the admin announcement table, `announcement_type='cap_update'`, `target_channel_key='cap_announcement'`, and safe status transitions.
+
+Announcement model:
+
+- Required MVP fields: announcement title, announcement body, scheduled time, target channel key, mention mode, and status.
+- Status values: `draft`, `scheduled`, `processing`, `posted`, `failed`, `canceled`.
+- Failure handling keeps generalized delivery error fields so admin UI can show whether an error exists without exposing raw external response details.
+- `target_channel_key` stores only logical routing such as `cap_announcement`.
+- Edge Function secret/env mapping candidate is `DISCORD_WEBHOOK_CAP_ANNOUNCEMENT`; only the name is recorded, not the value.
+
+Mention policy:
+
+- `mention_mode=none` means Discord delivery must use `allowed_mentions.parse=[]`.
+- `mention_mode=everyone` is the only mode that may prepend/use `@everyone` and set `allowed_mentions.parse=["everyone"]`.
+- users/roles parse remains out of scope for the MVP.
+
+Next gates:
+
+- SQL apply gate: review `050_admin_discord_announcements_schema_apply_draft.sql`, then run it once only if explicitly approved.
+- After SQL apply, prepare SELECT-only confirmation for table, CHECK constraints, RLS, grants, admin-only SELECT/RPC behavior, and absence of direct public write paths.
+- Edge Function draft gate: design the Webhook mapping, claim/finalize RPC contract, allowed_mentions behavior, retry/failure recording, and no-secret logging before any deploy.
