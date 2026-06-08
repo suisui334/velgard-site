@@ -4763,6 +4763,11 @@ Rate-limit cause confirmed:
 - Short-term workaround: wait before retrying signup.
 - Durable mitigation: configure Supabase Auth Custom SMTP in a separate gate because SMTP credentials are secret-equivalent.
 - Added `docs/supabase-auth-custom-smtp-plan.md` to plan Custom SMTP setup and post-setup QA without recording SMTP credentials, real emails, ids, tokens, full URLs, or project refs.
+- Account registration policy is to keep the current Supabase Auth email and password configuration.
+- Email addresses are private login/recovery identifiers, while public-facing user names use `profiles.display_name`.
+- Public display, session GM names, applicant display, and similar user-facing labels should stay username-centric through `profiles.display_name`.
+- Username-only custom Auth, anonymous-login-only operation, and removing the email requirement are not adopted at this stage.
+- Custom SMTP remains the durable mitigation for signup send-rate limits and remains an independent gate because SMTP credentials are secret-equivalent.
 - Custom SMTP setup, Dashboard change, SQL Editor execution, DB/Auth/RLS change, SQL apply, and secret change were not performed in this recording batch.
 
 ## M-14E-27C admin cap announcement RPC draft preparation

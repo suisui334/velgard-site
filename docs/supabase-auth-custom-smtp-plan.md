@@ -14,6 +14,19 @@ Confirmed cause:
 
 Conclusion: the failure is an Auth email sending rate limit, not DB/RLS/RPC/profile-trigger wiring.
 
+## Account Registration Policy
+
+Use the current Supabase Auth email and password configuration.
+
+- Treat email addresses as private login and recovery identifiers.
+- Treat `profiles.display_name` as the public user name.
+- Use `profiles.display_name` for public display, session GM names, applicant display, and similar user-facing labels.
+- Do not adopt username-only custom Auth at this stage.
+- Do not adopt anonymous-login-only operation at this stage.
+- Do not remove the email requirement at this stage.
+- Keep Custom SMTP as the durable mitigation for built-in email provider rate limits.
+- Keep Custom SMTP setup as an independent gate because SMTP credentials are secret-equivalent.
+
 ## Current Scope
 
 This document is planning only.
