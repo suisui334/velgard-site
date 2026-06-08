@@ -4225,3 +4225,51 @@ Next gate:
 - SQL Editor old content must be cleared before pasting 047.
 - Execute 047 once only.
 - Record success/failure and do not rerun on error.
+
+## M-14E-26O update_session_post frontend overload apply result
+
+Status: SQL apply result recording only. Codex did not execute SQL Editor, SQL apply, DB/RPC/RLS additional change, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, target session edit/close/delete, additional registration, cleanup, or `updates.json` change in this recording gate.
+
+047 apply result:
+
+- User ran `docs/supabase/sql/047_update_session_post_frontend_overload_apply_draft.sql` once in Supabase SQL Editor.
+- SQL Editor execution was performed on the user's side only.
+- Codex did not operate SQL Editor.
+- Error: none reported.
+- Rerun: none.
+- 044 was not rerun.
+- 045 was not rerun.
+- Target session was not edited, close-marked, deleted, or resynced.
+- No Discord post/edit/delete was performed.
+- No dry-run false, Edge Function deploy, or secret/Webhook change was performed.
+- No raw IDs, user IDs, emails, JWTs, session IDs, Supabase URL, project ref, Discord IDs, post URLs, Webhook URL, or message preview body were recorded.
+
+Applied scope, as reported:
+
+- The frontend-matching 14-input `update_session_post` overload with `p_session_tool` is treated as applied.
+- That overload should now use `public.is_session_gm(v_session_id)` as the owner/admin gate.
+- The old GM-role owner gate should be removed from the frontend-matching overload.
+- The legacy 13-input `update_session_post` overload without `p_session_tool` is treated as removed by signature-specific `DROP FUNCTION` without `CASCADE`.
+- The 14-input overload public/anon execute closure and authenticated execute grant are treated as applied.
+- `delete_session_post`, Discord helper RPCs, RLS/policies, Edge Function code, and Discord behavior were outside the 047 apply scope.
+
+Post-apply confirmation needed:
+
+- Create or reuse a SELECT-only confirmation for the post-047 state before target session edit-save or close-mark QA.
+- Confirm `update_session_post` overload count.
+- Confirm the frontend-matching 14-input signature exists.
+- Confirm the frontend-matching 14-input signature uses `is_session_gm`.
+- Confirm the frontend-matching 14-input signature has no old GM-role owner gate.
+- Confirm the legacy 13-input overload is gone or otherwise not callable.
+- Confirm anon execute overload count is 0.
+- Confirm authenticated execute remains available.
+- Confirm `security_definer` and search_path are preserved.
+- After SELECT-only confirmation, test general owner edit-save on the diagnostic session.
+- After edit-save confirmation, test general owner GM close-mark on the diagnostic session.
+- Confirm another user cannot edit or close-mark the diagnostic session.
+- Defer target deletion and Discord update/create repair or resync confirmation to later explicit gates.
+
+Next gate:
+
+- Prepare a focused post-047 SELECT-only confirmation SQL, or explicitly rerun the existing 046 SELECT-only diagnostic if it is still suitable.
+- Do not proceed to edit-save, close-mark, delete, Discord sync, additional registration, dry-run false, Edge deploy, or secret/Webhook changes until the post-apply SELECT-only confirmation is reviewed.
