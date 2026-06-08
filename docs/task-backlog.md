@@ -4533,3 +4533,36 @@ Next gates:
 - SQL apply gate: review `050_admin_discord_announcements_schema_apply_draft.sql`, then run it once only if explicitly approved.
 - After SQL apply, prepare SELECT-only confirmation for table, CHECK constraints, RLS, grants, admin-only SELECT/RPC behavior, and absence of direct public write paths.
 - Edge Function draft gate: design the Webhook mapping, claim/finalize RPC contract, allowed_mentions behavior, retry/failure recording, and no-secret logging before any deploy.
+
+## M-14E-26S general owner edit/close Discord sync QA result
+
+Status: user-performed browser/Discord QA result record only. No Codex-side SQL Editor execution, SQL apply, DB/RPC/RLS additional change, Edge Function deploy, dry-run false, secret/Webhook change, target session delete, additional registration, cleanup, or `updates.json` change was performed.
+
+Reported QA results:
+
+- General owner edit-save on the diagnostic session succeeded.
+- General owner close-mark operation on the same diagnostic session succeeded.
+- Discord sync was confirmed after the owner update/close-mark path.
+- The post-047 `update_session_post` owner/admin gate change is treated as validated by actual owner operations.
+
+Interpretation:
+
+- The 049 SELECT-only ready state matched the browser QA result.
+- The frontend-matching `update_session_post` overload now works for the general owner flow.
+- General owner edit-save and manual close-mark can proceed through the intended owner/admin permission path.
+- Discord sync for this path is confirmed at QA-result level.
+
+Safety notes:
+
+- Raw IDs, session IDs, user IDs, emails, JWTs, Supabase URL, project ref, Discord message IDs, channel IDs, post URLs, Webhook URL, Discord body text, and message preview body were not recorded.
+- Target session deletion was not performed.
+- Additional registration was not performed.
+- Unscheduled `@everyone` notification confirmation was not performed.
+- Discord sync recovery/resync policy remains a separate gate if needed.
+
+Remaining gates:
+
+- Target session deletion remains deferred.
+- Additional session registration remains deferred.
+- Unheld-session `@everyone` notification confirmation remains a separate explicit gate.
+- Any Discord post/edit/delete outside the already reported QA result remains an explicit gate.
