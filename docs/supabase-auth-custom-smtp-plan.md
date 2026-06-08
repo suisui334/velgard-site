@@ -144,6 +144,16 @@ Confirm-email redirect follow-up:
 - Do not record the full deployed URL, real emails, user ids, JWTs, tokens, API keys, SMTP passwords, or project refs.
 - A future `auth-complete.html` page can be considered if a dedicated confirmation-complete screen is preferred, but it was not added in this batch.
 
+Confirm-email redirect QA result:
+
+- Supabase Redirect URLs already allowed the public-site `/velgard-site/**` path and `/velgard-site/mypage.html`.
+- Dashboard change was not needed.
+- After `2c56fa8 Fix signup email redirect target` was reflected, a new signup confirmation email was used for QA.
+- Clicking `Confirm email address` redirected to `mypage.html`, not a GitHub Pages 404.
+- HTTP 429 / `over_email_send_rate_limit` did not recur after Custom SMTP setup.
+- The signup path is now confirmed through registration, confirmation email arrival, and post-confirm redirect.
+- Real emails, user ids, JWTs, tokens, API keys, SMTP passwords, full URLs, and project refs were not recorded.
+
 Do not record SMTP credentials, API keys, DNS-management secrets, real emails, user ids, JWTs, tokens, full URLs, or project refs.
 
 ## Setup Gate

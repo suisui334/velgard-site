@@ -4789,6 +4789,10 @@ Rate-limit cause confirmed:
 - Frontend fix: `signUp` now passes `emailRedirectTo: getMypageRedirectUrl()`, matching the existing password-reset redirect helper and targeting the deployed `mypage.html` path at runtime.
 - Supabase Auth Redirect URLs should include or confirm the deployed `mypage.html` URL represented by the public site origin, existing site base path, and `/mypage.html`; the full URL was not recorded.
 - A future dedicated `auth-complete.html` page remains an optional later design, but was not added in this batch.
+- Follow-up QA found that Supabase Redirect URLs already allowed the public-site `/velgard-site/**` path and `/velgard-site/mypage.html`, so Dashboard change was not needed.
+- After `2c56fa8 Fix signup email redirect target` was reflected, a new signup confirmation email was used for QA. `Confirm email address` redirected to `mypage.html`, not a GitHub Pages 404.
+- HTTP 429 / `over_email_send_rate_limit` did not recur, and the signup path is now confirmed through registration, confirmation email arrival, and post-confirm redirect.
+- Real emails, user ids, JWTs, tokens, API keys, SMTP passwords, full URLs, and project refs were not recorded for the redirect QA result.
 - Codex did not perform Supabase Dashboard operation, SQL Editor execution, DB/Auth/RLS change, SQL apply, secret value recording, Edge Function deploy, Discord operation, or direct signup operation in this recording batch.
 
 ## M-14E-27C admin cap announcement RPC draft preparation
