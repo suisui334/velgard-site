@@ -107,6 +107,12 @@ Separate gates:
 - Resend API key creation.
 - Supabase Custom SMTP setting.
 
+Domain purchase result:
+
+- `tsumetai-hiyasireimen.com` was purchased through Cloudflare using Chrome.
+- Brave showed a Cloudflare management-screen API 429 during the purchase attempt, but Chrome completed the purchase.
+- DNS change, Resend domain addition, Resend API key creation, and Supabase Custom SMTP setting are not yet performed.
+
 Do not record SMTP credentials, API keys, DNS-management secrets, real emails, user ids, JWTs, tokens, full URLs, or project refs.
 
 ## Setup Gate

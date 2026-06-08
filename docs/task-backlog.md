@@ -4775,6 +4775,9 @@ Rate-limit cause confirmed:
 - Resend adoption assumes obtaining an owned reusable domain first. The base domain name is `tsumetai-hiyasireimen`, with `tsumetai-hiyasireimen.com` as the first candidate and `.net` / `.jp` as reserve candidates.
 - Domain availability, purchase price, and renewal price must be checked by a human in the purchase screen; domain purchase, DNS change, Resend domain addition, Resend API key creation, and Supabase Custom SMTP setting are all separate gates.
 - SMTP credentials, API keys, DNS-management secrets, real emails, ids, JWTs, tokens, full URLs, and project refs were not recorded.
+- `tsumetai-hiyasireimen.com` was purchased through Cloudflare using Chrome. Brave showed a Cloudflare management-screen API 429, but Chrome completed the purchase.
+- DNS change, Resend domain addition, Resend API key creation, and Supabase Custom SMTP setting remain unperformed independent gates.
+- Real emails, addresses, payment details, Cloudflare account ids, receipt numbers, DNS secrets, API keys, SMTP credentials, full URLs, and project refs were not recorded.
 - Custom SMTP setup, Dashboard change, SQL Editor execution, DB/Auth/RLS change, SQL apply, and secret change were not performed in this recording batch.
 
 ## M-14E-27C admin cap announcement RPC draft preparation
