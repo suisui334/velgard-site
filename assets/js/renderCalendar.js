@@ -635,7 +635,7 @@ export async function renderCalendar(root) {
     <header class="page-title">
       <div class="eyebrow">Calendar</div>
       <h1>CALENDAR</h1>
-      <p class="lead">現実日付から、ヴェルガルド運用上のラクシア日付・季節・月齢・レベルキャップを確認できます。Phase 1では読み取り専用です。</p>
+      <p class="lead">現実日付から、ヴェルガルド運用上のラクシア日付・季節・月齢・レベルキャップを確認できます。</p>
     </header>
     <section class="section calendar-section">
       <div id="calendar-today">

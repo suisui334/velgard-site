@@ -4659,3 +4659,26 @@ Still deferred:
 - Discord operations.
 - Additional registration.
 - Unheld-session `@everyone` notification confirmation.
+
+## M-14E-29 mypage/calendar light UI cleanup
+
+Status: frontend/UI fix and docs update only. No SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, Discord operation, dry-run false, secret/Webhook change, or `updates.json` change was performed.
+
+Implemented:
+
+- Fixed the mypage details/summary right-edge open/close labels by replacing the garbled CSS `content` strings with `開く` and `閉じる`.
+- Kept the existing details/summary behavior, section borders, smartphone template-management containment, and folded mypage section structure.
+- Removed the old `Phase 1では読み取り専用です。` wording from the calendar page lead text.
+
+Maintained:
+
+- Smartphone mypage template-management overflow fix remains in place.
+- Session-post template status options remain limited to `draft`, `tentative`, and `recruiting`.
+- Old terminal statuses are still not exposed as new template/session-post choices.
+- Calendar month layout, compact header, today behavior, type color coding, Discord mention UI, template examples, owner edit/save, close-mark flow, and Discord sync implementation were not changed.
+
+QA focus:
+
+- mypage folded sections should show `開く` when closed and `閉じる` when open without garbled text.
+- Calendar page should no longer show the obsolete Phase 1 read-only sentence.
+- PC and smartphone layouts should keep the existing mypage template and calendar behavior.

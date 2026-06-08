@@ -3723,7 +3723,7 @@ body[data-page="mypage"] .mypage-details-summary::-webkit-details-marker {
 }
 
 body[data-page="mypage"] .mypage-details-summary::after {
-  content: "髢九￥";
+  content: "開く";
   flex: 0 0 auto;
   color: var(--deep);
   font-size: 0.78rem;
@@ -3731,7 +3731,7 @@ body[data-page="mypage"] .mypage-details-summary::after {
 }
 
 body[data-page="mypage"] .mypage-details[open] .mypage-details-summary::after {
-  content: "髢峨§繧・;
+  content: "閉じる";
 }
 
 body[data-page="mypage"] .mypage-details-title {
