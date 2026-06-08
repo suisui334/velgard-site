@@ -4778,6 +4778,9 @@ Rate-limit cause confirmed:
 - `tsumetai-hiyasireimen.com` was purchased through Cloudflare using Chrome. Brave showed a Cloudflare management-screen API 429, but Chrome completed the purchase.
 - DNS change, Resend domain addition, Resend API key creation, and Supabase Custom SMTP setting remain unperformed independent gates.
 - Real emails, addresses, payment details, Cloudflare account ids, receipt numbers, DNS secrets, API keys, SMTP credentials, full URLs, and project refs were not recorded.
+- `tsumetai-hiyasireimen.com` was added to Resend, Resend-specified records were added to Cloudflare DNS, and Resend showed verified status for DNS and domain verification.
+- Resend API key creation, Supabase Custom SMTP setting, and repeated signup QA remain unperformed independent gates.
+- Real emails, API keys, SMTP passwords, full DNS values, payment details, Cloudflare account ids, and project refs were not recorded.
 - Custom SMTP setup, Dashboard change, SQL Editor execution, DB/Auth/RLS change, SQL apply, and secret change were not performed in this recording batch.
 
 ## M-14E-27C admin cap announcement RPC draft preparation

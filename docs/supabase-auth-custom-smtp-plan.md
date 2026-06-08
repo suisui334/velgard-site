@@ -113,6 +113,15 @@ Domain purchase result:
 - Brave showed a Cloudflare management-screen API 429 during the purchase attempt, but Chrome completed the purchase.
 - DNS change, Resend domain addition, Resend API key creation, and Supabase Custom SMTP setting are not yet performed.
 
+Resend domain verification result:
+
+- `tsumetai-hiyasireimen.com` was added to Resend.
+- Resend-specified DNS records were added in Cloudflare DNS.
+- Resend showed `STATUS: Verified`.
+- Resend showed `Domain verified: Your domain is ready to send emails.`
+- `DNS verified` and `Domain verified` were confirmed.
+- Resend API key creation, Supabase Custom SMTP setting, and repeated signup QA are not yet performed.
+
 Do not record SMTP credentials, API keys, DNS-management secrets, real emails, user ids, JWTs, tokens, full URLs, or project refs.
 
 ## Setup Gate
