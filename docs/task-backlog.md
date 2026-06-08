@@ -3776,3 +3776,103 @@ Likely next gates:
 - The replacement direction should be owner/admin via `is_session_gm(text)` or equivalent owner/admin logic, not GM-role plus owner.
 - Apply any DB/RPC changes only in later independent SQL apply gates.
 - Resume general-user registration / Discord create QA only after the owner permission and sync helper gates are resolved.
+
+## M-14E-26I General owner permission RPC draft
+
+Status: 043 result recording, RPC replacement draft, and docs update only. No SQL Editor execution by Codex, SQL apply, DB/RPC/RLS change, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, additional registration, target session deletion, or `updates.json` change was performed.
+
+043 SELECT-only result:
+
+- User ran `docs/supabase/sql/043_general_user_created_session_permission_diagnostics_select_only.sql` once in Supabase SQL Editor.
+- The result was shared as boolean/status values only.
+- No raw IDs, user IDs, emails, JWTs, session IDs, Supabase URL, project ref, Discord IDs, post URLs, Webhook URL, or message preview body were recorded.
+- Target session match count: ok / 1.
+- Target status: `recruiting`.
+- Target visibility: `public`.
+- Target owner present: ok / true.
+- Target owner profile present: ok / true.
+- `target_owner_matches_sql_auth_uid`: unknown, because SQL Editor did not provide browser `auth.uid()`.
+- Discord sync status: `pending`.
+- Discord last action: `create`.
+- Discord message ID saved: false.
+- Discord channel ID saved: false.
+- Discord post URL saved: false.
+- Discord synced timestamp present: false.
+- Discord sync error empty: true.
+
+Old gate confirmation:
+
+- `update_session_post_has_old_gm_owner_gate`: true.
+- `delete_session_post_has_old_gm_owner_gate`: true.
+- `check_discord_session_post_create_ready_has_old_gm_owner_gate`: true.
+- `record_discord_session_post_create_success_has_old_gm_owner_gate`: true.
+- `record_discord_session_post_create_failure_has_old_gm_owner_gate`: true.
+- `check_discord_session_post_update_ready_has_old_gm_owner_gate`: true.
+- `record_discord_session_post_update_success_has_old_gm_owner_gate`: true.
+- `record_discord_session_post_update_failure_has_old_gm_owner_gate`: true.
+- `check_discord_session_post_delete_ready_has_old_gm_owner_gate`: true.
+- `record_discord_session_post_delete_failure_has_old_gm_owner_gate`: true.
+- `owner_permission_rpc_change_needed`: true.
+- `discord_create_sync_rpc_change_needed`: true.
+- `discord_update_delete_sync_old_gate_count`: 5.
+
+Interpretation:
+
+- `create_session_post` is working for general authenticated create after the 041 apply.
+- The inspected session exists and has an owner/profile, so the create row itself is present.
+- Edit/save, delete, and GM close-mark failures are most likely caused by the old owner permission gate in `update_session_post` and `delete_session_post`.
+- Discord create auto-sync likely stopped in DB helper RPCs rather than the Edge Function body, because `check_discord_session_post_create_ready` and `record_discord_session_post_create_*` still require GM role plus ownership.
+- Discord update/delete helper RPCs have the same old gate pattern and should be updated before general-owner update/delete sync QA.
+- The pending/create target session should remain as a diagnostic sample until the owner permission and Discord helper gates are resolved.
+
+Owner/admin replacement direction:
+
+- Do not require a fixed GM role for owner actions.
+- Permit owner/admin by using existing `public.is_session_gm(text)` as the first candidate helper.
+- `public.is_session_gm(text)` is defined as browser actor owns the target session or actor is admin, and requires a non-null `auth.uid()`.
+- Keep anon blocked.
+- Keep admin management available.
+- Do not grant general users access to other users' edit/delete/close-mark actions.
+- Preserve existing signatures, return shapes, validations, `security definer`, and `search_path`.
+- Keep Edge Function payload and response sanitization unchanged.
+
+Prepared apply draft:
+
+- Added `docs/supabase/sql/044_general_owner_session_permission_rpc_apply_draft.sql`.
+- 044 is an apply draft and was not executed.
+- 044 contains `DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED`.
+- 044 targets these RPCs only:
+  - `update_session_post`
+  - `delete_session_post`
+  - `check_discord_session_post_create_ready`
+  - `record_discord_session_post_create_success`
+  - `record_discord_session_post_create_failure`
+  - `check_discord_session_post_update_ready`
+  - `record_discord_session_post_update_success`
+  - `record_discord_session_post_update_failure`
+  - `check_discord_session_post_delete_ready`
+  - `record_discord_session_post_delete_failure`
+- 044 was mechanically derived from the reviewed 017/018/030/031 RPC drafts.
+- The old permission pattern was replaced with `coalesce(public.is_session_gm(target_session_id), false)`.
+- 044 does not include table/RLS/policy changes, Edge Function changes, Discord operations, cleanup apply, secrets, Webhook URLs, JWTs, raw IDs, or Discord IDs.
+- 044 keeps normal function-body writes that are part of the existing RPC behavior, such as session update/delete and Discord sync state recording. It does not add standalone cleanup or unrelated mutation statements.
+- Existing EXECUTE grants are expected to remain because the targeted signatures are unchanged; 044 does not add new GRANT/REVOKE statements.
+
+Apply-after checks for a later gate:
+
+- Each target RPC exists with `security_definer = true` and search_path set.
+- authenticated can execute and anon cannot execute.
+- Old `has_role('gm') + owner` gate is absent from all target RPCs.
+- `is_session_gm(...)` owner/admin pattern is present.
+- General owner can edit, delete, and close-mark own session.
+- General owner cannot edit/delete/close-mark another user's session.
+- admin can still manage sessions.
+- Discord create ready/record can run for a general-owner-created session.
+- Discord update/delete ready/record can run for a general-owner-created session.
+- The current pending/create diagnostic target is handled only in a later explicit gate.
+
+Next gates:
+
+- Review 044 before apply.
+- Apply 044 only in an independent SQL apply gate after explicit approval.
+- After apply, run SELECT-only post-apply confirmation before retrying the target session, registration QA, Discord sync QA, or cleanup.
