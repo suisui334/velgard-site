@@ -4444,3 +4444,44 @@ Next gate:
 - Use the diagnostic target session to verify general-owner edit-save.
 - Then verify general-owner GM close-mark on the same target if edit-save passes.
 - Keep Discord sync recovery/resync and any Discord operation as later explicit gates.
+
+## M-14E-27 Discord reminder MVP low-risk preparation
+
+Status: frontend skeleton, docs, and SQL apply draft only. No SQL Editor execution, DB/RPC/RLS apply, Edge Function deploy, Discord post, dry_run=false, secret setting, Webhook value recording, raw external channel value recording, or `updates.json` change was performed.
+
+Implemented:
+
+- Added `docs/discord-reminder-plan.md`.
+- Added `reminders.html` as a direct-access Japanese reminder management page.
+- Added `assets/js/renderDiscordReminders.js` for validation and future RPC payload preview.
+- Added `assets/js/discordReminderClient.js` with future RPC function names and payload builders.
+- Added page-scoped UI styles in `assets/css/style.css`.
+- Added `docs/supabase/sql/050_discord_reminders_schema_apply_draft.sql` as DO NOT RUN / NOT EXECUTED.
+- Wired `discord-reminders` into `assets/js/main.js` without adding it to the public global nav.
+
+Design notes:
+
+- Webhook credentials and real channel routing values remain outside browser JS, docs, and DB draft content.
+- The UI uses logical `channel_key` values only.
+- `mention_mode=none` maps to `allowed_mentions.parse=[]`.
+- `mention_mode=everyone` is the only path that allows the everyone parse value.
+- Static JS does not add Supabase direct insert/update/delete/upsert calls.
+- Current screen does not execute DB save; it validates input and displays the future `create_discord_reminder` payload only.
+
+Deferred dangerous gates:
+
+- SQL Editor execution.
+- DB/RPC/RLS schema apply.
+- Future create/update/cancel/list RPC implementation apply.
+- Edge Function implementation and deploy.
+- cron setup.
+- Discord dry-run checks.
+- Discord real send.
+- secret/Webhook configuration.
+
+Next SQL apply gate:
+
+- Review `docs/supabase/sql/050_discord_reminders_schema_apply_draft.sql`.
+- If approved, run 050 once in SQL Editor as an independent apply gate.
+- Stop without rerun on any SQL error.
+- After apply, prepare and run a SELECT-only confirmation for table existence, status CHECK, mention_mode CHECK, RLS state, grants, and owner SELECT policy.

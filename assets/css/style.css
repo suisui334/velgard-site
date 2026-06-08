@@ -5708,3 +5708,204 @@ body.is-modal-open .back-to-top {
     grid-template-columns: 1fr;
   }
 }
+
+body[data-page="discord-reminders"] .discord-reminder-section {
+  display: grid;
+  gap: 16px;
+  overflow: visible;
+  padding-top: 4px;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-status-panel,
+body[data-page="discord-reminders"] .discord-reminder-form-panel,
+body[data-page="discord-reminders"] .discord-reminder-preview-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+body[data-page="discord-reminders"] [hidden] {
+  display: none !important;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-form-head {
+  display: grid;
+  gap: 4px;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-form-head p,
+body[data-page="discord-reminders"] .discord-reminder-status-panel p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.65;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-form {
+  display: grid;
+  gap: 14px;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-field span {
+  font-size: 0.86rem;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-field input,
+body[data-page="discord-reminders"] .discord-reminder-field select,
+body[data-page="discord-reminders"] .discord-reminder-field textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(86, 96, 106, 0.28);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.88);
+  color: var(--ink);
+  font: inherit;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-field input,
+body[data-page="discord-reminders"] .discord-reminder-field select {
+  min-height: 42px;
+  padding: 8px 10px;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-field textarea {
+  min-height: 150px;
+  padding: 10px;
+  resize: vertical;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-field--wide {
+  grid-column: 1 / -1;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-mention-field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid rgba(60, 113, 95, 0.24);
+  border-radius: 6px;
+  background: rgba(241, 250, 245, 0.3);
+}
+
+body[data-page="discord-reminders"] .discord-reminder-mention-field legend {
+  padding: 0 4px;
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-mention-field label {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-mention-field input {
+  width: 17px;
+  height: 17px;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-submit-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-state {
+  min-height: 1.35em;
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-state.is-ok {
+  color: var(--herb);
+}
+
+body[data-page="discord-reminders"] .discord-reminder-state.is-error {
+  color: var(--rust);
+}
+
+body[data-page="discord-reminders"] .discord-reminder-rpc-list,
+body[data-page="discord-reminders"] .discord-reminder-preview-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-rpc-list div,
+body[data-page="discord-reminders"] .discord-reminder-preview-list div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid rgba(86, 96, 106, 0.16);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.58);
+}
+
+body[data-page="discord-reminders"] .discord-reminder-rpc-list dt,
+body[data-page="discord-reminders"] .discord-reminder-preview-list dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-rpc-list dd,
+body[data-page="discord-reminders"] .discord-reminder-preview-list dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--ink);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="discord-reminders"] .discord-reminder-payload {
+  min-width: 0;
+  max-height: 360px;
+  margin: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 12px;
+  border: 1px solid rgba(60, 113, 95, 0.18);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.72);
+  color: var(--soot);
+  font: 800 0.82rem/1.65 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+@media (max-width: 720px) {
+  body[data-page="discord-reminders"] .discord-reminder-grid,
+  body[data-page="discord-reminders"] .discord-reminder-rpc-list,
+  body[data-page="discord-reminders"] .discord-reminder-preview-list {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page="discord-reminders"] .discord-reminder-submit-row .button {
+    width: 100%;
+  }
+}
