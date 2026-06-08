@@ -3641,3 +3641,39 @@ Next gates:
   - Try a safe general-user create path using one of `draft` / `tentative` / `recruiting`.
   - If using public non-draft create, treat it as a Discord-risk gate because Discord create can be triggered.
   - Keep `@everyone通知を送らない` verification and any Discord post check as explicit follow-up gates.
+
+## M-14E-26F General user create post-apply SELECT draft
+
+Status: SQL draft/docs update only. No SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, general-user create retry, public non-draft retry, or `updates.json` change was performed.
+
+Prepared post-apply confirmation SQL:
+
+- Added `docs/supabase/sql/042_general_user_session_post_create_post_apply_select_only.sql`.
+- 042 is SELECT-only and was not executed.
+- 042 is intended for the next independent SQL Editor gate after the successful 041 apply.
+- 042 does not treat PostgreSQL PUBLIC as a normal role.
+- 042 uses `to_regrole(...)` for `authenticated` and `anon`.
+- 042 does not return real IDs, user rows, emails, JWTs, session IDs, Supabase URL, project ref, Discord IDs, post URLs, Webhook URL, or function body text.
+
+042 checks:
+
+- `create_session_post` exists.
+- `security_definer` remains true.
+- search_path remains configured.
+- authenticated EXECUTE is available.
+- anon EXECUTE is false.
+- `p_session_tool` remains in the create RPC signature.
+- return shape still includes `session_id`, `discord_sync_status`, and `created_at`.
+- create-time GM/admin gate patterns are absent.
+- creator/owner pattern ties `gm_user_id` to `auth.uid()`.
+- initial status guard remains `draft` / `tentative` / `recruiting`.
+- `closed` / `finished` / `canceled` are not present as initial create statuses in the create RPC body.
+- `update_session_post` / `delete_session_post` still exist as presence-only checks; 041 did not target them.
+- `post_apply_ready_for_general_create_qa` summarizes whether the DB/RPC state is ready for the next general-user create QA gate.
+
+Next gates:
+
+- Run 042 once in SQL Editor after explicit approval.
+- If 042 returns `post_apply_ready_for_general_create_qa = ok / true`, proceed to a separate general-user create QA gate.
+- If the QA uses public non-draft create, treat it as Discord-risk because create auto-sync can trigger a Discord post.
+- Keep Discord post verification, `@everyone通知を送らない`, and `@everyone通知を送る` checks as explicit follow-up gates.
