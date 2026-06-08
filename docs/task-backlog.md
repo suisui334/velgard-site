@@ -3876,3 +3876,87 @@ Next gates:
 - Review 044 before apply.
 - Apply 044 only in an independent SQL apply gate after explicit approval.
 - After apply, run SELECT-only post-apply confirmation before retrying the target session, registration QA, Discord sync QA, or cleanup.
+
+## M-14E-26J General owner permission RPC apply draft review
+
+Status: SQL apply pre-review only. No SQL Editor execution, SQL apply, DB/RPC/RLS change, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, target session deletion, additional registration, or `updates.json` change was performed.
+
+Review target:
+
+- `docs/supabase/sql/044_general_owner_session_permission_rpc_apply_draft.sql`.
+- 044 keeps `DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED` notes.
+- 044 remains an apply draft and has not been executed.
+
+SQL safety review:
+
+- Target RPC count: 10.
+- Target RPCs:
+  - `update_session_post`
+  - `delete_session_post`
+  - `check_discord_session_post_create_ready`
+  - `record_discord_session_post_create_success`
+  - `record_discord_session_post_create_failure`
+  - `check_discord_session_post_update_ready`
+  - `record_discord_session_post_update_success`
+  - `record_discord_session_post_update_failure`
+  - `check_discord_session_post_delete_ready`
+  - `record_discord_session_post_delete_failure`
+- No `DROP TABLE`, `DROP COLUMN`, `TRUNCATE`, `ALTER`, `GRANT`, or `REVOKE` statements were found.
+- No table/RLS/policy changes were found.
+- No secret, token, JWT, Webhook URL, Supabase URL, raw ID, Discord ID, post URL, or message preview body was found.
+- `CASCADE` appears only in an inherited explanatory comment for existing session delete dependencies.
+- `UPDATE public.sessions` and `DELETE FROM public.sessions` appear only inside the existing RPC bodies as the normal update/delete/sync-state behavior. They are not standalone cleanup or unrelated mutation statements.
+- Existing EXECUTE privileges are expected to be retained because 044 uses `CREATE OR REPLACE FUNCTION` with unchanged signatures and does not recreate different signatures.
+
+RPC compatibility review:
+
+- 044 preserves the existing function names, signatures, return shapes, validation flow, `security definer`, and `search_path`.
+- The frontend and Edge Function call targets remain unchanged.
+- `update_session_post` still returns session update metadata expected by the frontend.
+- `delete_session_post` still returns delete metadata expected by the frontend.
+- Discord create/update/delete helper RPC return shapes remain aligned with the existing Edge Function calls.
+- Existing Discord external identifier handling remains unchanged; the draft only changes owner/admin permission gates.
+- `discord_mention_mode` is not part of these DB helper RPCs and requires no DB-side change here.
+
+Permission boundary review:
+
+- The old execution gate pattern requiring `has_role('gm')` plus ownership is absent from the target RPC bodies.
+- The replacement gate uses `coalesce(public.is_session_gm(target_session_id), false)`.
+- `public.is_session_gm(text)` is defined as `auth.uid()` present and either target session owner or admin.
+- Because `is_session_gm` requires non-null `auth.uid()`, anon remains blocked.
+- General owners should be allowed to edit/delete/close-mark/sync-helper their own sessions after apply.
+- General users should not be allowed to operate on other users' sessions, because `is_session_gm` checks the target session's `gm_user_id`.
+- Admin management remains available through the helper.
+
+Discord sync helper review:
+
+- `check_discord_session_post_create_ready` should become callable for general-owner-created sessions.
+- `record_discord_session_post_create_success/failure` should be able to record create sync results for general-owner-created sessions.
+- Update/delete sync ready and record helpers follow the same owner/admin gate.
+- Edge Function body, payload shape, sanitized response handling, and message preview policy do not need to change for this draft.
+- Discord posting/edit/delete is still a later explicit QA gate.
+
+Known caution:
+
+- 044 is a broad RPC replacement across ten functions. It should be applied only after explicit approval and only if the live signatures still match the reviewed draft.
+- The current pending/create diagnostic session should not be deleted before the owner-permission and Discord helper gates are confirmed.
+- Applying 044 does not by itself recover the existing pending/create Discord sync state; resync/repair handling is a later gate.
+
+Apply-after confirmation plan:
+
+- Run a SELECT-only post-apply confirmation that checks all ten target RPCs.
+- Confirm each target RPC exists with `security_definer = true` and search_path set.
+- Confirm authenticated EXECUTE is available and anon is blocked.
+- Confirm old `has_role('gm') + owner` gate is absent from all target RPCs.
+- Confirm `is_session_gm(...)` pattern is present in all target RPCs.
+- Confirm a general owner can edit-save the diagnostic target.
+- Confirm a general owner can use the manual close mark on the diagnostic target.
+- Defer delete QA until the diagnostic target is no longer needed, because delete removes the sample.
+- Confirm a general owner cannot edit/delete/close-mark another user's session.
+- Confirm admin management still works.
+- Confirm Discord create/update/delete helper behavior only in later explicit Discord-risk gates.
+
+Review conclusion:
+
+- 044 is suitable to move to a separate SQL apply gate, provided the user explicitly approves the apply and no live signature mismatch is discovered.
+- SQL apply, DB changes, Discord operations, and target-session cleanup remain unperformed in this review gate.
