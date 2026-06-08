@@ -4682,3 +4682,19 @@ QA focus:
 - mypage folded sections should show `開く` when closed and `閉じる` when open without garbled text.
 - Calendar page should no longer show the obsolete Phase 1 read-only sentence.
 - PC and smartphone layouts should keep the existing mypage template and calendar behavior.
+
+## M-14E-30 calendar today label text cleanup
+
+Status: frontend/UI fix and docs update only. No SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, Discord operation, dry-run false, secret/Webhook change, or `updates.json` change was performed.
+
+Implemented:
+
+- Fixed the remaining garbled calendar `今日` label in the calendar CSS today marker.
+- Confirmed the calendar month navigation center button text, `aria-label`, and `title` are already `今日` / `今日へ`.
+- Kept the existing previous/next month buttons, today selection behavior, month grid, type color coding, and smartphone calendar layout unchanged.
+
+QA focus:
+
+- The calendar top-right month navigation should show `‹ 今日 ›` without garbled text.
+- The today marker should not display mojibake.
+- Pressing `今日` should continue selecting today's date and moving to today's month.

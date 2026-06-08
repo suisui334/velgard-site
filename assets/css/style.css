@@ -1816,7 +1816,7 @@ body[data-page="calendar"] .calendar-month-grid {
 }
 
 .calendar-day-cell.is-today .calendar-day-number::after {
-  content: "莉頑律";
+  content: "今日";
   margin-left: 6px;
   color: var(--rust);
   font-size: 0.68rem;
