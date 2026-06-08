@@ -4723,6 +4723,27 @@ QA focus:
 - Unclosed GM sessions should still be counted, and pending/accepted application counts should keep their existing logic.
 - Codex did not perform logged-in smartphone browser verification in this batch; final device-width visual confirmation remains a user QA item.
 
+## M-15G-Auth signup failure triage
+
+Status: low-risk signup triage only. Session-post registration, Discord sync QA, deletion QA, SQL Editor execution, DB/Auth/RLS setting change, SQL apply, Edge Function deploy, Discord operation, dry-run false, secret/Webhook change, and `updates.json` change were not performed.
+
+Findings:
+
+- The emergency issue is account signup, not session-post creation; additional session registration, upcoming-session notification QA, and deletion QA are paused.
+- The public signup entry point is the mypage account section. `mypage.html` loads `assets/js/mypageAuthClient.js`, which renders login/signup tabs for anonymous users.
+- Static frontend review confirmed that the signup form calls Supabase Auth `signUp` with email, password, and `display_name` in user metadata after local validation.
+- The current UI intentionally shows a generalized signup failure message, so the visible error alone cannot distinguish Auth signup disabled, email/redirect setting mismatch, profile handler failure, rate limit, duplicate account, or validation failure.
+- Existing docs indicate that `handle_new_auth_user_profile` and `update_display_name` were previously confirmed, but the current production signup failure needs a fresh SELECT-only preflight before assuming the trigger/profile path is still healthy.
+- Added `docs/supabase/sql/054_signup_auth_profile_preflight_select_only.sql` to check signup-related profile wiring without returning emails, ids, tokens, URLs, or secrets.
+- The 054 SQL checks the profile handler, Auth-user trigger, `profiles` table readiness, `display_name` constraints, minimal `public_profiles` view shape, and auth-users-without-profile count using boolean/status/count-style results only.
+- Auth Dashboard settings cannot be fully verified by SQL. Public signup enablement, email confirmation behavior, Site URL, and redirect allowlist remain manual Dashboard checks without recording real values.
+
+Next actions:
+
+- Run 054 in a separate SELECT-only SQL Editor gate, once only, and record boolean/status results without real email, ids, JWTs, URLs, or tokens.
+- If 054 is healthy, ask the user for the signup Network/Auth error status/code/message type only, without payloads or headers.
+- If 054 points to trigger/profile/RLS issues, prepare a dedicated SQL review/apply gate; do not combine it with session-post or Discord QA.
+
 ## M-14E-27C admin cap announcement RPC draft preparation
 
 Status: 052 RPC追加SQL draft、053 SELECT-only確認SQL、docs更新のみ。No SQL Editor execution, 052 SQL apply, DB/RPC/RLS actual change, Edge Function deploy, Discord post, dry_run=false, secret/env setting or change, cron setting, frontend RPC connection QA, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, `updates.json` change, `deno.lock` change, or `supabase/.temp` change was performed.
