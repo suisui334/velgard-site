@@ -4273,3 +4273,54 @@ Next gate:
 
 - Prepare a focused post-047 SELECT-only confirmation SQL, or explicitly rerun the existing 046 SELECT-only diagnostic if it is still suitable.
 - Do not proceed to edit-save, close-mark, delete, Discord sync, additional registration, dry-run false, Edge deploy, or secret/Webhook changes until the post-apply SELECT-only confirmation is reviewed.
+
+## M-14E-26P update_session_post post-apply SELECT-only SQL
+
+Status: SELECT-only SQL draft and docs update only. No SQL Editor execution, SQL apply, DB/RPC/RLS additional change, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, target session edit/close/delete, additional registration, cleanup, or `updates.json` change was performed.
+
+Prepared SELECT-only confirmation:
+
+- Added `docs/supabase/sql/048_update_session_post_overload_post_apply_select_only.sql`.
+- 048 is SELECT-only and has not been executed.
+- 048 keeps the `check_name / status / result_value / note` result shape.
+- 048 does not return function bodies; it returns signatures, argument summaries, and pattern booleans only.
+- 048 computes aggregate values in dedicated CTEs and avoids same-level alias reuse.
+- 048 does not include `DROP`, `CREATE`, `ALTER`, `UPDATE`, `DELETE`, `INSERT`, `GRANT`, `REVOKE`, or `TRUNCATE` statements.
+
+048 checks:
+
+- `update_session_post_overload_count`.
+- `frontend_matching_overload_count`.
+- `frontend_matching_is_session_gm_count`.
+- `frontend_matching_old_gate_count`.
+- `frontend_matching_authenticated_execute_count`.
+- `frontend_matching_anon_execute_count`.
+- `old_gate_overload_count`.
+- `legacy_without_session_tool_count`.
+- `anon_execute_overload_count`.
+- `security_definer_overload_count`.
+- `search_path_overload_count`.
+- `frontend_call_risk`.
+- `post_apply_ready_for_owner_update_qa`.
+- Each remaining overload signature and identity arguments.
+- Each remaining overload frontend payload match.
+- Each remaining overload old GM-owner gate pattern.
+- Each remaining overload `is_session_gm` pattern.
+- Each remaining overload authenticated/anon EXECUTE booleans.
+
+Expected interpretation:
+
+- Ready state should have exactly one frontend-matching 14-input overload.
+- The frontend-matching overload should use `is_session_gm`.
+- The frontend-matching overload should have no old GM-role owner gate.
+- Legacy 13-input overload count should be 0.
+- anon executable overload count should be 0.
+- authenticated execute should remain available.
+- `security_definer` and search_path should remain set.
+
+Next gate:
+
+- Run 048 once in SQL Editor as an independent SELECT-only confirmation gate.
+- If 048 errors, stop without rerun.
+- If 048 returns `post_apply_ready_for_owner_update_qa = true`, proceed to general-owner edit-save and GM close-mark QA in a later gate.
+- Keep target deletion, Discord sync recovery/resync, Discord post/edit/delete, dry-run false, Edge deploy, and secret/Webhook changes as later explicit gates.
