@@ -4019,3 +4019,47 @@ Next gate:
 - If the frontend-matching overload still has the old gate, prepare a corrective apply draft before any edit/close-mark QA.
 - If only a legacy non-frontend overload has the old gate, decide whether to remove/replace it with a focused cleanup draft before QA.
 - Do not retry registration, edit-save, close-mark, Discord sync, or target cleanup until the overload result is understood.
+
+## M-14E-26L update_session_post overload diagnostics SQL fix
+
+Status: 045 failure recording and SELECT-only SQL fix only. No SQL Editor execution by Codex, 045 rerun, 044 rerun, SQL apply, DB/RPC/RLS change, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, target session edit/close/delete, additional registration, or `updates.json` change was performed.
+
+045 result:
+
+- User ran `docs/supabase/sql/045_update_session_post_overload_diagnostics_select_only.sql` once in Supabase SQL Editor.
+- 045 stopped with `ERROR: 42703: column "frontend_matching_old_gate_count" does not exist`.
+- The likely cause is a diagnostic SQL alias/scope issue, not a DB mutation.
+- The user did not rerun 045.
+- No DB change occurred from the failed SELECT-only diagnostic.
+- 044 was not rerun.
+- Target session edit-save, close-mark, delete, and Discord sync checks remain stopped.
+- No raw IDs, user IDs, emails, JWTs, session IDs, Supabase URL, project ref, Discord IDs, post URLs, Webhook URL, or message preview body were recorded.
+
+Prepared fix:
+
+- Added `docs/supabase/sql/046_update_session_post_overload_diagnostics_select_only_fix.sql`.
+- 046 is SELECT-only and has not been executed.
+- 046 keeps the `check_name / status / result_value / note` result shape.
+- 046 does not return function bodies; it returns signatures, argument summaries, and pattern booleans only.
+- 046 computes aggregate values such as `frontend_matching_old_gate_count` inside dedicated `summary_counts` / `summary_flags` CTEs before downstream checks reference them.
+- 046 avoids same-level alias reuse that can fail in PostgreSQL scope rules.
+- 046 still checks:
+  - `update_session_post_overload_count`.
+  - `frontend_matching_overload_count`.
+  - `frontend_matching_old_gate_count`.
+  - `old_gate_overload_count`.
+  - `legacy_without_session_tool_count`.
+  - `overload_cleanup_needed`.
+  - `frontend_call_risk`.
+  - Each overload signature and identity arguments.
+  - Each overload frontend payload match.
+  - Each overload old GM-owner gate pattern.
+  - Each overload `is_session_gm` pattern.
+  - authenticated/anon EXECUTE booleans.
+
+Next gate:
+
+- Run 046 once in SQL Editor as an independent SELECT-only confirmation gate.
+- If 046 errors, stop without rerun.
+- If 046 confirms a frontend-matching old gate or ambiguous callable overload, prepare a focused cleanup/replace apply draft before edit-save, close-mark, delete, registration, or Discord sync QA.
+- Continue to keep 044 rerun, SQL apply, target session operations, and Discord operations stopped until the overload result is understood.
