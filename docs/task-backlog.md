@@ -4566,3 +4566,36 @@ Remaining gates:
 - Additional session registration remains deferred.
 - Unheld-session `@everyone` notification confirmation remains a separate explicit gate.
 - Any Discord post/edit/delete outside the already reported QA result remains an explicit gate.
+
+## M-14E-28 mypage template responsive/status cleanup
+
+Status: frontend/UI fix and docs update only. No SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, Discord operation, dry-run false, secret/Webhook change, or `updates.json` change was performed.
+
+Implemented:
+
+- Tightened smartphone-width layout for the mypage template management panel.
+- Added width containment for the template panel, form labels, session-post template editor, template example details, variable-help details, variable cards, long example text, and action buttons.
+- Smartphone layout keeps the template editor in one column and prevents long examples/variables from pushing the page wider than the viewport.
+- Kept the existing folded mypage sections, logout placement, admin-only announcement link behavior, and other mypage sections unchanged.
+
+Session-post template status cleanup:
+
+- The mypage session-post template status options now only expose `draft`, `tentative`, and `recruiting`.
+- Removed user-selectable old terminal statuses from the session-post template editor: closed/recruitment ended, finished/session ended, canceled, and equivalent "ended" choices.
+- Existing old template values are normalized through the allowed option list and are not restored into the template editor as selectable create/edit values.
+- Existing old session/status display compatibility remains outside the template editor.
+
+QA focus:
+
+- On smartphone width, opening mypage template management and editing a template should not cause horizontal page overflow.
+- Template name, type, body textarea, mention mode, template examples, variable list, and action buttons should fit within the viewport.
+- Long template examples and variable output examples should wrap instead of widening the page.
+- Session-post template status choices should be only the three create-safe values.
+- Session-post page status choices and mention template save/restore behavior should remain intact.
+
+Still deferred:
+
+- SQL/DB/RPC changes.
+- Discord operations.
+- Additional registration.
+- Unheld-session `@everyone` notification confirmation.

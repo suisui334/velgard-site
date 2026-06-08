@@ -170,10 +170,7 @@
   const SESSION_POST_STATUS_OPTIONS = Object.freeze([
     { value: "draft", label: "下書き" },
     { value: "tentative", label: "仮予定" },
-    { value: "recruiting", label: "募集中" },
-    { value: "closed", label: "募集終了" },
-    { value: "finished", label: "開催終了" },
-    { value: "canceled", label: "中止" }
+    { value: "recruiting", label: "募集中" }
   ]);
   const TEMPLATE_PRESET_FIELD_NAMES = new Set([
     "template_id",

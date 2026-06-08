@@ -3890,6 +3890,22 @@ body[data-page="mypage"] .mypage-pc-actions .button {
 
 body[data-page="mypage"] .mypage-template-form {
   align-items: stretch;
+  max-width: 100%;
+  min-width: 0;
+}
+
+body[data-page="mypage"] .mypage-template-panel,
+body[data-page="mypage"] .mypage-template-form .calendar-date-label,
+body[data-page="mypage"] .mypage-template-body-field,
+body[data-page="mypage"] .mypage-template-type-note,
+body[data-page="mypage"] .mypage-template-variable-help,
+body[data-page="mypage"] .mypage-template-example-help,
+body[data-page="mypage"] .mypage-template-session-post-editor,
+body[data-page="mypage"] .mypage-template-session-post-grid,
+body[data-page="mypage"] .mypage-template-actions {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 body[data-page="mypage"] .mypage-template-form .calendar-date-label input,
@@ -3903,6 +3919,11 @@ body[data-page="mypage"] .mypage-template-form .calendar-date-label textarea {
   background: rgba(255, 255, 250, 0.96);
   box-shadow: inset 0 1px 2px rgba(40, 32, 20, 0.04);
   font: inherit;
+}
+
+body[data-page="mypage"] .mypage-template-form .calendar-date-label span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 body[data-page="mypage"] .mypage-template-form .calendar-date-label input,
@@ -4081,6 +4102,7 @@ body[data-page="mypage"] .mypage-template-variable-card dd {
   font-size: 0.86rem;
   font-weight: 800;
   line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 body[data-page="mypage"] .mypage-template-variable-example {
@@ -5589,8 +5611,29 @@ body.is-modal-open .back-to-top {
     justify-content: center;
   }
 
+  body[data-page="mypage"] .mypage-template-panel,
+  body[data-page="mypage"] .mypage-template-form,
+  body[data-page="mypage"] .mypage-template-form .calendar-date-label,
+  body[data-page="mypage"] .mypage-template-variable-help,
+  body[data-page="mypage"] .mypage-template-example-help,
+  body[data-page="mypage"] .mypage-template-session-post-editor,
+  body[data-page="mypage"] .mypage-template-variable-card,
+  body[data-page="mypage"] .mypage-template-example-text {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
   body[data-page="mypage"] .mypage-template-session-post-grid {
     grid-template-columns: 1fr;
+  }
+
+  body[data-page="mypage"] .mypage-template-variable-card code,
+  body[data-page="mypage"] .mypage-template-variable-card dd,
+  body[data-page="mypage"] .mypage-template-example-text,
+  body[data-page="mypage"] .mypage-template-session-post-note {
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   body[data-page="session-post"] .session-post-auth-panel,
