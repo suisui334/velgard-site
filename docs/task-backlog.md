@@ -4132,3 +4132,96 @@ Next gate:
 - Review 047 before apply.
 - If review passes, run 047 once in SQL Editor as an independent DB/RPC change gate.
 - Keep additional registration, edit-save, close-mark, delete, Discord sync, dry-run, Edge Function deploy, and secret/Webhook changes stopped until 047 is applied and confirmed.
+
+## M-14E-26N update_session_post frontend overload apply draft review
+
+Status: SQL apply pre-review only. No SQL Editor execution, SQL apply, DB/RPC/RLS change, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, target session edit/close/delete, additional registration, or `updates.json` change was performed.
+
+Review target:
+
+- `docs/supabase/sql/047_update_session_post_frontend_overload_apply_draft.sql`.
+- 047 remains `DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED`.
+- 047 has not been executed.
+
+Frontend signature alignment:
+
+- Current `assets/js/renderSessionPost.js` edit-save payload includes:
+  - `p_session_id`
+  - `p_title`
+  - `p_session_date`
+  - `p_start_time`
+  - `p_end_time`
+  - `p_application_deadline`
+  - `p_session_type`
+  - `p_player_min`
+  - `p_player_max`
+  - `p_summary`
+  - `p_visibility`
+  - `p_status`
+  - `p_end_at`
+  - `p_session_tool`
+- Current `assets/js/renderSessionDetail.js` GM close-mark title-update payload also includes `p_session_tool`.
+- Therefore the current frontend matches the 14-input `update_session_post` overload, not the legacy 13-input overload.
+- `assets/js/discordSyncClient.js` update sync runs after a successful edit/close update and does not change the `update_session_post` RPC signature.
+
+047 review result:
+
+- 047 targets `update_session_post` only.
+- The 14-input `p_session_tool` overload signature matches the current frontend payload.
+- The executable function body uses `coalesce(public.is_session_gm(v_session_id), false)` for owner/admin permission.
+- The old `has_role('gm') + owner` gate is not present in the executable function body; it appears only in review comments describing the previous pattern.
+- `security definer` and `set search_path = ''` are preserved.
+- Existing validation for title, date/time, visibility, status, player range, summary, and `session_tool` is preserved from the session-tool-aware draft.
+- Return shape remains `session_id`, `discord_sync_status`, `discord_last_action`, `updated_at`.
+- `session_tool` update behavior is preserved: omitted `p_session_tool` keeps the existing value, empty text clears to null, and newline/length validation remains.
+- Discord update/create/delete pending-state metadata behavior is preserved and no Edge Function contract change is introduced.
+- General owners should be able to edit-save and GM close-mark only their own sessions through `is_session_gm`.
+- Other users should still be rejected because `is_session_gm` is expected to mean owner-or-admin for the target session.
+- Admin management remains covered by `is_session_gm` helper semantics.
+
+Legacy overload review:
+
+- The legacy 13-input overload lacks `p_session_tool` and does not match the current frontend payload.
+- 046 reported the legacy overload as anon-executable, so leaving it in place is an avoidable risk.
+- 047 explicitly drops only the legacy `update_session_post(text,text,text,text,text,text,text,integer,integer,text,text,text,text)` overload.
+- The legacy DROP is signature-specific and uses no `CASCADE`.
+- Dropping the legacy overload is acceptable for the next apply gate because the current cache-busted frontend sends `p_session_tool`; stale browsers should refresh before QA.
+
+SQL safety review:
+
+- No `DROP TABLE`, `DROP COLUMN`, `TRUNCATE`, `ALTER TABLE`, standalone `DELETE`, or standalone `UPDATE` was found.
+- The only `UPDATE public.sessions` is inside the reviewed RPC body and is the intended edit-save behavior.
+- The only `DROP FUNCTION` is the legacy `update_session_post` 13-input overload cleanup.
+- `CASCADE` is present only in the comment that says it must not be used.
+- No RLS/policy changes are included.
+- `REVOKE`/`GRANT` are present and necessary to close public/anon execute on the 14-input overload and keep authenticated execute.
+- No secret, token, JWT, Webhook URL, Supabase URL, Discord ID, raw user ID, email, session ID, or message preview body was recorded.
+
+Review conclusion:
+
+- 047 is suitable to move to a separate SQL apply gate, provided the user explicitly approves the apply and the SQL Editor content is exactly this file.
+- If SQL Editor reports any error, stop without rerun.
+- Do not retry edit-save, close-mark, delete, registration, or Discord sync before 047 is applied and confirmed.
+- Keep the diagnostic target session undeleted until the owner-permission path is confirmed.
+
+Apply-after confirmation plan:
+
+- Run 046 again or prepare/run a focused 048 SELECT-only confirmation after 047 apply.
+- Confirm the frontend-matching 14-input overload uses `is_session_gm`.
+- Confirm the frontend-matching overload has no old GM-owner gate.
+- Confirm `frontend_matching_old_gate_count = 0`.
+- Confirm `old_gate_overload_count = 0`.
+- Confirm `anon_execute_overload_count = 0`.
+- Confirm the legacy 13-input overload is gone or otherwise not callable.
+- Confirm authenticated execute remains available.
+- Confirm general owner edit-save works on the diagnostic session.
+- Confirm general owner close-mark works on the diagnostic session.
+- Confirm another user cannot edit or close-mark the diagnostic session.
+- Defer target deletion and Discord update sync confirmation to later explicit gates.
+
+Next gate:
+
+- 047 SQL apply independent gate.
+- SQL Editor old content must be cleared before pasting 047.
+- Execute 047 once only.
+- Record success/failure and do not rerun on error.
