@@ -4754,6 +4754,17 @@ Follow-up result:
 - No real email, user id, JWT, token, full URL, or project ref was recorded.
 - No additional SQL Editor execution by Codex, DB/Auth/RLS change, SQL apply, or secret change was performed.
 
+Rate-limit cause confirmed:
+
+- Brave DevTools Network showed the `signup` request returning HTTP 429.
+- The Auth response was `code=over_email_send_rate_limit` with message type `email rate limit exceeded`.
+- Because 054 and Dashboard checks were healthy, the signup failure cause is not DB/RLS/RPC/profile trigger wiring.
+- Current root cause: Supabase Auth built-in email provider send-rate limit.
+- Short-term workaround: wait before retrying signup.
+- Durable mitigation: configure Supabase Auth Custom SMTP in a separate gate because SMTP credentials are secret-equivalent.
+- Added `docs/supabase-auth-custom-smtp-plan.md` to plan Custom SMTP setup and post-setup QA without recording SMTP credentials, real emails, ids, tokens, full URLs, or project refs.
+- Custom SMTP setup, Dashboard change, SQL Editor execution, DB/Auth/RLS change, SQL apply, and secret change were not performed in this recording batch.
+
 ## M-14E-27C admin cap announcement RPC draft preparation
 
 Status: 052 RPC追加SQL draft、053 SELECT-only確認SQL、docs更新のみ。No SQL Editor execution, 052 SQL apply, DB/RPC/RLS actual change, Edge Function deploy, Discord post, dry_run=false, secret/env setting or change, cron setting, frontend RPC connection QA, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, `updates.json` change, `deno.lock` change, or `supabase/.temp` change was performed.
