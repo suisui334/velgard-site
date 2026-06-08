@@ -27,6 +27,18 @@ Use the current Supabase Auth email and password configuration.
 - Keep Custom SMTP as the durable mitigation for built-in email provider rate limits.
 - Keep Custom SMTP setup as an independent gate because SMTP credentials are secret-equivalent.
 
+## Usage Scale and Reuse Assumptions
+
+The current expected user scale is about 10 people, but the SMTP choice should leave room for gradual user growth.
+
+The site-specific world data and the reusable operations platform should be treated separately:
+
+- Public world content may remain Velgard-specific.
+- Operational foundations such as calendar, session posts, mypage, accounts, and Discord sync should remain reusable for future TRPG worlds where practical.
+- Auth email sender names and email copy should avoid depending too heavily on a single world name.
+- Site-facing labels and guidance may still use the Velgard name where it helps current users.
+- SMTP and Auth email design should be easy to carry forward as part of a reusable TRPG operations platform.
+
 ## Current Scope
 
 This document is planning only.
@@ -65,6 +77,14 @@ The built-in provider can hit rate limits during repeated testing. A delayed ret
 Configure Supabase Auth Custom SMTP.
 
 This must be a separate gate because SMTP settings use secret-equivalent values. The setup should be performed in the Supabase Dashboard by the user, without posting values to chat, docs, console, or GitHub.
+
+SMTP candidate priority:
+
+1. Resend: first candidate. It is approachable for Auth and transactional email use, starts comfortably from a free tier, and should fit the current small-user operation while leaving room to grow.
+2. Brevo: second candidate. It has a larger free daily sending allowance and remains a practical fallback if Resend is not suitable.
+3. SendGrid and AWS SES: future candidates. They are lower priority at this stage because setup and operational overhead, or paid/production assumptions, are heavier for the current scale.
+
+Provider selection should prefer a transactional-email setup that can support multiple future TRPG worlds without tying sender identity, templates, or operations language too tightly to Velgard alone.
 
 ## Setup Gate
 

@@ -4768,6 +4768,10 @@ Rate-limit cause confirmed:
 - Public display, session GM names, applicant display, and similar user-facing labels should stay username-centric through `profiles.display_name`.
 - Username-only custom Auth, anonymous-login-only operation, and removing the email requirement are not adopted at this stage.
 - Custom SMTP remains the durable mitigation for signup send-rate limits and remains an independent gate because SMTP credentials are secret-equivalent.
+- Current expected account scale is about 10 users, but SMTP selection should leave room for user growth.
+- Custom SMTP candidate priority is Resend first, Brevo second, with SendGrid and AWS SES left as future lower-priority candidates because their setup or paid/production assumptions are heavier for the current stage.
+- Future reuse is expected beyond Velgard: calendar, session posts, mypage, accounts, Discord sync, and related private operations foundations should remain reusable as a TRPG operations platform.
+- Public world content may stay Velgard-specific, but Auth email sender names and email copy should avoid depending too heavily on a single world name.
 - Custom SMTP setup, Dashboard change, SQL Editor execution, DB/Auth/RLS change, SQL apply, and secret change were not performed in this recording batch.
 
 ## M-14E-27C admin cap announcement RPC draft preparation
