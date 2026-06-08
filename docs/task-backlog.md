@@ -4842,3 +4842,44 @@ Next SQL Apply gate:
 - If an error appears, stop and do not rerun.
 - If 052 succeeds, run `docs/supabase/sql/053_admin_discord_announcements_rpc_post_apply_select_only.sql`.
 - If 053 contains `missing` / `review` / `error`, stop before Edge deploy or frontend RPC connection.
+
+## M-15H profile avatar MVP preparation
+
+Status: non-destructive preparation only. No SQL Editor execution, DB/Auth/RLS change, Storage bucket creation, Supabase Dashboard change, SQL apply, real file upload, API key/secret handling, Edge Function deploy, Discord operation, dry-run false, or `updates.json` change was performed.
+
+Current findings:
+
+- mypage has existing profile/account editing surfaces, including display-name and related profile panels, but no connected avatar UI yet.
+- `profiles` is the private profile table; `public_profiles` is the public display surface and currently centers on display-name style identity.
+- Session-detail comments are loaded through `get_public_session_comments(text)`, which returns public comment display data rather than exposing raw `session_comments.user_id`.
+- `assets/js/sessionDetailApplicationComments.js` renders the comment header using `display_name`; this is the natural future insertion point for a public avatar element.
+- The current comment UI can be extended after DB/Storage readiness, but no frontend avatar rendering was wired in this preparation batch.
+
+Prepared design and SQL drafts:
+
+- Added `docs/profile-avatar-plan.md` with the avatar MVP scope, data-flow findings, Storage/DB design, frontend follow-up plan, safety gates, and QA checklist.
+- Added `docs/supabase/sql/055_profile_avatars_storage_schema_apply_draft.sql` as a DO NOT RUN / NOT EXECUTED apply draft.
+- 055 proposes `profiles.avatar_path` and `profiles.avatar_updated_at`, stores object paths rather than full image URLs, extends `public_profiles`, extends `get_public_session_comments(text)` with public avatar metadata, drafts the `avatars` Storage bucket and owner-only Storage policies, and drafts avatar metadata update/clear RPCs.
+- Added `docs/supabase/sql/056_profile_avatars_post_apply_select_only.sql` as the post-055 SELECT-only confirmation SQL.
+- 056 checks avatar columns, public view shape, bucket readiness, Storage policies, avatar metadata RPCs, comment RPC avatar shape, and readiness for a later frontend avatar QA gate.
+
+MVP policy:
+
+- Storage bucket candidate is `avatars`.
+- Avatar images are public display assets, so public read is the MVP candidate.
+- Writes, replacements, and removals should be limited to the authenticated owner path.
+- Candidate image types are png/jpeg/webp, with about a 1MB size limit.
+- Default avatar display should be used when no avatar is configured.
+- Comment display should eventually show the author's avatar next to or near the display name and timestamp.
+
+Next gates:
+
+- Review 055 in a dedicated SQL apply gate before any DB/Storage change.
+- If 055 is applied once successfully, run 056 in a separate SELECT-only confirmation gate.
+- Only after 056 is healthy, implement mypage avatar upload/delete UI and session-detail comment avatar rendering.
+- Real avatar upload/delete QA is a later Storage-writing gate.
+
+Safety notes:
+
+- No real user id, email, avatar object path, signed URL, full Supabase URL, project ref, JWT, token, API key, Discord id, or Webhook value was recorded.
+- The preparation does not change existing mypage, session-detail, comment, Discord sync, signup, or session-post runtime behavior.
