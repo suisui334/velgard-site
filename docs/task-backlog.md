@@ -3599,3 +3599,45 @@ Next gate:
 
 - Run 041 SQL apply only after explicit approval.
 - Keep public non-draft create retry, Discord create verification, and `@everyone通知を送る` verification as later independent gates.
+
+## M-14E-26E General user create RPC apply result
+
+Status: SQL apply result recording only. Codex did not execute SQL Editor, SQL apply, DB/RPC/RLS change, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, public non-draft retry, or `updates.json` change in this recording gate.
+
+041 apply result:
+
+- User ran `docs/supabase/sql/041_general_user_session_post_create_rpc_apply_draft.sql` once in Supabase SQL Editor.
+- SQL Editor reported no error.
+- The user did not rerun the SQL.
+- No real IDs, user IDs, emails, JWTs, session IDs, Supabase URL, project ref, Discord IDs, post URLs, or Webhook URL were recorded.
+
+Applied scope:
+
+- The applied DB/RPC change is the `create_session_post` replacement from 041.
+- `create_session_post` is now treated as the general logged-in user create-compatible version.
+- The create-time GM/admin gate was removed by the applied RPC draft.
+- The creator is stored as the owner/GM for the new session via `gm_user_id = auth.uid()`.
+- Initial create status remains limited to `draft` / `tentative` / `recruiting`.
+- `closed` / `finished` / `canceled` remain disallowed for create.
+- `update_session_post`, `delete_session_post`, GM manual close-mark behavior, admin management boundaries, and Discord update/delete sync RPCs were outside the 041 apply scope.
+
+Not performed in this gate:
+
+- No post-apply SELECT-only confirmation was run by Codex.
+- No general-user session-post create QA was run.
+- No past-session registration, future-session registration, dry-run, Discord post/edit/delete, Edge Function deploy, secret/Webhook change, cleanup apply, or additional DB/RPC/RLS change was performed.
+
+Next gates:
+
+- Post-apply SELECT-only confirmation gate:
+  - Confirm `create_session_post` exists.
+  - Confirm `security_definer = true`.
+  - Confirm search_path is set.
+  - Confirm authenticated EXECUTE is available.
+  - Confirm anon EXECUTE is blocked.
+  - Confirm the create-time GM/admin gate is removed.
+  - Confirm the initial status guard still limits create to `draft` / `tentative` / `recruiting`.
+- General-user create QA gate:
+  - Try a safe general-user create path using one of `draft` / `tentative` / `recruiting`.
+  - If using public non-draft create, treat it as a Discord-risk gate because Discord create can be triggered.
+  - Keep `@everyone通知を送らない` verification and any Discord post check as explicit follow-up gates.
