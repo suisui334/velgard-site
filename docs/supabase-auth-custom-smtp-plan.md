@@ -134,6 +134,16 @@ Custom SMTP setup and signup QA result:
 - HTTP 429 / `over_email_send_rate_limit` did not recur.
 - Real emails, user ids, JWTs, tokens, API keys, SMTP passwords, full URLs, and project refs were not recorded.
 
+Confirm-email redirect follow-up:
+
+- Confirmation email delivery and account confirmation work, but clicking the confirmation link redirected to a GitHub Pages 404.
+- The issue is likely the confirmation-complete redirect destination, not email sending or Auth user creation.
+- `resetPasswordForEmail` already uses the runtime mypage redirect helper.
+- `signUp` now also passes `emailRedirectTo: getMypageRedirectUrl()` so confirmation completion returns to the deployed `mypage.html` path.
+- Supabase Auth Redirect URLs should include or confirm the deployed `mypage.html` URL represented by the public site origin, the existing site base path, and `/mypage.html`.
+- Do not record the full deployed URL, real emails, user ids, JWTs, tokens, API keys, SMTP passwords, or project refs.
+- A future `auth-complete.html` page can be considered if a dedicated confirmation-complete screen is preferred, but it was not added in this batch.
+
 Do not record SMTP credentials, API keys, DNS-management secrets, real emails, user ids, JWTs, tokens, full URLs, or project refs.
 
 ## Setup Gate

@@ -3210,6 +3210,7 @@
         email,
         password,
         options: {
+          emailRedirectTo: getMypageRedirectUrl(),
           data: {
             display_name: displayName
           }

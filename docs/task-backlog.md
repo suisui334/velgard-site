@@ -4785,6 +4785,10 @@ Rate-limit cause confirmed:
 - Repeated signup QA was performed: the first and second signup both succeeded, confirmation email arrival was confirmed, and new user rows were present in Users.
 - HTTP 429 / `over_email_send_rate_limit` did not recur after Custom SMTP setup.
 - Real emails, user ids, JWTs, tokens, API keys, SMTP passwords, full URLs, and project refs were not recorded for the signup QA result.
+- Confirmation email link follow-up: account confirmation completes, but the post-confirm redirect went to a GitHub Pages 404, so the remaining issue is the confirmation-complete redirect destination rather than email sending.
+- Frontend fix: `signUp` now passes `emailRedirectTo: getMypageRedirectUrl()`, matching the existing password-reset redirect helper and targeting the deployed `mypage.html` path at runtime.
+- Supabase Auth Redirect URLs should include or confirm the deployed `mypage.html` URL represented by the public site origin, existing site base path, and `/mypage.html`; the full URL was not recorded.
+- A future dedicated `auth-complete.html` page remains an optional later design, but was not added in this batch.
 - Codex did not perform Supabase Dashboard operation, SQL Editor execution, DB/Auth/RLS change, SQL apply, secret value recording, Edge Function deploy, Discord operation, or direct signup operation in this recording batch.
 
 ## M-14E-27C admin cap announcement RPC draft preparation
