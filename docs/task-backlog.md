@@ -4324,3 +4324,63 @@ Next gate:
 - If 048 errors, stop without rerun.
 - If 048 returns `post_apply_ready_for_owner_update_qa = true`, proceed to general-owner edit-save and GM close-mark QA in a later gate.
 - Keep target deletion, Discord sync recovery/resync, Discord post/edit/delete, dry-run false, Edge deploy, and secret/Webhook changes as later explicit gates.
+
+## M-14E-26Q update_session_post post-apply SELECT-only SQL fix
+
+Status: 048 failure record and replacement SELECT-only SQL draft only. No SQL Editor rerun, SQL apply, DB/RPC/RLS additional change, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, target session edit/close/delete, additional registration, cleanup, or `updates.json` change was performed.
+
+048 SQL Editor result reported by the user:
+
+- `docs/supabase/sql/048_update_session_post_overload_post_apply_select_only.sql` was executed once in the user's SQL Editor.
+- Error: `ERROR: 42703` for missing `note` column at the final output.
+- The user did not rerun 048.
+- No DB change occurred.
+- 047 was not rerun.
+- Target session edit-save, close-mark, delete, Discord sync, and Discord operation checks remain stopped.
+
+Cause handling:
+
+- The issue is treated as a diagnostic SQL shape problem, not as a DB/RPC state problem.
+- The likely cause is that the output CTE/UNION did not guarantee a `note` column name in every final-output scope.
+- 048 is kept as the failed diagnostic record and was not overwritten.
+
+Prepared replacement SELECT-only SQL:
+
+- Added `docs/supabase/sql/049_update_session_post_overload_post_apply_select_only_fix.sql`.
+- 049 is SELECT-only and has not been executed.
+- 049 explicitly declares `checks(check_name, status, result_value, note)`.
+- 049 explicitly declares `overload_rows(check_name, status, result_value, note)`.
+- 049 explicitly declares `final_rows(check_name, status, result_value, note)`.
+- Every `UNION ALL` branch returns the same four columns in the same order.
+- The final SELECT reads `check_name / status / result_value / note` from `final_rows`.
+- 049 does not return function bodies; it returns signatures, argument summaries, and pattern booleans only.
+- 049 keeps aggregate values in dedicated CTEs and avoids same-level alias reuse.
+- 049 does not include `DROP`, `CREATE`, `ALTER`, `UPDATE`, `DELETE`, `INSERT`, `GRANT`, `REVOKE`, or `TRUNCATE` statements.
+
+049 checks:
+
+- `update_session_post_overload_count`.
+- `frontend_matching_overload_count`.
+- `frontend_matching_is_session_gm_count`.
+- `frontend_matching_old_gate_count`.
+- `frontend_matching_authenticated_execute_count`.
+- `frontend_matching_anon_execute_count`.
+- `old_gate_overload_count`.
+- `legacy_without_session_tool_count`.
+- `anon_execute_overload_count`.
+- `security_definer_overload_count`.
+- `search_path_overload_count`.
+- `frontend_call_risk`.
+- `post_apply_ready_for_owner_update_qa`.
+- Each remaining overload signature and identity arguments.
+- Each remaining overload frontend payload match.
+- Each remaining overload old GM-owner gate pattern.
+- Each remaining overload `is_session_gm` pattern.
+- Each remaining overload authenticated/anon EXECUTE booleans.
+
+Next gate:
+
+- Run 049 once in SQL Editor as an independent SELECT-only confirmation gate.
+- If 049 errors, stop without rerun.
+- If 049 returns `post_apply_ready_for_owner_update_qa = true`, proceed to general-owner edit-save and GM close-mark QA in a later gate.
+- Keep target deletion, Discord sync recovery/resync, Discord post/edit/delete, dry-run false, Edge deploy, and secret/Webhook changes as later explicit gates.
