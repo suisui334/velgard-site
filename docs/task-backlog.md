@@ -3960,3 +3960,62 @@ Review conclusion:
 
 - 044 is suitable to move to a separate SQL apply gate, provided the user explicitly approves the apply and no live signature mismatch is discovered.
 - SQL apply, DB changes, Discord operations, and target-session cleanup remain unperformed in this review gate.
+
+## M-14E-26K update_session_post overload diagnostics draft
+
+Status: SELECT-only SQL draft and docs update only. No SQL Editor execution by Codex, SQL apply, DB/RPC/RLS change, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, target session delete/edit/close-mark, additional registration, or `updates.json` change was performed.
+
+Observed after 044 apply:
+
+- User reported that the post-044 result showed two `update_session_post` rows.
+- One `update_session_post` row appeared to still contain the old GM-role owner gate.
+- Because edit-save and GM close-mark could call an old overload, registration, edit QA, close-mark QA, and Discord sync QA remain stopped.
+- 044 must not be rerun.
+- The diagnostic target session must not be deleted while this overload/signature issue is unresolved.
+- No raw IDs, user IDs, emails, JWTs, session IDs, Supabase URL, project ref, Discord IDs, post URLs, Webhook URL, or message preview body were recorded.
+
+Frontend call context:
+
+- Current `assets/js/renderSessionPost.js` update payload calls `update_session_post` with named parameters including `p_session_tool`.
+- The current frontend payload expects these named inputs:
+  - `p_session_id`
+  - `p_title`
+  - `p_session_date`
+  - `p_start_time`
+  - `p_end_time`
+  - `p_application_deadline`
+  - `p_session_type`
+  - `p_player_min`
+  - `p_player_max`
+  - `p_summary`
+  - `p_visibility`
+  - `p_status`
+  - `p_end_at`
+  - `p_session_tool`
+- A legacy overload without `p_session_tool` may be harmless for the current frontend, but it still needs confirmation because multiple overloads can create PostgREST/RPC ambiguity or leave stale callable paths.
+
+Prepared SELECT-only diagnostics:
+
+- Added `docs/supabase/sql/045_update_session_post_overload_diagnostics_select_only.sql`.
+- 045 is SELECT-only and was not executed.
+- 045 does not include `DROP`, `CREATE`, `ALTER`, `UPDATE`, `DELETE`, `INSERT`, `GRANT`, `REVOKE`, or `TRUNCATE` statements.
+- 045 does not return function bodies.
+- 045 returns `check_name / status / result_value / note` rows.
+- 045 checks:
+  - `update_session_post` overload count.
+  - Each overload signature and identity arguments.
+  - Input argument count.
+  - Whether each overload has `p_session_tool`.
+  - Whether each overload matches the current frontend payload keys.
+  - Whether each overload still has the old `has_role('gm') + owner` gate.
+  - Whether each overload uses `is_session_gm`.
+  - `security_definer` and search_path.
+  - authenticated/anon EXECUTE booleans.
+  - Whether overload cleanup is likely needed before edit/close-mark QA.
+
+Next gate:
+
+- Run 045 once in SQL Editor as an independent SELECT-only confirmation gate.
+- If the frontend-matching overload still has the old gate, prepare a corrective apply draft before any edit/close-mark QA.
+- If only a legacy non-frontend overload has the old gate, decide whether to remove/replace it with a focused cleanup draft before QA.
+- Do not retry registration, edit-save, close-mark, Discord sync, or target cleanup until the overload result is understood.
