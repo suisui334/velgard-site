@@ -3677,3 +3677,51 @@ Next gates:
 - If 042 returns `post_apply_ready_for_general_create_qa = ok / true`, proceed to a separate general-user create QA gate.
 - If the QA uses public non-draft create, treat it as Discord-risk because create auto-sync can trigger a Discord post.
 - Keep Discord post verification, `@everyone通知を送らない`, and `@everyone通知を送る` checks as explicit follow-up gates.
+
+## M-14E-26G General user create post-apply SELECT result
+
+Status: SELECT-only result recording only. Codex did not execute SQL Editor, SQL apply, DB/RPC/RLS change, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, general-user create retry, public non-draft retry, or `updates.json` change in this recording gate.
+
+042 SELECT-only result:
+
+- User ran `docs/supabase/sql/042_general_user_session_post_create_post_apply_select_only.sql` once in Supabase SQL Editor.
+- SQL Editor reported no error.
+- The user did not rerun the SQL.
+- No additional DB/RPC/RLS change or SQL apply was performed.
+- Results were shared as boolean/status values only; no real IDs, user IDs, emails, JWTs, session IDs, Supabase URL, project ref, Discord IDs, post URLs, or Webhook URL were recorded.
+
+Key results:
+
+- `authenticated_role_exists`: ok / true.
+- `create_rpc_anon_execute`: ok / false.
+- `create_rpc_authenticated_execute`: ok / true.
+- `create_rpc_creator_owner_pattern`: ok / true.
+- `create_rpc_disallowed_initial_statuses_absent`: ok / true.
+- `create_rpc_exists`: ok / 1.
+- `create_rpc_gm_admin_gate_removed`: ok / true.
+- `create_rpc_has_search_path`: ok / true.
+- `create_rpc_initial_status_guard`: ok / true.
+- `create_rpc_return_shape`: ok / true.
+- `create_rpc_security_definer`: ok / true.
+- `create_rpc_signature_has_session_tool`: ok / true.
+- `delete_session_post_exists`: ok / 1.
+- `update_session_post_exists`: ok / 1.
+- `post_apply_ready_for_general_create_qa`: ok / true.
+
+Interpretation:
+
+- The 041-applied `create_session_post` state is ready for a separate general-user create QA gate.
+- authenticated users can execute the create RPC.
+- anon cannot execute the create RPC.
+- The create-time GM/admin gate has been removed.
+- The creator/owner pattern stores the actor as GM/owner via `gm_user_id = auth.uid()`.
+- Initial create status remains limited to `draft` / `tentative` / `recruiting`.
+- `closed` / `finished` / `canceled` are not allowed as initial create statuses.
+- `update_session_post` and `delete_session_post` still exist; 042 only confirmed presence and did not change them.
+
+Next gate:
+
+- Proceed to general-user create QA only after explicit approval.
+- Prefer a low-risk create path first.
+- If the QA uses public non-draft create, treat it as a Discord-risk gate because create auto-sync can trigger a Discord post.
+- Keep past-session registration, future-session registration, Discord post verification, and mention-mode verification as explicit follow-up gates.
