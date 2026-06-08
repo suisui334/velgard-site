@@ -3725,3 +3725,54 @@ Next gate:
 - Prefer a low-risk create path first.
 - If the QA uses public non-draft create, treat it as a Discord-risk gate because create auto-sync can trigger a Discord post.
 - Keep past-session registration, future-session registration, Discord post verification, and mention-mode verification as explicit follow-up gates.
+
+## M-14E-26H General user created-session permission and sync triage
+
+Status: triage, frontend safety fix, and SELECT-only SQL draft only. No SQL Editor execution, SQL apply, DB/RPC/RLS change, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, additional registration, target session deletion, or `updates.json` change was performed.
+
+Observed QA result:
+
+- A general logged-in user could create one session post after the 041 `create_session_post` apply.
+- The created session did not create a Discord post.
+- The created session was later treated as no-permission for GM close mark, delete, and edit-save flows.
+- The create form still appeared to expose an unwanted legacy end-state option during the attempt.
+- The created session must not be deleted or retried until the permission/sync cause is isolated.
+- No raw IDs, user IDs, emails, JWTs, session IDs, Supabase URL, project ref, Discord IDs, post URLs, Webhook URL, or message preview body were recorded.
+
+Code and SQL triage:
+
+- `create_session_post` was the only RPC changed by 041. It now allows authenticated create and stores the actor as `gm_user_id`.
+- Current frontend create code calls Discord auto-sync only for public, non-draft create. If the created row was public/non-draft and sync did not produce a Discord post, the likely blocker is downstream sync permission rather than the create RPC itself.
+- The Edge Function checks `is_session_gm`, but the DB sync helper RPCs from the Discord create/update/delete drafts still contain the older `has_role('gm')` plus owner gate pattern.
+- `check_discord_session_post_create_ready`, `record_discord_session_post_create_success`, and `record_discord_session_post_create_failure` therefore likely block a general owner who does not have the GM role.
+- `update_session_post` and `delete_session_post` also still show the older `has_role('gm')` plus owner gate in the reviewed SQL history, which likely explains edit-save, delete, and GM close-mark failures for a general owner.
+- Existing `is_session_gm(text)` is the safer owner/admin helper because it checks session ownership or admin without requiring the separate GM role.
+- Detail UI permission still needs live confirmation: if the GM/admin management area itself shows no permission, confirm whether the created row has an owner and whether the live helper sees the browser user as session GM. SQL Editor may not have browser `auth.uid()`, so this part may remain browser/manual until a safe RPC/body check is added.
+
+Frontend safety fix:
+
+- New session status options remain limited to `draft` / `tentative` / `recruiting`.
+- Template application in new-create mode now refuses to add unknown legacy `p_status` values as temporary options.
+- Legacy status values can still be shown while editing an existing session so old data display compatibility is preserved.
+- This is only a defensive UI fix; it does not change RPC permissions or Discord sync behavior.
+
+Prepared SELECT-only diagnostics:
+
+- Added `docs/supabase/sql/043_general_user_created_session_permission_diagnostics_select_only.sql`.
+- 043 is SELECT-only and was not executed.
+- Before running, the user must set the target title locally in SQL Editor; the committed file contains no target title or raw ID.
+- 043 returns `check_name / status / result_value / note` only.
+- 043 checks the target session match count, status, visibility, owner presence, owner profile presence, Discord sync state booleans, and old GM-role owner gate patterns in update/delete and Discord sync helper RPCs.
+- 043 does not return raw session IDs, user IDs, emails, JWTs, Supabase URL, project ref, Discord IDs, post URLs, Webhook URL, or function bodies.
+
+Likely next gates:
+
+- Run 043 once in SQL Editor as an independent SELECT-only confirmation gate.
+- If 043 confirms old owner gates, prepare reviewed RPC replacement drafts for:
+  - `update_session_post`
+  - `delete_session_post`
+  - Discord create sync helper RPCs
+  - Discord update/delete sync helper RPCs
+- The replacement direction should be owner/admin via `is_session_gm(text)` or equivalent owner/admin logic, not GM-role plus owner.
+- Apply any DB/RPC changes only in later independent SQL apply gates.
+- Resume general-user registration / Discord create QA only after the owner permission and sync helper gates are resolved.

@@ -759,7 +759,9 @@ function applySessionPostTemplateFields(form, fields, options = {}) {
   setFormValue(form, "p_summary", fields.p_summary);
   setSelectValue(form, "p_session_type", fields.p_session_type, "one-shot", getSessionTypeLabel);
   setSelectValue(form, "p_visibility", fields.p_visibility, "hidden", (value) => VISIBILITY_LABELS[value] || value);
-  setSelectValue(form, "p_status", fields.p_status, "draft", getSessionStatusLabel);
+  setSelectValue(form, "p_status", fields.p_status, "draft", getSessionStatusLabel, {
+    allowTemporary: options.allowLegacyStatus === true
+  });
   if (options.applyDiscordMention !== false) {
     setDiscordMentionMode(form, fields.discord_mention_mode);
   }
@@ -892,12 +894,17 @@ function removeTemporaryOptions(select) {
   });
 }
 
-function setSelectValue(form, name, value, fallbackValue, labelResolver = null) {
+function setSelectValue(form, name, value, fallbackValue, labelResolver = null, options = {}) {
   const select = getFormControl(form, name);
   if (!select || !select.options) return;
   const text = String(value ?? "").trim();
+  const allowTemporary = options.allowTemporary !== false;
   removeTemporaryOptions(select);
   if (text && !Array.from(select.options).some((option) => option.value === text)) {
+    if (!allowTemporary) {
+      select.value = fallbackValue;
+      return;
+    }
     const option = document.createElement("option");
     option.value = text;
     option.textContent = typeof labelResolver === "function" ? labelResolver(text) : text;
@@ -1576,7 +1583,8 @@ async function initializeSessionPostTemplateUi(client, elements) {
     if (elements.currentSession && !window.confirm(SESSION_POST_TEMPLATE_APPLY_CONFIRM_MESSAGE)) return;
 
     applySessionPostTemplateFields(elements.form, selectedPreset.fields, {
-      applyDiscordMention: !elements.currentSession
+      applyDiscordMention: !elements.currentSession,
+      allowLegacyStatus: Boolean(elements.currentSession)
     });
     updatePublicationHint(elements);
     updateTemplateControls(false);
