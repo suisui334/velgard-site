@@ -4384,3 +4384,63 @@ Next gate:
 - If 049 errors, stop without rerun.
 - If 049 returns `post_apply_ready_for_owner_update_qa = true`, proceed to general-owner edit-save and GM close-mark QA in a later gate.
 - Keep target deletion, Discord sync recovery/resync, Discord post/edit/delete, dry-run false, Edge deploy, and secret/Webhook changes as later explicit gates.
+
+## M-14E-26R update_session_post post-apply SELECT-only result
+
+Status: 049 SELECT-only result record only. No Codex-side SQL Editor execution, SQL apply, DB/RPC/RLS additional change, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, target session edit/close/delete, additional registration, cleanup, or `updates.json` change was performed.
+
+049 SQL Editor result reported by the user:
+
+- `docs/supabase/sql/049_update_session_post_overload_post_apply_select_only_fix.sql` was executed once in the user's SQL Editor.
+- Error: none reported.
+- Rerun: none.
+- DB/RPC additional change: none.
+- SQL apply: none.
+- Codex did not operate SQL Editor.
+
+Main SELECT-only results:
+
+- `update_session_post_overload_count`: `ok / 1`.
+- `frontend_matching_overload_count`: `ok / 1`.
+- `frontend_matching_old_gate_count`: `ok / 0`.
+- `old_gate_overload_count`: `ok / 0`.
+- `legacy_without_session_tool_count`: `ok / 0`.
+- `anon_execute_overload_count`: `ok / 0`.
+- `frontend_call_risk`: `ok / ready_for_owner_update_qa`.
+- `post_apply_ready_for_owner_update_qa`: `ok / true`.
+
+Remaining overload summary:
+
+- One frontend-matching 14-input overload remains.
+- The remaining overload includes `p_session_tool`.
+- The remaining overload matches the current frontend update payload.
+- authenticated execution is available.
+- anon execution is not available.
+- `public.is_session_gm` owner/admin pattern is present.
+- The old GM-role owner gate is absent.
+- `security_definer` is preserved.
+- search_path is preserved.
+
+Conclusion:
+
+- The post-047 `update_session_post` overload state is ready for general-owner edit-save and GM close-mark QA.
+- The frontend-matching overload is treated as replaced with the owner/admin gate.
+- The legacy 13-input overload is treated as cleaned up.
+- No anon-executable `update_session_post` overload remains.
+- Target session edit-save and GM close-mark QA can proceed in the next gate.
+
+Still deferred:
+
+- Target session deletion.
+- Discord sync recovery or resync.
+- Discord post/edit/delete.
+- dry-run false.
+- Edge Function deploy.
+- secret/Webhook changes.
+- Additional session registration.
+
+Next gate:
+
+- Use the diagnostic target session to verify general-owner edit-save.
+- Then verify general-owner GM close-mark on the same target if edit-save passes.
+- Keep Discord sync recovery/resync and any Discord operation as later explicit gates.
