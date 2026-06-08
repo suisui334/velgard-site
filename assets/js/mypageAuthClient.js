@@ -339,6 +339,10 @@
     return String(session && session.title ? session.title : "無題のセッション").trim();
   }
 
+  function isClosedMarkedSession(session) {
+    return getSessionTitle(session).startsWith("〆");
+  }
+
   function formatApplicationUpdatedAt(value) {
     const text = String(value || "").trim();
     if (!text) return "未設定";
@@ -687,7 +691,7 @@
 
     if (error) throw error;
     return (Array.isArray(data) ? data.map(normalizePublicSessionRow) : [])
-      .filter(isVisibleScheduleSession);
+      .filter((item) => isVisibleScheduleSession(item) && !isEndedSession(item) && !isClosedMarkedSession(item));
   }
 
   async function fetchOwnApplications(client, session) {

@@ -4698,3 +4698,27 @@ QA focus:
 - The calendar top-right month navigation should show `‹ 今日 ›` without garbled text.
 - The today marker should not display mojibake.
 - Pressing `今日` should continue selecting today's date and moving to today's month.
+
+## M-14E-31 mypage template responsive retry and GM count cleanup
+
+Status: frontend/UI and display-logic fix only. No SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, Discord operation, dry-run false, secret/Webhook change, or `updates.json` change was performed.
+
+Implemented:
+
+- Retried the smartphone mypage template-management overflow fix because the previous containment was not sufficient.
+- Strengthened width containment for the template panel, nested details bodies, template example blocks, variable cards, code/example text, form labels, inputs, selects, textareas, and action buttons.
+- Treated the template management section itself as the horizontal-scroll source, and adjusted parent/child layout containment instead of hiding overflow at the page level.
+- Rechecked the template-management grid/flex inheritance, `min-width`, long `pre`/code text, textarea/select width, nested details/summary width, and button wrapping assumptions.
+- Smartphone-width template management now forces the template form and session-post template editor into a single-column layout, instead of inheriting the wider `.calendar-form` row layout.
+- Kept the session-post template status choices limited to `draft`, `tentative`, and `recruiting`; terminal statuses remain unavailable as new template choices.
+- Excluded manual-close-marked sessions from the mypage GM schedule count by filtering titles that start with `〆`.
+- Existing ended-status filtering remains in place, so closed/finished/canceled/archive-like sessions are not counted as upcoming GM schedules.
+
+QA focus:
+
+- Smartphone mypage template edit controls should stay within the viewport without page-level horizontal scroll.
+- Template examples and variable examples should wrap instead of widening the page.
+- Template action buttons should stack within the viewport on smartphone width.
+- The `予定 / 申請履歴` summary GM count should not include sessions whose title starts with `〆`.
+- Unclosed GM sessions should still be counted, and pending/accepted application counts should keep their existing logic.
+- Codex did not perform logged-in smartphone browser verification in this batch; final device-width visual confirmation remains a user QA item.

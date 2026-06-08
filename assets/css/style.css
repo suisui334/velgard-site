@@ -3752,12 +3752,14 @@ body[data-page="mypage"] .mypage-details-meta {
 body[data-page="mypage"] .mypage-details-body {
   display: grid;
   gap: 16px;
+  min-width: 0;
   padding: 0 14px 14px;
 }
 
 body[data-page="mypage"] [data-mypage-discord-id-panel],
 body[data-page="mypage"] [data-mypage-player-character-panel],
 body[data-page="mypage"] [data-mypage-template-panel] {
+  min-width: 0;
   gap: 10px;
   padding-top: 16px;
   border-top: 1px solid rgba(86, 96, 106, 0.18);
@@ -3890,8 +3892,34 @@ body[data-page="mypage"] .mypage-pc-actions .button {
 
 body[data-page="mypage"] .mypage-template-form {
   align-items: stretch;
+  width: 100%;
   max-width: 100%;
   min-width: 0;
+}
+
+body[data-page="mypage"] .mypage-template-panel *,
+body[data-page="mypage"] .mypage-template-panel *::before,
+body[data-page="mypage"] .mypage-template-panel *::after {
+  box-sizing: border-box;
+}
+
+body[data-page="mypage"] .mypage-template-panel input,
+body[data-page="mypage"] .mypage-template-panel select,
+body[data-page="mypage"] .mypage-template-panel textarea,
+body[data-page="mypage"] .mypage-template-panel details,
+body[data-page="mypage"] .mypage-template-panel summary,
+body[data-page="mypage"] .mypage-template-panel pre,
+body[data-page="mypage"] .mypage-template-panel code,
+body[data-page="mypage"] .mypage-template-panel button {
+  max-width: 100%;
+  min-width: 0;
+}
+
+body[data-page="mypage"] .mypage-template-panel pre,
+body[data-page="mypage"] .mypage-template-panel code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 body[data-page="mypage"] .mypage-template-panel,
@@ -3902,7 +3930,10 @@ body[data-page="mypage"] .mypage-template-variable-help,
 body[data-page="mypage"] .mypage-template-example-help,
 body[data-page="mypage"] .mypage-template-session-post-editor,
 body[data-page="mypage"] .mypage-template-session-post-grid,
-body[data-page="mypage"] .mypage-template-actions {
+body[data-page="mypage"] .mypage-template-actions,
+body[data-page="mypage"] .mypage-template-variable-card,
+body[data-page="mypage"] .mypage-template-example-text {
+  width: 100%;
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
@@ -3969,10 +4000,14 @@ body[data-page="mypage"] .mypage-template-session-post-editor {
 }
 
 body[data-page="mypage"] .mypage-template-variable-summary {
+  display: block;
+  max-width: 100%;
   cursor: pointer;
   color: var(--deep);
   font-size: 0.9rem;
   font-weight: 900;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 body[data-page="mypage"] .mypage-template-variable-help-body {
@@ -4014,12 +4049,15 @@ body[data-page="mypage"] .mypage-template-example-list {
 }
 
 body[data-page="mypage"] .mypage-template-example-text {
+  width: 100%;
   min-width: 0;
+  max-width: 100%;
   max-height: 240px;
   margin: 0;
   overflow: auto;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  word-break: break-word;
   padding: 10px;
   border: 1px solid rgba(86, 96, 106, 0.14);
   border-radius: 7px;
@@ -4052,6 +4090,7 @@ body[data-page="mypage"] .mypage-template-session-post-note {
 body[data-page="mypage"] .mypage-template-variable-help-list {
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 body[data-page="mypage"] .mypage-template-variable-card {
@@ -4078,12 +4117,14 @@ body[data-page="mypage"] .mypage-template-variable-card code {
 body[data-page="mypage"] .mypage-template-variable-card dl {
   display: grid;
   gap: 6px;
+  min-width: 0;
   margin: 0;
 }
 
 body[data-page="mypage"] .mypage-template-variable-card dl div {
   display: grid;
   gap: 2px;
+  min-width: 0;
 }
 
 body[data-page="mypage"] .mypage-template-variable-card dt,
@@ -4107,6 +4148,8 @@ body[data-page="mypage"] .mypage-template-variable-card dd {
 
 body[data-page="mypage"] .mypage-template-variable-example {
   white-space: pre-line;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 body[data-page="mypage"] .mypage-template-session-post-grid {
@@ -5604,6 +5647,7 @@ body.is-modal-open .back-to-top {
   body[data-page="mypage"] .mypage-template-actions {
     flex-direction: column;
     align-items: stretch;
+    width: 100%;
   }
 
   body[data-page="mypage"] .mypage-template-actions .button {
@@ -5614,14 +5658,32 @@ body.is-modal-open .back-to-top {
   body[data-page="mypage"] .mypage-template-panel,
   body[data-page="mypage"] .mypage-template-form,
   body[data-page="mypage"] .mypage-template-form .calendar-date-label,
+  body[data-page="mypage"] .mypage-template-form .calendar-date-label input,
+  body[data-page="mypage"] .mypage-template-form .calendar-date-label select,
+  body[data-page="mypage"] .mypage-template-form .calendar-date-label textarea,
   body[data-page="mypage"] .mypage-template-variable-help,
+  body[data-page="mypage"] .mypage-template-variable-help-body,
+  body[data-page="mypage"] .mypage-template-variable-help-list,
   body[data-page="mypage"] .mypage-template-example-help,
+  body[data-page="mypage"] .mypage-template-example-body,
+  body[data-page="mypage"] .mypage-template-example-list,
   body[data-page="mypage"] .mypage-template-session-post-editor,
+  body[data-page="mypage"] .mypage-template-session-post-grid,
   body[data-page="mypage"] .mypage-template-variable-card,
   body[data-page="mypage"] .mypage-template-example-text {
     width: 100%;
     max-width: 100%;
     min-width: 0;
+  }
+
+  body[data-page="mypage"] .mypage-template-form {
+    align-items: stretch;
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  body[data-page="mypage"] .mypage-template-form .calendar-date-label {
+    flex: 0 1 auto;
   }
 
   body[data-page="mypage"] .mypage-template-session-post-grid {
@@ -5631,6 +5693,8 @@ body.is-modal-open .back-to-top {
   body[data-page="mypage"] .mypage-template-variable-card code,
   body[data-page="mypage"] .mypage-template-variable-card dd,
   body[data-page="mypage"] .mypage-template-example-text,
+  body[data-page="mypage"] .mypage-template-variable-example,
+  body[data-page="mypage"] .mypage-template-variable-summary,
   body[data-page="mypage"] .mypage-template-session-post-note {
     overflow-wrap: anywhere;
     word-break: break-word;
