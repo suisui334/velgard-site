@@ -4063,3 +4063,72 @@ Next gate:
 - If 046 errors, stop without rerun.
 - If 046 confirms a frontend-matching old gate or ambiguous callable overload, prepare a focused cleanup/replace apply draft before edit-save, close-mark, delete, registration, or Discord sync QA.
 - Continue to keep 044 rerun, SQL apply, target session operations, and Discord operations stopped until the overload result is understood.
+
+## M-14E-26M update_session_post frontend overload apply draft
+
+Status: 046 result recording and SQL apply draft creation only. No SQL Editor execution by Codex, SQL apply, DB/RPC/RLS change, Edge Function deploy, dry-run, Discord post/edit/delete, secret/Webhook change, target session edit/close/delete, additional registration, or `updates.json` change was performed.
+
+046 result summary:
+
+- User ran 046 once in Supabase SQL Editor and shared the boolean/status summary.
+- Codex did not operate SQL Editor.
+- No 046 rerun was performed.
+- `update_session_post_overload_count = 2`.
+- `frontend_matching_overload_count = 1`.
+- `frontend_matching_old_gate_count = 1`.
+- `old_gate_overload_count = 1`.
+- `legacy_without_session_tool_count = 1`.
+- `overload_cleanup_needed = true`.
+- `frontend_call_risk = frontend_matching_old_gate`.
+- `anon_execute_overload_count = 1`.
+- 044 was not rerun.
+- 045 was not rerun.
+- No DB/RPC/RLS additional change, SQL apply, target session operation, or Discord operation was performed in this recording/draft gate.
+- No raw IDs, user IDs, emails, JWTs, session IDs, Supabase URL, project ref, Discord IDs, post URLs, Webhook URL, or message preview body were recorded.
+
+Interpretation:
+
+- The overload that contains `p_session_tool` matches the current frontend update payload.
+- That frontend-matching overload still has the old `has_role('gm') + owner` gate and does not use `is_session_gm`.
+- This explains why edit-save and GM manual close-mark can still fail for a general owner after the 044 apply.
+- The owner/admin rewrite applied by 044 appears to have landed on the legacy overload without `p_session_tool`, which the current frontend does not call.
+- The legacy overload is not a current frontend match, but it remains a cleanup concern because it lacks `p_session_tool` and is reported as anon-executable.
+
+Current frontend call context:
+
+- `assets/js/renderSessionPost.js` builds the edit-save payload with `p_session_tool`.
+- `assets/js/renderSessionDetail.js` builds the GM close-mark title-update payload with `p_session_tool`.
+- `assets/js/discordSyncClient.js` update sync runs after a successful edit/close update and does not change the `update_session_post` RPC signature.
+- Current public JS is expected to use the `p_session_tool` overload after cache-busted release; old cached clients should be refreshed before the apply/QA gate.
+
+Prepared apply draft:
+
+- Added `docs/supabase/sql/047_update_session_post_frontend_overload_apply_draft.sql`.
+- 047 is an apply draft with `DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED`.
+- 047 has not been executed.
+- 047 targets `update_session_post` only.
+- 047 replaces the 14-input `p_session_tool` overload with the same signature, return shape, validation flow, `security definer`, and `search_path`.
+- 047 changes the permission gate for that frontend-matching overload to `coalesce(public.is_session_gm(p_session_id), false)`.
+- 047 keeps authenticated EXECUTE and explicitly revokes public/anon EXECUTE for the 14-input overload.
+- 047 drops the legacy 13-input `update_session_post` overload without `CASCADE` because it is not the current frontend target and was reported as an anon-executable cleanup risk.
+- 047 does not change `delete_session_post`, Discord helper RPCs, RLS/policies, Edge Function code, or Discord behavior.
+
+Apply-after confirmation plan:
+
+- Run 046 again, or a focused 048 SELECT-only post-apply confirmation, after 047 apply.
+- Confirm `update_session_post_overload_count` is reduced to the expected safe state.
+- Confirm the frontend-matching overload has `is_session_gm` pattern.
+- Confirm the frontend-matching overload has no old GM-owner gate.
+- Confirm authenticated EXECUTE is available.
+- Confirm anon EXECUTE is false.
+- Confirm the legacy overload is removed or no longer callable.
+- Confirm a general owner can edit-save the diagnostic session.
+- Confirm a general owner can use the GM manual close-mark flow.
+- Confirm a general owner cannot edit or close-mark another user's session.
+- Defer delete and Discord update sync confirmation to later explicit gates.
+
+Next gate:
+
+- Review 047 before apply.
+- If review passes, run 047 once in SQL Editor as an independent DB/RPC change gate.
+- Keep additional registration, edit-save, close-mark, delete, Discord sync, dry-run, Edge Function deploy, and secret/Webhook changes stopped until 047 is applied and confirmed.
