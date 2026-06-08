@@ -41,9 +41,9 @@ The site-specific world data and the reusable operations platform should be trea
 
 ## Current Scope
 
-This document is planning only.
+This document records the Custom SMTP plan and later status-only results.
 
-Not performed in this batch:
+Not performed by Codex in this docs update:
 
 - Supabase Dashboard setting change.
 - SMTP credential entry.
@@ -120,7 +120,19 @@ Resend domain verification result:
 - Resend showed `STATUS: Verified`.
 - Resend showed `Domain verified: Your domain is ready to send emails.`
 - `DNS verified` and `Domain verified` were confirmed.
-- Resend API key creation, Supabase Custom SMTP setting, and repeated signup QA are not yet performed.
+- At this point, Resend API key creation, Supabase Custom SMTP setting, and repeated signup QA were not yet performed.
+
+Custom SMTP setup and signup QA result:
+
+- Supabase Custom SMTP was saved.
+- Auth email sending was switched to Resend.
+- Repeated signup QA was performed.
+- The first signup succeeded.
+- The second signup succeeded.
+- Confirmation email arrival was confirmed.
+- New user rows were confirmed in Users.
+- HTTP 429 / `over_email_send_rate_limit` did not recur.
+- Real emails, user ids, JWTs, tokens, API keys, SMTP passwords, full URLs, and project refs were not recorded.
 
 Do not record SMTP credentials, API keys, DNS-management secrets, real emails, user ids, JWTs, tokens, full URLs, or project refs.
 

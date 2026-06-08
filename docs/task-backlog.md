@@ -4779,9 +4779,13 @@ Rate-limit cause confirmed:
 - DNS change, Resend domain addition, Resend API key creation, and Supabase Custom SMTP setting remain unperformed independent gates.
 - Real emails, addresses, payment details, Cloudflare account ids, receipt numbers, DNS secrets, API keys, SMTP credentials, full URLs, and project refs were not recorded.
 - `tsumetai-hiyasireimen.com` was added to Resend, Resend-specified records were added to Cloudflare DNS, and Resend showed verified status for DNS and domain verification.
-- Resend API key creation, Supabase Custom SMTP setting, and repeated signup QA remain unperformed independent gates.
+- At the domain verification point, Resend API key creation, Supabase Custom SMTP setting, and repeated signup QA remained unperformed independent gates.
 - Real emails, API keys, SMTP passwords, full DNS values, payment details, Cloudflare account ids, and project refs were not recorded.
-- Custom SMTP setup, Dashboard change, SQL Editor execution, DB/Auth/RLS change, SQL apply, and secret change were not performed in this recording batch.
+- Supabase Custom SMTP was later saved, and Auth email sending was switched to Resend.
+- Repeated signup QA was performed: the first and second signup both succeeded, confirmation email arrival was confirmed, and new user rows were present in Users.
+- HTTP 429 / `over_email_send_rate_limit` did not recur after Custom SMTP setup.
+- Real emails, user ids, JWTs, tokens, API keys, SMTP passwords, full URLs, and project refs were not recorded for the signup QA result.
+- Codex did not perform Supabase Dashboard operation, SQL Editor execution, DB/Auth/RLS change, SQL apply, secret value recording, Edge Function deploy, Discord operation, or direct signup operation in this recording batch.
 
 ## M-14E-27C admin cap announcement RPC draft preparation
 
