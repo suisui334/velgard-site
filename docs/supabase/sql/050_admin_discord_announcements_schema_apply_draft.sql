@@ -133,6 +133,13 @@ comment on column public.admin_discord_announcements.delivery_error_code is
   'Generalized delivery error code only. Do not store raw external responses or secret values.';
 
 -- RPC policy notes for a later reviewed apply draft:
+-- - All RPC functions below must be security definer.
+-- - All RPC functions below must set search_path = ''.
+-- - Revoke EXECUTE from public/anon before granting only the reviewed roles.
+-- - create/update/cancel/list may be granted to authenticated, but the body
+--   must still require public.is_admin().
+-- - claim/finalize must be treated as server-only Edge Function boundaries and
+--   must not be granted to anon or normal authenticated browser callers.
 --
 -- create_admin_discord_announcement(
 --   p_announcement_title text,
@@ -170,19 +177,32 @@ comment on column public.admin_discord_announcements.delivery_error_code is
 -- - returns generalized fields including has_delivery_error boolean and delivery_error_code.
 -- - never returns Webhook URL, token, raw Discord identifiers, or raw external response bodies.
 --
--- claim_due_admin_discord_announcements(...)
+-- claim_due_admin_discord_announcements(
+--   p_limit integer default 5
+-- )
 -- - Edge Function/server-only boundary.
 -- - atomically updates due scheduled rows to processing with lock_token.
 -- - filters announcement_type = 'cap_update' and target_channel_key = 'cap_announcement'.
 -- - returns only rows claimed by that lock.
+-- - returns only sanitized fields needed for Discord delivery:
+--   id, lock_token, announcement_title, announcement_body, target_channel_key,
+--   scheduled_at, timezone, mention_mode, cap_level, apply_start_date,
+--   apply_end_date, note, attempt_count, max_attempts.
 --
--- finalize_admin_discord_announcement(...)
+-- finalize_admin_discord_announcement(
+--   p_announcement_id uuid,
+--   p_lock_token uuid,
+--   p_delivery_status text,
+--   p_delivery_error_code text default null,
+--   p_retry_after_seconds integer default null
+-- )
 -- - Edge Function/server-only boundary.
 -- - updates by id + lock_token only.
--- - success sets posted/posted_at and clears generalized delivery error fields.
--- - failure stores a generalized delivery_error_code and delivery_error_at.
--- - retryable failure returns the row to scheduled with next_attempt_at.
--- - max-attempt failure sets failed.
+-- - p_delivery_status must resolve to posted/scheduled/failed only.
+-- - posted sets status=posted and posted_at, and clears generalized delivery error fields.
+-- - scheduled means retryable failure, stores generalized delivery_error_code and next_attempt_at.
+-- - failed means terminal failure, stores generalized delivery_error_code and delivery_error_at.
+-- - max-attempt failure must set failed, not scheduled.
 --
 -- Edge Function environment mapping note:
 -- - target_channel_key = 'cap_announcement'

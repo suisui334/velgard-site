@@ -758,7 +758,7 @@
 
 ## DiscordユーザーID登録UI 前提整備
 - テンプレート機能の前提として、Discord連絡先登録を17〜20桁の数字である `DiscordユーザーID` として扱う方針へ寄せた。`<@ID>` 形式は互換として受け付けるが、保存前に数字部分だけへ正規化する。
-- mypageの本人登録UIでは赤字注意文、入力例、折りたたみ式の確認方法を表示し、保存前に `^\d{17,20}$` 相当の形式チェックを行う。桁数不正、英字混じり、改行入り、`<@abc>`、`@123456789012345678` は保存しない。空欄は未登録扱いとして維持する。
+- mypageの本人登録UIでは赤字注意文、入力例、折りたたみ式の確認方法を表示し、保存前に `^\d{17,20}$` 相当の形式チェックを行う。桁数不正、英字混じり、改行入り、`<@abc>`、`@数字ID風の値` は保存しない。空欄は未登録扱いとして維持する。
 - 保存成功後は、RPC返却が空でも保存に使った正規化済みDiscordユーザーIDで本人画面の表示を即時更新する。登録済み値が形式不正の場合は自動変換せず、再登録を促す。
 - GM向け承認済み参加者連絡先表示では、保存された数字IDから `<@DiscordユーザーID>` を生成して表示・コピーする。未登録または形式不正の場合は生表示を避けて `登録されていません` に丸める。
 - 呼び出し用テンプレートではGMが承認済み参加者を一人ずつ選ぶ方式にせず、現在のセッションに紐付く承認済み参加者全員を対象にしてコピー時に変数をまとめて置換する。
@@ -4445,19 +4445,16 @@ Next gate:
 - Then verify general-owner GM close-mark on the same target if edit-save passes.
 - Keep Discord sync recovery/resync and any Discord operation as later explicit gates.
 
-## M-14E-27 Discord reminder MVP low-risk preparation
+## M-14E-27 Discord scheduled-post MVP low-risk preparation (superseded)
 
 Status: frontend skeleton, docs, and SQL apply draft only. No SQL Editor execution, DB/RPC/RLS apply, Edge Function deploy, Discord post, dry_run=false, secret setting, Webhook value recording, raw external channel value recording, or `updates.json` change was performed.
 
-Implemented:
+Superseded preparation:
 
-- Added `docs/discord-reminder-plan.md`.
-- Added `reminders.html` as a direct-access Japanese reminder management page.
-- Added `assets/js/renderDiscordReminders.js` for validation and future RPC payload preview.
-- Added `assets/js/discordReminderClient.js` with future RPC function names and payload builders.
-- Added page-scoped UI styles in `assets/css/style.css`.
-- Added `docs/supabase/sql/050_discord_reminders_schema_apply_draft.sql` as DO NOT RUN / NOT EXECUTED.
-- Wired `discord-reminders` into `assets/js/main.js` without adding it to the public global nav.
+- A first low-risk scheduled-post skeleton was prepared before the scope was corrected.
+- That generic direction is no longer the active implementation plan.
+- The active files and names are now recorded under M-14E-27A and later entries as admin-only cap announcement work.
+- Page-scoped UI styling and future RPC payload-preview concepts were retained only where they fit the admin cap announcement scope.
 
 Design notes:
 
@@ -4466,7 +4463,7 @@ Design notes:
 - `mention_mode=none` maps to `allowed_mentions.parse=[]`.
 - `mention_mode=everyone` is the only path that allows the everyone parse value.
 - Static JS does not add Supabase direct insert/update/delete/upsert calls.
-- Current screen does not execute DB save; it validates input and displays the future `create_discord_reminder` payload only.
+- Current admin cap announcement screen does not execute DB save; it validates input and displays the future admin-only create RPC payload only.
 
 Deferred dangerous gates:
 
@@ -4481,10 +4478,10 @@ Deferred dangerous gates:
 
 Next SQL apply gate:
 
-- Review `docs/supabase/sql/050_discord_reminders_schema_apply_draft.sql`.
-- If approved, run 050 once in SQL Editor as an independent apply gate.
+- The superseded generic scheduled-post draft must not be applied.
+- Use only the admin cap announcement SQL draft named in M-14E-27A or later.
 - Stop without rerun on any SQL error.
-- After apply, prepare and run a SELECT-only confirmation for table existence, status CHECK, mention_mode CHECK, RLS state, grants, and owner SELECT policy.
+- After apply, run the matching SELECT-only confirmation for table existence, status CHECK, mention_mode CHECK, RLS state, grants, and admin-only RPC policy.
 
 ## M-14E-27A admin cap announcement direction change
 
@@ -4498,12 +4495,12 @@ Direction change:
 
 Renamed and updated:
 
-- `reminders.html` was renamed to `admin-cap-announcements.html`.
-- `assets/js/renderDiscordReminders.js` was renamed to `assets/js/renderAdminCapAnnouncements.js`.
-- `assets/js/discordReminderClient.js` was renamed to `assets/js/adminCapAnnouncementClient.js`.
-- `docs/discord-reminder-plan.md` was renamed to `docs/discord-cap-announcement-plan.md`.
-- `docs/supabase/sql/050_discord_reminders_schema_apply_draft.sql` was renamed to `docs/supabase/sql/050_admin_discord_announcements_schema_apply_draft.sql`.
-- SQL table candidate changed from `discord_reminders` to `admin_discord_announcements`.
+- The direct-access page is now `admin-cap-announcements.html`.
+- The render module is now `assets/js/renderAdminCapAnnouncements.js`.
+- The future RPC client module is now `assets/js/adminCapAnnouncementClient.js`.
+- The plan doc is now `docs/discord-cap-announcement-plan.md`.
+- The SQL apply draft is now `docs/supabase/sql/050_admin_discord_announcements_schema_apply_draft.sql`.
+- SQL table candidate is now `admin_discord_announcements`.
 
 Admin-only design:
 
@@ -4533,6 +4530,69 @@ Next gates:
 - SQL apply gate: review `050_admin_discord_announcements_schema_apply_draft.sql`, then run it once only if explicitly approved.
 - After SQL apply, prepare SELECT-only confirmation for table, CHECK constraints, RLS, grants, admin-only SELECT/RPC behavior, and absence of direct public write paths.
 - Edge Function draft gate: design the Webhook mapping, claim/finalize RPC contract, allowed_mentions behavior, retry/failure recording, and no-secret logging before any deploy.
+
+## M-14E-27B admin cap announcement SQL-apply preflight batch
+
+Status: SQL Apply前の非破壊準備のみ。No SQL Editor execution, DB/RPC/RLS apply, Edge Function deploy, Discord post, real send, secret/env setting or change, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, production channel post, `updates.json` change, `deno.lock` change, or `supabase/.temp` change was performed.
+
+Baseline note:
+
+- `4b56ff2 Refocus Discord scheduling on admin cap announcements` is an ancestor of the current branch.
+- The current HEAD at this batch start was newer than that baseline, so the batch was applied on top of the existing clean tree without reverting later user/repo changes.
+
+Scope confirmation:
+
+- The active feature remains admin-only cap update announcement scheduling.
+- It is not a general reminder feature, not a table/session reminder feature, not a GM/PL free reminder feature, and not a Discord Bot slash command feature.
+- Public navigation does not expose the admin cap announcement page.
+- `mypage` shows the link only after `is_admin()` returns true.
+- Direct URL access by a non-admin or logged-out user keeps the form hidden and shows an unavailable/no-permission state.
+- Frontend gating is only UX; DB/RPC/Edge Function gates must enforce admin/server authority.
+
+Prepared files:
+
+- Reviewed and tightened `docs/supabase/sql/050_admin_discord_announcements_schema_apply_draft.sql` as DO NOT RUN / NOT EXECUTED.
+- Added `docs/supabase/sql/051_admin_discord_announcements_post_apply_select_only.sql` as SELECT-only post-apply confirmation.
+- Added `supabase/functions/dispatch-admin-cap-announcements/index.ts` as a not-deployed Edge Function draft.
+- Updated `docs/discord-cap-announcement-plan.md` with the pre-apply batch, 051 confirmation, and Edge Function draft notes.
+- Cleaned backlog wording so the active implementation names point to admin cap announcement files, not the superseded generic direction.
+
+050 SQL draft review result:
+
+- Table candidate remains `admin_discord_announcements`.
+- `announcement_type` is fixed to `cap_update`.
+- `target_channel_key` is fixed to logical `cap_announcement`; Webhook URL values are not stored in DB.
+- `mention_mode` remains `none` / `everyone`.
+- `status` remains `draft` / `scheduled` / `processing` / `posted` / `failed` / `canceled`.
+- RLS is enabled with admin SELECT policy notes.
+- Direct browser table writes remain out of scope; create/update/cancel/list must go through admin-only RPC.
+- claim/finalize RPCs are documented as server-only boundaries for Edge Function use.
+
+051 SELECT-only confirmation design:
+
+- Returns `check_name / status / result_value / note`.
+- Checks table existence, status CHECK, mention_mode CHECK, announcement_type CHECK, target_channel_key CHECK, RLS, admin SELECT policy, direct write policy absence, anon table privileges, authenticated table privileges, browser admin RPC presence, server RPC presence, security definer, search_path, execute privileges, and admin-check patterns.
+- Uses function definitions only internally for boolean pattern checks and does not return full function bodies.
+- Does not return real IDs, Webhook URLs, Discord IDs, JWTs, token values, Supabase project URLs, or row data.
+
+Edge Function draft design:
+
+- Draft path: `supabase/functions/dispatch-admin-cap-announcements/index.ts`.
+- Default request behavior is dry-run style and returns planned RPC order without DB mutation or Discord request.
+- Future real send path is guarded by explicit env/secret configuration and cron authorization; this batch did not enable either.
+- Real delivery design calls `claim_due_admin_discord_announcements` before any Discord request, so claimed rows move to `processing` with `lock_token` for double-post prevention.
+- Delivery finalization calls `finalize_admin_discord_announcement` with `posted`, retry `scheduled`, or terminal `failed`.
+- `target_channel_key='cap_announcement'` maps only to the env/secret name candidate `DISCORD_WEBHOOK_CAP_ANNOUNCEMENT`; no actual value is recorded.
+- `mention_mode='none'` builds `allowed_mentions.parse=[]`.
+- `mention_mode='everyone'` is the only path that adds `@everyone` and `allowed_mentions.parse=["everyone"]`.
+
+Next SQL Apply gate:
+
+- Review 050 and 051 together before applying anything.
+- SQL Editor must remain untouched until the user explicitly approves the SQL apply gate.
+- If 050 is approved, paste only the reviewed 050 SQL and run once.
+- If any SQL error occurs, stop and do not rerun.
+- After apply, run 051 SELECT-only and review any `missing` or `review` rows before Edge Function deploy work.
 
 ## M-14E-26S general owner edit/close Discord sync QA result
 
@@ -4566,36 +4626,3 @@ Remaining gates:
 - Additional session registration remains deferred.
 - Unheld-session `@everyone` notification confirmation remains a separate explicit gate.
 - Any Discord post/edit/delete outside the already reported QA result remains an explicit gate.
-
-## M-14E-28 mypage template responsive/status cleanup
-
-Status: frontend/UI fix and docs update only. No SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, Discord operation, dry-run false, secret/Webhook change, or `updates.json` change was performed.
-
-Implemented:
-
-- Tightened smartphone-width layout for the mypage template management panel.
-- Added width containment for the template panel, form labels, session-post template editor, template example details, variable-help details, variable cards, long example text, and action buttons.
-- Smartphone layout keeps the template editor in one column and prevents long examples/variables from pushing the page wider than the viewport.
-- Kept the existing folded mypage sections, logout placement, admin-only announcement link behavior, and other mypage sections unchanged.
-
-Session-post template status cleanup:
-
-- The mypage session-post template status options now only expose `draft`, `tentative`, and `recruiting`.
-- Removed user-selectable old terminal statuses from the session-post template editor: closed/recruitment ended, finished/session ended, canceled, and equivalent "ended" choices.
-- Existing old template values are normalized through the allowed option list and are not restored into the template editor as selectable create/edit values.
-- Existing old session/status display compatibility remains outside the template editor.
-
-QA focus:
-
-- On smartphone width, opening mypage template management and editing a template should not cause horizontal page overflow.
-- Template name, type, body textarea, mention mode, template examples, variable list, and action buttons should fit within the viewport.
-- Long template examples and variable output examples should wrap instead of widening the page.
-- Session-post template status choices should be only the three create-safe values.
-- Session-post page status choices and mention template save/restore behavior should remain intact.
-
-Still deferred:
-
-- SQL/DB/RPC changes.
-- Discord operations.
-- Additional registration.
-- Unheld-session `@everyone` notification confirmation.
