@@ -86,7 +86,7 @@ returns table (
 language sql
 security definer
 stable
-set search_path = ''
+set search_path = public
 as $$
   select
     c.id as comment_id,
@@ -204,7 +204,7 @@ returns table (
 language plpgsql
 security definer
 volatile
-set search_path = ''
+set search_path = public
 as $$
 declare
   v_user_id uuid := auth.uid();
@@ -253,7 +253,7 @@ returns table (
 language plpgsql
 security definer
 volatile
-set search_path = ''
+set search_path = public
 as $$
 declare
   v_user_id uuid := auth.uid();

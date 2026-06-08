@@ -87,9 +87,9 @@ function_summary as (
     bool_or(proname = 'update_my_avatar_path' and prosecdef) as update_avatar_security_definer,
     bool_or(proname = 'clear_my_avatar_path' and prosecdef) as clear_avatar_security_definer,
     bool_or(proname = 'get_public_session_comments' and prosecdef) as comment_rpc_security_definer,
-    bool_or(proname = 'update_my_avatar_path' and function_config ilike '%search_path%') as update_avatar_search_path,
-    bool_or(proname = 'clear_my_avatar_path' and function_config ilike '%search_path%') as clear_avatar_search_path,
-    bool_or(proname = 'get_public_session_comments' and function_config ilike '%search_path%') as comment_rpc_search_path,
+    bool_or(proname = 'update_my_avatar_path' and function_config ilike '%search_path=public%') as update_avatar_search_path_public,
+    bool_or(proname = 'clear_my_avatar_path' and function_config ilike '%search_path=public%') as clear_avatar_search_path_public,
+    bool_or(proname = 'get_public_session_comments' and function_config ilike '%search_path=public%') as comment_rpc_search_path_public,
     bool_or(proname = 'update_my_avatar_path' and function_def ilike '%auth.uid()%') as update_avatar_auth_uid_pattern,
     bool_or(proname = 'clear_my_avatar_path' and function_def ilike '%auth.uid()%') as clear_avatar_auth_uid_pattern,
     bool_or(proname = 'get_public_session_comments' and result_shape ilike '%avatar_path%') as comment_rpc_returns_avatar_path,
@@ -197,8 +197,8 @@ output_rows as (
     case
       when fs.update_avatar_security_definer
        and fs.clear_avatar_security_definer
-       and fs.update_avatar_search_path
-       and fs.clear_avatar_search_path
+       and fs.update_avatar_search_path_public
+       and fs.clear_avatar_search_path_public
        and fs.update_avatar_auth_uid_pattern
        and fs.clear_avatar_auth_uid_pattern
       then 'ok' else 'review'
@@ -206,11 +206,11 @@ output_rows as (
     concat(
       'update_secdef=', coalesce(fs.update_avatar_security_definer, false),
       ',clear_secdef=', coalesce(fs.clear_avatar_security_definer, false),
-      ',update_search_path=', coalesce(fs.update_avatar_search_path, false),
-      ',clear_search_path=', coalesce(fs.clear_avatar_search_path, false),
+      ',update_search_path_public=', coalesce(fs.update_avatar_search_path_public, false),
+      ',clear_search_path_public=', coalesce(fs.clear_avatar_search_path_public, false),
       ',auth_uid_patterns=', coalesce(fs.update_avatar_auth_uid_pattern, false), '/', coalesce(fs.clear_avatar_auth_uid_pattern, false)
     ),
-    'Avatar metadata RPCs should be security definer, have search_path, and require auth.uid().'
+    'Avatar metadata RPCs should be security definer, pin search_path=public, and require auth.uid().'
   from function_summary fs
 
   union all
@@ -234,7 +234,7 @@ output_rows as (
     case
       when fs.comment_rpc_count = 1
        and fs.comment_rpc_security_definer
-       and fs.comment_rpc_search_path
+       and fs.comment_rpc_search_path_public
        and fs.comment_rpc_returns_avatar_path
        and fs.comment_rpc_returns_avatar_updated_at
       then 'ok' else 'review'
@@ -242,11 +242,11 @@ output_rows as (
     concat(
       'count=', fs.comment_rpc_count,
       ',secdef=', coalesce(fs.comment_rpc_security_definer, false),
-      ',search_path=', coalesce(fs.comment_rpc_search_path, false),
+      ',search_path_public=', coalesce(fs.comment_rpc_search_path_public, false),
       ',avatar_path=', coalesce(fs.comment_rpc_returns_avatar_path, false),
       ',avatar_updated_at=', coalesce(fs.comment_rpc_returns_avatar_updated_at, false)
     ),
-    'Public comment display RPC should include public avatar metadata without exposing private identifiers.'
+    'Public comment display RPC should pin search_path=public and include public avatar metadata without exposing private identifiers.'
   from function_summary fs
 
   union all

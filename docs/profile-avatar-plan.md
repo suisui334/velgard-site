@@ -75,6 +75,7 @@ After 055 is applied and 056 confirms readiness:
 
 - 055 SQL apply is an independent dangerous gate.
 - 056 SELECT-only confirmation is a separate gate after 055.
+- Avatar RPCs and the public comment RPC should use `security definer` with `set search_path = public`, while still keeping explicit schema references where practical.
 - Frontend avatar UI wiring happens only after 056 is healthy.
 - Real upload/delete QA is a separate gate because it writes Storage objects.
 - No API keys, JWTs, real user ids, real object paths, signed URLs, full public URLs, or email values should be recorded.

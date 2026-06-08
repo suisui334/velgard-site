@@ -4883,3 +4883,12 @@ Safety notes:
 
 - No real user id, email, avatar object path, signed URL, full Supabase URL, project ref, JWT, token, API key, Discord id, or Webhook value was recorded.
 - The preparation does not change existing mypage, session-detail, comment, Discord sync, signup, or session-post runtime behavior.
+
+Apply-prep review update:
+
+- Pre-apply review found that 055 used `set search_path = ''` for the `security definer` RPCs.
+- The avatar draft was aligned with the current review condition by changing the avatar metadata RPCs and public comment RPC to `set search_path = public`.
+- Explicit `public.` / `auth.` / `storage.` schema references remain in the SQL body where practical, so the search-path alignment does not reduce the intended safety boundary.
+- 056 was tightened to check for `search_path=public`, not merely any search_path setting.
+- 055 remains `DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED`, and 056 remains SELECT-only.
+- SQL Editor execution, DB/Auth/RLS change, Storage bucket creation, Supabase Dashboard change, SQL apply, and real upload remain unperformed.
