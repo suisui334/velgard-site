@@ -86,6 +86,29 @@ SMTP candidate priority:
 
 Provider selection should prefer a transactional-email setup that can support multiple future TRPG worlds without tying sender identity, templates, or operations language too tightly to Velgard alone.
 
+## Domain Policy for Resend
+
+If Resend is adopted, obtain an owned domain before Custom SMTP setup.
+
+Domain naming should avoid being Velgard-specific so the Auth and SMTP foundation can be reused for future TRPG worlds.
+
+Naming policy:
+
+- Base name: `tsumetai-hiyasireimen`.
+- First candidate: `tsumetai-hiyasireimen.com`.
+- Reserve candidates: `.net`, `.jp`, or another suitable TLD if the first candidate is unavailable or not cost-effective.
+- Availability, initial price, and renewal price must be checked by a human in the domain purchase screen.
+
+Separate gates:
+
+- Domain purchase.
+- DNS change.
+- Resend domain addition.
+- Resend API key creation.
+- Supabase Custom SMTP setting.
+
+Do not record SMTP credentials, API keys, DNS-management secrets, real emails, user ids, JWTs, tokens, full URLs, or project refs.
+
 ## Setup Gate
 
 Before setup:

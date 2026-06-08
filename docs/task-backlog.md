@@ -4772,6 +4772,9 @@ Rate-limit cause confirmed:
 - Custom SMTP candidate priority is Resend first, Brevo second, with SendGrid and AWS SES left as future lower-priority candidates because their setup or paid/production assumptions are heavier for the current stage.
 - Future reuse is expected beyond Velgard: calendar, session posts, mypage, accounts, Discord sync, and related private operations foundations should remain reusable as a TRPG operations platform.
 - Public world content may stay Velgard-specific, but Auth email sender names and email copy should avoid depending too heavily on a single world name.
+- Resend adoption assumes obtaining an owned reusable domain first. The base domain name is `tsumetai-hiyasireimen`, with `tsumetai-hiyasireimen.com` as the first candidate and `.net` / `.jp` as reserve candidates.
+- Domain availability, purchase price, and renewal price must be checked by a human in the purchase screen; domain purchase, DNS change, Resend domain addition, Resend API key creation, and Supabase Custom SMTP setting are all separate gates.
+- SMTP credentials, API keys, DNS-management secrets, real emails, ids, JWTs, tokens, full URLs, and project refs were not recorded.
 - Custom SMTP setup, Dashboard change, SQL Editor execution, DB/Auth/RLS change, SQL apply, and secret change were not performed in this recording batch.
 
 ## M-14E-27C admin cap announcement RPC draft preparation
