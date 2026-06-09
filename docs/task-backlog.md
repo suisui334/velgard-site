@@ -5118,3 +5118,46 @@ Next gate:
 
 - dry-run invoke auth/method correction gate.
 - Do not proceed to secret/env setup, cron setup, Discord posting, or `dry_run=false` until a safe dry-run response confirms `ok=true`, `dry_run=true`, and planned-only behavior.
+
+## M-14E-27H admin cap announcement dry-run invoke auth correction
+
+Status: dry-run invoke auth/method correction completed. No Discord post, dry_run=false execution, `ADMIN_CAP_ANNOUNCEMENT_REAL_SEND_ENABLED` setting, `DISCORD_WEBHOOK_CAP_ANNOUNCEMENT` setting, secret/env setting or change, cron setting, SQL Editor execution, DB/RPC/RLS change, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, `updates.json` change, `deno.lock` change, or retained `supabase/.temp` change was performed.
+
+Prerequisite state recorded:
+
+- Starting commit was `de3bdf8 Record admin cap dispatcher dry-run auth result`.
+- Worktree was clean before the correction attempt.
+- Previous dry-run invoke stopped at HTTP 401 before the Function body.
+
+Invoke method correction:
+
+- `.env.local` contained a publishable key, not a JWT-shaped anon key; this matched the previous platform JWT verification failure.
+- Existing project API keys were read through Supabase CLI, and an anon JWT-shaped key was selected in memory without printing or recording its value.
+- Project ref, Function URL, anon JWT, token material, and full Supabase URL were not printed or recorded.
+- Payload remained dry-run only: `dry_run=true` with a small batch limit.
+- `dry_run=false` was not sent.
+
+Invoke result:
+
+- HTTP status was 200.
+- JSON parse succeeded.
+- `ok=true`.
+- `dry_run=true`.
+- `planned_only=true`.
+- `rpc_order` was present with 2 entries.
+- `target_channel_mapping` was present for `cap_announcement` without a Webhook URL value.
+- `delivery_policy` was present for `none` and `everyone`.
+- Response note stated planned-only behavior with no DB mutation and no Discord request.
+
+Safety result:
+
+- Claim RPC, finalize RPC, and Discord request were not executed because the Function returned from its dry-run branch.
+- Discord posting did not occur.
+- Secret/env setup, real-send enablement, cron setup, SQL Editor execution, and DB/RPC/RLS changes were not performed.
+- Supabase CLI generated `supabase/.temp`, and it was removed as an unnecessary workspace diff.
+- Secret-like pattern scan on touched docs and the Edge Function draft found no Webhook URL, token/JWT, or full Supabase URL value.
+
+Next gate:
+
+- secret/env setup gate for the deployed Function.
+- Discord posting, `dry_run=false`, real-send enablement, and cron setup remain separate explicit gates.

@@ -323,6 +323,17 @@ dry-run invoke確認結果:
 - 401で停止したため、claim RPC、finalize RPC、Discord request、Webhook未設定時の安全レスポンスは未確認。
 - このゲートではDiscord投稿、`dry_run=false`、secret/env設定または変更、cron設定、SQL Editor実行、DB/RPC/RLS変更は行っていない。
 
+dry-run invoke認証修正結果:
+
+- 前回401は、publishable key形式のAuthorizationではFunction platform JWT verificationを通過できなかったものとして扱った。
+- Supabase CLIの既存API key参照を使い、project API keyのanon JWTを値を表示・記録せずにメモリ上で選択してinvokeした。
+- payloadは引き続き `dry_run=true` と小さい `batch_limit` のみ。
+- HTTP statusは200。
+- レスポンスは `ok=true`、`dry_run=true`、`planned_only=true`。
+- dry-runレスポンスには `rpc_order`、`target_channel_mapping.cap_announcement`、`delivery_policy.none`、`delivery_policy.everyone` が含まれていた。
+- レスポンスnoteで「DB mutationなし、Discord requestなし」のplanned-only挙動を確認した。
+- このゲートではDiscord投稿、`dry_run=false`、secret/env設定または変更、cron設定、SQL Editor実行、DB/RPC/RLS変更は行っていない。
+
 ## cron案
 
 - 1分間隔でEdge Functionを起動する案を第一候補にする。
@@ -344,6 +355,6 @@ deploy後も別ゲートに残す危険工程:
 
 次に必要なゲート:
 
-1. dry-run invoke確認はHTTP 401で停止したため、次は認証/invoke方法の修正ゲートへ進む。
-2. dry-run本文で `ok=true`、`dry_run=true`、`planned_only=true` を確認できるまで、secret/env設定やcron設定へ進まない。
-3. Discord投稿、`dry_run=false`、secret/env設定、cron設定は、それぞれ独立した明示ゲートで扱う。
+1. dry-run invoke認証修正ゲートは完了済みとして扱う。
+2. 次はsecret/env設定ゲートへ進む。
+3. Discord投稿、`dry_run=false`、cron設定は、それぞれ独立した明示ゲートで扱う。
