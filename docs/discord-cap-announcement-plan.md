@@ -293,6 +293,19 @@ draft安全設計:
 - `mention_mode='everyone'` のみ `@everyone` 行と `allowed_mentions.parse=["everyone"]` を許可する。
 - ログやレスポンスにはWebhook URL、Discord ID、raw token、raw external responseを出さない。
 
+deploy前レビュー結果:
+
+- Edge Function draftのRPC名は052 SQLのserver/Edge RPCと一致する。
+- claim RPCは `claim_due_admin_discord_announcements`。
+- finalize RPCは `finalize_admin_discord_announcement`。
+- claim呼び出しは `p_limit` を渡し、052 SQLの返却フィールド `id`、`lock_token`、`announcement_title`、`announcement_body`、`target_channel_key`、`scheduled_at`、`timezone`、`mention_mode`、`cap_level`、`apply_start_date`、`apply_end_date`、`note`、`attempt_count`、`max_attempts` を受ける。
+- finalize呼び出しは `p_announcement_id`、`p_lock_token`、`p_delivery_status`、`p_delivery_error_code`、`p_retry_after_seconds`、`p_discord_message_id` を渡す設計にそろえた。
+- `target_channel_key='cap_announcement'` はEdge Function内で環境変数名 `DISCORD_WEBHOOK_CAP_ANNOUNCEMENT` にだけ対応させ、実値は記録しない。
+- real送信は `dry_run=false` 相当のリクエストだけでなく、`ADMIN_CAP_ANNOUNCEMENT_REAL_SEND_ENABLED='true'` とdispatch token確認がそろうまで進まない。
+- 送信・DB RPC例外は一般化したエラーコードへ落とし、Webhook URL、secret、token、Discord応答全文をレスポンスやDBへ出さない。
+- retry可能な送信失敗は `scheduled`、終端失敗は `failed`、成功は `posted` としてfinalizeする。
+- このレビューではEdge Function deploy、Discord投稿、secret/env設定、cron設定、SQL Editor実行、DB/RPC/RLS変更は行っていない。
+
 ## cron案
 
 - 1分間隔でEdge Functionを起動する案を第一候補にする。
@@ -314,6 +327,6 @@ draft安全設計:
 
 次に必要なゲート:
 
-1. フロントRPC接続QAは完了済みとして扱う。
-2. 次はEdge Function draft/deploy前レビューへ進む。
-3. Edge Function deploy、Discord投稿、secret/env設定、cron設定は、それぞれ独立した明示ゲートで扱う。
+1. Edge Function draft/deploy前レビューは完了済みとして扱う。
+2. 次はEdge Function deploy可否を判断する独立ゲートへ進む。
+3. Discord投稿、secret/env設定、cron設定は、それぞれ独立した明示ゲートで扱う。

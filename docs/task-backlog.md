@@ -5014,3 +5014,44 @@ Next gate:
 
 - Proceed to Edge Function draft/deploy pre-review only after a separate explicit approval gate.
 - Edge Function deploy, Discord posting, secret/env setup, and cron setup remain blocked until separate explicit approval.
+
+## M-14E-27E admin cap announcement Edge Function deploy pre-review
+
+Status: Edge Function draft review and safety hardening only. No Edge Function deploy, Discord post, dry_run=false execution, secret/env setting or change, cron setting, SQL Editor execution, DB/RPC/RLS change, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, `updates.json` change, `deno.lock` change, or `supabase/.temp` change was performed.
+
+Prerequisite state recorded:
+
+- 050 SQL Apply succeeded.
+- 051 SELECT-only confirmation was completed.
+- 052 SQL Apply succeeded.
+- 053 SELECT-only confirmation returned all OK.
+- Browser/admin RPC connection is complete.
+- Admin browser QA passed for form display, list loading, draft save, scheduled save, edit save, scheduled edit save, cancel, canceled-row filtering, and console warning/error checks.
+- Logged-out direct-open QA passed with form/list hidden and no console warning/error.
+- Starting commit was `529b48b Connect admin cap announcements to RPCs`.
+
+Reviewed and adjusted:
+
+- `supabase/functions/dispatch-admin-cap-announcements/index.ts` still uses the server/Edge RPC names from 052:
+- `claim_due_admin_discord_announcements`
+- `finalize_admin_discord_announcement`
+- claim passes `p_limit` and expects the 052 delivery fields including `id`, `lock_token`, `target_channel_key`, `mention_mode`, `attempt_count`, and `max_attempts`.
+- finalize now explicitly passes `p_announcement_id`, `p_lock_token`, `p_delivery_status`, `p_delivery_error_code`, `p_retry_after_seconds`, and `p_discord_message_id`.
+- `target_channel_key='cap_announcement'` maps only to the env/secret name `DISCORD_WEBHOOK_CAP_ANNOUNCEMENT`; no value is recorded.
+- Default behavior remains dry-run/planned-only, with no DB mutation and no Discord request.
+- Real send still requires `dry_run=false` plus `ADMIN_CAP_ANNOUNCEMENT_REAL_SEND_ENABLED='true'` plus dispatch-token authorization, and none of those were executed or configured here.
+- `mention_mode='none'` produces `allowed_mentions.parse=[]`.
+- `mention_mode='everyone'` is the only path that adds `@everyone` and permits `allowed_mentions.parse=["everyone"]`.
+- claim/finalize remain the double-post guard: due `scheduled` rows move to `processing` with `lock_token`, and finalize requires `id + lock_token`.
+- Send and DB RPC exceptions are caught and converted into generalized error codes so raw secrets, Webhook URLs, tokens, and raw Discord responses are not returned or saved.
+- Webhook config missing is treated as a safe non-send error and finalized as a failed delivery if real sending is ever enabled.
+
+Verification notes:
+
+- `deno` and local `tsc` were not available in this Codex environment, so Deno type-checking was not run.
+- Static review confirmed RPC names, status names, `mention_mode` names, and `target_channel_key` are consistent across 052 SQL, frontend RPC client, docs, and Edge draft.
+
+Next gate:
+
+- Edge Function deploy decision gate.
+- Discord posting, secret/env setup, cron setup, and any `dry_run=false` real-send verification remain separate explicit gates.

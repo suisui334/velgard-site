@@ -206,9 +206,18 @@ function createServiceSupabaseClient(): { ok: true; client: SupabaseClient } | {
 }
 
 async function claimDueAnnouncements(client: SupabaseClient, batchLimit: number): Promise<ClaimResult> {
-  const { data, error } = await client.rpc("claim_due_admin_discord_announcements", {
-    p_limit: batchLimit
-  });
+  let data: unknown;
+  let error: unknown;
+
+  try {
+    const result = await client.rpc("claim_due_admin_discord_announcements", {
+      p_limit: batchLimit
+    });
+    data = result.data;
+    error = result.error;
+  } catch {
+    return { ok: false, errorCode: "db_claim_failed" };
+  }
 
   if (error || !Array.isArray(data)) {
     return { ok: false, errorCode: "db_claim_failed" };
@@ -266,13 +275,22 @@ async function sendAnnouncement(announcement: ClaimedAnnouncement): Promise<Send
     return { ok: false, errorCode: webhook.errorCode, retryable: false };
   }
 
-  const response = await fetch(webhook.url, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json"
-    },
-    body: JSON.stringify(buildDiscordWebhookPayload(announcement))
-  });
+  let response: Response;
+  try {
+    response = await fetch(webhook.url, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify(buildDiscordWebhookPayload(announcement))
+    });
+  } catch {
+    return {
+      ok: false,
+      errorCode: "webhook_send_failed",
+      retryable: true
+    };
+  }
 
   if (!response.ok) {
     return {
@@ -342,15 +360,25 @@ async function finalizeAnnouncement(
   nextStatus: DeliveryStatus,
   sendResult: SendResult
 ): Promise<{ ok: true } | { ok: false }> {
-  const { error } = await client.rpc("finalize_admin_discord_announcement", {
-    p_announcement_id: announcement.id,
-    p_lock_token: announcement.lock_token,
-    p_delivery_status: nextStatus,
-    p_delivery_error_code: sendResult.ok ? null : sendResult.errorCode,
-    p_retry_after_seconds: sendResult.ok || nextStatus === "failed" ? null : 60
-  });
+  let data: unknown;
+  let error: unknown;
 
-  return error ? { ok: false } : { ok: true };
+  try {
+    const result = await client.rpc("finalize_admin_discord_announcement", {
+      p_announcement_id: announcement.id,
+      p_lock_token: announcement.lock_token,
+      p_delivery_status: nextStatus,
+      p_delivery_error_code: sendResult.ok ? null : sendResult.errorCode,
+      p_retry_after_seconds: sendResult.ok || nextStatus === "failed" ? null : 60,
+      p_discord_message_id: null
+    });
+    data = result.data;
+    error = result.error;
+  } catch {
+    return { ok: false };
+  }
+
+  return error || !Array.isArray(data) || data.length === 0 ? { ok: false } : { ok: true };
 }
 
 function readNullableNumber(value: unknown): number | null {
