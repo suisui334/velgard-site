@@ -4940,3 +4940,13 @@ Real upload QA result:
 - `comment_avatar_visible=not_checked`; a safe existing session-detail comment target was not opened in this gate, so live comment avatar display remains a follow-up browser QA item.
 - No SQL Editor execution, DB/Auth/RLS change, Storage bucket change, Supabase Dashboard change, Edge deploy, Discord operation, dry_run=false, API key/secret/token handling, or `updates.json` change was performed in this QA recording batch.
 - No real user id, avatar object path, signed URL, email, JWT, token, project ref, full URL, Discord id, or Webhook value was recorded.
+
+Comment avatar preview modal:
+
+- Added a frontend-only preview overlay for session-detail comment avatars.
+- Comment avatar icons are clickable/tappable buttons with an accessible enlarge label.
+- Avatar images open in a larger constrained preview with the commenter display name.
+- Default avatar placeholders also open in the preview overlay and identify that the icon is the default display.
+- The overlay can be closed by close button, backdrop click/tap, or Escape key.
+- The preview is constrained for smartphone widths and does not require DB/Auth/RLS, Storage, Dashboard, SQL apply, upload/delete, Discord, dry_run=false, or secret changes.
+- No real user id, avatar object path, signed URL, email, JWT, token, project ref, full URL, Discord id, or Webhook value was recorded.

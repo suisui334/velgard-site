@@ -3055,31 +3055,49 @@ function appendCommentOperationPreview(item, comment, rows, target, options = {}
   item.append(preview);
 }
 
-function createCommentAvatar(comment, options = {}) {
-  const avatar = document.createElement("span");
-  avatar.className = "session-comment-avatar";
-  const label = comment.displayName
+let commentAvatarPreviewModal = null;
+let commentAvatarPreviewTrigger = null;
+
+function getCommentAvatarLabel(comment) {
+  return comment.displayName
     ? `${comment.displayName}のアイコン`
     : "ユーザーアイコン";
-  avatar.setAttribute("aria-label", label);
+}
 
-  const avatarUrl = getAvatarPublicUrl(options.client, comment.avatarPath, comment.avatarUpdatedAt);
-  if (avatarUrl) {
+function createCommentAvatar(comment, options = {}) {
+  const avatar = document.createElement("button");
+  avatar.className = "session-comment-avatar";
+  avatar.type = "button";
+  const label = getCommentAvatarLabel(comment);
+  avatar.setAttribute("aria-label", `${label}を拡大表示`);
+
+  let previewUrl = getAvatarPublicUrl(options.client, comment.avatarPath, comment.avatarUpdatedAt);
+  if (previewUrl) {
     const image = document.createElement("img");
-    image.src = avatarUrl;
+    image.src = previewUrl;
     image.alt = label;
     image.loading = "lazy";
     image.decoding = "async";
     image.addEventListener("error", () => {
+      previewUrl = "";
       avatar.classList.add("is-default");
       avatar.replaceChildren(createCommentAvatarInitial(comment));
     }, { once: true });
     avatar.append(image);
-    return avatar;
+  } else {
+    avatar.classList.add("is-default");
+    avatar.append(createCommentAvatarInitial(comment));
   }
 
-  avatar.classList.add("is-default");
-  avatar.append(createCommentAvatarInitial(comment));
+  avatar.addEventListener("click", () => {
+    openCommentAvatarPreviewModal({
+      avatarUrl: previewUrl,
+      comment,
+      label,
+      trigger: avatar
+    });
+  });
+
   return avatar;
 }
 
@@ -3088,6 +3106,126 @@ function createCommentAvatarInitial(comment) {
   initial.className = "session-comment-avatar-initial";
   initial.textContent = getAvatarInitial(comment.displayName);
   return initial;
+}
+
+function ensureCommentAvatarPreviewModal() {
+  if (commentAvatarPreviewModal && commentAvatarPreviewModal.isConnected) {
+    return commentAvatarPreviewModal;
+  }
+
+  const modal = document.createElement("div");
+  modal.className = "session-comment-avatar-modal";
+  modal.hidden = true;
+
+  const backdrop = document.createElement("div");
+  backdrop.className = "session-comment-avatar-modal-backdrop";
+  backdrop.dataset.commentAvatarPreviewClose = "";
+
+  const dialog = document.createElement("div");
+  dialog.className = "session-comment-avatar-modal-dialog";
+  dialog.setAttribute("role", "dialog");
+  dialog.setAttribute("aria-modal", "true");
+  dialog.setAttribute("aria-labelledby", "session-comment-avatar-modal-title");
+  dialog.tabIndex = -1;
+
+  const closeButton = document.createElement("button");
+  closeButton.className = "session-comment-avatar-modal-close";
+  closeButton.type = "button";
+  closeButton.textContent = "閉じる";
+  closeButton.dataset.commentAvatarPreviewClose = "";
+
+  const media = document.createElement("div");
+  media.className = "session-comment-avatar-modal-media";
+  media.dataset.commentAvatarPreviewMedia = "";
+
+  const title = document.createElement("p");
+  title.className = "session-comment-avatar-modal-title";
+  title.id = "session-comment-avatar-modal-title";
+  title.dataset.commentAvatarPreviewTitle = "";
+
+  const note = document.createElement("p");
+  note.className = "session-comment-avatar-modal-note";
+  note.dataset.commentAvatarPreviewNote = "";
+
+  dialog.append(closeButton, media, title, note);
+  modal.append(backdrop, dialog);
+
+  modal.addEventListener("click", (event) => {
+    if (event.target && event.target.dataset.commentAvatarPreviewClose !== undefined) {
+      closeCommentAvatarPreviewModal();
+    }
+  });
+
+  document.body.append(modal);
+  commentAvatarPreviewModal = modal;
+  return modal;
+}
+
+function handleCommentAvatarPreviewKeydown(event) {
+  if (event.key === "Escape") {
+    closeCommentAvatarPreviewModal();
+  }
+}
+
+function openCommentAvatarPreviewModal({ avatarUrl, comment, label, trigger }) {
+  const modal = ensureCommentAvatarPreviewModal();
+  const dialog = modal.querySelector(".session-comment-avatar-modal-dialog");
+  const media = modal.querySelector("[data-comment-avatar-preview-media]");
+  const title = modal.querySelector("[data-comment-avatar-preview-title]");
+  const note = modal.querySelector("[data-comment-avatar-preview-note]");
+  if (!media || !title || !note) return;
+
+  commentAvatarPreviewTrigger = trigger || null;
+  media.replaceChildren();
+  title.textContent = label;
+
+  if (avatarUrl) {
+    const image = document.createElement("img");
+    image.src = avatarUrl;
+    image.alt = label;
+    image.decoding = "async";
+    image.addEventListener("error", () => {
+      media.replaceChildren(createCommentAvatarPreviewDefault(comment));
+      note.textContent = "画像を読み込めなかったため、デフォルト表示に戻しています。";
+    }, { once: true });
+    media.append(image);
+    note.textContent = "";
+  } else {
+    media.append(createCommentAvatarPreviewDefault(comment));
+    note.textContent = "デフォルトアイコンです。";
+  }
+
+  modal.hidden = false;
+  document.body.classList.add("is-modal-open");
+  document.addEventListener("keydown", handleCommentAvatarPreviewKeydown);
+  window.requestAnimationFrame(() => {
+    dialog?.focus();
+  });
+}
+
+function createCommentAvatarPreviewDefault(comment) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "session-comment-avatar-modal-default";
+
+  const initial = document.createElement("span");
+  initial.className = "session-comment-avatar-modal-initial";
+  initial.textContent = getAvatarInitial(comment.displayName);
+
+  wrapper.append(initial);
+  return wrapper;
+}
+
+function closeCommentAvatarPreviewModal() {
+  if (!commentAvatarPreviewModal) return;
+  commentAvatarPreviewModal.hidden = true;
+  document.body.classList.remove("is-modal-open");
+  document.removeEventListener("keydown", handleCommentAvatarPreviewKeydown);
+
+  const trigger = commentAvatarPreviewTrigger;
+  commentAvatarPreviewTrigger = null;
+  if (trigger && trigger.isConnected) {
+    trigger.focus();
+  }
 }
 
 function renderComments(target, rows, options = {}) {

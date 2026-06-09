@@ -3454,20 +3454,30 @@ body[data-page="session-detail"] .session-comment-item-head {
 }
 
 body[data-page="session-detail"] .session-comment-avatar {
+  appearance: none;
   display: inline-flex;
   flex: 0 0 34px;
   width: 34px;
   height: 34px;
   align-items: center;
   justify-content: center;
+  padding: 0;
   overflow: hidden;
   border: 1px solid rgba(86, 96, 106, 0.18);
   border-radius: 50%;
   background: linear-gradient(135deg, rgba(111, 143, 104, 0.22), rgba(75, 63, 99, 0.16));
   color: var(--deep);
+  cursor: pointer;
   font-size: 0.82rem;
   font-weight: 900;
   line-height: 1;
+}
+
+body[data-page="session-detail"] .session-comment-avatar:hover,
+body[data-page="session-detail"] .session-comment-avatar:focus-visible {
+  border-color: rgba(74, 111, 165, 0.55);
+  box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.16);
+  outline: none;
 }
 
 body[data-page="session-detail"] .session-comment-avatar img {
@@ -3480,6 +3490,113 @@ body[data-page="session-detail"] .session-comment-avatar img {
 body[data-page="session-detail"] .session-comment-avatar-initial {
   display: inline-block;
   transform: translateY(-1px);
+}
+
+body[data-page="session-detail"] .session-comment-avatar-modal[hidden] {
+  display: none;
+}
+
+body[data-page="session-detail"] .session-comment-avatar-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2200;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+body[data-page="session-detail"] .session-comment-avatar-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(23, 28, 33, 0.62);
+}
+
+body[data-page="session-detail"] .session-comment-avatar-modal-dialog {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  width: min(420px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid rgba(86, 96, 106, 0.22);
+  border-radius: 12px;
+  background: var(--paper);
+  box-shadow: 0 24px 64px rgba(23, 28, 33, 0.28);
+}
+
+body[data-page="session-detail"] .session-comment-avatar-modal-dialog:focus {
+  outline: none;
+}
+
+body[data-page="session-detail"] .session-comment-avatar-modal-close {
+  justify-self: end;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid rgba(86, 96, 106, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 250, 0.92);
+  color: var(--soot);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+body[data-page="session-detail"] .session-comment-avatar-modal-close:hover,
+body[data-page="session-detail"] .session-comment-avatar-modal-close:focus-visible {
+  border-color: rgba(74, 111, 165, 0.55);
+  box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.16);
+  outline: none;
+}
+
+body[data-page="session-detail"] .session-comment-avatar-modal-media {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+}
+
+body[data-page="session-detail"] .session-comment-avatar-modal-media img,
+body[data-page="session-detail"] .session-comment-avatar-modal-default {
+  width: min(260px, 70vw);
+  height: min(260px, 70vw);
+  max-width: 100%;
+  max-height: 58vh;
+  border-radius: 18px;
+}
+
+body[data-page="session-detail"] .session-comment-avatar-modal-media img {
+  display: block;
+  object-fit: cover;
+}
+
+body[data-page="session-detail"] .session-comment-avatar-modal-default {
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  background: linear-gradient(135deg, rgba(111, 143, 104, 0.25), rgba(75, 63, 99, 0.18));
+  color: var(--deep);
+}
+
+body[data-page="session-detail"] .session-comment-avatar-modal-initial {
+  font-size: clamp(3rem, 18vw, 6rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
+body[data-page="session-detail"] .session-comment-avatar-modal-title,
+body[data-page="session-detail"] .session-comment-avatar-modal-note {
+  margin: 0;
+  text-align: center;
+}
+
+body[data-page="session-detail"] .session-comment-avatar-modal-title {
+  color: var(--soot);
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="session-detail"] .session-comment-avatar-modal-note {
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
 body[data-page="session-detail"] .session-comment-author {

@@ -132,6 +132,17 @@ Status: partial public-site QA completed from the logged-in mypage UI; comment-p
 - `comment_avatar_visible=not_checked`: no safe existing comment-detail target was opened during this gate, so the live comment avatar display remains a follow-up browser check.
 - No real user id, avatar object path, signed URL, email, JWT, token, project ref, full URL, or Storage internal value was recorded.
 
+## Comment Avatar Preview
+
+Status: frontend-only avatar preview modal implemented for session-detail comments.
+
+- Comment avatars are now rendered as clickable/tappable buttons.
+- When an avatar image exists, selecting the small round icon opens a lightweight preview overlay with the larger image and the commenter display name.
+- When the avatar is unset or fails to load, selecting the default icon opens the same overlay with the enlarged default initial placeholder and a default-icon note.
+- The overlay can be closed with the close button, backdrop click/tap, or Escape key.
+- The dialog constrains image size for PC and smartphone viewports so the preview does not overflow the screen.
+- This change does not add SQL, DB/Auth/RLS, Storage, Dashboard, upload/delete, Discord, or secret-handling work.
+
 ## MVP QA Checklist
 
 - User can upload a png/jpeg/webp icon within the size limit.
