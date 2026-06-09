@@ -306,6 +306,14 @@ deploy前レビュー結果:
 - retry可能な送信失敗は `scheduled`、終端失敗は `failed`、成功は `posted` としてfinalizeする。
 - このレビューではEdge Function deploy、Discord投稿、secret/env設定、cron設定、SQL Editor実行、DB/RPC/RLS変更は行っていない。
 
+deploy-onlyゲート結果:
+
+- `dispatch-admin-cap-announcements` はSupabase CLIの `functions deploy` でdeploy済み。
+- Docker未起動のため、CLIの `--use-api` を使ってserver-side bundlingでdeployした。
+- project refはローカルenvから値を表示せずに取得し、docsやconsole記録には残していない。
+- deploy時に生成された `supabase/.temp` は不要差分として削除済み。
+- このゲートではEdge Function invoke、Discord投稿、`dry_run=false`、secret/env設定または変更、cron設定、SQL Editor実行、DB/RPC/RLS変更は行っていない。
+
 ## cron案
 
 - 1分間隔でEdge Functionを起動する案を第一候補にする。
@@ -314,11 +322,11 @@ deploy前レビュー結果:
 
 ## 安全ゲート
 
-今回実施しない危険工程:
+deploy後も別ゲートに残す危険工程:
 
 - SQL Editor実行。
 - DB/RPC/RLS変更の実適用。
-- Edge Function deploy。
+- Edge Function invoke。
 - Discord投稿。
 - secret設定/変更。
 - Webhook URLの記録。
@@ -327,6 +335,6 @@ deploy前レビュー結果:
 
 次に必要なゲート:
 
-1. Edge Function draft/deploy前レビューは完了済みとして扱う。
-2. 次はEdge Function deploy可否を判断する独立ゲートへ進む。
-3. Discord投稿、secret/env設定、cron設定は、それぞれ独立した明示ゲートで扱う。
+1. Edge Function deploy-onlyゲートは完了済みとして扱う。
+2. 次はdry-run invoke確認ゲートへ進む。
+3. Discord投稿、`dry_run=false`、secret/env設定、cron設定は、それぞれ独立した明示ゲートで扱う。

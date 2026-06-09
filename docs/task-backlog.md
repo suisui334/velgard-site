@@ -5055,3 +5055,33 @@ Next gate:
 
 - Edge Function deploy decision gate.
 - Discord posting, secret/env setup, cron setup, and any `dry_run=false` real-send verification remain separate explicit gates.
+
+## M-14E-27F admin cap announcement Edge Function deploy-only gate
+
+Status: Edge Function deploy only. No Edge Function invoke, Discord post, dry_run=false execution, secret/env setting or change, `ADMIN_CAP_ANNOUNCEMENT_REAL_SEND_ENABLED` setting, `DISCORD_WEBHOOK_CAP_ANNOUNCEMENT` setting, cron setting, SQL Editor execution, DB/RPC/RLS change, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, or `updates.json` change was performed.
+
+Prerequisite state recorded:
+
+- Starting commit was `a312450 Review admin cap announcement dispatcher`.
+- Worktree was clean before deploy.
+- The Edge Function draft/deploy pre-review was complete.
+- RPC names, status names, `mention_mode`, and `target_channel_key` were already confirmed aligned across SQL, frontend, docs, and Edge draft.
+
+Deploy result:
+
+- Initial deploy without an explicit project ref could not proceed because this workspace did not have a local `supabase/.temp` link.
+- Project ref was read from local env without printing or recording its value.
+- `dispatch-admin-cap-announcements` deploy succeeded with Supabase CLI `functions deploy` using `--use-api` to avoid Docker bundling.
+- The deploy output was sanitized before recording; no project ref, dashboard URL, Supabase URL, Webhook URL, JWT, token, or Discord ID value is recorded here.
+- Deploy generated a local `supabase/.temp` directory, and it was removed as an unnecessary workspace diff after deploy.
+
+Post-deploy checks:
+
+- `git status --short` was clean after removing `supabase/.temp`.
+- `deno.lock`, `supabase/.temp`, and `updates.json` had no retained diff.
+- Secret-like pattern scan on the touched docs and Edge Function draft found no Webhook URL, token/JWT, or full Supabase URL value.
+
+Next gate:
+
+- dry-run invoke confirmation gate for the deployed Function.
+- Discord posting, `dry_run=false`, secret/env setup, real-send enablement, and cron setup remain separate explicit gates.
