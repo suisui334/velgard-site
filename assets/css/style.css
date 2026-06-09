@@ -6049,6 +6049,7 @@ body[data-page="admin-cap-announcements"] .admin-cap-announcement-section {
 
 body[data-page="admin-cap-announcements"] .admin-cap-announcement-access-panel,
 body[data-page="admin-cap-announcements"] .admin-cap-announcement-status-panel,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-list-panel,
 body[data-page="admin-cap-announcements"] .admin-cap-announcement-form-panel,
 body[data-page="admin-cap-announcements"] .admin-cap-announcement-preview-panel {
   display: grid;
@@ -6060,18 +6061,135 @@ body[data-page="admin-cap-announcements"] [hidden] {
   display: none !important;
 }
 
-body[data-page="admin-cap-announcements"] .admin-cap-announcement-form-head {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-form-head,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-panel-head {
   display: grid;
   gap: 4px;
 }
 
 body[data-page="admin-cap-announcements"] .admin-cap-announcement-form-head p,
 body[data-page="admin-cap-announcements"] .admin-cap-announcement-access-note,
-body[data-page="admin-cap-announcements"] .admin-cap-announcement-status-panel p {
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-status-panel p,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-empty,
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-editing {
   margin: 0;
   color: var(--muted);
   font-weight: 800;
   line-height: 1.65;
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-list-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-list-controls label {
+  display: grid;
+  gap: 4px;
+  min-width: 160px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-list-controls select {
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid rgba(86, 96, 106, 0.28);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.88);
+  color: var(--ink);
+  font: inherit;
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-list {
+  display: grid;
+  gap: 10px;
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-list-row {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.6);
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-list-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-list-main h3 {
+  min-width: 0;
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-status-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 3px 9px;
+  border: 1px solid rgba(60, 113, 95, 0.22);
+  border-radius: 999px;
+  background: rgba(241, 250, 245, 0.58);
+  color: var(--herb);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-list-meta {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-list-meta div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-list-meta dt {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-list-meta dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-list-body {
+  max-height: 5.2em;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="admin-cap-announcements"] .admin-cap-announcement-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 body[data-page="admin-cap-announcements"] .admin-cap-announcement-form {
@@ -6245,11 +6363,19 @@ body[data-page="admin-cap-announcements"] .admin-cap-announcement-payload {
 @media (max-width: 720px) {
   body[data-page="admin-cap-announcements"] .admin-cap-announcement-grid,
   body[data-page="admin-cap-announcements"] .admin-cap-announcement-rpc-list,
-  body[data-page="admin-cap-announcements"] .admin-cap-announcement-preview-list {
+  body[data-page="admin-cap-announcements"] .admin-cap-announcement-preview-list,
+  body[data-page="admin-cap-announcements"] .admin-cap-announcement-list-meta {
     grid-template-columns: 1fr;
   }
 
-  body[data-page="admin-cap-announcements"] .admin-cap-announcement-submit-row .button {
+  body[data-page="admin-cap-announcements"] .admin-cap-announcement-list-controls,
+  body[data-page="admin-cap-announcements"] .admin-cap-announcement-row-actions {
+    display: grid;
+  }
+
+  body[data-page="admin-cap-announcements"] .admin-cap-announcement-submit-row .button,
+  body[data-page="admin-cap-announcements"] .admin-cap-announcement-list-controls .button,
+  body[data-page="admin-cap-announcements"] .admin-cap-announcement-row-actions .button {
     width: 100%;
   }
 }

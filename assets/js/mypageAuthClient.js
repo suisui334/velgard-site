@@ -3300,7 +3300,7 @@
 
     const note = document.createElement("p");
     note.className = "mypage-profile-note";
-    note.textContent = "キャップ更新案内をDiscordへ予約投稿するadmin専用機能です。SQL/RPC/Edge Function適用前は内容確認だけを行います。";
+    note.textContent = "キャップ更新案内をDiscordへ予約投稿するadmin専用機能です。admin RPCで予約を保存し、Discord投稿は後続Edge Functionゲートで扱います。";
 
     const actions = document.createElement("div");
     actions.className = "actions";

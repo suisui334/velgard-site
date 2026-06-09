@@ -4965,3 +4965,52 @@ Comment avatar QA and mypage avatar placement:
 - Existing avatar preview, upload/delete buttons, validation, status messages, and public-display notice were reused without changing Storage/RPC behavior.
 - No SQL Editor execution, DB/Auth/RLS change, Storage bucket change, Supabase Dashboard change, real upload/delete, Edge deploy, Discord operation, dry_run=false, API key/secret/token handling, direct Supabase table write, or `updates.json` change was performed.
 - No real user id, avatar object path, signed URL, email, JWT, token, project ref, full URL, Discord id, or Webhook value was recorded.
+
+## M-14E-27D admin cap announcement frontend RPC connection
+
+Status: frontend RPC connection implementation and docs update. No SQL Editor execution, DB/RPC/RLS change, Edge Function deploy, Discord post, dry_run=false, secret/env setting or change, cron setting, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, or `updates.json` change was performed.
+
+Prerequisite state recorded:
+
+- 050 SQL Apply is treated as successful.
+- 051 SELECT-only confirmation was completed.
+- 052 SQL Apply is treated as successful.
+- 053 SELECT-only confirmation returned all OK, including `post_apply_ready_for_next_gate`.
+
+Implemented:
+
+- `assets/js/adminCapAnnouncementClient.js` now treats the browser/admin functions as live RPC calls and throws on RPC errors.
+- Active browser/admin RPC names remain `create_admin_discord_announcement`, `update_admin_discord_announcement`, `cancel_admin_discord_announcement`, and `list_admin_discord_announcements`.
+- Static JS still does not call Supabase table `.insert` / `.update` / `.delete` / `.upsert`.
+- `assets/js/renderAdminCapAnnouncements.js` now loads the existing announcement list after admin confirmation.
+- Admin users can create draft announcements, create scheduled announcements, edit editable rows, and cancel draft/scheduled/failed rows through RPCs.
+- Edit mode now shows separate actions for saving as draft and saving as scheduled, so a draft can be explicitly turned into a scheduled announcement after editing.
+- Cancel remains a status transition to `canceled`, not a physical delete. The default list filter is now active-only, so canceled rows leave the normal working list while remaining available through all/canceled filters for audit.
+- The form and list are bound only after session and `is_admin()` checks pass.
+- Logged-out or non-admin direct URL access keeps the form and list hidden.
+- `admin-cap-announcements.html` and `assets/js/main.js` cache-bust references were updated for the RPC-connected frontend.
+- `assets/css/style.css` received list, filter, status badge, and row-action styling for the admin page.
+- `mypage` admin-only link copy now states that admin RPCs save reservations and Discord posting remains a later Edge Function gate.
+
+Safety notes:
+
+- The browser UI stores only `target_channel_key='cap_announcement'`; no Webhook URL or real channel value is added.
+- `mention_mode='none'` remains the no-notification default.
+- `mention_mode='everyone'` remains an explicit admin choice only.
+- The frontend does not call server/Edge RPCs and does not deploy or invoke the Edge Function.
+- Discord posting, secret/env setup, cron setup, and `dry_run=false` remain separate explicit gates.
+
+QA status:
+
+- Logged-out in-app browser check passed: direct `admin-cap-announcements.html` access showed the login-required message and kept the form/list hidden.
+- Chrome-based admin QA could not be automated from Codex even after the Codex Chrome Extension was installed/enabled; Chrome, extension, and native host checks passed, but extension communication still returned unavailable.
+- User-performed admin QA confirmed draft save and cancel success, and reported no other functional issue except two UX gaps: editing a draft did not expose an obvious scheduled-save action, and canceled rows still appeared in the default list.
+- Those two UX gaps were fixed by adding explicit edit-save buttons for draft/scheduled and by changing the default list to active-only while preserving all/canceled filters.
+- User-performed recheck passed after the fixes:
+- Admin login form display, announcement list display, list loading, draft save, edit mode draft/scheduled save actions, edit save, scheduled edit save, cancel, active-only removal after cancel, all/canceled filter visibility, and DevTools warning/error check all passed.
+- Logged-out direct-open recheck also passed: form/list remained hidden and DevTools warning/error check had no issues.
+
+Next gate:
+
+- Proceed to Edge Function draft/deploy pre-review only after a separate explicit approval gate.
+- Edge Function deploy, Discord posting, secret/env setup, and cron setup remain blocked until separate explicit approval.

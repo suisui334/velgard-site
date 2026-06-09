@@ -7,13 +7,13 @@ const ADMIN_CAP_ANNOUNCEMENT_RPC = Object.freeze({
 
 const MENTION_MODES = new Set(["none", "everyone"]);
 const CREATE_STATUSES = new Set(["draft", "scheduled"]);
+const LIST_STATUSES = new Set(["draft", "scheduled", "processing", "posted", "failed", "canceled"]);
 const DEFAULT_TIMEZONE = "Asia/Tokyo";
 const DEFAULT_TARGET_CHANNEL_KEY = "cap_announcement";
 const TITLE_MAX_LENGTH = 120;
 const BODY_MAX_LENGTH = 1800;
 const CAP_LEVEL_MAX_LENGTH = 40;
 const NOTE_MAX_LENGTH = 500;
-const CHANNEL_KEY_PATTERN = /^[a-z0-9][a-z0-9_]{1,62}[a-z0-9]$/;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const DATE_TIME_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
@@ -39,12 +39,24 @@ function normalizeTargetChannelKey(value) {
   return normalizeText(value || DEFAULT_TARGET_CHANNEL_KEY).toLowerCase();
 }
 
+function normalizeStatusFilter(value) {
+  const normalized = normalizeText(value);
+  return LIST_STATUSES.has(normalized) ? normalized : "";
+}
+
 function normalizeOptionalDate(value) {
   return normalizeText(value);
 }
 
 function hasRpcClient(client) {
   return Boolean(client && typeof client.rpc === "function");
+}
+
+async function callAdminCapAnnouncementRpc(client, rpcName, payload) {
+  if (!hasRpcClient(client)) throw new Error("admin-cap-announcement-rpc-client-required");
+  const { data, error } = await client.rpc(rpcName, payload);
+  if (error) throw new Error("admin-cap-announcement-rpc-failed");
+  return data;
 }
 
 export function getAdminCapAnnouncementRpcNames() {
@@ -88,7 +100,7 @@ export function buildAdminCapAnnouncementCancelPayload(input = {}) {
 
 export function buildAdminCapAnnouncementListPayload(input = {}) {
   return {
-    p_status_filter: normalizeText(input.statusFilter ?? input.p_status_filter),
+    p_status_filter: normalizeStatusFilter(input.statusFilter ?? input.p_status_filter),
     p_limit: Number.isFinite(Number(input.limit ?? input.p_limit))
       ? Math.max(1, Math.min(100, Number(input.limit ?? input.p_limit)))
       : 50
@@ -101,8 +113,8 @@ export function validateAdminCapAnnouncementPayload(payload = {}) {
   const body = normalizeText(payload.p_announcement_body);
   const targetChannelKey = normalizeTargetChannelKey(payload.p_target_channel_key);
   const scheduledAt = normalizeDateTime(payload.p_scheduled_at);
-  const mentionMode = normalizeMentionMode(payload.p_mention_mode);
-  const status = normalizeStatus(payload.p_status);
+  const mentionMode = normalizeText(payload.p_mention_mode);
+  const status = normalizeText(payload.p_status);
   const capLevel = normalizeText(payload.p_cap_level);
   const note = normalizeText(payload.p_note);
 
@@ -110,7 +122,7 @@ export function validateAdminCapAnnouncementPayload(payload = {}) {
   if (title.length > TITLE_MAX_LENGTH) errors.push(`告知タイトルは${TITLE_MAX_LENGTH}文字以内にしてください。`);
   if (!body) errors.push("告知本文を入力してください。");
   if (body.length > BODY_MAX_LENGTH) errors.push(`告知本文は${BODY_MAX_LENGTH}文字以内にしてください。`);
-  if (!CHANNEL_KEY_PATTERN.test(targetChannelKey)) errors.push("投稿先チャンネルkeyを選択してください。");
+  if (targetChannelKey !== DEFAULT_TARGET_CHANNEL_KEY) errors.push("投稿先チャンネルkeyを選択してください。");
   if (!DATE_TIME_PATTERN.test(scheduledAt)) errors.push("投稿予定日時を入力してください。");
   if (!MENTION_MODES.has(mentionMode)) errors.push("メンション設定を選択してください。");
   if (!CREATE_STATUSES.has(status)) errors.push("保存状態を選択してください。");
@@ -126,30 +138,26 @@ export function validateAdminCapAnnouncementPayload(payload = {}) {
 }
 
 export async function createAdminCapAnnouncement(client, input) {
-  if (!hasRpcClient(client)) throw new Error("admin-cap-announcement-rpc-client-required");
   const payload = buildAdminCapAnnouncementCreatePayload(input);
   const validation = validateAdminCapAnnouncementPayload(payload);
   if (!validation.ok) throw new Error("admin-cap-announcement-invalid-payload");
-  return client.rpc(ADMIN_CAP_ANNOUNCEMENT_RPC.create, payload);
+  return callAdminCapAnnouncementRpc(client, ADMIN_CAP_ANNOUNCEMENT_RPC.create, payload);
 }
 
 export async function updateAdminCapAnnouncement(client, input) {
-  if (!hasRpcClient(client)) throw new Error("admin-cap-announcement-rpc-client-required");
   const payload = buildAdminCapAnnouncementUpdatePayload(input);
   if (!payload.p_announcement_id) throw new Error("admin-cap-announcement-id-required");
   const validation = validateAdminCapAnnouncementPayload(payload);
   if (!validation.ok) throw new Error("admin-cap-announcement-invalid-payload");
-  return client.rpc(ADMIN_CAP_ANNOUNCEMENT_RPC.update, payload);
+  return callAdminCapAnnouncementRpc(client, ADMIN_CAP_ANNOUNCEMENT_RPC.update, payload);
 }
 
 export async function cancelAdminCapAnnouncement(client, input) {
-  if (!hasRpcClient(client)) throw new Error("admin-cap-announcement-rpc-client-required");
   const payload = buildAdminCapAnnouncementCancelPayload(input);
   if (!payload.p_announcement_id) throw new Error("admin-cap-announcement-id-required");
-  return client.rpc(ADMIN_CAP_ANNOUNCEMENT_RPC.cancel, payload);
+  return callAdminCapAnnouncementRpc(client, ADMIN_CAP_ANNOUNCEMENT_RPC.cancel, payload);
 }
 
 export async function listAdminCapAnnouncements(client, input = {}) {
-  if (!hasRpcClient(client)) throw new Error("admin-cap-announcement-rpc-client-required");
-  return client.rpc(ADMIN_CAP_ANNOUNCEMENT_RPC.list, buildAdminCapAnnouncementListPayload(input));
+  return callAdminCapAnnouncementRpc(client, ADMIN_CAP_ANNOUNCEMENT_RPC.list, buildAdminCapAnnouncementListPayload(input));
 }

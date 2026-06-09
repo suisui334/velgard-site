@@ -27,8 +27,8 @@
 追加・変更したもの:
 
 - `admin-cap-announcements.html`: admin専用キャップ更新告知ページ。
-- `assets/js/renderAdminCapAnnouncements.js`: admin確認後だけ表示する入力・payload確認UI。
-- `assets/js/adminCapAnnouncementClient.js`: 将来RPC接続する関数名とpayload構造。
+- `assets/js/renderAdminCapAnnouncements.js`: admin確認後だけ表示する入力・一覧・RPC操作UI。
+- `assets/js/adminCapAnnouncementClient.js`: browser/admin用RPC接続関数とpayload構造。
 - `docs/supabase/sql/050_admin_discord_announcements_schema_apply_draft.sql`: 未実行apply draft。
 - `docs/supabase/sql/051_admin_discord_announcements_post_apply_select_only.sql`: SQL Apply後に使うSELECT-only確認SQL。
 - `supabase/functions/dispatch-admin-cap-announcements/index.ts`: 未deployのEdge Function draft。
@@ -95,6 +95,37 @@
 - `check_name / status / result_value / note` 形式を維持する。
 - browser/admin用RPC 4本、server/Edge用RPC 2本、anon不可、authenticated権限、service role境界、`security definer`、`search_path`、admin確認、claim/finalize契約、`post_apply_ready_for_next_gate` を確認する。
 
+## フロントRPC接続ゲート
+
+前提:
+
+- 050 SQL Applyは成功済み。
+- 051 SELECT-only確認済み。
+- 052 SQL Applyは成功済み。
+- 053 SELECT-only確認結果は全項目OKで、`post_apply_ready_for_next_gate` もOK。
+
+実装内容:
+
+- `assets/js/adminCapAnnouncementClient.js` は `create_admin_discord_announcement`、`update_admin_discord_announcement`、`cancel_admin_discord_announcement`、`list_admin_discord_announcements` をRPC経由で呼ぶ。
+- 静的JSからSupabase tableへの直接 `.insert` / `.update` / `.delete` / `.upsert` は使わない。
+- `assets/js/renderAdminCapAnnouncements.js` はadmin判定通過後だけ一覧取得、下書き保存、予約保存、編集保存、キャンセルを有効化する。
+- 編集中は「下書きで編集保存」と「予約として編集保存」を分け、下書きから予約済みへ切り替える導線を明示する。
+- キャンセルは物理削除ではなく `status='canceled'` への状態変更とし、初期一覧の「有効のみ」では非表示にする。確認が必要な場合は「すべて」または「キャンセル」フィルタで表示する。
+- 未ログインまたは非adminではフォーム・一覧・RPC操作を表示せず、RPC操作もbindしない。
+- `admin-cap-announcements.html` と `main.js` のcache-bustを更新する。
+- `mypage` のadmin専用導線文言を、RPC保存可能・Discord投稿は後続Edge Functionゲートという説明へ更新する。
+
+このゲートで実施しないこと:
+
+- SQL Editor実行。
+- DB/RPC/RLS変更。
+- Edge Function deploy。
+- Discord投稿。
+- `dry_run=false`。
+- secret/env設定変更。
+- cron設定。
+- Webhook URL、secret、Discord実ID、token類の記録。
+
 ## UI仕様
 
 専用ページ名は `admin-cap-announcements.html` とする。公開グローバルナビには追加しない。
@@ -127,8 +158,11 @@
 今回の画面動作:
 
 - 入力値を検証する。
-- 将来RPC `create_admin_discord_announcement` に渡すpayloadを表示する。
-- DB保存はまだ実行しない。
+- admin確認後、既存告知一覧を `list_admin_discord_announcements` で取得する。
+- 下書き保存・予約保存を `create_admin_discord_announcement` で行う。
+- 編集時は「下書きで編集保存」または「予約として編集保存」を選び、`update_admin_discord_announcement` で行う。
+- キャンセルを `cancel_admin_discord_announcement` で行う。キャンセル済みは削除せず、通常の「有効のみ」一覧から外す。
+- Discord投稿はまだ行わない。
 - Supabase直接 `.insert` / `.update` / `.delete` / `.upsert` は使わない。
 
 ## 投稿先チャンネル方針
@@ -278,12 +312,8 @@ draft安全設計:
 - JWT、Supabase URL全文、Discord ID、token類の記録。
 - `dry_run=false` 実行。
 
-次に必要なSQL applyゲート:
+次に必要なゲート:
 
-1. `docs/supabase/sql/052_admin_discord_announcements_rpc_apply_draft.sql` をレビューする。
-2. ファイル冒頭の `DO NOT RUN` / `NOT EXECUTED` / 明示承認必須を確認し、今回の実行対象として明示承認を得る。
-3. SQL Editorの旧内容を消して、052だけを貼る。
-4. ユーザー明示承認後に一度だけ実行する。
-5. エラーが出たら停止し、rerunしない。
-6. 052成功後、`docs/supabase/sql/053_admin_discord_announcements_rpc_post_apply_select_only.sql` をSELECT-onlyで実行する。
-7. 053の結果が `missing` / `review` / `error` を含む場合は、Edge Function deployやフロントRPC接続へ進まず停止する。
+1. フロントRPC接続QAは完了済みとして扱う。
+2. 次はEdge Function draft/deploy前レビューへ進む。
+3. Edge Function deploy、Discord投稿、secret/env設定、cron設定は、それぞれ独立した明示ゲートで扱う。
