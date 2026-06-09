@@ -59,7 +59,7 @@ type ClaimResult =
   | { ok: false; errorCode: ErrorCode };
 
 type SendResult =
-  | { ok: true }
+  | { ok: true; discordMessageId: string | null }
   | { ok: false; errorCode: ErrorCode; retryable: boolean };
 
 const DEFAULT_BATCH_LIMIT = 5;
@@ -139,7 +139,8 @@ Deno.serve(async (request: Request) => {
       target_channel_key: announcement.target_channel_key,
       delivery_status: nextStatus,
       delivery_error_code: sendResult.ok ? null : sendResult.errorCode,
-      db_finalize: finalizeResult.ok ? "ok" : "failed"
+      db_finalize: finalizeResult.ok ? "ok" : "failed",
+      discord_message_id_saved: sendResult.ok && Boolean(sendResult.discordMessageId) && finalizeResult.ok
     });
   }
 
@@ -277,7 +278,7 @@ async function sendAnnouncement(announcement: ClaimedAnnouncement): Promise<Send
 
   let response: Response;
   try {
-    response = await fetch(webhook.url, {
+    response = await fetch(buildDiscordWebhookWaitUrl(webhook.url), {
       method: "POST",
       headers: {
         "content-type": "application/json"
@@ -300,7 +301,7 @@ async function sendAnnouncement(announcement: ClaimedAnnouncement): Promise<Send
     };
   }
 
-  return { ok: true };
+  return { ok: true, discordMessageId: await readDiscordMessageId(response) };
 }
 
 function readWebhookUrl(targetChannelKey: TargetChannelKey): { ok: true; url: string } | { ok: false; errorCode: ErrorCode } {
@@ -311,6 +312,22 @@ function readWebhookUrl(targetChannelKey: TargetChannelKey): { ok: true; url: st
   if (!url) return { ok: false, errorCode: "webhook_config_missing" };
 
   return { ok: true, url };
+}
+
+function buildDiscordWebhookWaitUrl(webhookUrl: string): string {
+  const url = new URL(webhookUrl);
+  url.searchParams.set("wait", "true");
+  return url.toString();
+}
+
+async function readDiscordMessageId(response: Response): Promise<string | null> {
+  try {
+    const value = await response.json();
+    if (!isRecord(value)) return null;
+    return normalizeText(value.id, 120) || null;
+  } catch {
+    return null;
+  }
 }
 
 function buildDiscordWebhookPayload(announcement: ClaimedAnnouncement): DiscordWebhookPayload {
@@ -370,7 +387,7 @@ async function finalizeAnnouncement(
       p_delivery_status: nextStatus,
       p_delivery_error_code: sendResult.ok ? null : sendResult.errorCode,
       p_retry_after_seconds: sendResult.ok || nextStatus === "failed" ? null : 60,
-      p_discord_message_id: null
+      p_discord_message_id: sendResult.ok ? sendResult.discordMessageId : null
     });
     data = result.data;
     error = result.error;
