@@ -80,6 +80,24 @@ After 055 is applied and 056 confirms readiness:
 - Real upload/delete QA is a separate gate because it writes Storage objects.
 - No API keys, JWTs, real user ids, real object paths, signed URLs, full public URLs, or email values should be recorded.
 
+## Apply Confirmation
+
+Status: 055 apply and 056 SELECT-only confirmation were completed by the user in Supabase SQL Editor. Codex did not run SQL Editor or perform DB/Storage changes directly.
+
+- `055_profile_avatars_storage_schema_apply_draft.sql` was executed once and succeeded.
+- `056_profile_avatars_post_apply_select_only.sql` was executed as the post-apply SELECT-only confirmation and returned OK results.
+- `profiles.avatar_path` and `profiles.avatar_updated_at` are confirmed ready.
+- `public_profiles` exposes the public avatar metadata columns.
+- The `avatars` bucket exists with public read, png/jpeg/webp support, and the expected approximate 1MB limit.
+- Storage policy state matches the MVP model: public read plus authenticated owner-path insert/update/delete.
+- Avatar metadata update/clear RPCs exist, are authenticated-only, and are not executable by anon.
+- `security definer` avatar/comment RPCs are confirmed with `search_path=public`.
+- The public comment display RPC returns avatar metadata.
+- `post_apply_ready_for_avatar_frontend_qa=true`.
+- The next step is a frontend implementation gate for mypage avatar UI and session-detail comment avatar display.
+
+No real user id, avatar object path, signed URL, email, JWT, token, project ref, or Storage internal value was recorded.
+
 ## MVP QA Checklist
 
 - User can upload a png/jpeg/webp icon within the size limit.
@@ -94,9 +112,9 @@ After 055 is applied and 056 confirms readiness:
 
 ## Not Performed
 
-- No SQL Editor execution.
-- No Storage bucket creation.
-- No DB/Auth/RLS mutation.
+- No SQL Editor execution by Codex.
+- No additional Storage bucket change after the approved 055 apply.
+- No additional DB/Auth/RLS mutation after the approved 055 apply.
 - No Supabase Dashboard operation.
 - No real avatar upload/delete.
 - No frontend avatar UI connection.

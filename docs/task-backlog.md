@@ -4892,3 +4892,23 @@ Apply-prep review update:
 - 056 was tightened to check for `search_path=public`, not merely any search_path setting.
 - 055 remains `DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED`, and 056 remains SELECT-only.
 - SQL Editor execution, DB/Auth/RLS change, Storage bucket creation, Supabase Dashboard change, SQL apply, and real upload remain unperformed.
+
+Apply result:
+
+- `055_profile_avatars_storage_schema_apply_draft.sql` was executed once by the user in Supabase SQL Editor and succeeded.
+- `056_profile_avatars_post_apply_select_only.sql` was executed as a SELECT-only post-apply confirmation and returned OK.
+- `profiles.avatar_path` and `profiles.avatar_updated_at` are confirmed OK.
+- `public_profiles` now includes public display avatar metadata columns.
+- The `avatars` bucket exists with public read, png/jpeg/webp support, and the expected approximate 1MB limit.
+- Storage policy confirmation is OK for public read plus authenticated owner-path insert/update/delete.
+- Avatar metadata update/clear RPCs exist, are executable by authenticated users only, and are not executable by anon.
+- `security definer` functions were confirmed with `search_path=public`.
+- The public comment display RPC returns avatar metadata.
+- `post_apply_ready_for_avatar_frontend_qa=true`.
+- No additional SQL Editor execution by Codex, DB/Auth/RLS change, Storage change, Supabase Dashboard change, real upload, API key/secret/token recording, or frontend avatar wiring was performed in this recording batch.
+- No real user id, avatar object path, signed URL, email, JWT, token, project ref, or Storage internal value was recorded.
+
+Next gate:
+
+- Implement frontend avatar UI for mypage and avatar display in session-detail comments.
+- Real avatar upload/delete QA remains a later Storage-writing gate.
