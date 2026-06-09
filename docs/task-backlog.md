@@ -4912,3 +4912,15 @@ Next gate:
 
 - Implement frontend avatar UI for mypage and avatar display in session-detail comments.
 - Real avatar upload/delete QA remains a later Storage-writing gate.
+
+Frontend implementation result:
+
+- mypage profile area now has an account icon block with current-avatar preview, default placeholder display, png/jpeg/webp file selection, about-1MB client-side validation, upload, delete, and status messages.
+- Avatar upload is wired to the `avatars` Storage bucket under the signed-in user's own object prefix, then records metadata through `update_my_avatar_path`.
+- Avatar delete is wired as Storage remove followed by `clear_my_avatar_path`.
+- The implementation does not add direct Supabase table `.insert` / `.update` / `.delete` / `.upsert` calls.
+- Session-detail comment rendering now reads public `avatar_path` / `avatar_updated_at` fields from the comment RPC result and displays a small round avatar beside the commenter name/status, with default placeholder fallback.
+- mypage/session-detail CSS and JS cache-bust references were updated for the avatar frontend.
+- Real avatar upload/delete QA, cross-user overwrite denial QA, and comment avatar live-display QA remain a later Storage-writing/browser QA gate.
+- No SQL Editor execution, DB/Auth/RLS change, Storage bucket change, Supabase Dashboard change, real upload/delete, Edge deploy, Discord operation, dry_run=false, API key/secret/token handling, or `updates.json` change was performed.
+- No real user id, avatar object path, signed URL, email, JWT, token, project ref, full URL, Discord id, or Webhook value was recorded.

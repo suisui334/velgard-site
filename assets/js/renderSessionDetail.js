@@ -7,7 +7,7 @@ import {
   renderSessionDiscordSyncPanel,
   renderSessionDetailContent
 } from "./sessionDisplay.js?v=20260607-gm-close-mark";
-import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260607-pl-application-template";
+import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260610-profile-avatar";
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js?v=20260601-session-post";
 import {
   deleteSyncedSession,

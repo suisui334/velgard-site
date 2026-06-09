@@ -1,5 +1,6 @@
 const SDK_SRC = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
 const SDK_LOAD_KEY = "__VELGARD_SUPABASE_SDK_LOAD";
+const AVATAR_BUCKET = "avatars";
 const COMMENT_RPC = "get_public_session_comments";
 const COUNT_RPC = "get_public_session_application_counts";
 const POST_RPC = "create_application_comment";
@@ -297,6 +298,44 @@ function toBooleanFlag(value) {
 
 function normalizeInternalId(value) {
   return String(value || "").trim();
+}
+
+function normalizeAvatarPath(value) {
+  const text = String(value || "").trim();
+  if (!text || text.includes("://") || text.startsWith("/") || text.includes("..") || text.includes("//")) {
+    return "";
+  }
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/[A-Za-z0-9._-]+\.(png|jpg|jpeg|webp)$/i.test(text)
+    ? text
+    : "";
+}
+
+function normalizeAvatarUpdatedAt(value) {
+  return String(value || "").trim();
+}
+
+function getAvatarInitial(displayName) {
+  return Array.from(String(displayName || "？").trim() || "？")[0] || "？";
+}
+
+function getAvatarPublicUrl(client, avatarPath, avatarUpdatedAt) {
+  const path = normalizeAvatarPath(avatarPath);
+  if (!client || !path) return "";
+
+  const { data } = client.storage.from(AVATAR_BUCKET).getPublicUrl(path);
+  const publicUrl = String(data?.publicUrl || "").trim();
+  if (!publicUrl) return "";
+
+  const cacheKey = normalizeAvatarUpdatedAt(avatarUpdatedAt);
+  if (!cacheKey) return publicUrl;
+
+  try {
+    const url = new URL(publicUrl);
+    url.searchParams.set("v", cacheKey);
+    return url.toString();
+  } catch {
+    return `${publicUrl}${publicUrl.includes("?") ? "&" : "?"}v=${encodeURIComponent(cacheKey)}`;
+  }
 }
 
 function getAuthUserId(authSession) {
@@ -2688,6 +2727,8 @@ function normalizeComments(rows) {
     return {
       commentId: String(row?.comment_id || "").trim(),
       displayName: redactSensitiveText(row?.display_name).trim() || "名前未設定",
+      avatarPath: normalizeAvatarPath(row?.avatar_path),
+      avatarUpdatedAt: normalizeAvatarUpdatedAt(row?.avatar_updated_at),
       body: redactSensitiveText(row?.body).trim() || "本文なし",
       applicationStatus: String(row?.application_status || "").trim(),
       createdAt: String(row?.created_at || "").trim(),
@@ -3014,6 +3055,41 @@ function appendCommentOperationPreview(item, comment, rows, target, options = {}
   item.append(preview);
 }
 
+function createCommentAvatar(comment, options = {}) {
+  const avatar = document.createElement("span");
+  avatar.className = "session-comment-avatar";
+  const label = comment.displayName
+    ? `${comment.displayName}のアイコン`
+    : "ユーザーアイコン";
+  avatar.setAttribute("aria-label", label);
+
+  const avatarUrl = getAvatarPublicUrl(options.client, comment.avatarPath, comment.avatarUpdatedAt);
+  if (avatarUrl) {
+    const image = document.createElement("img");
+    image.src = avatarUrl;
+    image.alt = label;
+    image.loading = "lazy";
+    image.decoding = "async";
+    image.addEventListener("error", () => {
+      avatar.classList.add("is-default");
+      avatar.replaceChildren(createCommentAvatarInitial(comment));
+    }, { once: true });
+    avatar.append(image);
+    return avatar;
+  }
+
+  avatar.classList.add("is-default");
+  avatar.append(createCommentAvatarInitial(comment));
+  return avatar;
+}
+
+function createCommentAvatarInitial(comment) {
+  const initial = document.createElement("span");
+  initial.className = "session-comment-avatar-initial";
+  initial.textContent = getAvatarInitial(comment.displayName);
+  return initial;
+}
+
 function renderComments(target, rows, options = {}) {
   if (!target) return;
   if (options.panel) {
@@ -3039,6 +3115,8 @@ function renderComments(target, rows, options = {}) {
     const header = document.createElement("div");
     header.className = "session-comment-item-head";
 
+    const avatar = createCommentAvatar(comment, options);
+
     const name = document.createElement("strong");
     name.className = "session-comment-author";
     name.textContent = comment.displayName;
@@ -3049,7 +3127,7 @@ function renderComments(target, rows, options = {}) {
       : `session-comment-status-badge is-${getStatusClass(comment.applicationStatus)}`;
     status.textContent = isGmComment ? "GMコメント" : getStatusLabel(comment.applicationStatus);
 
-    header.append(name, status);
+    header.append(avatar, name, status);
 
     const metaText = renderCommentMeta(comment);
     item.append(header);

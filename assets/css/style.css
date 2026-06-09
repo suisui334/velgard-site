@@ -3453,6 +3453,35 @@ body[data-page="session-detail"] .session-comment-item-head {
   min-width: 0;
 }
 
+body[data-page="session-detail"] .session-comment-avatar {
+  display: inline-flex;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(111, 143, 104, 0.22), rgba(75, 63, 99, 0.16));
+  color: var(--deep);
+  font-size: 0.82rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+body[data-page="session-detail"] .session-comment-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+body[data-page="session-detail"] .session-comment-avatar-initial {
+  display: inline-block;
+  transform: translateY(-1px);
+}
+
 body[data-page="session-detail"] .session-comment-author {
   color: var(--soot);
   font-size: 0.92rem;
@@ -3832,6 +3861,73 @@ body[data-page="mypage"] .mypage-profile-state.is-error {
 body[data-page="mypage"] .mypage-profile-state.is-warn,
 body[data-page="mypage"] [data-mypage-discord-id-current-value].is-invalid {
   color: var(--rust);
+}
+
+body[data-page="mypage"] .mypage-avatar-panel {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+body[data-page="mypage"] .mypage-avatar-preview-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+}
+
+body[data-page="mypage"] .profile-avatar-preview {
+  display: inline-flex;
+  flex: 0 0 72px;
+  width: 72px;
+  height: 72px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(111, 143, 104, 0.24), rgba(75, 63, 99, 0.16));
+  color: var(--deep);
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+body[data-page="mypage"] .profile-avatar-preview-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+body[data-page="mypage"] .profile-avatar-preview-initial {
+  display: inline-block;
+  transform: translateY(-1px);
+}
+
+body[data-page="mypage"] .mypage-avatar-form {
+  min-width: 0;
+}
+
+body[data-page="mypage"] .mypage-avatar-form input[type="file"] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+body[data-page="mypage"] .mypage-avatar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+body[data-page="mypage"] .mypage-avatar-actions .button {
+  min-height: 34px;
+  padding: 6px 11px;
+  font-size: 0.82rem;
 }
 
 body[data-page="mypage"] .mypage-pc-list {
@@ -5648,6 +5744,17 @@ body.is-modal-open .back-to-top {
     flex-direction: column;
     align-items: stretch;
     width: 100%;
+  }
+
+  body[data-page="mypage"] .mypage-avatar-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  body[data-page="mypage"] .mypage-avatar-actions .button {
+    width: 100%;
+    justify-content: center;
   }
 
   body[data-page="mypage"] .mypage-template-actions .button {

@@ -98,6 +98,22 @@ Status: 055 apply and 056 SELECT-only confirmation were completed by the user in
 
 No real user id, avatar object path, signed URL, email, JWT, token, project ref, or Storage internal value was recorded.
 
+## Frontend Implementation
+
+Status: frontend wiring is implemented; real upload/delete QA is still a separate Storage-writing gate.
+
+- mypage now includes an account icon block in the profile area.
+- The block shows the current avatar when public metadata exists, otherwise it shows a default round initial placeholder.
+- The file picker accepts png/jpeg/webp and rejects unsupported MIME types or files over about 1MB before upload.
+- Upload writes only to the `avatars` Storage bucket under the signed-in user's own object prefix, then calls `update_my_avatar_path`.
+- If metadata recording fails after upload, the newly uploaded object is removed from `avatars` before reporting failure.
+- Delete removes the current `avatars` object and then calls `clear_my_avatar_path`.
+- The implementation does not add direct Supabase table `.insert` / `.update` / `.delete` / `.upsert` calls.
+- Session-detail comments now normalize `avatar_path` / `avatar_updated_at` returned by the public comment RPC and display a small round avatar beside the comment author.
+- Comments fall back to the default initial placeholder when no avatar path is present or when image loading fails.
+- mypage/session-detail cache-bust values were updated so the frontend change can be served with the new CSS and JS.
+- No real avatar upload, deletion, signed URL recording, or real object path recording was performed in this implementation batch.
+
 ## MVP QA Checklist
 
 - User can upload a png/jpeg/webp icon within the size limit.
@@ -117,5 +133,4 @@ No real user id, avatar object path, signed URL, email, JWT, token, project ref,
 - No additional DB/Auth/RLS mutation after the approved 055 apply.
 - No Supabase Dashboard operation.
 - No real avatar upload/delete.
-- No frontend avatar UI connection.
 - No secret or token recording.

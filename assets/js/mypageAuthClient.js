@@ -5,6 +5,14 @@
   const SDK_LOAD_KEY = "__VELGARD_SUPABASE_SDK_LOAD";
   const MIN_PASSWORD_LENGTH = 8;
   const DISPLAY_NAME_MAX_LENGTH = 40;
+  const AVATAR_BUCKET = "avatars";
+  const AVATAR_MAX_BYTES = 1024 * 1024;
+  const AVATAR_ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+  const AVATAR_EXTENSION_BY_TYPE = Object.freeze({
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/webp": "webp"
+  });
   const DISCORD_ID_MAX_LENGTH = 100;
   const PC_NAME_MAX_LENGTH = 40;
   const DISCORD_USER_ID_EXAMPLE = "123456789012345678";
@@ -752,6 +760,73 @@
 
   function countDisplayNameCharacters(value) {
     return Array.from(value).length;
+  }
+
+  function normalizeAvatarPath(value) {
+    const text = String(value || "").trim();
+    if (!text || text.includes("://") || text.startsWith("/") || text.includes("..") || text.includes("//")) {
+      return "";
+    }
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/[A-Za-z0-9._-]+\.(png|jpg|jpeg|webp)$/i.test(text)
+      ? text
+      : "";
+  }
+
+  function normalizeAvatarUpdatedAt(value) {
+    return String(value || "").trim();
+  }
+
+  function getAvatarInitial(displayName) {
+    const text = normalizeDisplayName(displayName);
+    return Array.from(text || "？")[0] || "？";
+  }
+
+  function getAvatarPublicUrl(client, avatarPath, avatarUpdatedAt) {
+    const path = normalizeAvatarPath(avatarPath);
+    if (!client || !path) return "";
+
+    const { data } = client.storage.from(AVATAR_BUCKET).getPublicUrl(path);
+    const publicUrl = String(data?.publicUrl || "").trim();
+    if (!publicUrl) return "";
+
+    const cacheKey = normalizeAvatarUpdatedAt(avatarUpdatedAt);
+    if (!cacheKey) return publicUrl;
+
+    try {
+      const url = new URL(publicUrl);
+      url.searchParams.set("v", cacheKey);
+      return url.toString();
+    } catch {
+      return `${publicUrl}${publicUrl.includes("?") ? "&" : "?"}v=${encodeURIComponent(cacheKey)}`;
+    }
+  }
+
+  function normalizeAvatarProfileRow(row) {
+    return {
+      displayName: normalizeDisplayName(row && row.display_name),
+      avatarPath: normalizeAvatarPath(row && row.avatar_path),
+      avatarUpdatedAt: normalizeAvatarUpdatedAt(row && row.avatar_updated_at)
+    };
+  }
+
+  function createAvatarFilePath(session, file) {
+    const userId = String(session?.user?.id || "").trim();
+    const extension = AVATAR_EXTENSION_BY_TYPE[file?.type] || "";
+    if (!userId || !extension) return "";
+    return `${userId}/avatar-${Date.now()}.${extension}`;
+  }
+
+  function validateAvatarFile(file) {
+    if (!file) {
+      return { ok: false, message: "アイコン画像を選択してください。" };
+    }
+    if (!AVATAR_ALLOWED_TYPES.has(file.type)) {
+      return { ok: false, message: "png / jpeg / webp の画像を選択してください。" };
+    }
+    if (file.size > AVATAR_MAX_BYTES) {
+      return { ok: false, message: "アイコン画像は1MB以下にしてください。" };
+    }
+    return { ok: true };
   }
 
   function normalizeDiscordId(value) {
@@ -1574,6 +1649,290 @@
       showDisplayNameSaveFailure(elements, error);
     } finally {
       if (editor.form.isConnected) setFormBusy(editor.form, false, "保存中", "保存");
+    }
+  }
+
+  function createAvatarEditor(client, elements, session) {
+    const container = document.createElement("section");
+    container.className = "mypage-profile-panel mypage-avatar-panel";
+    container.dataset.mypageAvatarPanel = "";
+
+    const head = document.createElement("div");
+    head.className = "mypage-profile-panel-head";
+
+    const title = document.createElement("h3");
+    title.textContent = "アイコン画像";
+
+    const description = document.createElement("p");
+    description.textContent = "この画像は依頼書コメント等で公開表示されます。";
+
+    head.append(title, description);
+
+    const previewWrap = document.createElement("div");
+    previewWrap.className = "mypage-avatar-preview-row";
+
+    const preview = document.createElement("div");
+    preview.className = "profile-avatar-preview is-default";
+    preview.dataset.mypageAvatarPreview = "";
+    preview.setAttribute("aria-label", "現在のアイコン");
+
+    const currentText = document.createElement("p");
+    currentText.className = "mypage-profile-note";
+    currentText.dataset.mypageAvatarCurrent = "";
+    currentText.textContent = "現在のアイコンを確認中です。";
+
+    previewWrap.append(preview, currentText);
+
+    const form = document.createElement("form");
+    form.className = "calendar-form mypage-avatar-form";
+    form.dataset.mypageAvatarForm = "";
+    form.noValidate = true;
+
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.name = "avatar";
+    fileInput.accept = "image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp";
+
+    const uploadButton = document.createElement("button");
+    uploadButton.className = "button primary";
+    uploadButton.type = "button";
+    uploadButton.dataset.mypageAvatarUpload = "";
+    uploadButton.textContent = "アップロード";
+
+    const deleteButton = document.createElement("button");
+    deleteButton.className = "button danger";
+    deleteButton.type = "button";
+    deleteButton.dataset.mypageAvatarDelete = "";
+    deleteButton.textContent = "削除";
+    deleteButton.disabled = true;
+
+    const actions = document.createElement("div");
+    actions.className = "mypage-avatar-actions";
+    actions.append(uploadButton, deleteButton);
+
+    const note = document.createElement("p");
+    note.className = "mypage-profile-note";
+    note.textContent = "png / jpeg / webp、1MB以下の画像を選択してください。";
+
+    const state = document.createElement("p");
+    state.className = "mypage-profile-state";
+    state.dataset.mypageAvatarState = "";
+    state.setAttribute("role", "status");
+    state.setAttribute("aria-live", "polite");
+    state.hidden = true;
+
+    form.append(createInputField("画像ファイル", fileInput), actions);
+
+    const editor = {
+      container,
+      preview,
+      currentText,
+      form,
+      input: fileInput,
+      uploadButton,
+      deleteButton,
+      state,
+      session,
+      displayName: "",
+      avatarPath: "",
+      avatarUpdatedAt: ""
+    };
+
+    uploadButton.addEventListener("click", (event) => {
+      handleAvatarUpload(client, elements, editor, event);
+    });
+
+    deleteButton.addEventListener("click", (event) => {
+      handleAvatarDelete(client, elements, editor, event);
+    });
+
+    form.addEventListener("submit", (event) => {
+      handleAvatarUpload(client, elements, editor, event);
+    });
+
+    container.append(head, previewWrap, form, note, state);
+    return editor;
+  }
+
+  function setAvatarPanelState(editor, message, options = {}) {
+    editor.state.textContent = message || "";
+    editor.state.hidden = !message;
+    editor.state.classList.toggle("is-error", Boolean(options.error));
+    editor.state.classList.toggle("is-warn", Boolean(options.warn));
+  }
+
+  function setAvatarPanelBusy(editor, busy) {
+    editor.form.setAttribute("aria-busy", String(Boolean(busy)));
+    editor.input.disabled = Boolean(busy);
+    editor.uploadButton.disabled = Boolean(busy);
+    editor.deleteButton.disabled = Boolean(busy || !editor.avatarPath);
+  }
+
+  function renderAvatarPreview(client, editor, profile) {
+    editor.displayName = normalizeDisplayName(profile?.displayName || editor.displayName);
+    editor.avatarPath = normalizeAvatarPath(profile?.avatarPath);
+    editor.avatarUpdatedAt = normalizeAvatarUpdatedAt(profile?.avatarUpdatedAt);
+    editor.preview.replaceChildren();
+
+    const avatarUrl = getAvatarPublicUrl(client, editor.avatarPath, editor.avatarUpdatedAt);
+    editor.preview.classList.toggle("is-default", !avatarUrl);
+
+    if (avatarUrl) {
+      const image = document.createElement("img");
+      image.className = "profile-avatar-preview-image";
+      image.src = avatarUrl;
+      image.alt = `${editor.displayName || "ユーザー"}のアイコン`;
+      image.loading = "lazy";
+      image.decoding = "async";
+      image.addEventListener("error", () => {
+        editor.preview.classList.add("is-default");
+        editor.preview.replaceChildren();
+        const initial = document.createElement("span");
+        initial.className = "profile-avatar-preview-initial";
+        initial.textContent = getAvatarInitial(editor.displayName);
+        editor.preview.append(initial);
+        editor.currentText.textContent = "アイコン画像を読み込めませんでした。削除して初期表示へ戻せます。";
+        editor.deleteButton.disabled = !editor.avatarPath;
+      }, { once: true });
+      editor.preview.append(image);
+      editor.currentText.textContent = "現在のアイコンが設定されています。";
+    } else {
+      const initial = document.createElement("span");
+      initial.className = "profile-avatar-preview-initial";
+      initial.textContent = getAvatarInitial(editor.displayName);
+      editor.preview.append(initial);
+      editor.currentText.textContent = "アイコン未設定です。デフォルト表示が使われます。";
+    }
+
+    editor.deleteButton.disabled = !editor.avatarPath;
+  }
+
+  async function loadAvatarProfile(client, editor) {
+    try {
+      const session = await getActiveSession(client, editor.session);
+      if (!session) {
+        renderAvatarPreview(client, editor, {});
+        setAvatarPanelState(editor, "ログイン状態を確認できませんでした。", { error: true });
+        return;
+      }
+
+      const { data, error } = await client
+        .from("public_profiles")
+        .select("display_name,avatar_path,avatar_updated_at")
+        .eq("id", session.user.id)
+        .single();
+
+      if (error || !data) {
+        renderAvatarPreview(client, editor, {});
+        setAvatarPanelState(editor, "アイコン情報を取得できませんでした。", { error: true });
+        return;
+      }
+
+      renderAvatarPreview(client, editor, normalizeAvatarProfileRow(data));
+      setAvatarPanelState(editor, "");
+    } catch {
+      renderAvatarPreview(client, editor, {});
+      setAvatarPanelState(editor, "アイコン情報を取得できませんでした。", { error: true });
+    }
+  }
+
+  async function handleAvatarUpload(client, elements, editor, event) {
+    event?.preventDefault?.();
+
+    const file = editor.input.files && editor.input.files[0] ? editor.input.files[0] : null;
+    const validation = validateAvatarFile(file);
+    if (!validation.ok) {
+      setAvatarPanelState(editor, validation.message, { warn: true });
+      return;
+    }
+
+    try {
+      const session = await getActiveSession(client, editor.session);
+      if (!session) {
+        setAvatarPanelState(editor, "ログイン状態を確認できませんでした。", { error: true });
+        return;
+      }
+
+      const nextPath = createAvatarFilePath(session, file);
+      if (!nextPath) {
+        setAvatarPanelState(editor, "アイコン画像の形式を確認してください。", { error: true });
+        return;
+      }
+
+      setMessage(elements, "");
+      setAvatarPanelState(editor, "アイコン画像をアップロードしています。");
+      setAvatarPanelBusy(editor, true);
+
+      const { error: uploadError } = await client.storage
+        .from(AVATAR_BUCKET)
+        .upload(nextPath, file, {
+          cacheControl: "3600",
+          contentType: file.type,
+          upsert: true
+        });
+
+      if (uploadError) {
+        setAvatarPanelState(editor, "アイコン画像をアップロードできませんでした。", { error: true });
+        return;
+      }
+
+      const { data, error: rpcError } = await client.rpc("update_my_avatar_path", {
+        new_avatar_path: nextPath
+      });
+
+      if (rpcError) {
+        await client.storage.from(AVATAR_BUCKET).remove([nextPath]);
+        setAvatarPanelState(editor, "アイコン情報を保存できませんでした。", { error: true });
+        return;
+      }
+
+      const row = Array.isArray(data) ? data[0] : data;
+      renderAvatarPreview(client, editor, normalizeAvatarProfileRow(row));
+      editor.input.value = "";
+      setAvatarPanelState(editor, "アイコン画像を保存しました。");
+    } catch {
+      setAvatarPanelState(editor, "アイコン画像を保存できませんでした。", { error: true });
+    } finally {
+      if (editor.container.isConnected) setAvatarPanelBusy(editor, false);
+    }
+  }
+
+  async function handleAvatarDelete(client, elements, editor, event) {
+    event?.preventDefault?.();
+
+    const currentPath = normalizeAvatarPath(editor.avatarPath);
+    if (!currentPath) {
+      setAvatarPanelState(editor, "削除するアイコン画像はありません。", { warn: true });
+      return;
+    }
+
+    if (!window.confirm("アイコン画像を削除しますか？")) return;
+
+    try {
+      setMessage(elements, "");
+      setAvatarPanelState(editor, "アイコン画像を削除しています。");
+      setAvatarPanelBusy(editor, true);
+
+      const { error: removeError } = await client.storage.from(AVATAR_BUCKET).remove([currentPath]);
+      if (removeError) {
+        setAvatarPanelState(editor, "アイコン画像を削除できませんでした。", { error: true });
+        return;
+      }
+
+      const { data, error: rpcError } = await client.rpc("clear_my_avatar_path");
+      if (rpcError) {
+        setAvatarPanelState(editor, "アイコン情報を初期化できませんでした。", { error: true });
+        return;
+      }
+
+      const row = Array.isArray(data) ? data[0] : data;
+      renderAvatarPreview(client, editor, normalizeAvatarProfileRow(row));
+      editor.input.value = "";
+      setAvatarPanelState(editor, "アイコン画像を削除しました。");
+    } catch {
+      setAvatarPanelState(editor, "アイコン画像を削除できませんでした。", { error: true });
+    } finally {
+      if (editor.container.isConnected) setAvatarPanelBusy(editor, false);
     }
   }
 
@@ -2978,6 +3337,7 @@
     clearContent(elements);
 
     const displayNameEditor = createDisplayNameEditor(client, elements, session);
+    const avatarEditor = createAvatarEditor(client, elements, session);
     const playerCharacterPanel = createPlayerCharacterPanel(client, elements, session);
     const discordIdEditor = createDiscordIdEditor(client, elements, session);
     const templatePanel = createTemplateManagementPanel(client, elements, session);
@@ -3002,7 +3362,7 @@
 
     actions.append(changePassword);
     accountDetails.body.append(displayNameEditor.container, actions);
-    profileDetails.body.append(playerCharacterPanel.container, discordIdEditor.container);
+    profileDetails.body.append(avatarEditor.container, playerCharacterPanel.container, discordIdEditor.container);
     scheduleDetails.body.append(applicationsPanel.container);
     templateDetails.body.append(templatePanel.container);
     elements.content.append(
@@ -3013,6 +3373,7 @@
     );
     setMessage(elements, message || "");
     loadDisplayName(client, displayNameEditor);
+    loadAvatarProfile(client, avatarEditor);
     loadPlayerCharacters(client, playerCharacterPanel);
     loadProfileContact(client, discordIdEditor);
     loadTemplatePresets(client, templatePanel);
