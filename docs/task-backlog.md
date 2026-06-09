@@ -5085,3 +5085,36 @@ Next gate:
 
 - dry-run invoke confirmation gate for the deployed Function.
 - Discord posting, `dry_run=false`, secret/env setup, real-send enablement, and cron setup remain separate explicit gates.
+
+## M-14E-27G admin cap announcement dry-run invoke attempt
+
+Status: dry-run invoke attempt stopped at authentication. No Discord post, dry_run=false execution, `ADMIN_CAP_ANNOUNCEMENT_REAL_SEND_ENABLED` setting, `DISCORD_WEBHOOK_CAP_ANNOUNCEMENT` setting, secret/env setting or change, cron setting, SQL Editor execution, DB/RPC/RLS change, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, `updates.json` change, `deno.lock` change, or retained `supabase/.temp` change was performed.
+
+Prerequisite state recorded:
+
+- Starting commit was `0d76d57 Record admin cap dispatcher deploy`.
+- Worktree was clean before invoke.
+- `dispatch-admin-cap-announcements` was already deployed.
+- `deno.lock`, `supabase/.temp`, and `updates.json` had no retained diff.
+
+Invoke attempt:
+
+- Payload used only dry-run semantics: `dry_run=true` with a small batch limit.
+- `dry_run=false` was not sent.
+- Project ref and invoke auth material were read locally without printing or recording their values.
+- HTTP status was 401.
+- Response was JSON-parseable, but did not include the Function draft dry-run fields.
+- `ok`, `dry_run`, `planned_only`, `rpc_order`, `target_channel_mapping`, and `delivery_policy` were not confirmed because the request stopped at authentication.
+
+Safety result:
+
+- Because the request stopped at 401 before the Function dry-run response, claim RPC, finalize RPC, and Discord request did not run.
+- Discord posting did not occur.
+- Webhook-missing behavior was not confirmed in this gate because the Function body was not reached.
+- Secret/env setup, real-send enablement, cron setup, SQL Editor execution, and DB/RPC/RLS changes were not performed.
+- Secret-like pattern scan on touched docs and the Edge Function draft found no Webhook URL, token/JWT, or full Supabase URL value.
+
+Next gate:
+
+- dry-run invoke auth/method correction gate.
+- Do not proceed to secret/env setup, cron setup, Discord posting, or `dry_run=false` until a safe dry-run response confirms `ok=true`, `dry_run=true`, and planned-only behavior.

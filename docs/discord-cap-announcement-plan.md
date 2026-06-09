@@ -314,6 +314,15 @@ deploy-onlyゲート結果:
 - deploy時に生成された `supabase/.temp` は不要差分として削除済み。
 - このゲートではEdge Function invoke、Discord投稿、`dry_run=false`、secret/env設定または変更、cron設定、SQL Editor実行、DB/RPC/RLS変更は行っていない。
 
+dry-run invoke確認結果:
+
+- deploy済み `dispatch-admin-cap-announcements` へ `dry_run=true` payloadだけでinvokeを試行した。
+- HTTP statusは401。
+- JSONとしてparse可能な認証エラー応答だったが、Function draftのdry-run本文には到達しなかった。
+- `ok`、`dry_run`、`planned_only`、`rpc_order`、`target_channel_mapping`、`delivery_policy` はレスポンスで確認できなかった。
+- 401で停止したため、claim RPC、finalize RPC、Discord request、Webhook未設定時の安全レスポンスは未確認。
+- このゲートではDiscord投稿、`dry_run=false`、secret/env設定または変更、cron設定、SQL Editor実行、DB/RPC/RLS変更は行っていない。
+
 ## cron案
 
 - 1分間隔でEdge Functionを起動する案を第一候補にする。
@@ -335,6 +344,6 @@ deploy後も別ゲートに残す危険工程:
 
 次に必要なゲート:
 
-1. Edge Function deploy-onlyゲートは完了済みとして扱う。
-2. 次はdry-run invoke確認ゲートへ進む。
+1. dry-run invoke確認はHTTP 401で停止したため、次は認証/invoke方法の修正ゲートへ進む。
+2. dry-run本文で `ok=true`、`dry_run=true`、`planned_only=true` を確認できるまで、secret/env設定やcron設定へ進まない。
 3. Discord投稿、`dry_run=false`、secret/env設定、cron設定は、それぞれ独立した明示ゲートで扱う。
