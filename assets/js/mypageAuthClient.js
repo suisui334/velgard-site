@@ -3361,8 +3361,8 @@
     });
 
     actions.append(changePassword);
-    accountDetails.body.append(displayNameEditor.container, actions);
-    profileDetails.body.append(avatarEditor.container, playerCharacterPanel.container, discordIdEditor.container);
+    accountDetails.body.append(displayNameEditor.container, avatarEditor.container, actions);
+    profileDetails.body.append(playerCharacterPanel.container, discordIdEditor.container);
     scheduleDetails.body.append(applicationsPanel.container);
     templateDetails.body.append(templatePanel.container);
     elements.content.append(

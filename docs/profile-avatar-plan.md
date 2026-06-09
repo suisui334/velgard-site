@@ -143,6 +143,23 @@ Status: frontend-only avatar preview modal implemented for session-detail commen
 - The dialog constrains image size for PC and smartphone viewports so the preview does not overflow the screen.
 - This change does not add SQL, DB/Auth/RLS, Storage, Dashboard, upload/delete, Discord, or secret-handling work.
 
+## Comment Avatar Display QA And Account Placement
+
+Status: comment avatar display and preview QA passed; mypage avatar settings were moved to the account overview.
+
+- `comment_avatar_visible=true`.
+- Small comment avatars are visible in the session-detail comment list.
+- Clicking or tapping the small avatar opens the enlarged preview.
+- Avatar images display correctly in the enlarged preview when an avatar is configured.
+- Default avatar placeholders display correctly in the enlarged preview when an avatar is unset.
+- The preview closes via the close button, backdrop click/tap, and Escape key.
+- The preview remains inside the smartphone viewport.
+- The mypage avatar settings block now lives in the `Account overview` section because the icon is account-owned public display metadata.
+- The `Profile / PC information` section is kept focused on PC name and contact/profile-adjacent fields.
+- Existing avatar preview, upload/delete buttons, validation, status messages, and the public-display notice were reused without changing the Storage/RPC flow.
+- No SQL Editor execution, DB/Auth/RLS change, Storage bucket change, Supabase Dashboard change, real upload/delete, secret handling, or direct Supabase table write was added in this placement batch.
+- No real user id, avatar object path, signed URL, email, JWT, token, project ref, full URL, Discord id, or Webhook value was recorded.
+
 ## MVP QA Checklist
 
 - User can upload a png/jpeg/webp icon within the size limit.

@@ -4950,3 +4950,18 @@ Comment avatar preview modal:
 - The overlay can be closed by close button, backdrop click/tap, or Escape key.
 - The preview is constrained for smartphone widths and does not require DB/Auth/RLS, Storage, Dashboard, SQL apply, upload/delete, Discord, dry_run=false, or secret changes.
 - No real user id, avatar object path, signed URL, email, JWT, token, project ref, full URL, Discord id, or Webhook value was recorded.
+
+Comment avatar QA and mypage avatar placement:
+
+- Session-detail comment avatar display QA passed with `comment_avatar_visible=true`.
+- The comment list shows small author avatars.
+- Clicking/tapping the avatar opens the enlarged preview.
+- Configured avatar images show in the enlarged preview.
+- Unset avatars show the enlarged default placeholder without breaking layout.
+- The preview closes via close button, backdrop click/tap, and Escape key.
+- Smartphone-width preview did not overflow the viewport.
+- The mypage avatar settings block was moved from `Profile / PC information` to `Account overview`.
+- The avatar setting remains account-owned public display metadata; `Profile / PC information` stays focused on PC name and contact/profile-adjacent information.
+- Existing avatar preview, upload/delete buttons, validation, status messages, and public-display notice were reused without changing Storage/RPC behavior.
+- No SQL Editor execution, DB/Auth/RLS change, Storage bucket change, Supabase Dashboard change, real upload/delete, Edge deploy, Discord operation, dry_run=false, API key/secret/token handling, direct Supabase table write, or `updates.json` change was performed.
+- No real user id, avatar object path, signed URL, email, JWT, token, project ref, full URL, Discord id, or Webhook value was recorded.
