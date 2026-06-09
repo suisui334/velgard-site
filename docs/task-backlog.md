@@ -4924,3 +4924,19 @@ Frontend implementation result:
 - Real avatar upload/delete QA, cross-user overwrite denial QA, and comment avatar live-display QA remain a later Storage-writing/browser QA gate.
 - No SQL Editor execution, DB/Auth/RLS change, Storage bucket change, Supabase Dashboard change, real upload/delete, Edge deploy, Discord operation, dry_run=false, API key/secret/token handling, or `updates.json` change was performed.
 - No real user id, avatar object path, signed URL, email, JWT, token, project ref, full URL, Discord id, or Webhook value was recorded.
+
+Real upload QA result:
+
+- Public-site mypage was refreshed after the avatar frontend cache-bust was available.
+- Existing avatar state was checked in a safe boolean form; no pre-existing avatar was detected before QA.
+- A generated png image under the size limit was selected through the mypage avatar UI and uploaded through the existing UI handler.
+- `upload_success=true`.
+- `preview_updated=true`.
+- The avatar delete UI handler was executed, and the mypage preview returned to the default avatar state.
+- `delete_success=true`.
+- `default_restored=true`; the delete flow is treated as OK because default restoration follows the Storage remove + metadata-clear path.
+- `oversize_rejected=true`.
+- `unsupported_type_rejected=true`.
+- `comment_avatar_visible=not_checked`; a safe existing session-detail comment target was not opened in this gate, so live comment avatar display remains a follow-up browser QA item.
+- No SQL Editor execution, DB/Auth/RLS change, Storage bucket change, Supabase Dashboard change, Edge deploy, Discord operation, dry_run=false, API key/secret/token handling, or `updates.json` change was performed in this QA recording batch.
+- No real user id, avatar object path, signed URL, email, JWT, token, project ref, full URL, Discord id, or Webhook value was recorded.

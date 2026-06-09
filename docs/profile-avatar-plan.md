@@ -114,6 +114,24 @@ Status: frontend wiring is implemented; real upload/delete QA is still a separat
 - mypage/session-detail cache-bust values were updated so the frontend change can be served with the new CSS and JS.
 - No real avatar upload, deletion, signed URL recording, or real object path recording was performed in this implementation batch.
 
+## Real Upload QA
+
+Status: partial public-site QA completed from the logged-in mypage UI; comment-page visual confirmation remains a follow-up check.
+
+- The public mypage was refreshed after the avatar frontend cache-bust was available.
+- No pre-existing avatar was detected before the test, so the QA did not overwrite a user-configured icon.
+- A generated png image under the size limit was selected through the avatar file input and submitted through the existing upload UI handler.
+- `upload_success=true`.
+- `preview_updated=true`.
+- The delete action was executed through the existing delete UI handler; the preview returned to the default avatar state.
+- `delete_success=true`.
+- `default_restored=true`.
+- The delete flow is treated as OK because returning to the default state requires the delete handler to complete its Storage remove + metadata-clear path.
+- `oversize_rejected=true`.
+- `unsupported_type_rejected=true`.
+- `comment_avatar_visible=not_checked`: no safe existing comment-detail target was opened during this gate, so the live comment avatar display remains a follow-up browser check.
+- No real user id, avatar object path, signed URL, email, JWT, token, project ref, full URL, or Storage internal value was recorded.
+
 ## MVP QA Checklist
 
 - User can upload a png/jpeg/webp icon within the size limit.
