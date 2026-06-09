@@ -334,6 +334,21 @@ dry-run invoke認証修正結果:
 - レスポンスnoteで「DB mutationなし、Discord requestなし」のplanned-only挙動を確認した。
 - このゲートではDiscord投稿、`dry_run=false`、secret/env設定または変更、cron設定、SQL Editor実行、DB/RPC/RLS変更は行っていない。
 
+secret/env設定 + post-secret dry-run確認結果:
+
+- Edge Function `dispatch-admin-cap-announcements` に必要なsecret/env設定ゲートを実施した。
+- 設定したsecret/env名は `DISCORD_WEBHOOK_CAP_ANNOUNCEMENT` と `ADMIN_CAP_ANNOUNCEMENT_DISPATCH_TOKEN`。
+- `ADMIN_CAP_ANNOUNCEMENT_DISPATCH_TOKEN` はCodex側で強いランダム値として生成し、実値はdocs、console、git差分、チャットへ記録していない。
+- `DISCORD_WEBHOOK_CAP_ANNOUNCEMENT` はユーザーが用意したWebhook URLを設定したが、実値はdocs、console、git差分、チャットへ記録していない。
+- `ADMIN_CAP_ANNOUNCEMENT_REAL_SEND_ENABLED='true'` は設定していない。
+- secret/env設定後もpayloadは `dry_run=true` と小さい `batch_limit` のみでinvokeした。
+- HTTP statusは200。
+- レスポンスは `ok=true`、`dry_run=true`、`planned_only=true`。
+- `target_channel_mapping` に `cap_announcement` があり、Webhook URL実値は含まれていないことを確認した。
+- `delivery_policy` に `none` / `everyone` があることを確認した。
+- dry-runレスポンスnoteでDB mutationなし、Discord requestなしを確認した。
+- このゲートではDiscord投稿、`dry_run=false`、real-send有効化、cron設定、SQL Editor実行、DB/RPC/RLS変更、Edge Function redeployは行っていない。
+
 ## cron案
 
 - 1分間隔でEdge Functionを起動する案を第一候補にする。
@@ -346,15 +361,16 @@ deploy後も別ゲートに残す危険工程:
 
 - SQL Editor実行。
 - DB/RPC/RLS変更の実適用。
-- Edge Function invoke。
 - Discord投稿。
-- secret設定/変更。
+- `dry_run=false` 実行。
+- real-send有効化。
+- cron設定。
+- 追加のsecret設定/変更。
 - Webhook URLの記録。
 - JWT、Supabase URL全文、Discord ID、token類の記録。
-- `dry_run=false` 実行。
 
 次に必要なゲート:
 
-1. dry-run invoke認証修正ゲートは完了済みとして扱う。
-2. 次はsecret/env設定ゲートへ進む。
-3. Discord投稿、`dry_run=false`、cron設定は、それぞれ独立した明示ゲートで扱う。
+1. secret/env設定 + post-secret dry-run確認ゲートは完了済みとして扱う。
+2. 次はreal-send test投稿ゲートへ進む。
+3. Discord投稿、`dry_run=false`、real-send有効化、cron設定は、それぞれ独立した明示ゲートで扱う。
