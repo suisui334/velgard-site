@@ -5207,3 +5207,52 @@ Next gate:
 
 - real-send test posting gate.
 - `dry_run=false`, real-send enablement, Discord posting, and cron setup remain blocked until a separate explicit gate.
+
+## M-14E-27J admin cap announcement real-send test post
+
+Status: real-send test posting gate completed for one admin-created test announcement. No cron setting, SQL Editor execution, DB/RPC/RLS change, production announcement text posting, mention_mode=everyone posting, @everyone notification, multiple-row posting, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, `updates.json` change, `deno.lock` change, or retained `supabase/.temp` change was performed.
+
+Prerequisite state recorded:
+
+- Starting commit for this gate was `742bf91 Record admin cap dispatcher secrets dry-run`.
+- Before the actual send, the dispatcher was reviewed and patched so a successful Discord webhook response can provide a message id.
+- The dispatcher now calls the webhook with wait semantics, passes the received message id to `finalize_admin_discord_announcement`, and returns only `discord_message_id_saved` as a boolean.
+- That dispatcher patch was deployed and committed as `7520369 Capture Discord message id in cap dispatcher`.
+- User confirmed the admin page had exactly one target scheduled announcement before real-send invoke.
+- The target was the test title `【テスト】キャップ更新告知 real-send確認`, `target_channel_key=cap_announcement`, `mention_mode=none`, and a scheduled time in the past.
+- User confirmed no other scheduled announcement was a target.
+
+Real-send enablement:
+
+- Set `ADMIN_CAP_ANNOUNCEMENT_REAL_SEND_ENABLED='true'`.
+- Regenerated and reset `ADMIN_CAP_ANNOUNCEMENT_DISPATCH_TOKEN` in-memory for this invoke because the previous value was intentionally not recorded.
+- Secret values were not printed, recorded in docs, recorded in chat, or committed to git.
+- `DISCORD_WEBHOOK_CAP_ANNOUNCEMENT` was not changed in this gate.
+
+Invoke result:
+
+- Payload was exactly real-send test semantics: `dry_run=false` and `batch_limit=1`.
+- HTTP status was 200.
+- `ok=true`.
+- `dry_run=false`.
+- `claimed_count=1`.
+- `result_count=1`.
+- The single result had `target_channel_key=cap_announcement`.
+- The single result had `delivery_status=posted`.
+- The single result had `delivery_error_code=null`.
+- The single result had `db_finalize=ok`.
+- The single result had `discord_message_id_saved=true`.
+
+Safety result:
+
+- Exactly one announcement was claimed.
+- Exactly one Discord request was made by the dispatcher.
+- The DB finalize path completed and moved the target to `posted`.
+- Discord message id presence was confirmed by boolean only; the actual id was not printed or recorded.
+- `mention_mode=everyone`, @everyone notification, batch_limit 2 or higher, cron setup, SQL Editor execution, DB/RPC/RLS changes, and production announcement text posting were not performed.
+- Secret-like pattern scan on touched docs and the Edge Function draft found no Webhook URL, token/JWT, or full Supabase URL value.
+
+Next gate:
+
+- cron setup gate.
+- Production announcement operations, multiple-row dispatch behavior, and everyone notification remain separate explicit gates.

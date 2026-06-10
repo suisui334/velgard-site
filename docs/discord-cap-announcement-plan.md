@@ -349,6 +349,22 @@ secret/env設定 + post-secret dry-run確認結果:
 - dry-runレスポンスnoteでDB mutationなし、Discord requestなしを確認した。
 - このゲートではDiscord投稿、`dry_run=false`、real-send有効化、cron設定、SQL Editor実行、DB/RPC/RLS変更、Edge Function redeployは行っていない。
 
+real-send test投稿ゲート結果:
+
+- 実投稿前レビューで、Discord投稿成功時に `discord_message_id` をDBへ保存するにはWebhook呼び出しを `wait=true` にする必要があると確認した。
+- `dispatch-admin-cap-announcements` は、Discord webhook応答からmessage idを読み取り、`finalize_admin_discord_announcement` の `p_discord_message_id` へ渡すよう修正・deploy済み。
+- 実送信レスポンスにはDiscord message id実値を返さず、`discord_message_id_saved` のbooleanだけを返す設計にした。
+- admin画面で、ユーザー確認によりテスト用キャップ更新告知1件だけが投稿対象であることを確認した。
+- 対象は `target_channel_key=cap_announcement`、`mention_mode=none`、投稿予定日時は現在時刻より過去のテスト告知1件。
+- `ADMIN_CAP_ANNOUNCEMENT_REAL_SEND_ENABLED='true'` を設定した。
+- `ADMIN_CAP_ANNOUNCEMENT_DISPATCH_TOKEN` は実送信invoke用にCodex側で強いランダム値として再生成・再設定し、実値はdocs、console、git差分、チャットへ記録していない。
+- Webhook URL、JWT、Supabase URL全文、Discord ID、token類の実値は記録していない。
+- invoke payloadは `dry_run=false` と `batch_limit=1` のみ。
+- HTTP statusは200。
+- レスポンスは `ok=true`、`dry_run=false`、`claimed_count=1`、`result_count=1`。
+- 1件の結果は `delivery_status=posted`、`db_finalize=ok`、`discord_message_id_saved=true`、`delivery_error_code=null`。
+- `mention_mode=everyone`、`@everyone`、batch_limit 2以上、cron設定、本番告知文投稿、複数件投稿、SQL Editor実行、DB/RPC/RLS変更は行っていない。
+
 ## cron案
 
 - 1分間隔でEdge Functionを起動する案を第一候補にする。
@@ -361,16 +377,16 @@ deploy後も別ゲートに残す危険工程:
 
 - SQL Editor実行。
 - DB/RPC/RLS変更の実適用。
-- Discord投稿。
-- `dry_run=false` 実行。
-- real-send有効化。
 - cron設定。
 - 追加のsecret設定/変更。
+- 本番告知文の投稿。
+- 複数件投稿。
+- `mention_mode=everyone` または `@everyone` 通知。
 - Webhook URLの記録。
 - JWT、Supabase URL全文、Discord ID、token類の記録。
 
 次に必要なゲート:
 
-1. secret/env設定 + post-secret dry-run確認ゲートは完了済みとして扱う。
-2. 次はreal-send test投稿ゲートへ進む。
-3. Discord投稿、`dry_run=false`、real-send有効化、cron設定は、それぞれ独立した明示ゲートで扱う。
+1. real-send test投稿ゲートは完了済みとして扱う。
+2. 次はcron設定ゲートへ進む。
+3. cron設定、本番告知運用、複数件送信、everyone通知は、それぞれ独立した明示ゲートで扱う。
