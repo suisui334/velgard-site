@@ -19,6 +19,7 @@ import { renderTools } from "./renderTools.js?v=20260529-calendar-date-tools-his
 import { renderCalendar } from "./renderCalendar.js?v=20260608-calendar-grid-fix";
 import { renderMypage } from "./renderMypage.js?v=20260605-user-name-ui";
 import { renderAdminCapAnnouncements } from "./renderAdminCapAnnouncements.js?v=20260610-admin-cap-rpc-ui-fix";
+import { initNotificationBell } from "./notificationBellClient.js?v=20260611-notification-bell";
 
 const navItems = [
   { label: "TOP", href: "index.html", key: "home", enabled: true },
@@ -168,6 +169,7 @@ async function init() {
   const page = document.body.dataset.page;
   applyTheme(site);
   renderHeader(site, page);
+  void initNotificationBell();
   renderFooter(site);
   setupBackToTopButton();
   await renderers[page](document.querySelector("#app"), site);

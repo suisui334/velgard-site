@@ -5844,3 +5844,33 @@ Next gate:
 
 - Proceed to notification bell / notification list frontend design and implementation.
 - Comment/application RPC instrumentation should be reviewed separately before enabling actual notification creation.
+
+## M-14F-3 notification bell frontend MVP
+
+Status: frontend notification bell MVP implemented.
+
+Implemented scope:
+
+- Added a logged-in-only notification bell near the shared ACCOUNT navigation.
+- Added unread-count badge display using the current-user unread-count RPC.
+- Added a compact notification dropdown using the current-user notification list RPC.
+- Added empty-state and non-blocking error-state display for the dropdown.
+- Added notification click navigation to the RPC-provided relative target path.
+- Added individual read action through `mark_my_notification_read(...)`.
+- Added "mark all read" through `mark_all_my_notifications_read()`.
+- Loaded runtime Supabase config on all HTML pages so the shared header can hydrate the bell outside mypage as well.
+- Kept mypage login/logout behavior connected to the header notification refresh/reset path.
+
+Safety:
+
+- No SQL Editor execution, DB/RPC/RLS additional change, SQL apply, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, or secret/API key/token recording was performed.
+- No direct frontend `.insert/.update/.delete/.upsert` write to `user_notifications` or other Supabase tables was added.
+- No real user id, email, notification id, session id, full URL, project ref, JWT, token, or secret was recorded.
+
+Remaining QA and later work:
+
+- Real notification generation QA remains a later gate because comment/application RPC instrumentation is separate.
+- Verify logged-in bell visibility, unread count, dropdown open/close, empty state, mark-one-read, and mark-all-read against real notification rows.
+- Verify anonymous users do not see an active notification bell.
+- Activity timeline page remains unimplemented and is reserved for a later task.
+- Email notification and Discord notification remain separate future gates.

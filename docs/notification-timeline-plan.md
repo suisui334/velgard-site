@@ -129,6 +129,18 @@ Add a logged-in-only notification bell near ACCOUNT/logout:
 - If unauthenticated, show no bell or a disabled zero state.
 - Keep the bell independent from Discord notifications.
 
+Implementation status:
+
+- Added a shared header notification bell module.
+- Runtime Supabase config is loaded on every HTML page so the shared header can detect an authenticated session outside mypage as well.
+- The bell is shown only when a Supabase session exists.
+- Unread count is loaded through `get_my_unread_notification_count()`.
+- The dropdown list is loaded through `get_my_notifications(...)`.
+- Individual read state uses `mark_my_notification_read(...)`.
+- Bulk read state uses `mark_all_my_notifications_read()`.
+- No direct frontend write to `user_notifications` was added.
+- No real notification id, user id, session id, email, full URL, project ref, token, or secret was recorded.
+
 ### Notification List
 
 The first UI can be a lightweight dropdown or mypage details section:
@@ -216,6 +228,10 @@ After an approved apply and frontend implementation:
 - Other users cannot read the notification.
 - Public timeline does not expose private notification contents.
 - Email and Discord sending remain untouched unless later gates explicitly enable them.
+- Header bell UI appears for logged-in users and stays hidden for anonymous users.
+- Empty notification state shows a compact "no notifications" message.
+- Notification list click opens the relative target path returned by the RPC.
+- Real notification generation and mark-read QA remain a later gate.
 
 ## Non-Goals for This Batch
 
@@ -224,5 +240,5 @@ After an approved apply and frontend implementation:
 - Edge Function deploy.
 - Email sending.
 - Discord sending.
-- Header/frontend implementation.
+- Activity timeline page implementation.
 - Any recording of real email, user id, token, project ref, secret, or full external URL.

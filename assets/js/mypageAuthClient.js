@@ -1321,6 +1321,7 @@
   function renderAnonymous(client, elements, message, mode = "login", options = {}) {
     ensureAuthElements(elements);
     removeNavLogoutButton();
+    resetHeaderNotifications();
     const isResetMode = mode === "reset";
     setStatus(
       elements,
@@ -3290,6 +3291,14 @@
     document.querySelector("[data-mypage-nav-logout]")?.remove();
   }
 
+  function refreshHeaderNotifications() {
+    window.VelgardNotifications?.refresh?.();
+  }
+
+  function resetHeaderNotifications() {
+    window.VelgardNotifications?.reset?.();
+  }
+
   function renderNavLogoutButton(client, elements) {
     removeNavLogoutButton();
     const accountLink = document.querySelector(".account-nav__link");
@@ -3341,6 +3350,7 @@
   function renderAuthenticated(client, elements, message, session) {
     ensureAuthElements(elements);
     renderNavLogoutButton(client, elements);
+    refreshHeaderNotifications();
     setStatus(
       elements,
       "ログイン済みです。",
@@ -3396,6 +3406,7 @@
   function renderPasswordChangeForm(client, elements, message) {
     ensureAuthElements(elements);
     renderNavLogoutButton(client, elements);
+    refreshHeaderNotifications();
     setStatus(
       elements,
       "ログイン済みです。",
@@ -3688,6 +3699,7 @@
       }
 
       removeNavLogoutButton();
+      resetHeaderNotifications();
       renderAnonymous(client, elements);
     } catch (error) {
       setMessage(elements, "ログアウトに失敗しました。時間を置いて再度お試しください。");
