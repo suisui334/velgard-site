@@ -5956,3 +5956,41 @@ Next gate:
 - Review `059_notifications_instrument_session_events_apply_draft.sql` before any SQL Editor apply.
 - If approved, run 059 once in a separate SQL apply gate, then run 060 once as a SELECT-only confirmation gate.
 - Re-run real notification generation QA only after 060 reports `post_apply_ready_for_notification_generation_qa=true`.
+
+## M-14F-6 notification instrumentation apply confirmation
+
+Status: comment/application notification instrumentation apply and SELECT-only confirmation completed by the user.
+
+Apply result:
+
+- `059_notifications_instrument_session_events_apply_draft.sql` was run once by the user in Supabase SQL Editor.
+- Apply succeeded.
+- Codex did not run SQL Editor and did not perform DB/RPC/RLS changes directly.
+
+Post-apply SELECT-only confirmation:
+
+- `060_notifications_instrument_post_apply_select_only.sql` was run once by the user.
+- SELECT-only confirmation returned OK.
+- `create_application_comment(text,text)` signature is preserved.
+- `security definer` is OK.
+- `search_path=public` is OK.
+- authenticated execute is OK.
+- anon execute is not allowed.
+- `create_session_owner_notification(...)` helper call is present.
+- Application notification type is present.
+- Comment notification type is present.
+- Relative target path is used.
+- Actor is passed to the helper.
+- Helper direct execution by web clients remains unavailable.
+- Application status notifications remain future scope.
+- `post_apply_ready_for_notification_generation_qa=true`.
+
+Safety:
+
+- No additional SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, secret/API key/token recording, or real notification generation QA was performed in this recording step.
+- No real user id, session id, notification id, email, JWT, token, full URL, project ref, or internal id value was recorded.
+
+Next gate:
+
+- Proceed to real comment/application notification generation QA.
+- Verify owner/GM notification creation, unread count, notification list, detail navigation, individual read, mark-all-read, and other-user isolation.

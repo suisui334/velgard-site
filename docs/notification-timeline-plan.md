@@ -296,6 +296,35 @@ Security policy:
 
 This preparation does not execute SQL, apply DB/RPC/RLS changes, send email, send Discord messages, or deploy Edge Functions.
 
+## Comment/Application Instrumentation Apply Confirmation
+
+The comment/application notification instrumentation was applied and confirmed after a separate SQL Editor gate:
+
+- `059_notifications_instrument_session_events_apply_draft.sql` was run once by the user in Supabase SQL Editor.
+- Apply succeeded.
+- `060_notifications_instrument_post_apply_select_only.sql` was run once as a SELECT-only confirmation.
+- SELECT-only confirmation returned OK.
+- `create_application_comment(text,text)` signature is preserved.
+- The RPC remains `security definer`.
+- The RPC has `search_path=public`.
+- authenticated can execute the RPC.
+- anon cannot execute the RPC.
+- The RPC calls `create_session_owner_notification(...)`.
+- Both `session_application` and `session_comment` notification paths are present.
+- Notification targets use a relative in-site target path.
+- The actor is passed to the helper so self-notifications can be skipped.
+- The helper remains unavailable for direct web-client execution.
+- Application status notifications remain a future gate.
+- `post_apply_ready_for_notification_generation_qa=true`.
+
+No additional SQL Editor execution, DB/RPC/RLS change beyond the approved 059 apply, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, secret/API key/token recording, or real notification generation QA was performed in this documentation step.
+
+Next gate:
+
+- Run real comment/application notification generation QA.
+- Confirm owner/GM unread count, notification list display, notification click navigation, individual read, mark-all-read, and cross-user isolation.
+- Do not record real user ids, notification ids, session ids, emails, JWTs, tokens, project refs, or full URLs.
+
 ## Non-Goals for This Batch
 
 - SQL Editor execution.
