@@ -5806,3 +5806,41 @@ Next gates:
 - If approved and applied, run `058` once as a SELECT-only confirmation.
 - After schema confirmation, implement the header bell/list UI and review the exact comment/application RPC instrumentation separately.
 - Implement the activity timeline page or mypage section after notification MVP behavior is confirmed.
+
+## M-14F-2 notifications and activity timeline schema apply confirmation
+
+Status: notification/timeline DB/RPC/RLS foundation apply and SELECT-only confirmation completed by the user.
+
+Apply result:
+
+- `057_notifications_schema_apply_draft.sql` was run once by the user in Supabase SQL Editor.
+- Apply succeeded.
+- Codex did not run SQL Editor and did not perform DB/RPC/RLS changes directly.
+
+Post-apply SELECT-only confirmation:
+
+- `058_notifications_post_apply_select_only.sql` was run once by the user.
+- SELECT-only confirmation returned OK.
+- `user_notifications` table exists.
+- `user_notifications` RLS is enabled.
+- Notification policies and constraints are OK.
+- `activity_events` table exists.
+- `activity_events` RLS is enabled.
+- Activity policies and constraints are OK.
+- Notification list/count/mark-read RPCs exist.
+- Timeline/activity helper and read RPCs exist.
+- Security definer functions have `search_path=public`.
+- Notification RPCs are executable by authenticated users and not by anon.
+- Internal helper RPCs are not directly executable by web client roles.
+- Timeline read RPC is executable by anon/authenticated.
+- `post_apply_ready_for_notification_frontend_design=true`.
+
+Safety:
+
+- No additional SQL Editor execution, DB/RPC/RLS change, SQL apply, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, secret/API key/token recording, or frontend implementation was performed in this recording step.
+- No real user id, email, JWT, token, full URL, project ref, or internal id value was recorded.
+
+Next gate:
+
+- Proceed to notification bell / notification list frontend design and implementation.
+- Comment/application RPC instrumentation should be reviewed separately before enabling actual notification creation.

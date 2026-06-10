@@ -181,9 +181,27 @@ Prepared candidates:
 - `docs/supabase/sql/057_notifications_schema_apply_draft.sql`
 - `docs/supabase/sql/058_notifications_post_apply_select_only.sql`
 
-`057` is an apply draft only and must not be run without a separate SQL Editor approval gate.
+`057` was applied once by the user in Supabase SQL Editor after a separate approval gate.
 
-`058` is SELECT-only and is intended for a separate post-apply confirmation gate.
+`058` was run once as the post-apply SELECT-only confirmation and returned OK for the notification/timeline foundation.
+
+Post-apply confirmation summary:
+
+- `user_notifications` table exists.
+- `user_notifications` RLS is enabled.
+- Notification policies and constraints are OK.
+- `activity_events` table exists.
+- `activity_events` RLS is enabled.
+- Activity policies and constraints are OK.
+- Notification list/count/mark-read RPCs exist.
+- Timeline/activity helper and read RPCs exist.
+- Security definer functions have `search_path=public`.
+- Notification RPCs are executable by authenticated users and not by anon.
+- Internal helper RPCs are not directly executable by web client roles.
+- Timeline read RPC is executable by anon/authenticated and filters visibility internally.
+- `post_apply_ready_for_notification_frontend_design=true`.
+
+No real user id, email, token, project ref, full URL, secret, or internal identifier value was recorded.
 
 ## QA Checklist
 
