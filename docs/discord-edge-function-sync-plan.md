@@ -4062,3 +4062,24 @@ Deploy attempt for `a530ca3 Fix Discord session link absolute URL` did not reach
 - Project ref, Webhook value, token, full session URL, session id, Discord message id, and Discord channel id were not recorded.
 
 Next gate: run a fresh deploy gate with the server-side bundle option if Docker is unavailable, then perform create/update `dry_run=true` checks for `session_url_is_absolute=true`, URL-line presence, and `flags=4`.
+
+## M-14E-24E use-api deploy result
+
+`sync-session-post-to-discord` was deployed once with the Supabase CLI server-side bundle option.
+
+Deploy result:
+
+- Deploy succeeded.
+- The deployed function includes the absolute session-detail URL generation for the final `依頼書URL【 ... 】` line.
+- The deployed function preserves webhook payload `flags: 4` for Discord embed suppression.
+- Project ref and Dashboard URL output were redacted and not recorded.
+- Generated `supabase/.temp` output was removed and not committed.
+
+Not performed in this gate:
+
+- create/update `dry_run=true` verification.
+- `dry_run=false`.
+- Discord post/edit/delete.
+- SQL Editor execution, DB/RPC/RLS change, SQL apply, secret change, or Webhook change.
+
+Next gate: create/update `dry_run=true` preview verification with boolean/status-only recording for `session_url_is_absolute=true`, URL-line presence, and `flags=4`.
