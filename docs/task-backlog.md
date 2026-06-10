@@ -5754,3 +5754,55 @@ Scope:
 Safety:
 
 - No full session URL, session id, Webhook URL, token, project ref, Discord message id, Discord channel id, or full Discord body/message preview was recorded.
+
+## M-14F-1 notifications and activity timeline non-destructive design
+
+Status: non-destructive design and SQL draft preparation completed for in-site notifications and an activity timeline.
+
+Current flow reviewed:
+
+- Session comments and participation applications currently flow through `create_application_comment`.
+- GM application status changes flow through `set_application_status`.
+- Session comment display flows through `get_public_session_comments`.
+- Session create/update flows through `create_session_post` / `update_session_post`.
+- The shared header is rendered from `assets/js/main.js`, with logged-in ACCOUNT/logout behavior currently augmented from mypage auth code.
+
+Design result:
+
+- The MVP should start with site-internal notifications, not email or Discord.
+- Initial notification target is the owner/GM of a session when another user comments/applies to that session.
+- Notifications should have unread/read state through `read_at`.
+- A logged-in-only header bell can later show unread count and a compact notification list.
+- Notification click targets should open the related session detail page.
+- Email notification remains a future explicit gate even though Custom SMTP is available.
+- Discord notification remains a separate system and should not be coupled to the site notification MVP.
+
+DB design:
+
+- `user_notifications` is the first-choice private notification table.
+- `activity_events` is a separate timeline table with explicit visibility.
+- Keeping notifications and timeline separate avoids exposing private recipient notifications through a public feed.
+- Notification rows should be readable only by the recipient, with admin access considered only for operational diagnostics.
+- Direct table mutation grants are avoided; mark-read is planned through RPCs so notification title/body/target fields are not editable by clients.
+- Timeline rows should distinguish `public`, `authenticated`, and future `private` visibility.
+
+Draft files:
+
+- Added `docs/notification-timeline-plan.md`.
+- Added `docs/supabase/sql/057_notifications_schema_apply_draft.sql`.
+- Added `docs/supabase/sql/058_notifications_post_apply_select_only.sql`.
+
+Safety:
+
+- `057` is an apply draft only and remains `DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED`.
+- `058` is SELECT-only and is intended for a later post-apply confirmation gate.
+- Existing comment/application/session RPC replacement was not performed in this batch.
+- SQL Editor execution, SQL apply, DB/RPC/RLS change, Edge Function deploy, email sending, Discord sending, Dashboard/secret change, and frontend implementation were not performed.
+- No real user id, email, token, project ref, full URL, Webhook URL, Discord id, or secret was recorded.
+
+Next gates:
+
+- Review `057` before any SQL Editor apply.
+- If approved and applied, run `058` once as a SELECT-only confirmation.
+- After schema confirmation, implement the header bell/list UI and review the exact comment/application RPC instrumentation separately.
+- Implement the activity timeline page or mypage section after notification MVP behavior is confirmed.

@@ -1,0 +1,210 @@
+# Notification and Activity Timeline Plan
+
+## Purpose
+
+This plan prepares a non-destructive design for in-site notifications and an activity timeline. It does not apply SQL, change DB/RPC/RLS, deploy Edge Functions, send email, or send Discord messages.
+
+The first MVP should focus on site-internal notifications. Email notifications can be added later because Custom SMTP is available, but mail delivery should remain a separate gate.
+
+## Current Data Flow
+
+- Session creation and editing use `create_session_post` / `update_session_post`.
+- Session comments and participation applications use `create_application_comment`.
+- GM application status changes use `set_application_status`.
+- Session detail comment display uses `get_public_session_comments`.
+- The global header is rendered from `assets/js/main.js`; logged-in mypage behavior currently augments ACCOUNT/logout from `assets/js/mypageAuthClient.js`.
+- Public display identity is based on `profiles.display_name` through public-facing views/RPCs. Raw auth identifiers and email values should not be exposed.
+
+## MVP Scope
+
+The recommended MVP is a private `user_notifications` table plus read/mark-read RPCs:
+
+- Notify the owner/GM when a logged-in user comments or applies to their session.
+- Do not notify a GM about their own comment/application.
+- Store unread/read state with `read_at`.
+- Show a bell icon in the site header for logged-in users.
+- Show an unread count badge.
+- Open a compact notification list from the bell.
+- Clicking a notification opens the related session detail page.
+- Mark one notification as read and optionally mark all as read.
+
+The notification text should avoid raw internal identifiers. UI links may use the existing session detail route, but docs, logs, and QA notes must not record concrete ids or full URLs.
+
+## Activity Timeline Scope
+
+The timeline is related but not identical to private notifications. The safer design is a separate `activity_events` table:
+
+- `user_notifications` is private and recipient-specific.
+- `activity_events` is a feed of events with explicit `visibility`.
+- Public events can be shown to anyone.
+- Authenticated-only events can be shown only to logged-in users.
+- Private notification state should not be inferred from the public timeline.
+
+This separation avoids accidentally exposing another user's private notifications through a public timeline.
+
+## DB Design Candidate
+
+### `user_notifications`
+
+Candidate fields:
+
+- `id`
+- `recipient_user_id`
+- `actor_user_id`
+- `session_id`
+- `notification_type`
+- `title`
+- `body`
+- `target_path`
+- `metadata`
+- `read_at`
+- `created_at`
+
+Recommended notification types for MVP:
+
+- `session_comment`
+- `session_application`
+- `application_status_changed`
+
+Future types:
+
+- `session_created`
+- `session_updated`
+- `session_comment_updated`
+
+### `activity_events`
+
+Candidate fields:
+
+- `id`
+- `actor_user_id`
+- `session_id`
+- `event_type`
+- `visibility`
+- `title`
+- `body`
+- `target_path`
+- `metadata`
+- `created_at`
+
+Recommended visibility values:
+
+- `public`
+- `authenticated`
+- `private`
+
+For MVP, timeline writes can be limited to session creation and public comments/applications after a separate review. Private notification delivery should not depend on public timeline visibility.
+
+## RLS and RPC Policy
+
+Notification rows must be recipient-only:
+
+- A recipient can read their own notifications.
+- A recipient can mark their own notifications read.
+- Other users cannot read or mutate them.
+- Admin access can be considered for operational diagnostics, but should not be required for MVP UI.
+
+The safer first implementation is RPC-first:
+
+- No direct table mutation grants to web clients.
+- Do not add a direct table update policy for mark-read; use RPCs so users cannot alter notification text or targets.
+- `get_my_notifications(...)`
+- `get_my_unread_notification_count()`
+- `mark_my_notification_read(...)`
+- `mark_all_my_notifications_read()`
+- Internal helper `create_session_owner_notification(...)` is called from existing RPCs later, not directly by clients.
+
+Timeline reads should go through a filtered RPC such as `get_activity_timeline(...)` so public/authenticated visibility is enforced in one place.
+
+All `security definer` functions should pin `search_path = public`, following the current project convention.
+
+## Frontend Integration Plan
+
+### Header Bell
+
+Add a logged-in-only notification bell near ACCOUNT/logout:
+
+- Reuse the existing header area rendered by `main.js`.
+- Let the auth-aware mypage/client-side code hydrate count and list when a Supabase session exists.
+- If unauthenticated, show no bell or a disabled zero state.
+- Keep the bell independent from Discord notifications.
+
+### Notification List
+
+The first UI can be a lightweight dropdown or mypage details section:
+
+- Show unread first.
+- Show recent notifications with title, short body, created time, and link.
+- Provide "mark as read" and "mark all as read".
+- Avoid displaying raw ids, emails, tokens, or full external URLs.
+
+### Timeline Page
+
+Future page candidate:
+
+- `timeline.html` or a mypage subsection.
+- Public mode can show only public activity.
+- Logged-in mode can include authenticated-only activity.
+- Private notifications should remain in the notification UI, not mixed into public timeline rows.
+
+## Existing RPC Instrumentation Plan
+
+Do not patch existing comment/application/session RPCs in the first schema apply unless the live definitions have been reviewed immediately before apply.
+
+Suggested later instrumentation:
+
+- `create_application_comment`
+  - Insert comment/application as today.
+  - Call `create_session_owner_notification(...)`.
+  - Optionally call `record_activity_event(...)`.
+- `set_application_status`
+  - Notify the applicant when status changes, if desired in a later phase.
+- `create_session_post`
+  - Record a public or authenticated activity event.
+- `update_session_post`
+  - Record an activity event only if useful; avoid noisy updates at first.
+
+## Email Notification Future
+
+Email notification should remain a later explicit gate:
+
+- Custom SMTP is available through Resend.
+- Do not send email during notification schema/frontend MVP.
+- Add per-user notification preferences before enabling mail.
+- Email content must not include private identifiers or secrets.
+- Rate limiting and unsubscribe/preference UX should be considered before launch.
+
+## SQL Drafts
+
+Prepared candidates:
+
+- `docs/supabase/sql/057_notifications_schema_apply_draft.sql`
+- `docs/supabase/sql/058_notifications_post_apply_select_only.sql`
+
+`057` is an apply draft only and must not be run without a separate SQL Editor approval gate.
+
+`058` is SELECT-only and is intended for a separate post-apply confirmation gate.
+
+## QA Checklist
+
+After an approved apply and frontend implementation:
+
+- A comment/application on an owned session creates one notification for the owner.
+- A user's own comment/application does not notify themselves.
+- Unread count increments.
+- Bell opens recent notification list.
+- Notification click opens the related session detail page.
+- Mark-read updates the count.
+- Other users cannot read the notification.
+- Public timeline does not expose private notification contents.
+- Email and Discord sending remain untouched unless later gates explicitly enable them.
+
+## Non-Goals for This Batch
+
+- SQL Editor execution.
+- DB/RPC/RLS mutation.
+- Edge Function deploy.
+- Email sending.
+- Discord sending.
+- Header/frontend implementation.
+- Any recording of real email, user id, token, project ref, secret, or full external URL.
