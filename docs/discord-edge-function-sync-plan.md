@@ -4028,3 +4028,24 @@ Not performed:
 - SQL Editor execution, DB/RPC/RLS change, SQL apply, secret change, or Webhook change.
 
 Next gate: real Discord create/update QA, with no full URL, session id, Webhook value, token, project ref, Discord message id, Discord channel id, or full message preview recorded.
+
+## M-14E-24C absolute session URL fix
+
+Manual update confirmation found that the final `依頼書URL【 ... 】` line existed but used a relative `session-detail.html?id=...` style path. Discord therefore did not make it a clickable link. Embed suppression with `flags: 4` remains the correct policy and is unchanged.
+
+Source fix:
+
+- The message builder now receives a resolved public-site base URL before generating the session detail URL.
+- Resolution order is configured public-site base URL, sanitized frontend-provided public-site base URL, then sanitized browser referrer-derived base URL.
+- Frontend auto-sync sends the current public-site base URL in the Edge Function payload.
+- The URL line remains redacted in dry-run response output, while `webhook_payload_preview.session_url_is_absolute` allows boolean/status-only verification.
+- `flags: 4`, `allowed_mentions`, and `discord_mention_mode` are unchanged.
+
+Scope and gates:
+
+- New create and existing update paths share the same absolute URL builder after deploy.
+- Existing posted requests can be refreshed by owner/GM/admin edit-save when the normal update sync guard accepts them and a Discord post reference is saved.
+- Requests without a saved Discord post reference, Discord-deleted messages, broken sync states, and Discord-only remnants remain out of scope.
+- This source-preparation gate did not deploy, run dry-run, send/edit/delete Discord messages, change SQL/DB/RPC/RLS, or change secrets.
+- Next gates are Edge Function deploy, create/update `dry_run=true` preview with `session_url_is_absolute=true`, and later manual Discord update confirmation.
+- Full session URLs, session ids, Webhook values, tokens, project refs, Discord message ids, Discord channel ids, and full message previews must not be recorded.

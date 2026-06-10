@@ -31,6 +31,7 @@ interface ValidPayload {
   dryRun: boolean;
   requestSource: string | null;
   discordMentionMode: DiscordMentionMode;
+  publicSiteBaseUrl: string;
 }
 
 interface SessionRow {
@@ -333,7 +334,13 @@ Deno.serve(async (request: Request) => {
     });
   }
 
-  const messagePreview = buildMessagePreview(session, payload.value.action, payload.value.discordMentionMode);
+  const publicSiteBaseUrl = resolvePublicSiteBaseUrl(payload.value.publicSiteBaseUrl, request);
+  const messagePreview = buildMessagePreview(
+    session,
+    payload.value.action,
+    payload.value.discordMentionMode,
+    publicSiteBaseUrl
+  );
 
   if (payload.value.dryRun) {
     return jsonOk({
@@ -510,6 +517,9 @@ function validatePayload(
   const requestSource = typeof value.request_source === "string"
     ? normalizeText(value.request_source, 40)
     : null;
+  const publicSiteBaseUrl = typeof value.public_site_base_url === "string"
+    ? normalizePublicSiteBaseUrl(value.public_site_base_url)
+    : "";
 
   return {
     ok: true,
@@ -518,7 +528,8 @@ function validatePayload(
       action: action as SyncAction,
       dryRun: readDryRunFlag(value),
       requestSource,
-      discordMentionMode: readDiscordMentionMode(value, action as SyncAction)
+      discordMentionMode: readDiscordMentionMode(value, action as SyncAction),
+      publicSiteBaseUrl
     }
   };
 }
@@ -723,6 +734,7 @@ function buildWebhookPayloadDryRunInfo(
     suppress_embeds: (payload.flags & DISCORD_SUPPRESS_EMBEDS_FLAG) === DISCORD_SUPPRESS_EMBEDS_FLAG,
     allowed_mentions_parse: payload.allowed_mentions.parse,
     content_has_session_url_line: hasSessionUrlLine(messagePreview),
+    session_url_is_absolute: hasAbsoluteSessionUrlLine(messagePreview),
     session_url_line: hasSessionUrlLine(messagePreview) ? SESSION_URL_LINE_REDACTED : "missing"
   };
 }
@@ -1474,7 +1486,8 @@ function buildWarnings(
 function buildMessagePreview(
   session: SessionRow,
   action: SyncAction,
-  mentionMode: DiscordMentionMode = "none"
+  mentionMode: DiscordMentionMode = "none",
+  publicSiteBaseUrl = ""
 ): string {
   const title = normalizeText(session.title, 120) || "タイトル未設定";
   const status = normalizeText(session.status, 40);
@@ -1483,7 +1496,7 @@ function buildMessagePreview(
   const summary = normalizeMultiline(session.summary, 1400) || "概要未設定";
   const titlePrefix = deletePrefix || closePrefix || "";
   const mentionLine = action === "create" && mentionMode === "everyone" ? "@everyone" : "";
-  const sessionUrlLine = buildSessionUrlLine(session.id);
+  const sessionUrlLine = buildSessionUrlLine(session.id, publicSiteBaseUrl);
 
   return [
     "＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝",
@@ -1504,13 +1517,13 @@ function buildMessagePreview(
   ].filter(Boolean).join("\n");
 }
 
-function buildSessionUrlLine(sessionId: string): string {
-  return `依頼書URL【 ${buildSessionDetailUrl(sessionId)} 】`;
+function buildSessionUrlLine(sessionId: string, publicSiteBaseUrl = ""): string {
+  return `依頼書URL【 ${buildSessionDetailUrl(sessionId, publicSiteBaseUrl)} 】`;
 }
 
-function buildSessionDetailUrl(sessionId: string): string {
+function buildSessionDetailUrl(sessionId: string, publicSiteBaseUrl = ""): string {
   const detailPath = `${SESSION_DETAIL_PAGE}?id=${encodeURIComponent(sessionId)}`;
-  const baseUrl = normalizePublicSiteBaseUrl(Deno.env.get(PUBLIC_SITE_BASE_URL_ENV));
+  const baseUrl = normalizePublicSiteBaseUrl(publicSiteBaseUrl);
   if (!baseUrl) {
     return detailPath;
   }
@@ -1519,6 +1532,34 @@ function buildSessionDetailUrl(sessionId: string): string {
     return new URL(detailPath, baseUrl).toString();
   } catch {
     return detailPath;
+  }
+}
+
+function resolvePublicSiteBaseUrl(payloadBaseUrl: string, request: Request): string {
+  return normalizePublicSiteBaseUrl(Deno.env.get(PUBLIC_SITE_BASE_URL_ENV))
+    || normalizePublicSiteBaseUrl(payloadBaseUrl)
+    || inferPublicSiteBaseUrlFromRequest(request);
+}
+
+function inferPublicSiteBaseUrlFromRequest(request: Request): string {
+  return inferPublicSiteBaseUrlFromPageUrl(request.headers.get("referer"))
+    || inferPublicSiteBaseUrlFromPageUrl(request.headers.get("referrer"));
+}
+
+function inferPublicSiteBaseUrlFromPageUrl(value: unknown): string {
+  const text = normalizeText(value, 2048);
+  if (!text) return "";
+
+  try {
+    const parsedUrl = new URL(text);
+    if (parsedUrl.protocol !== "https:") return "";
+    parsedUrl.hash = "";
+    parsedUrl.search = "";
+    parsedUrl.pathname = parsedUrl.pathname.replace(/[^/]*$/, "");
+    const normalized = parsedUrl.toString();
+    return normalized.endsWith("/") ? normalized : `${normalized}/`;
+  } catch {
+    return "";
   }
 }
 
@@ -1547,6 +1588,13 @@ function sanitizeMessagePreviewForDryRun(value: string): string {
 
 function hasSessionUrlLine(value: string): boolean {
   return value.split("\n").some((line) => line.startsWith(SESSION_URL_LINE_PREFIX));
+}
+
+function hasAbsoluteSessionUrlLine(value: string): boolean {
+  const httpsProtocolPrefix = "https:" + "//";
+  return value.split("\n").some((line) => (
+    line.startsWith(SESSION_URL_LINE_PREFIX) && line.includes(httpsProtocolPrefix)
+  ));
 }
 
 function buildPlannedDbUpdate(action: SyncAction, hasExternalPostReference: boolean) {

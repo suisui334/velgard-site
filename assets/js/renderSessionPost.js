@@ -15,7 +15,7 @@ import {
   hasDiscordPostReference,
   syncCreatedSession,
   syncUpdatedSession
-} from "./discordSyncClient.js?v=20260608-discord-mention-ui";
+} from "./discordSyncClient.js?v=20260610-discord-absolute-link";
 
 const ERROR_MESSAGE = "依頼書を投稿できませんでした。権限または入力内容を確認してください。";
 const END_BEFORE_START_MESSAGE = "終了日時は開始日時より後にしてください。";

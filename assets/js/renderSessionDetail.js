@@ -15,7 +15,7 @@ import {
   getDiscordSyncUiMessage,
   hasDiscordPostReference,
   syncUpdatedSession
-} from "./discordSyncClient.js?v=20260606-discord-auto-sync";
+} from "./discordSyncClient.js?v=20260610-discord-absolute-link";
 
 const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];

@@ -37,6 +37,15 @@ function getPayloadSessionId(payload) {
   return normalizeText(payload?.p_session_id ?? payload?.session_id);
 }
 
+function getPublicSiteBaseUrl() {
+  if (typeof window === "undefined" || !window.location?.href) return "";
+  try {
+    return new URL("./", window.location.href).toString();
+  } catch {
+    return "";
+  }
+}
+
 export function isPublicNonDraftPayload(payload) {
   return isPublicVisibility(payload?.p_visibility) && isNonDraftStatus(payload?.p_status);
 }
@@ -99,7 +108,8 @@ export async function runDiscordSessionSync(client, options) {
     session_id: sessionId,
     action,
     dry_run: false,
-    request_source: normalizeText(options?.requestSource) || "frontend_auto_sync"
+    request_source: normalizeText(options?.requestSource) || "frontend_auto_sync",
+    public_site_base_url: getPublicSiteBaseUrl()
   };
   const discordMentionMode = action === "create" ? normalizeDiscordMentionMode(options?.discordMentionMode) : "";
   if (discordMentionMode) {

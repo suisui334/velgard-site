@@ -5599,3 +5599,34 @@ Safety:
 
 - No concrete session URL, session id, Webhook URL, token, project ref, Discord message id, Discord channel id, or full message preview was recorded.
 - `dry_run=false` and real Discord QA remain separate explicit gates.
+
+## M-14E-24C Discord session URL absolute-link fix
+
+Status: source fix prepared. No Edge Function deploy, `dry_run=true`, `dry_run=false`, Discord post/edit/delete, SQL Editor execution, DB/RPC/RLS change, SQL apply, secret change, or Webhook change was performed.
+
+Problem:
+
+- Manual update confirmation showed the final `依頼書URL【 ... 】` line in existing Discord content.
+- The URL was generated as a relative `session-detail.html?id=...` style path, so Discord did not render it as a clickable link.
+- `flags: 4` embed suppression still behaved as intended and is preserved.
+
+Fix:
+
+- `sync-session-post-to-discord` now resolves a public-site base URL before building the session detail URL.
+- The resolver prefers the configured public-site base URL, then the sanitized frontend-provided public-site base URL, then a sanitized browser referrer-derived base URL.
+- Frontend auto-sync calls now include a public-site base URL derived from the current page location, so owner/admin edit-save update sync can generate an absolute session detail URL without changing secrets.
+- create and update continue to use the same message builder.
+- `webhook_payload_preview` now exposes `session_url_is_absolute` as a boolean/status check for future dry-run confirmation.
+- `flags: 4`, `allowed_mentions`, and `discord_mention_mode` behavior are unchanged.
+
+Scope:
+
+- Existing posted requests can receive the corrected clickable URL by owner/GM/admin edit-save only after this source is deployed and the normal update sync path runs.
+- Existing rows without a saved Discord post reference, Discord-deleted messages, broken sync states, and Discord-only remnants remain out of scope for this change.
+
+Next gates:
+
+- Deploy `sync-session-post-to-discord`.
+- Re-run create/update `dry_run=true` preview and record only booleans/status such as `url_line_present=true`, `url_is_absolute=true`, and `flags=4`.
+- Run manual update Discord confirmation in a separate gate.
+- Do not record full session URLs, session ids, Webhook URL, token, project ref, Discord message ids, Discord channel ids, or full message previews.
