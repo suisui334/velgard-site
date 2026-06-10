@@ -3967,3 +3967,23 @@ Next gates:
 - Deploy `sync-session-post-to-discord`.
 - Run create/update `dry_run=true` checks and record only booleans/status; do not record full URLs, session ids, Webhook values, tokens, project refs, Discord ids, or full message previews.
 - Run real Discord create/update QA only in a later explicit gate.
+
+## M-14E-24A deploy result
+
+`sync-session-post-to-discord` was deployed once with the `c76bda4 Add suppressed Discord session link` source.
+
+Deploy result:
+
+- Deploy succeeded.
+- The deployed function includes the final session detail URL line for Discord session-post content.
+- The deployed function includes webhook payload `flags: 4` for Discord embed suppression.
+- No concrete project ref, Webhook URL, token, full session URL, session id, Discord message id, or Discord channel id was recorded.
+
+Not performed in this gate:
+
+- create/update `dry_run=true` verification.
+- `dry_run=false`.
+- Discord post/edit/delete.
+- SQL Editor execution, DB/RPC/RLS change, SQL apply, secret change, or Webhook change.
+
+Next gate: create/update `dry_run=true` preview verification with boolean/status-only recording.
