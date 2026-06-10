@@ -397,6 +397,16 @@ Vault secret setupゲート結果:
 - Webhook URL、JWT、Supabase URL全文、Discord ID、token類、secret実値はdocs、console、git差分、チャットへ記録していない。
 - このゲートでは057再実行、058実行、cron設定SQL実行、Discord投稿、`dry_run=false`、Edge Function redeploy、DB/RPC/RLS変更は行っていない。
 
+cron SQL Apply確認結果:
+
+- ユーザー側SQL Editorで057 cron applyを再実行し、cron jobが作成された。
+- 058 SELECT-only確認では、cron job存在、active、schedule `* * * * *`、payload `dry_run=false`、`batch_limit=1`、authorization headers、Vault参照、no inline secretがOKだった。
+- 058の `function_target` のみ `review` で、`result_value` は `function=f,pg_net=t` だった。
+- この `function_target` reviewは、cron commandがFunction URL実値ではなくVault secret `ADMIN_CAP_ANNOUNCEMENT_FUNCTION_URL` を参照しているため、SELECT-only SQLが `dispatch-admin-cap-announcements` の文字列をcron command内に直接確認できないことによる想定内reviewとして扱う。
+- 実値を返さず、Vault secret `ADMIN_CAP_ANNOUNCEMENT_FUNCTION_URL` が `/functions/v1/dispatch-admin-cap-announcements` を指すことをboolean確認した。
+- Webhook URL、JWT、Supabase URL全文、Discord ID、token類、secret実値はdocs、console、git差分、チャットへ記録していない。
+- この確認では本番告知投稿、追加Discord投稿、`mention_mode=everyone`、`@everyone`、batch_limit 2以上、Edge Function redeploy、DB/RPC/RLS変更は行っていない。
+
 ## cron案
 
 - Supabase `pg_cron` + `pg_net` で1分間隔にEdge Functionを起動する案を第一候補にする。
@@ -408,9 +418,7 @@ Vault secret setupゲート結果:
 
 deploy後も別ゲートに残す危険工程:
 
-- SQL Editor実行。
 - DB/RPC/RLS変更の実適用。
-- 057 cron apply SQL実行。
 - 追加のsecret設定/変更。
 - 本番告知文の投稿。
 - 複数件投稿。
@@ -420,8 +428,7 @@ deploy後も別ゲートに残す危険工程:
 
 次に必要なゲート:
 
-1. Vault secret setupゲートは完了済みとして扱う。
-2. 次は057再実行ゲートへ進む。
-3. 057再実行前に、due scheduled告知が0件であることを再確認する。
-4. 057は実行すると自動投稿が始まる可能性があるため、SQL Editor実行は別途明示承認後に1回だけ行う。
-5. 本番告知運用、複数件送信、everyone通知は、それぞれ独立した明示ゲートで扱う。
+1. cron SQL Applyゲートは完了済みとして扱う。
+2. 次はcron稼働確認ゲートへ進む。
+3. cron稼働確認では、admin画面で作成したテスト予約が指定時刻後にcronで1件だけ投稿されること、DBが `posted` になること、`discord_message_id` が保存されることを確認する。
+4. 本番告知運用、複数件送信、everyone通知は、それぞれ独立した明示ゲートで扱う。
