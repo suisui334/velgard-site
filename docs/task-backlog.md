@@ -4998,6 +4998,15 @@ Mypage password reset flow:
 - No SQL Editor execution, DB/Auth/RLS change, Storage change, Supabase Dashboard change, API key/secret/token handling, direct Supabase table write, or `updates.json` change was performed.
 - No real email, user id, full URL, project ref, JWT, token, or secret value was recorded.
 
+Regulation adopted-races note:
+
+- Updated the regulation data for `Adopted rulebooks / supplements`.
+- Added that Sword World 2.0 races not yet present in 2.5 are adopted, with the machine angel exception pointing to common rules.
+- Added the machine angel operation note under common rules `Faith / race / skill`, keeping it as prior GM consultation and per-session permission rather than inventing numeric restrictions.
+- Updated regulation data and JS cache-bust references so the public page can fetch the new rule text.
+- No SQL Editor execution, DB/Auth/RLS change, Storage change, Supabase Dashboard change, API key/secret/token handling, direct Supabase table write, or `updates.json` change was performed.
+- No real email, user id, full URL, project ref, JWT, token, or secret value was recorded.
+
 ## M-14E-27D admin cap announcement frontend RPC connection
 
 Status: frontend RPC connection implementation and docs update. No SQL Editor execution, DB/RPC/RLS change, Edge Function deploy, Discord post, dry_run=false, secret/env setting or change, cron setting, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, or `updates.json` change was performed.

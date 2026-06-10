@@ -1,6 +1,6 @@
 import { loadJson } from "./dataLoader.js";
 
-const REGULATION_DATA_PATH = "data/regulation.json?v=20260526-regulation-full";
+const REGULATION_DATA_PATH = "data/regulation.json?v=20260610-adopted-races-note";
 
 const TOC_ITEMS = [
   { id: "schedule", label: "開催スケジュール" },
