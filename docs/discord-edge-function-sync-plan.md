@@ -4049,3 +4049,16 @@ Scope and gates:
 - This source-preparation gate did not deploy, run dry-run, send/edit/delete Discord messages, change SQL/DB/RPC/RLS, or change secrets.
 - Next gates are Edge Function deploy, create/update `dry_run=true` preview with `session_url_is_absolute=true`, and later manual Discord update confirmation.
 - Full session URLs, session ids, Webhook values, tokens, project refs, Discord message ids, Discord channel ids, and full message previews must not be recorded.
+
+## M-14E-24D deploy attempt result
+
+Deploy attempt for `a530ca3 Fix Discord session link absolute URL` did not reach a confirmed success result.
+
+- The deploy command was attempted once.
+- The CLI emitted a Docker-not-running warning and the local shell treated the command as failed.
+- No retry was performed.
+- Generated `supabase/.temp` output was removed and not committed.
+- No dry-run, Discord post/edit/delete, SQL Editor execution, DB/RPC/RLS change, SQL apply, secret change, or Webhook change was performed.
+- Project ref, Webhook value, token, full session URL, session id, Discord message id, and Discord channel id were not recorded.
+
+Next gate: run a fresh deploy gate with the server-side bundle option if Docker is unavailable, then perform create/update `dry_run=true` checks for `session_url_is_absolute=true`, URL-line presence, and `flags=4`.
