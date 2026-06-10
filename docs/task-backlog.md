@@ -6023,3 +6023,37 @@ Safety:
 
 - No SQL Editor execution, DB/RPC/RLS additional change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, secret/API key/token recording, or new code change was performed in this recording step.
 - No real URL, user id, notification id, session id, email, JWT, token, project ref, or internal id value was recorded.
+
+## M-14F-8 activity timeline frontend MVP
+
+Status: GM/PL shared update timeline page implemented.
+
+Implemented:
+
+- Added `timeline.html`.
+- Added `assets/js/renderTimeline.js`.
+- Added `TIMELINE` to the shared header/footer navigation.
+- Updated page cache-bust references for the shared `main.js` so the new navigation item is distributed with the page update.
+- The timeline page reads the existing `get_activity_timeline(...)` RPC and displays returned activity events in newest-first order.
+- Displayed fields include update type, session/event title, short body text, actor display name when available, update time, visibility label, and a relative in-site link to the target detail page.
+- Loading, empty, and read-error states are handled.
+- Unknown event types fall back to a generic update label.
+- The timeline page does not mark notifications read and does not expose private notification data beyond what the timeline RPC returns.
+
+Current activity data note:
+
+- The `activity_events` table and timeline read RPC are already applied.
+- Comment/application owner notifications are connected through the notification instrumentation.
+- Activity writes for comment/application/session create/edit/approval flows are still future scope unless an existing RPC already calls the activity helper.
+- Therefore the new page may show `まだ更新はありません` until activity instrumentation is connected.
+
+Safety:
+
+- SQL Editor execution, DB/RPC/RLS changes, SQL apply, Edge Function deploy, email sending, Discord sending, Supabase Dashboard changes, and secret/API key/token recording were not performed.
+- No direct Supabase DB `.insert/.update/.delete/.upsert` path was added in frontend code.
+- No real user id, notification id, session id, full URL, project ref, email, JWT, token, or internal id value was recorded.
+
+Next gates:
+
+- Add activity instrumentation for comment/application/session create/edit/approval events if the timeline feed needs real event rows.
+- QA timeline rendering with real activity data after activity instrumentation exists.

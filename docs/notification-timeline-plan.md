@@ -352,6 +352,42 @@ No SQL Editor execution, DB/RPC/RLS additional change, Edge Function deploy, ema
 
 No real user id, notification id, session id, email, JWT, token, project ref, or full URL was recorded.
 
+## Activity Timeline Frontend MVP
+
+The GM/PL shared update timeline frontend MVP has been implemented.
+
+Implemented scope:
+
+- Added `timeline.html` as a dedicated update timeline page.
+- Added `assets/js/renderTimeline.js`.
+- Added `TIMELINE` to the shared header/footer navigation.
+- The page reads `get_activity_timeline(...)` and renders the returned activity events newest first.
+- The page displays event type, session title or event title, short body text, actor display name when available, update time, visibility label, and a relative in-site link to the related session detail target.
+- Empty, loading, and read-error states are handled.
+- Unknown event types fall back to a generic update label instead of breaking the page.
+- Notification read state is not changed from the timeline page; notification bell and timeline remain separate surfaces.
+
+Safety and privacy:
+
+- This batch did not execute SQL Editor, change DB/RPC/RLS, deploy Edge Functions, send email, or send Discord messages.
+- Frontend code reads the existing timeline RPC only.
+- No frontend direct `.insert/.update/.delete/.upsert` DB write path was added.
+- Timeline target paths are normalized as relative in-site paths before being used.
+- No real user id, notification id, session id, full URL, project ref, JWT, token, or email was recorded.
+
+Current instrumentation note:
+
+- The database/RPC foundation for `activity_events` and `get_activity_timeline(...)` is applied.
+- Comment/application notification generation is connected to `user_notifications`.
+- Activity event writes for comment/application/session create/edit/approval flows are still future scope unless another existing RPC already calls `record_activity_event(...)`.
+- Because of that, the timeline page may legitimately show an empty state until activity instrumentation is connected.
+
+Future gates:
+
+- Add activity instrumentation for comment, application, session create/update, approval/rejection, and other public or authenticated events as needed.
+- Confirm timeline rendering with real activity data after instrumentation exists.
+- Consider pagination or filtering only after the MVP feed is proven useful.
+
 ## Non-Goals for This Batch
 
 - SQL Editor execution.

@@ -17,6 +17,7 @@ import { renderGallery } from "./renderGallery.js?v=20260529-gallery-swipe";
 import { renderUpdates } from "./renderUpdates.js";
 import { renderTools } from "./renderTools.js?v=20260529-calendar-date-tools-history";
 import { renderCalendar } from "./renderCalendar.js?v=20260608-calendar-grid-fix";
+import { renderTimeline } from "./renderTimeline.js?v=20260611-activity-timeline";
 import { renderMypage } from "./renderMypage.js?v=20260605-user-name-ui";
 import { renderAdminCapAnnouncements } from "./renderAdminCapAnnouncements.js?v=20260610-admin-cap-rpc-ui-fix";
 import { initNotificationBell } from "./notificationBellClient.js?v=20260611-notification-bell";
@@ -32,7 +33,8 @@ const navItems = [
   { label: "TERMS", href: "terms.html", key: "terms", enabled: true },
   { label: "GALLERY", href: "gallery.html", key: "gallery", enabled: true },
   { label: "TOOLS", href: "tools.html", key: "tools", enabled: true },
-  { label: "CALENDAR", href: "calendar.html", key: "calendar", enabled: true }
+  { label: "CALENDAR", href: "calendar.html", key: "calendar", enabled: true },
+  { label: "TIMELINE", href: "timeline.html", key: "timeline", enabled: true }
 ];
 
 const renderers = {
@@ -55,6 +57,7 @@ const renderers = {
   updates: renderUpdates,
   tools: renderTools,
   calendar: renderCalendar,
+  timeline: renderTimeline,
   mypage: renderMypage,
   "admin-cap-announcements": renderAdminCapAnnouncements
 };

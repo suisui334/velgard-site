@@ -1795,6 +1795,151 @@ input[type="search"] {
   font-weight: 900;
 }
 
+.timeline-section {
+  display: grid;
+  gap: 16px;
+}
+
+.timeline-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  align-items: end;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.timeline-toolbar h2 {
+  margin: 0;
+  color: var(--rust);
+}
+
+.timeline-toolbar p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.timeline-status {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.timeline-status[hidden] {
+  display: none;
+}
+
+.timeline-status.is-error {
+  color: var(--rust);
+}
+
+.timeline-list {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.timeline-card {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(86, 96, 106, 0.22);
+  border-radius: 8px;
+  background: rgba(var(--panel-solid), var(--card-opacity));
+  box-shadow: 0 14px 34px rgba(39, 45, 50, 0.1);
+}
+
+.timeline-card__head,
+.timeline-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.timeline-card__head {
+  justify-content: flex-start;
+}
+
+.timeline-card__footer {
+  justify-content: space-between;
+}
+
+.timeline-card__type,
+.timeline-card__visibility {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.timeline-card__type {
+  background: rgba(111, 143, 104, 0.18);
+  color: #405f3b;
+}
+
+.timeline-card__visibility {
+  background: rgba(75, 63, 99, 0.12);
+  color: var(--deep);
+}
+
+.timeline-card__time,
+.timeline-card__meta {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.timeline-card__title {
+  margin: 0;
+  color: var(--soot);
+  font-size: clamp(1.05rem, 1.9vw, 1.28rem);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.timeline-card__body {
+  margin: 0;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.timeline-card__link {
+  flex: 0 0 auto;
+}
+
+.timeline-empty {
+  padding: 28px;
+  border: 1px dashed rgba(86, 96, 106, 0.34);
+  border-radius: 8px;
+  color: var(--muted);
+  text-align: center;
+  background: rgba(255, 255, 250, 0.58);
+}
+
+@media (max-width: 700px) {
+  .timeline-toolbar,
+  .timeline-card__footer {
+    align-items: stretch;
+  }
+
+  .timeline-card {
+    padding: 14px;
+  }
+
+  .timeline-card__link {
+    width: 100%;
+    text-align: center;
+  }
+}
+
 .site-footer {
   margin-top: 48px;
   border-top: 1px solid rgba(86, 96, 106, 0.24);
