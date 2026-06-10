@@ -5490,3 +5490,20 @@ Next gate:
 
 - Normal admin cap announcement operation can begin for `mention_mode=none` cap update announcements.
 - Any production announcement, multiple-row delivery, retry tuning, cron cadence change, or `mention_mode=everyone` use should remain a separate explicit approval gate.
+
+## Regulation magitech angel details
+
+Status: regulation text update completed. No SQL Editor execution, DB/Auth/RLS/Storage change, Supabase Dashboard change, secret value recording, Discord operation, `updates.json` change, `deno.lock` change, or `supabase/.temp` change was performed.
+
+Result:
+
+- Added detailed magitech angel usage restrictions to the common rules `その他` card as the referenced destination for the adopted rulebook note.
+- Kept the adopted rulebook note that 2.5-unreleased Sword World 2.0 races are allowed, with magitech angel restrictions handled in common rules.
+- Added a small subsection rendering path for common-rule card details so the long rule text can appear under a readable heading without changing existing anchors or table-of-contents entries.
+- Updated regulation cache-bust strings for the data and module references.
+
+QA notes:
+
+- Confirm that the common rules `その他` card shows the `魔動天使の使用制限` heading and all detailed rule paragraphs.
+- Confirm that the adopted rulebook note and the new common-rule detail are consistent.
+- Confirm that regulation table of contents, anchors, desktop layout, and mobile layout remain intact.

@@ -1,6 +1,6 @@
 import { loadJson } from "./dataLoader.js";
 
-const REGULATION_DATA_PATH = "data/regulation.json?v=20260610-adopted-races-note";
+const REGULATION_DATA_PATH = "data/regulation.json?v=20260610-magitech-angel-rules";
 
 const TOC_ITEMS = [
   { id: "schedule", label: "開催スケジュール" },
@@ -220,6 +220,13 @@ function renderBlock(block) {
       if (isPresent(item.title)) sub.append(create("h3", "", item.title));
       appendParagraphs(sub, item.paragraphs);
       appendList(sub, item.items, { ordered: false });
+      (Array.isArray(item.sections) ? item.sections : []).forEach((section) => {
+        const detail = create("div", "regulation-subsection-detail");
+        if (isPresent(section.title)) detail.append(create("h4", "", section.title));
+        appendParagraphs(detail, section.paragraphs);
+        appendList(detail, section.items, { ordered: Boolean(section.ordered), marker: section.marker });
+        if (detail.children.length) sub.append(detail);
+      });
       group.append(sub);
     });
     fragment.append(group);

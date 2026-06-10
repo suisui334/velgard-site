@@ -1340,6 +1340,23 @@ body[data-page="world"] .article-box > .subsection h3 {
   margin-bottom: 8px;
 }
 
+.regulation-subsection-detail {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  line-height: 1.85;
+}
+
+.regulation-subsection-detail h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.regulation-subsection-detail p {
+  margin: 0;
+}
+
 .regulation-callout {
   border-left: 5px solid var(--gold);
   background: rgba(245, 240, 224, 0.72);
