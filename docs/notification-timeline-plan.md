@@ -325,6 +325,33 @@ Next gate:
 - Confirm owner/GM unread count, notification list display, notification click navigation, individual read, mark-all-read, and cross-user isolation.
 - Do not record real user ids, notification ids, session ids, emails, JWTs, tokens, project refs, or full URLs.
 
+## Notification Generation QA Confirmation
+
+The user manually performed the real notification generation QA after instrumentation apply.
+
+Confirmed:
+
+- A different user posted a comment/application on a session owned by another GM/owner.
+- A notification was generated for the GM/owner side.
+- The GM/owner header notification bell showed an unread count.
+- The notification list showed the relevant notification.
+- The notification text was understandable as a comment/application notification for the target session.
+- Clicking the notification opened the related session detail page.
+- Individual mark-read worked.
+- Mark-all-read worked.
+- The unread count decreased or disappeared after read actions.
+- Logged-out state did not expose a working notification bell.
+- The notification dropdown did not significantly break at smartphone width.
+
+Result:
+
+- The notification bell MVP is considered successful through real notification generation, notification listing, detail navigation, and read-state handling.
+- The activity timeline page remains unimplemented and is left for a later task.
+
+No SQL Editor execution, DB/RPC/RLS additional change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, secret/API key/token recording, or new code change was performed in this documentation step.
+
+No real user id, notification id, session id, email, JWT, token, project ref, or full URL was recorded.
+
 ## Non-Goals for This Batch
 
 - SQL Editor execution.

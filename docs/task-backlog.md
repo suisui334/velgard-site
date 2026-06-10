@@ -5994,3 +5994,32 @@ Next gate:
 
 - Proceed to real comment/application notification generation QA.
 - Verify owner/GM notification creation, unread count, notification list, detail navigation, individual read, mark-all-read, and other-user isolation.
+
+## M-14F-7 notification bell real-generation QA confirmation
+
+Status: notification bell MVP real-generation QA completed by the user.
+
+QA result:
+
+- The user manually performed real notification generation QA.
+- A different user posted a comment/application on a GM/owner-owned session.
+- Notification generation was confirmed.
+- The GM/owner-side header notification bell showed an unread count.
+- The notification list showed the relevant notification.
+- The notification content was understandable as a comment/application notification for the target session.
+- Notification click navigated to the related session detail page.
+- Individual mark-read worked.
+- Mark-all-read worked.
+- The unread count decreased or disappeared after read actions.
+- Logged-out state did not expose a working notification bell.
+- Smartphone-width notification dropdown display did not significantly break.
+
+Conclusion:
+
+- The notification bell MVP is successful through notification generation, notification list display, detail navigation, and read-state handling.
+- The activity timeline page remains unimplemented and is left for a later task.
+
+Safety:
+
+- No SQL Editor execution, DB/RPC/RLS additional change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, secret/API key/token recording, or new code change was performed in this recording step.
+- No real URL, user id, notification id, session id, email, JWT, token, project ref, or internal id value was recorded.
