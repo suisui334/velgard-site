@@ -192,6 +192,8 @@ Prepared candidates:
 
 - `docs/supabase/sql/057_notifications_schema_apply_draft.sql`
 - `docs/supabase/sql/058_notifications_post_apply_select_only.sql`
+- `docs/supabase/sql/059_notifications_instrument_session_events_apply_draft.sql`
+- `docs/supabase/sql/060_notifications_instrument_post_apply_select_only.sql`
 
 `057` was applied once by the user in Supabase SQL Editor after a separate approval gate.
 
@@ -249,6 +251,50 @@ Next required gate:
 - Prepare and review a DB/RPC apply draft that instruments the relevant comment/application RPCs.
 - Confirm it only creates owner/GM recipient notifications in the intended cases.
 - Apply and SELECT-only confirm that instrumentation before re-running real notification generation QA.
+
+## Comment/Application Instrumentation Draft
+
+Prepared next-step drafts:
+
+- `059_notifications_instrument_session_events_apply_draft.sql`
+- `060_notifications_instrument_post_apply_select_only.sql`
+
+The 059 draft replaces only `public.create_application_comment(text, text)`.
+It preserves the existing frontend RPC contract, return value, PC snapshot behavior, comment validation, application creation/reapply behavior, and authenticated-only grant.
+
+Instrumentation policy:
+
+- When another user comments on a session, call `create_session_owner_notification(...)` with `session_comment`.
+- When another user creates or reopens a participation application, call `create_session_owner_notification(...)` with `session_application`.
+- Management comments by the owner/GM call the same helper, but the helper skips self-notifications when actor and owner match.
+- Admin management comments on another owner's session can notify that owner.
+- PL-facing approval/rejection notifications from `set_application_status` remain a future gate.
+- `activity_events` writes are not added in this draft; the timeline feed remains separate follow-up work.
+
+Failure policy:
+
+- Notification creation is part of the same RPC transaction.
+- If notification insertion fails, the comment/application RPC should fail and roll back.
+- This intentionally favors visible QA failure over silently losing owner notifications during the MVP rollout.
+
+Security policy:
+
+- The arbitrary-recipient helper remains internal and is not directly executable by web client roles.
+- Web clients still call only the existing comment/application RPC.
+- No direct frontend mutation grant is added to `user_notifications`.
+- Notification target paths remain relative in-site paths, not full external URLs.
+
+060 confirmation should verify:
+
+- `create_application_comment(text,text)` exists once.
+- It remains `security definer` with `search_path=public`.
+- authenticated can execute it and anon cannot.
+- It calls `create_session_owner_notification(...)`.
+- It includes `session_comment` and `session_application` notification paths.
+- The helper remains unavailable for direct web-client execution.
+- `post_apply_ready_for_notification_generation_qa=true`.
+
+This preparation does not execute SQL, apply DB/RPC/RLS changes, send email, send Discord messages, or deploy Edge Functions.
 
 ## Non-Goals for This Batch
 

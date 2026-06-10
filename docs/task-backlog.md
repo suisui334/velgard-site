@@ -5904,3 +5904,55 @@ Next gate:
 - Draft and review RPC instrumentation for comment/application flows so they call `create_session_owner_notification(...)` for the intended owner/GM recipient.
 - Apply that instrumentation only after a separate SQL apply gate.
 - Re-run real notification generation QA after SELECT-only confirmation of the instrumentation.
+
+## M-14F-5 notification event instrumentation preparation
+
+Status: non-destructive SQL draft preparation completed for comment/application notification generation.
+
+Context:
+
+- Notification schema/RPC/RLS foundation from 057 is already applied and 058 SELECT-only confirmation was OK.
+- Notification bell frontend is implemented, but real-generation QA stopped because comment/application RPCs were not yet connected to the notification helper.
+- The existing frontend still calls `create_application_comment` with the same two arguments: `target_session_id` and `comment_body`.
+
+Prepared files:
+
+- Added `docs/supabase/sql/059_notifications_instrument_session_events_apply_draft.sql`.
+- Added `docs/supabase/sql/060_notifications_instrument_post_apply_select_only.sql`.
+- Updated `docs/notification-timeline-plan.md` with the instrumentation scope and failure policy.
+
+059 draft scope:
+
+- Replaces only `public.create_application_comment(text, text)`.
+- Preserves existing comment/application behavior, PC snapshot handling, validation, return value, and authenticated-only frontend contract.
+- Calls internal `create_session_owner_notification(...)` after a successful comment/application write.
+- Uses `session_application` for new or reopened participation applications.
+- Uses `session_comment` for follow-up comments and management comments.
+- Relies on the helper to skip self-notifications when actor and session owner are the same.
+- Leaves PL-facing approval/rejection notifications from `set_application_status` for a future gate.
+- Does not add activity timeline writes yet.
+
+Failure policy:
+
+- Notification creation is kept in the same RPC transaction.
+- If notification insertion fails, the comment/application RPC should fail and roll back.
+- This is intentional for MVP QA so broken notification plumbing is visible instead of silently dropping owner notifications.
+
+060 SELECT-only scope:
+
+- Confirms `create_application_comment(text,text)` exists once.
+- Confirms `security_definer`, `search_path=public`, authenticated execute, and anon non-execute.
+- Confirms the RPC contains the owner notification helper call and both `session_application` / `session_comment` notification paths.
+- Confirms the internal helper remains unavailable for direct web-client execution.
+- Returns boolean/status rows only and does not return function bodies or real identifiers.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, secret/API key/token recording, and real notification generation were not performed.
+- No real user id, email, notification id, session id, full URL, project ref, JWT, token, or secret was recorded.
+
+Next gate:
+
+- Review `059_notifications_instrument_session_events_apply_draft.sql` before any SQL Editor apply.
+- If approved, run 059 once in a separate SQL apply gate, then run 060 once as a SELECT-only confirmation gate.
+- Re-run real notification generation QA only after 060 reports `post_apply_ready_for_notification_generation_qa=true`.
