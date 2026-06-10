@@ -381,6 +381,22 @@ cron設定ゲート準備結果:
 - 058は `check_name / status / result_value / note` 形式で、cron job存在、job名、schedule、Function名、`dry_run=false`、`batch_limit=1`、Authorization/dispatch tokenヘッダ、Vault参照、実値直書きなしを確認する。
 - この準備ではcron SQL実行、SQL Editor実行、DB/RPC/RLS変更、Discord投稿、テスト告知の追加投稿、Edge Function redeploy、secret実値記録は行っていない。
 
+Vault secret setupゲート結果:
+
+- ユーザー側SQL Editorで057 cron applyを試行したが、057内の事前チェックでVault secret不足により停止した。
+- 不足していたVault secretは `ADMIN_CAP_ANNOUNCEMENT_DISPATCH_TOKEN`、`ADMIN_CAP_ANNOUNCEMENT_FUNCTION_URL`、`ADMIN_CAP_ANNOUNCEMENT_INVOKE_JWT`。
+- この停止は057未完了として扱い、058へは進んでいない。
+- cron job tableはcatalog確認で未作成だったため、cron未設定扱いを維持する。
+- Vault secret 3件を設定した。
+- `ADMIN_CAP_ANNOUNCEMENT_FUNCTION_URL` は `dispatch-admin-cap-announcements` のFunction URLを設定した。
+- `ADMIN_CAP_ANNOUNCEMENT_INVOKE_JWT` はFunction platform JWT verificationを通過するJWT形式のanon key相当を設定し、publishable key形式は使っていない。
+- `ADMIN_CAP_ANNOUNCEMENT_DISPATCH_TOKEN` は既存値を取得せず、Codex側で強いランダム値を新規生成した。
+- 新tokenはEdge Function secret/envの `ADMIN_CAP_ANNOUNCEMENT_DISPATCH_TOKEN` とSupabase Vault secretの `ADMIN_CAP_ANNOUNCEMENT_DISPATCH_TOKEN` の両方へ同じ値で再設定した。
+- 設定後、Vault secret 3件がすべて存在し、空でないことを実値なしで確認した。
+- Edge Function側の `DISCORD_WEBHOOK_CAP_ANNOUNCEMENT` と `ADMIN_CAP_ANNOUNCEMENT_REAL_SEND_ENABLED` は役割を分けて扱い、Vault secretとは混同しない。
+- Webhook URL、JWT、Supabase URL全文、Discord ID、token類、secret実値はdocs、console、git差分、チャットへ記録していない。
+- このゲートでは057再実行、058実行、cron設定SQL実行、Discord投稿、`dry_run=false`、Edge Function redeploy、DB/RPC/RLS変更は行っていない。
+
 ## cron案
 
 - Supabase `pg_cron` + `pg_net` で1分間隔にEdge Functionを起動する案を第一候補にする。
@@ -395,7 +411,6 @@ deploy後も別ゲートに残す危険工程:
 - SQL Editor実行。
 - DB/RPC/RLS変更の実適用。
 - 057 cron apply SQL実行。
-- Supabase Vault secret実値設定または変更。
 - 追加のsecret設定/変更。
 - 本番告知文の投稿。
 - 複数件投稿。
@@ -405,7 +420,8 @@ deploy後も別ゲートに残す危険工程:
 
 次に必要なゲート:
 
-1. cron設定ゲート準備は完了済みとして扱う。
-2. 次はVault secret準備確認を含むcron SQL Applyゲートへ進む。
-3. 057は実行すると自動投稿が始まる可能性があるため、SQL Editor実行は別途明示承認後に1回だけ行う。
-4. 本番告知運用、複数件送信、everyone通知は、それぞれ独立した明示ゲートで扱う。
+1. Vault secret setupゲートは完了済みとして扱う。
+2. 次は057再実行ゲートへ進む。
+3. 057再実行前に、due scheduled告知が0件であることを再確認する。
+4. 057は実行すると自動投稿が始まる可能性があるため、SQL Editor実行は別途明示承認後に1回だけ行う。
+5. 本番告知運用、複数件送信、everyone通知は、それぞれ独立した明示ゲートで扱う。
