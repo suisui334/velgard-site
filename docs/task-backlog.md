@@ -4966,6 +4966,15 @@ Comment avatar QA and mypage avatar placement:
 - No SQL Editor execution, DB/Auth/RLS change, Storage bucket change, Supabase Dashboard change, real upload/delete, Edge deploy, Discord operation, dry_run=false, API key/secret/token handling, direct Supabase table write, or `updates.json` change was performed.
 - No real user id, avatar object path, signed URL, email, JWT, token, project ref, full URL, Discord id, or Webhook value was recorded.
 
+Mypage header brand wrapping fix:
+
+- Fixed a mypage-specific header layout issue where the logged-in ACCOUNT/logout controls could squeeze the left brand title enough for the final character of the site name to wrap onto a second line.
+- The mypage brand title is kept on one line, and desktop widths near the hamburger breakpoint now slightly reduce nav gaps and nav item padding for mypage only.
+- `mypage.html` CSS cache-bust was updated so the header fix can be served.
+- Calendar header behavior was not changed.
+- No SQL Editor execution, DB/Auth/RLS change, Storage change, Supabase Dashboard change, API key/secret/token handling, direct Supabase table write, or `updates.json` change was performed.
+- No real email, user id, full URL, project ref, JWT, token, or secret value was recorded.
+
 ## M-14E-27D admin cap announcement frontend RPC connection
 
 Status: frontend RPC connection implementation and docs update. No SQL Editor execution, DB/RPC/RLS change, Edge Function deploy, Discord post, dry_run=false, secret/env setting or change, cron setting, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, or `updates.json` change was performed.
