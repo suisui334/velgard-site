@@ -212,6 +212,12 @@
     return `${window.location.origin}${normalizedBasePath}${pagePath}`;
   }
 
+  function isPasswordRecoveryReturnUrl() {
+    const searchParams = new URLSearchParams(window.location.search || "");
+    const hashParams = new URLSearchParams((window.location.hash || "").replace(/^#/, ""));
+    return searchParams.get("type") === "recovery" || hashParams.get("type") === "recovery";
+  }
+
   function findAccountElements(root) {
     const scope = root || document;
     let section = scope.querySelector("[data-mypage-auth-section]");
@@ -1312,13 +1318,18 @@
     return switcher;
   }
 
-  function renderAnonymous(client, elements, message, mode = "login") {
+  function renderAnonymous(client, elements, message, mode = "login", options = {}) {
     ensureAuthElements(elements);
     removeNavLogoutButton();
+    const isResetMode = mode === "reset";
     setStatus(
       elements,
-      "ログインすると、今後ここで参加申請状況や参加予定を確認できるようになります。",
-      ""
+      isResetMode
+        ? "パスワード再設定"
+        : "ログインすると、今後ここで参加申請状況や参加予定を確認できるようになります。",
+      isResetMode
+        ? "登録済みのメールアドレス宛に、パスワード再設定用のリンクを送信します。"
+        : ""
     );
     clearContent(elements);
 
@@ -1327,7 +1338,7 @@
     }
 
     if (mode === "reset") {
-      renderPasswordResetForm(client, elements);
+      renderPasswordResetForm(client, elements, options.email || "");
     } else if (mode === "signup") {
       renderSignupForm(client, elements);
     } else {
@@ -1382,7 +1393,7 @@
     forgotPassword.dataset.mypagePasswordResetOpen = "";
     forgotPassword.textContent = "パスワードを忘れた方はこちら";
     forgotPassword.addEventListener("click", () => {
-      renderAnonymous(client, elements, "", "reset");
+      renderAnonymous(client, elements, "", "reset", { email: emailInput.value.trim() });
     });
 
     forgotActions.append(forgotPassword);
@@ -1442,7 +1453,7 @@
     elements.content.append(form);
   }
 
-  function renderPasswordResetForm(client, elements) {
+  function renderPasswordResetForm(client, elements, initialEmail = "") {
     const form = document.createElement("form");
     form.className = "calendar-form";
     form.dataset.mypagePasswordResetForm = "";
@@ -1453,6 +1464,7 @@
     emailInput.name = "email";
     emailInput.autocomplete = "username";
     emailInput.required = true;
+    emailInput.value = String(initialEmail || "").trim();
 
     const submit = document.createElement("button");
     submit.className = "button primary";
@@ -3497,7 +3509,7 @@
         return;
       }
 
-      setMessage(elements, "パスワード再設定メールを送信しました。届いたメールの案内に従ってください。");
+      setMessage(elements, "パスワード再設定メールを送信しました。メール内のリンクから新しいパスワードを設定してください。");
     } catch (error) {
       if (emailInput) emailInput.value = "";
       setMessage(elements, "パスワード再設定メールを送信できませんでした。時間を置いて再度お試しください。");
@@ -3736,6 +3748,16 @@
     try {
       await loadSupabaseSdk();
       const client = window.supabase.createClient(config.url, config.anonKey);
+      let passwordRecoveryMode = isPasswordRecoveryReturnUrl();
+      client.auth.onAuthStateChange((event) => {
+        if (event !== "PASSWORD_RECOVERY") return;
+        passwordRecoveryMode = true;
+        renderPasswordChangeForm(
+          client,
+          elements,
+          "メール確認が完了しました。新しいパスワードを設定してください。"
+        );
+      });
       const { data, error } = await client.auth.getSession();
 
       if (error) {
@@ -3747,6 +3769,15 @@
         );
         setMessage(elements, "");
         return { status: "session-error" };
+      }
+
+      if (data && data.session && passwordRecoveryMode) {
+        renderPasswordChangeForm(
+          client,
+          elements,
+          "メール確認が完了しました。新しいパスワードを設定してください。"
+        );
+        return { status: "password-recovery" };
       }
 
       if (data && data.session) {

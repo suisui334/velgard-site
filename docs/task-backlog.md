@@ -4986,6 +4986,18 @@ Mypage template accordion affordance:
 - No SQL Editor execution, DB/Auth/RLS change, Storage change, Supabase Dashboard change, upload/delete, API key/secret/token handling, direct Supabase table write, or `updates.json` change was performed.
 - No real user id, avatar path, signed URL, email, full URL, project ref, JWT, token, or secret value was recorded.
 
+Mypage password reset flow:
+
+- Added/confirmed the mypage login-form `Forgot password` action for the standard Supabase Auth password reset flow.
+- The reset request form sends `resetPasswordForEmail` with the runtime mypage redirect helper, so reset emails return to the existing deployed mypage path.
+- When the login email field already has a value, the reset request form now uses that address as the initial input value.
+- Password recovery returns are handled by Supabase Auth `PASSWORD_RECOVERY` and recovery-style return parameter detection, then the new-password form is shown.
+- The new-password form uses the existing `updateUser({ password })` flow with matching-password and minimum-length checks.
+- Custom SMTP should deliver password reset mail through the configured provider; live mail QA remains a separate user-side confirmation gate.
+- No new dedicated page or Redirect URL was added, and no Supabase Dashboard change is expected for this frontend-only implementation.
+- No SQL Editor execution, DB/Auth/RLS change, Storage change, Supabase Dashboard change, API key/secret/token handling, direct Supabase table write, or `updates.json` change was performed.
+- No real email, user id, full URL, project ref, JWT, token, or secret value was recorded.
+
 ## M-14E-27D admin cap announcement frontend RPC connection
 
 Status: frontend RPC connection implementation and docs update. No SQL Editor execution, DB/RPC/RLS change, Edge Function deploy, Discord post, dry_run=false, secret/env setting or change, cron setting, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, or `updates.json` change was performed.

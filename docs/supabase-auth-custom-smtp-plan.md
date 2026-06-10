@@ -222,3 +222,17 @@ Stop and do not continue if:
 Supabase Auth Custom SMTP setup gate.
 
 Only after that gate should signup QA be repeated. Session-post registration, Discord sync QA, deletion QA, and notification QA should remain paused until signup is stable.
+
+## Password Reset Flow
+
+Status: frontend implementation prepared for the standard Supabase Auth password reset flow after Custom SMTP setup.
+
+- The mypage login form includes a `Forgot password` action.
+- The reset request UI sends `resetPasswordForEmail` with the runtime mypage redirect helper, so the email link returns to the deployed mypage path without requiring a new page or new Redirect URL.
+- If the user had already typed an email address in the login form, the reset request form reuses that value as its initial email input.
+- Password recovery return handling listens for Supabase Auth `PASSWORD_RECOVERY` and also checks recovery-style return parameters before showing the new-password form.
+- The new-password form reuses the existing `updateUser({ password })` flow with confirmation matching and minimum-length validation.
+- Custom SMTP should deliver the reset email through the configured provider.
+- The next QA gate should verify reset email delivery, mypage return, successful password update, old-password rejection, new-password login success, and no HTTP 429 recurrence.
+- No Supabase Dashboard change, SQL Editor execution, DB/Auth/RLS change, SQL apply, SMTP credential handling, or secret recording was performed in this implementation batch.
+- Real emails, user ids, JWTs, tokens, API keys, SMTP passwords, full URLs, and project refs were not recorded.
