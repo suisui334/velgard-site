@@ -5674,3 +5674,59 @@ Next gates:
 
 - Run create/update `dry_run=true` preview checks and record only booleans/status such as `session_url_is_absolute=true`, URL-line presence, and `flags=4`.
 - Real Discord create/update/manual-update confirmation remains a later explicit gate.
+
+## M-14E-24F absolute Discord session link dry-run
+
+Status: create/update `dry_run=true` preview verification completed against the deployed `sync-session-post-to-discord`. No `dry_run=false`, Discord post/edit/delete, Edge Function redeploy, SQL Editor execution, DB/RPC/RLS change, secret change, or Webhook change was performed.
+
+JWT handling:
+
+- A logged-in Supabase JWT was read from the clipboard for this gate.
+- `USER_JWT_SET=true`, `USER_JWT_PARTS=3`, and `USER_JWT_LOOKS_JWT=true`.
+- The JWT body/value was not recorded.
+
+Candidate state:
+
+- `candidate_query_ok=true`.
+- `public_non_draft_candidate_count=5`.
+- `owner_candidate_count=4`.
+- `owner_posted_candidate_count=4`.
+- `owner_unposted_candidate_count=0`.
+
+create preview:
+
+- `http_status=200`.
+- `ok=true`.
+- `dry_run=true`.
+- `action=create`.
+- `message_preview_present=true`.
+- The final non-empty preview line is the session detail URL line, with the concrete URL/session id redacted.
+- `webhook_payload_preview.content_has_session_url_line=true`.
+- `webhook_payload_preview.session_url_is_absolute=true`.
+- `webhook_payload_preview.flags=4`.
+- `webhook_payload_preview.suppress_embeds=true`.
+- `allowed_mentions_everyone=false`.
+- Because no unposted owner candidate was available, the create preview used a posted owner candidate and returned a non-blocking warning; no mutation or Discord send occurred.
+
+update preview:
+
+- `http_status=200`.
+- `ok=true`.
+- `dry_run=true`.
+- `action=update`.
+- `message_preview_present=true`.
+- The final non-empty preview line is the session detail URL line, with the concrete URL/session id redacted.
+- `webhook_payload_preview.content_has_session_url_line=true`.
+- `webhook_payload_preview.session_url_is_absolute=true`.
+- `webhook_payload_preview.flags=4`.
+- `webhook_payload_preview.suppress_embeds=true`.
+- `allowed_mentions_everyone=false`.
+- `warning_count=0`.
+
+Safety:
+
+- `all_attempted_ok=true`.
+- `dry_run_false_executed=false`.
+- `discord_real_operation_executed=false`.
+- No concrete session URL, session id, Webhook URL, token, project ref, Discord message id, Discord channel id, or full message preview was recorded.
+- Manual Discord update confirmation remains a later explicit gate.

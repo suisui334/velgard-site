@@ -4083,3 +4083,54 @@ Not performed in this gate:
 - SQL Editor execution, DB/RPC/RLS change, SQL apply, secret change, or Webhook change.
 
 Next gate: create/update `dry_run=true` preview verification with boolean/status-only recording for `session_url_is_absolute=true`, URL-line presence, and `flags=4`.
+
+## M-14E-24F dry-run result
+
+The deployed `sync-session-post-to-discord` was verified with create and update `dry_run=true` preview calls after the absolute session URL fix.
+
+Candidate state:
+
+- `candidate_query_ok=true`.
+- `public_non_draft_candidate_count=5`.
+- `owner_candidate_count=4`.
+- `owner_posted_candidate_count=4`.
+- `owner_unposted_candidate_count=0`.
+
+create preview:
+
+- HTTP 200.
+- `ok=true`.
+- `dry_run=true`.
+- `action=create`.
+- A message preview was returned, but the concrete message body was not recorded.
+- The final non-empty preview line is the redacted session detail URL line.
+- `webhook_payload_preview.content_has_session_url_line=true`.
+- `webhook_payload_preview.session_url_is_absolute=true`.
+- `webhook_payload_preview.flags=4`.
+- `webhook_payload_preview.suppress_embeds=true`.
+- `allowed_mentions_everyone=false`.
+- No unposted owner candidate was available, so the create preview used a posted owner candidate and carried a non-blocking warning. It remained dry-run only.
+
+update preview:
+
+- HTTP 200.
+- `ok=true`.
+- `dry_run=true`.
+- `action=update`.
+- A message preview was returned, but the concrete message body was not recorded.
+- The final non-empty preview line is the redacted session detail URL line.
+- `webhook_payload_preview.content_has_session_url_line=true`.
+- `webhook_payload_preview.session_url_is_absolute=true`.
+- `webhook_payload_preview.flags=4`.
+- `webhook_payload_preview.suppress_embeds=true`.
+- `allowed_mentions_everyone=false`.
+- `warning_count=0`.
+
+Not performed:
+
+- `dry_run=false`.
+- Discord post/edit/delete.
+- Edge Function redeploy.
+- SQL Editor execution, DB/RPC/RLS change, SQL apply, secret change, or Webhook change.
+
+Next gate: manual Discord update confirmation for an existing posted request, with no full URL, session id, Webhook value, token, project ref, Discord message id, Discord channel id, or full message preview recorded.
