@@ -388,6 +388,40 @@ Future gates:
 - Confirm timeline rendering with real activity data after instrumentation exists.
 - Consider pagination or filtering only after the MVP feed is proven useful.
 
+## Activity Timeline Public QA
+
+Public-site QA was performed for the timeline frontend MVP after `a353dcf`.
+
+Confirmed on the deployed site:
+
+- The shared navigation includes `TIMELINE`.
+- The collapsed navigation can open and navigate to the timeline page.
+- `timeline.html` opens normally.
+- The deployed page references the timeline cache-busted shared `main.js`.
+- The page heading and timeline shell render normally.
+- With no activity rows returned, the empty state displays naturally.
+- No main render error was shown.
+- The page did not produce body-level horizontal overflow in the checked browser width.
+- The existing account link and notification bell shell were not broken by the timeline page.
+
+Current data result:
+
+- `activityCardCount=0` during QA.
+- Because there were no returned activity cards, card ordering, detail-link navigation from a real activity row, and unknown-event rendering could not be confirmed with live data.
+- Static implementation still includes a fallback label for unknown event types and relative target-path normalization.
+
+Auth-state note:
+
+- A dedicated logged-out browser profile was not available from Codex without changing browser auth state.
+- The public page itself rendered without an authenticated-only requirement.
+- Logged-in-specific private data was not inspected, and no token, user id, session id, project ref, or full URL was recorded.
+
+Remaining timeline tasks:
+
+- Connect activity instrumentation for comment/application/session create/edit/approval events if real timeline rows are needed.
+- Re-run public QA after activity rows exist, including real-card newest-first ordering and detail-link navigation.
+- Perform a user-side smartphone-width check if needed, because Codex Browser did not expose viewport resizing for this public QA pass.
+
 ## Non-Goals for This Batch
 
 - SQL Editor execution.

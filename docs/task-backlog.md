@@ -6057,3 +6057,42 @@ Next gates:
 
 - Add activity instrumentation for comment/application/session create/edit/approval events if the timeline feed needs real event rows.
 - QA timeline rendering with real activity data after activity instrumentation exists.
+
+## M-14F-9 activity timeline public QA
+
+Status: public-site QA completed for the update timeline MVP, with live activity rows still unavailable.
+
+Confirmed:
+
+- The public shared navigation shows `TIMELINE`.
+- The collapsed navigation menu can be opened and used to navigate to the timeline page.
+- `timeline.html` opens normally on the public site.
+- The public page uses the timeline cache-busted `main.js`.
+- The timeline page heading and list shell render normally.
+- Empty state displays naturally when no activity rows are returned.
+- No main render error was observed.
+- Body-level horizontal overflow was not observed in the checked browser width.
+- Existing ACCOUNT link and notification bell shell were not broken by the timeline page.
+
+Current activity result:
+
+- No activity cards were returned during this QA pass.
+- Therefore real-card newest-first ordering and detail-link navigation could not be confirmed from live activity data.
+- Unknown `event_type` rendering was not confirmed with live data, but the frontend has a fallback display path.
+
+Auth and viewport notes:
+
+- Codex did not switch browser authentication state and did not inspect logged-in private data.
+- A dedicated logged-out browser profile was not available without changing browser state, so login/logout-specific QA remains partially user-side.
+- Smartphone-width real viewport QA could not be performed from the available browser controls; CSS/static behavior and non-overflow at the checked width were confirmed.
+
+Next tasks:
+
+- Add activity instrumentation for comment/application/session create/edit/approval events if timeline rows are required.
+- Re-run public QA after activity rows exist, including real detail-link navigation.
+- Perform user-side smartphone-width QA if needed.
+
+Safety:
+
+- SQL Editor execution, DB/RPC/RLS changes, Edge Function deploy, email sending, Discord sending, Supabase Dashboard changes, secret/API key/token recording, and code changes were not performed.
+- No real user id, session id, notification id, email, JWT, token, full URL, project ref, or internal id value was recorded.
