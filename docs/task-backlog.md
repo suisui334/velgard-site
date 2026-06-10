@@ -5730,3 +5730,27 @@ Safety:
 - `discord_real_operation_executed=false`.
 - No concrete session URL, session id, Webhook URL, token, project ref, Discord message id, Discord channel id, or full message preview was recorded.
 - Manual Discord update confirmation remains a later explicit gate.
+
+## M-14E-24G suppressed absolute Discord link manual QA
+
+Status: manual Discord update confirmation completed by the user for one existing Discord-posted request.
+
+Result:
+
+- The user manually edited and saved one existing Discord-posted session request.
+- Existing Discord message update succeeded.
+- The final session detail URL line rendered as a blue clickable link in Discord.
+- Discord did not show a link preview card.
+- No duplicate Discord post was created.
+- No unexpected notification occurred.
+- The `flags=4` / `suppress_embeds=true` policy is considered effective in real Discord display.
+
+Scope:
+
+- create real-send QA was not performed because no new test request is being created for this confirmation.
+- No additional dry-run, Discord post/edit/delete operation, SQL Editor execution, DB/RPC/RLS change, SQL apply, secret change, or Webhook change was performed by Codex in this recording step.
+- Existing rows without a saved Discord post reference, Discord-deleted messages, broken sync states, and Discord-only remnants remain out of scope for this confirmation.
+
+Safety:
+
+- No full session URL, session id, Webhook URL, token, project ref, Discord message id, Discord channel id, or full Discord body/message preview was recorded.

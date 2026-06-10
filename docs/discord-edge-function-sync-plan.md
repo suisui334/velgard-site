@@ -4134,3 +4134,23 @@ Not performed:
 - SQL Editor execution, DB/RPC/RLS change, SQL apply, secret change, or Webhook change.
 
 Next gate: manual Discord update confirmation for an existing posted request, with no full URL, session id, Webhook value, token, project ref, Discord message id, Discord channel id, or full message preview recorded.
+
+## M-14E-24G manual update QA result
+
+The user manually edited and saved one existing Discord-posted request to verify the deployed absolute-link format in real Discord display.
+
+Result:
+
+- Existing Discord message update succeeded.
+- The final session detail URL line appeared as a blue clickable link.
+- Discord did not render a link preview card.
+- No duplicate post was created.
+- No unexpected notification occurred.
+- `flags=4` / `suppress_embeds=true` is considered effective in Discord.
+
+Not performed:
+
+- create real-send QA, because no new test request is being created for this check.
+- Additional dry-run, Discord post/edit/delete operation, SQL Editor execution, DB/RPC/RLS change, SQL apply, secret change, or Webhook change by Codex.
+
+No full session URL, session id, Webhook value, token, project ref, Discord message id, Discord channel id, or full Discord body/message preview was recorded.
