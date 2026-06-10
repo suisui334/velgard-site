@@ -5556,3 +5556,46 @@ Next gates:
 
 - Run create and update `dry_run=true` preview checks and record only booleans/status.
 - Real Discord create/update QA remains a later explicit gate.
+
+## M-14E-24B suppressed Discord session detail link dry-run
+
+Status: create/update `dry_run=true` preview verification completed against the deployed `sync-session-post-to-discord`. No `dry_run=false`, Discord post/edit/delete, Edge Function redeploy, SQL Editor execution, DB/RPC/RLS change, secret change, or Webhook change was performed.
+
+JWT handling:
+
+- A logged-in Supabase JWT was read from the clipboard for this gate.
+- `USER_JWT_SET=true`, `USER_JWT_PARTS=3`, and `USER_JWT_LOOKS_JWT=true`.
+- The JWT body/value was not recorded.
+
+create preview:
+
+- `http_status=200`.
+- `ok=true`.
+- `dry_run=true`.
+- `action=create`.
+- `message_preview_present=true`.
+- The final non-empty preview line is the session detail URL line, with the concrete URL/session id redacted.
+- `webhook_payload_preview.content_has_session_url_line=true`.
+- `webhook_payload_preview.flags=4`.
+- `webhook_payload_preview.suppress_embeds=true`.
+- `allowed_mentions_everyone=false`.
+- The safe owner candidate available for create preview already had an external post reference, so the preview returned a non-blocking warning; no mutation or Discord send occurred.
+
+update preview:
+
+- `http_status=200`.
+- `ok=true`.
+- `dry_run=true`.
+- `action=update`.
+- `message_preview_present=true`.
+- The final non-empty preview line is the session detail URL line, with the concrete URL/session id redacted.
+- `webhook_payload_preview.content_has_session_url_line=true`.
+- `webhook_payload_preview.flags=4`.
+- `webhook_payload_preview.suppress_embeds=true`.
+- `allowed_mentions_everyone=false`.
+- `warning_count=0`.
+
+Safety:
+
+- No concrete session URL, session id, Webhook URL, token, project ref, Discord message id, Discord channel id, or full message preview was recorded.
+- `dry_run=false` and real Discord QA remain separate explicit gates.

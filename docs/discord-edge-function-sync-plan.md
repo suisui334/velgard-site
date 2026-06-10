@@ -3987,3 +3987,44 @@ Not performed in this gate:
 - SQL Editor execution, DB/RPC/RLS change, SQL apply, secret change, or Webhook change.
 
 Next gate: create/update `dry_run=true` preview verification with boolean/status-only recording.
+
+## M-14E-24B dry-run result
+
+The deployed `sync-session-post-to-discord` was verified with create and update `dry_run=true` preview calls.
+
+create preview:
+
+- HTTP 200.
+- `ok=true`.
+- `dry_run=true`.
+- `action=create`.
+- A message preview was returned, but the concrete message body was not recorded.
+- The final non-empty preview line is the redacted session detail URL line.
+- `webhook_payload_preview.content_has_session_url_line=true`.
+- `webhook_payload_preview.flags=4`.
+- `webhook_payload_preview.suppress_embeds=true`.
+- `allowed_mentions_everyone=false`.
+- The available safe owner candidate already had an external post reference, so the create preview carried a non-blocking warning. It remained dry-run only.
+
+update preview:
+
+- HTTP 200.
+- `ok=true`.
+- `dry_run=true`.
+- `action=update`.
+- A message preview was returned, but the concrete message body was not recorded.
+- The final non-empty preview line is the redacted session detail URL line.
+- `webhook_payload_preview.content_has_session_url_line=true`.
+- `webhook_payload_preview.flags=4`.
+- `webhook_payload_preview.suppress_embeds=true`.
+- `allowed_mentions_everyone=false`.
+- `warning_count=0`.
+
+Not performed:
+
+- `dry_run=false`.
+- Discord post/edit/delete.
+- Edge Function redeploy.
+- SQL Editor execution, DB/RPC/RLS change, SQL apply, secret change, or Webhook change.
+
+Next gate: real Discord create/update QA, with no full URL, session id, Webhook value, token, project ref, Discord message id, Discord channel id, or full message preview recorded.
