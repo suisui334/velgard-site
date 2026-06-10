@@ -5507,3 +5507,28 @@ QA notes:
 - Confirm that the common rules `その他` card shows the `魔動天使の使用制限` heading and all detailed rule paragraphs.
 - Confirm that the adopted rulebook note and the new common-rule detail are consistent.
 - Confirm that regulation table of contents, anchors, desktop layout, and mobile layout remain intact.
+
+## M-14E-24 suppressed Discord session detail link
+
+Status: Edge Function source and docs update only. No Edge Function deploy, dry-run invoke, `dry_run=false`, Discord post/edit/delete, SQL Editor execution, DB/RPC/RLS change, secret/Webhook change, `updates.json` change, `deno.lock` change, or `supabase/.temp` change was performed.
+
+Implementation:
+
+- Discord session-post content now appends a final session detail URL line using the requested Japanese label format; the concrete URL is not recorded.
+- The URL is generated from `PUBLIC_SITE_BASE_URL` and `session-detail.html?id=...`; dry-run output redacts the concrete URL/session id.
+- Discord webhook create/edit payloads now include `flags: 4` to suppress Discord link preview embeds while keeping the URL visible in the message body.
+- Existing `allowed_mentions` behavior is preserved. `@everyone` remains available only for the explicit create/everyone path, and update/delete paths do not enable everyone mentions.
+- Dry-run output includes a sanitized `webhook_payload_preview` with `flags`, `suppress_embeds`, allowed mention parse values, and URL-line presence booleans without returning the concrete session URL.
+
+Existing-post policy:
+
+- Newly created Discord posts will receive the URL line and embed suppression after this source is deployed.
+- Existing Discord-posted requests can be refreshed by owner/GM/admin edit-save when the normal update sync path is allowed and a Discord post reference is saved.
+- Closed/finished or past sessions can be refreshed only if they still satisfy current update sync conditions.
+- Requests with no saved Discord post reference, deleted Discord messages, broken sync state, or Discord-only remnants remain out of scope for this change and need a separate repair/resync/manual cleanup gate.
+
+Next gates:
+
+- Edge Function deploy.
+- create/update `dry_run=true` verification with boolean/status-only recording.
+- Later real Discord create/update QA, including confirmation that no extra create post is made for an update.

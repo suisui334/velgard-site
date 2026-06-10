@@ -160,6 +160,7 @@ interface SyncTargetJudgment {
 
 interface DiscordWebhookPayload {
   content: string;
+  flags: number;
   allowed_mentions: {
     parse: string[];
   };
@@ -196,6 +197,11 @@ const ALLOWED_ACTIONS = new Set<SyncAction>(["create", "update", "close", "delet
 const SYNC_TARGET_STATUSES = new Set(["tentative", "recruiting", "full", "closed", "finished"]);
 const CLOSED_STATUSES = new Set(["closed", "finished"]);
 const DISCORD_SESSION_POST_WEBHOOK_URL_ENV = "DISCORD_SESSION_POST_WEBHOOK_URL";
+const PUBLIC_SITE_BASE_URL_ENV = "PUBLIC_SITE_BASE_URL";
+const DISCORD_SUPPRESS_EMBEDS_FLAG = 4;
+const SESSION_DETAIL_PAGE = "session-detail.html";
+const SESSION_URL_LINE_PREFIX = "依頼書URL【";
+const SESSION_URL_LINE_REDACTED = "依頼書URL【 [session-detail-url-redacted] 】";
 const SESSION_SELECT_COLUMNS = [
   "id",
   "title",
@@ -338,7 +344,8 @@ Deno.serve(async (request: Request) => {
         eligible: syncTarget.isTarget,
         reason: syncTarget.reason
       },
-      message_preview: messagePreview,
+      message_preview: sanitizeMessagePreviewForDryRun(messagePreview),
+      webhook_payload_preview: buildWebhookPayloadDryRunInfo(messagePreview, payload.value.discordMentionMode),
       planned_db_update: buildPlannedDbUpdate(payload.value.action, hasExternalPostReference),
       warnings
     });
@@ -699,9 +706,24 @@ function buildDiscordWebhookPayload(
 ): DiscordWebhookPayload {
   return {
     content: truncateDiscordContent(messagePreview),
+    flags: DISCORD_SUPPRESS_EMBEDS_FLAG,
     allowed_mentions: {
       parse: mentionMode === "everyone" ? ["everyone"] : []
     }
+  };
+}
+
+function buildWebhookPayloadDryRunInfo(
+  messagePreview: string,
+  mentionMode: DiscordMentionMode
+) {
+  const payload = buildDiscordWebhookPayload(messagePreview, mentionMode);
+  return {
+    flags: payload.flags,
+    suppress_embeds: (payload.flags & DISCORD_SUPPRESS_EMBEDS_FLAG) === DISCORD_SUPPRESS_EMBEDS_FLAG,
+    allowed_mentions_parse: payload.allowed_mentions.parse,
+    content_has_session_url_line: hasSessionUrlLine(messagePreview),
+    session_url_line: hasSessionUrlLine(messagePreview) ? SESSION_URL_LINE_REDACTED : "missing"
   };
 }
 
@@ -1461,6 +1483,7 @@ function buildMessagePreview(
   const summary = normalizeMultiline(session.summary, 1400) || "概要未設定";
   const titlePrefix = deletePrefix || closePrefix || "";
   const mentionLine = action === "create" && mentionMode === "everyone" ? "@everyone" : "";
+  const sessionUrlLine = buildSessionUrlLine(session.id);
 
   return [
     "＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝",
@@ -1474,9 +1497,56 @@ function buildMessagePreview(
     `参加締切【${formatDateTimeForDiscord(session.application_deadline)}】`,
     "",
     summary,
+    "",
+    sessionUrlLine,
     action === "delete" ? "\n※この依頼書は削除相当処理の確認用previewです。" : "",
     action === "close" ? "\n※募集または開催終了として更新するpreviewです。" : ""
   ].filter(Boolean).join("\n");
+}
+
+function buildSessionUrlLine(sessionId: string): string {
+  return `依頼書URL【 ${buildSessionDetailUrl(sessionId)} 】`;
+}
+
+function buildSessionDetailUrl(sessionId: string): string {
+  const detailPath = `${SESSION_DETAIL_PAGE}?id=${encodeURIComponent(sessionId)}`;
+  const baseUrl = normalizePublicSiteBaseUrl(Deno.env.get(PUBLIC_SITE_BASE_URL_ENV));
+  if (!baseUrl) {
+    return detailPath;
+  }
+
+  try {
+    return new URL(detailPath, baseUrl).toString();
+  } catch {
+    return detailPath;
+  }
+}
+
+function normalizePublicSiteBaseUrl(value: unknown): string {
+  const text = normalizeText(value, 2048);
+  if (!text) return "";
+
+  try {
+    const parsedUrl = new URL(text);
+    if (parsedUrl.protocol !== "https:") return "";
+    parsedUrl.hash = "";
+    parsedUrl.search = "";
+    const normalized = parsedUrl.toString();
+    return normalized.endsWith("/") ? normalized : `${normalized}/`;
+  } catch {
+    return "";
+  }
+}
+
+function sanitizeMessagePreviewForDryRun(value: string): string {
+  return value
+    .split("\n")
+    .map((line) => line.startsWith(SESSION_URL_LINE_PREFIX) ? SESSION_URL_LINE_REDACTED : line)
+    .join("\n");
+}
+
+function hasSessionUrlLine(value: string): boolean {
+  return value.split("\n").some((line) => line.startsWith(SESSION_URL_LINE_PREFIX));
 }
 
 function buildPlannedDbUpdate(action: SyncAction, hasExternalPostReference: boolean) {

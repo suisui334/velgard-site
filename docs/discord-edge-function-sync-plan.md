@@ -3942,3 +3942,28 @@ QA観点:
 - SQL Editor実行、DB/RPC/RLS変更、SQL apply。
 
 次工程は、`discord_mention_mode=none` と `discord_mention_mode=everyone` の `create / dry_run=true` post-deploy確認を、本文全文を記録せずに行う。
+
+## M-14E-24 suppressed session detail link
+
+Status: Edge Function source update only. No Edge Function deploy, dry-run invoke, `dry_run=false`, Discord post/edit/delete, SQL Editor execution, DB/RPC/RLS change, secret/Webhook change, or `updates.json` change is performed in this batch.
+
+Implementation plan:
+
+- Discord session-post content now appends a final session detail URL line using the requested Japanese label format, generated from `PUBLIC_SITE_BASE_URL` plus `session-detail.html?id=...`.
+- Webhook create and edit payloads include `flags: 4`, the Discord `SUPPRESS_EMBEDS` flag, so the URL remains visible as text while link preview cards are suppressed.
+- The same message builder is used for create and update paths, so already-posted session requests can receive the URL line after an owner/GM/admin edits and saves the request, provided the normal update sync path runs.
+- The existing `allowed_mentions` and `discord_mention_mode` controls remain unchanged: only explicit create/everyone can allow `everyone`, and users/roles remain disabled.
+- Dry-run responses keep a sanitized `message_preview`; the session URL line is redacted and `webhook_payload_preview` exposes only booleans/status-like values such as `flags`, `suppress_embeds`, and `content_has_session_url_line`.
+
+Existing-post scope:
+
+- New Discord posts after deploy will include the URL line and suppress embeds automatically.
+- Existing posted requests can be updated by manual edit/save when they are public, non-draft, non-canceled, have a saved Discord post reference, and pass the current update sync guard.
+- Closed/finished or past sessions remain eligible only if the current update sync guard accepts them and a Discord post reference is saved.
+- Requests without a saved Discord post reference, messages already deleted on Discord, broken sync states, and Discord-only remnants are out of scope for this change and need a separate repair/resync or manual cleanup gate.
+
+Next gates:
+
+- Deploy `sync-session-post-to-discord`.
+- Run create/update `dry_run=true` checks and record only booleans/status; do not record full URLs, session ids, Webhook values, tokens, project refs, Discord ids, or full message previews.
+- Run real Discord create/update QA only in a later explicit gate.
