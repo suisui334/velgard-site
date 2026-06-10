@@ -4237,14 +4237,53 @@ body[data-page="mypage"] .mypage-template-session-post-editor {
 }
 
 body[data-page="mypage"] .mypage-template-variable-summary {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   max-width: 100%;
+  margin: -4px -4px 0;
+  padding: 6px 8px;
+  border-radius: 6px;
   cursor: pointer;
   color: var(--deep);
   font-size: 0.9rem;
   font-weight: 900;
+  list-style: none;
   white-space: normal;
   overflow-wrap: anywhere;
+}
+
+body[data-page="mypage"] .mypage-template-variable-summary::-webkit-details-marker {
+  display: none;
+}
+
+body[data-page="mypage"] .mypage-template-variable-summary::marker {
+  content: "";
+}
+
+body[data-page="mypage"] .mypage-template-variable-summary::before {
+  flex: 0 0 auto;
+  width: 1.1em;
+  color: var(--rust);
+  content: "\25B6";
+  font-size: 0.78rem;
+  line-height: 1;
+  text-align: center;
+}
+
+body[data-page="mypage"] .mypage-template-variable-help[open] > .mypage-template-variable-summary::before,
+body[data-page="mypage"] .mypage-template-example-help[open] > .mypage-template-variable-summary::before {
+  content: "\25BC";
+}
+
+body[data-page="mypage"] .mypage-template-variable-summary:hover,
+body[data-page="mypage"] .mypage-template-variable-summary:focus-visible {
+  background: rgba(255, 255, 250, 0.62);
+  outline: none;
+}
+
+body[data-page="mypage"] .mypage-template-variable-summary:focus-visible {
+  box-shadow: 0 0 0 2px rgba(75, 63, 99, 0.24);
 }
 
 body[data-page="mypage"] .mypage-template-variable-help-body {

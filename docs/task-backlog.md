@@ -4975,6 +4975,17 @@ Mypage header brand wrapping fix:
 - No SQL Editor execution, DB/Auth/RLS change, Storage change, Supabase Dashboard change, API key/secret/token handling, direct Supabase table write, or `updates.json` change was performed.
 - No real email, user id, full URL, project ref, JWT, token, or secret value was recorded.
 
+Mypage template accordion affordance:
+
+- Improved the visual affordance for the mypage template-management nested panels.
+- `Template examples` and `Available variables` now show a closed/open arrow indicator through scoped CSS on their `details > summary` rows.
+- The browser default details marker is suppressed for these template-management summaries to avoid double markers.
+- Hover and keyboard focus styling were lightly adjusted while keeping native `details / summary` click, tap, and keyboard behavior.
+- `mypage.html` CSS cache-bust was updated so the accordion affordance change can be served.
+- Template editing, save, delete, variable display, and example display logic were not changed.
+- No SQL Editor execution, DB/Auth/RLS change, Storage change, Supabase Dashboard change, upload/delete, API key/secret/token handling, direct Supabase table write, or `updates.json` change was performed.
+- No real user id, avatar path, signed URL, email, full URL, project ref, JWT, token, or secret value was recorded.
+
 ## M-14E-27D admin cap announcement frontend RPC connection
 
 Status: frontend RPC connection implementation and docs update. No SQL Editor execution, DB/RPC/RLS change, Edge Function deploy, Discord post, dry_run=false, secret/env setting or change, cron setting, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, or `updates.json` change was performed.
