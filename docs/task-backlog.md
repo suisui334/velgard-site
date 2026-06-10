@@ -5256,3 +5256,67 @@ Next gate:
 
 - cron setup gate.
 - Production announcement operations, multiple-row dispatch behavior, and everyone notification remain separate explicit gates.
+
+## M-14E-27K admin cap announcement cron setup draft
+
+Status: cron setup draft and docs update only. No cron SQL execution, SQL Editor execution, DB/RPC/RLS change, Discord post, additional test announcement post, mention_mode=everyone post, @everyone notification, Edge Function redeploy, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, secret value recording, `updates.json` change, `deno.lock` change, or retained `supabase/.temp` change was performed.
+
+Prerequisite state recorded:
+
+- Starting commit was `dbe1c8b Record admin cap real-send test`.
+- Worktree was clean at the start of the gate.
+- Real-send test gate had succeeded with one target, `dry_run=false`, `batch_limit=1`, HTTP 200, `ok=true`, `claimed_count=1`, `result_count=1`, `delivery_status=posted`, `db_finalize=ok`, and `discord_message_id_saved=true`.
+- `ADMIN_CAP_ANNOUNCEMENT_REAL_SEND_ENABLED='true'` was already configured from the real-send test gate.
+- Cron was not configured before this gate.
+
+File numbering:
+
+- The requested 054/055 candidate numbers were already occupied by profile-related SQL files:
+- `054_signup_auth_profile_preflight_select_only.sql`
+- `055_profile_avatars_storage_schema_apply_draft.sql`
+- `056_profile_avatars_post_apply_select_only.sql`
+- To avoid numbering collision, the admin cap announcement cron SQL files were added as 057/058.
+
+Added cron SQL drafts:
+
+- `docs/supabase/sql/057_admin_cap_announcements_cron_apply_draft.sql`
+- `docs/supabase/sql/058_admin_cap_announcements_cron_post_apply_select_only.sql`
+
+057 cron apply draft:
+
+- Marked `DO NOT RUN`, `NOT EXECUTED`, and explicit SQL Editor approval required.
+- States that running the SQL can start automatic Discord posting.
+- Uses Supabase `pg_cron` + `pg_net` as the cron mechanism.
+- Schedules Edge Function `dispatch-admin-cap-announcements` with job name `dispatch-admin-cap-announcements-every-minute`.
+- Initial schedule is every 1 minute.
+- Documents 5 minutes as the lower-traffic alternative.
+- Payload is `dry_run=false` and `batch_limit=1`.
+- Sends Authorization, `apikey`, and `x-dispatch-token` headers.
+- Does not inline Webhook URLs, JWTs, Supabase project URLs, Discord IDs, token values, or secret values.
+- Expects Supabase Vault secret names:
+- `ADMIN_CAP_ANNOUNCEMENT_FUNCTION_URL`
+- `ADMIN_CAP_ANNOUNCEMENT_INVOKE_JWT`
+- `ADMIN_CAP_ANNOUNCEMENT_DISPATCH_TOKEN`
+- Notes that DB Vault `ADMIN_CAP_ANNOUNCEMENT_DISPATCH_TOKEN` must match the Edge Function secret of the same name.
+
+058 SELECT-only confirmation SQL:
+
+- Marked SELECT-only and not executed by Codex.
+- Returns `check_name / status / result_value / note`.
+- Checks cron job existence, job name, schedule, active state, pg_net call, Function target, `dry_run=false`, `batch_limit=1`, Authorization and dispatch-token headers, Vault secret references, and absence of inline Webhook URL/Supabase URL/JWT-like patterns.
+- Does not return secret values or full headers.
+
+Safety result:
+
+- No cron apply was run.
+- No SQL Editor action was performed.
+- No DB/RPC/RLS change was performed.
+- No Discord post was sent in this gate.
+- No additional test announcement was created or posted.
+- No secret value was written to SQL, docs, console, or git diff.
+- `batch_limit` remains 1 in the cron draft.
+
+Next gate:
+
+- cron SQL Apply gate, including confirmation that the required Supabase Vault secret values exist and are correct.
+- Running 057 should remain a separate explicit approval because it can start automatic posting.

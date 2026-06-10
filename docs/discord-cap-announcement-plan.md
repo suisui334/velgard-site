@@ -365,10 +365,27 @@ real-send test投稿ゲート結果:
 - 1件の結果は `delivery_status=posted`、`db_finalize=ok`、`discord_message_id_saved=true`、`delivery_error_code=null`。
 - `mention_mode=everyone`、`@everyone`、batch_limit 2以上、cron設定、本番告知文投稿、複数件投稿、SQL Editor実行、DB/RPC/RLS変更は行っていない。
 
+cron設定ゲート準備結果:
+
+- 既存SQL番号に `054_signup_auth_profile_preflight_select_only.sql`、`055_profile_avatars_storage_schema_apply_draft.sql`、`056_profile_avatars_post_apply_select_only.sql` があるため、cron用SQL draftは連番衝突を避けて057/058として追加した。
+- cron方式はSupabase `pg_cron` + `pg_net` でEdge Function `dispatch-admin-cap-announcements` を呼ぶ方式を第一候補にする。
+- 057 apply draftは `docs/supabase/sql/057_admin_cap_announcements_cron_apply_draft.sql`。
+- 058 post-apply SELECT-only確認SQLは `docs/supabase/sql/058_admin_cap_announcements_cron_post_apply_select_only.sql`。
+- 057の冒頭には `DO NOT RUN` / `NOT EXECUTED` / 明示承認必須 / 実行すると自動投稿が始まる可能性を明記した。
+- cron頻度案は1分ごとを推奨とする。キャップ更新告知は指定時刻付近の投稿が望ましく、`batch_limit=1` によって1回の自動実行で複数投稿しない設計にするため。代替として5分ごともdocsに残す。
+- cron payloadは `dry_run=false`、`batch_limit=1`。
+- Authorization header、`apikey`、`x-dispatch-token` を付与する設計にする。
+- SQL/docsにはWebhook URL、JWT、Supabase URL全文、Discord ID、token実値を書かず、Supabase Vault secret名を参照する。
+- Vault secret名は `ADMIN_CAP_ANNOUNCEMENT_FUNCTION_URL`、`ADMIN_CAP_ANNOUNCEMENT_INVOKE_JWT`、`ADMIN_CAP_ANNOUNCEMENT_DISPATCH_TOKEN` を想定する。
+- DB Vault側の `ADMIN_CAP_ANNOUNCEMENT_DISPATCH_TOKEN` は、Edge Function secretの同名値と一致している必要がある。
+- 058は `check_name / status / result_value / note` 形式で、cron job存在、job名、schedule、Function名、`dry_run=false`、`batch_limit=1`、Authorization/dispatch tokenヘッダ、Vault参照、実値直書きなしを確認する。
+- この準備ではcron SQL実行、SQL Editor実行、DB/RPC/RLS変更、Discord投稿、テスト告知の追加投稿、Edge Function redeploy、secret実値記録は行っていない。
+
 ## cron案
 
-- 1分間隔でEdge Functionを起動する案を第一候補にする。
+- Supabase `pg_cron` + `pg_net` で1分間隔にEdge Functionを起動する案を第一候補にする。
 - 1回の起動で少数件をclaimし、長時間処理を避ける。
+- cron payloadは `dry_run=false`、`batch_limit=1` に固定する。
 - 実cron設定は危険工程として、deploy後の独立ゲートで行う。
 
 ## 安全ゲート
@@ -377,7 +394,8 @@ deploy後も別ゲートに残す危険工程:
 
 - SQL Editor実行。
 - DB/RPC/RLS変更の実適用。
-- cron設定。
+- 057 cron apply SQL実行。
+- Supabase Vault secret実値設定または変更。
 - 追加のsecret設定/変更。
 - 本番告知文の投稿。
 - 複数件投稿。
@@ -387,6 +405,7 @@ deploy後も別ゲートに残す危険工程:
 
 次に必要なゲート:
 
-1. real-send test投稿ゲートは完了済みとして扱う。
-2. 次はcron設定ゲートへ進む。
-3. cron設定、本番告知運用、複数件送信、everyone通知は、それぞれ独立した明示ゲートで扱う。
+1. cron設定ゲート準備は完了済みとして扱う。
+2. 次はVault secret準備確認を含むcron SQL Applyゲートへ進む。
+3. 057は実行すると自動投稿が始まる可能性があるため、SQL Editor実行は別途明示承認後に1回だけ行う。
+4. 本番告知運用、複数件送信、everyone通知は、それぞれ独立した明示ゲートで扱う。
