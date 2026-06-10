@@ -5874,3 +5874,33 @@ Remaining QA and later work:
 - Verify anonymous users do not see an active notification bell.
 - Activity timeline page remains unimplemented and is reserved for a later task.
 - Email notification and Discord notification remain separate future gates.
+
+## M-14F-4 notification bell real-generation QA triage
+
+Status: real notification generation QA stopped before creating additional comment/application activity.
+
+Pre-check result:
+
+- Latest frontend commit `b463c03 Implement notification bell UI` was the baseline.
+- Working tree was clean before the check.
+- Chrome-side public mypage access was anonymous, and the notification bell was not shown in the anonymous state.
+- Static repository review found the notification helper `create_session_owner_notification(...)` exists only as the prepared/internal helper path.
+- No applied comment/application RPC replacement was found that calls the notification helper from `create_application_comment` or application-status flows.
+- The notification plan still describes that existing comment/application/session RPC instrumentation is a later step.
+
+Conclusion:
+
+- Real comment/application notification generation is not ready to QA yet.
+- A real comment or application at this point would not be expected to create a `user_notifications` row.
+- Notification bell retrieval/read UI remains implemented, but end-to-end generation/recipient QA is blocked by missing RPC instrumentation.
+
+Not performed:
+
+- No new comment, application, session edit, Discord operation, email send, Edge deploy, SQL Editor execution, SQL apply, or DB/RPC/RLS additional change was performed.
+- No real user id, email, notification id, session id, full URL, project ref, JWT, token, or secret was recorded.
+
+Next gate:
+
+- Draft and review RPC instrumentation for comment/application flows so they call `create_session_owner_notification(...)` for the intended owner/GM recipient.
+- Apply that instrumentation only after a separate SQL apply gate.
+- Re-run real notification generation QA after SELECT-only confirmation of the instrumentation.

@@ -233,6 +233,23 @@ After an approved apply and frontend implementation:
 - Notification list click opens the relative target path returned by the RPC.
 - Real notification generation and mark-read QA remain a later gate.
 
+## Notification Generation QA Status
+
+Attempted next-gate preparation found that real notification generation is not ready yet:
+
+- The notification schema, list/count/read RPCs, and header bell frontend are in place.
+- The internal helper `create_session_owner_notification(...)` exists in the SQL draft/apply result.
+- Static repository review still shows the helper is planned to be called from existing comment/application RPCs later.
+- No applied replacement draft was found that wires `create_application_comment` or application-status flows to the notification helper.
+- Therefore, posting a real comment/application would not be expected to create an in-site notification yet.
+- Additional comment/application QA was stopped before creating new test activity.
+
+Next required gate:
+
+- Prepare and review a DB/RPC apply draft that instruments the relevant comment/application RPCs.
+- Confirm it only creates owner/GM recipient notifications in the intended cases.
+- Apply and SELECT-only confirm that instrumentation before re-running real notification generation QA.
+
 ## Non-Goals for This Batch
 
 - SQL Editor execution.
