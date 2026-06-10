@@ -407,6 +407,20 @@ cron SQL Apply確認結果:
 - Webhook URL、JWT、Supabase URL全文、Discord ID、token類、secret実値はdocs、console、git差分、チャットへ記録していない。
 - この確認では本番告知投稿、追加Discord投稿、`mention_mode=everyone`、`@everyone`、batch_limit 2以上、Edge Function redeploy、DB/RPC/RLS変更は行っていない。
 
+cron稼働確認結果:
+
+- admin画面で作成した未来時刻のテスト告知1件が、cronにより自動投稿されたことを確認した。
+- テスト告知タイトルは `【テスト】cron自動投稿確認`。
+- 投稿先は `target_channel_key=cap_announcement`、メンションは `mention_mode=none`。
+- Discord投稿は1件のみで、重複投稿はなかった。
+- `@everyone` は付与されていない。
+- 本文がテスト告知であり、本番告知文ではないことを確認した。
+- DB/admin画面では対象告知の `status=posted` を確認した。
+- `discord_message_id` は保存済みであることをboolean確認したが、値そのものは記録していない。
+- `failed` 状態や問題のある `last_error` は確認されていない。
+- Webhook URL、JWT、Supabase URL全文、Discord ID、token類、secret実値、Discord message id実値はdocs、console、git差分、チャットへ記録していない。
+- この確認では `mention_mode=everyone`、`@everyone`、本番告知文の投稿、複数件予約作成、batch_limit変更、cron schedule変更、Edge Function redeploy、DB/RPC/RLS変更は行っていない。
+
 ## cron案
 
 - Supabase `pg_cron` + `pg_net` で1分間隔にEdge Functionを起動する案を第一候補にする。

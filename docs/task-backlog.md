@@ -5407,3 +5407,45 @@ Next gate:
 
 - cron runtime verification gate.
 - Use an admin-created test scheduled cap announcement, keep `mention_mode=none`, confirm exactly one cron-dispatched post, DB `posted`, and `discord_message_id` saved.
+
+## M-14E-27N admin cap announcement cron runtime verification
+
+Status: cron runtime verification completed. No production announcement text posting, mention_mode=everyone posting, @everyone notification, batch_limit change, cron schedule change, Edge Function redeploy, SQL Editor DB/RPC/RLS change, Webhook value recording, JWT/Supabase URL/Discord ID/token recording, secret value recording, `updates.json` change, `deno.lock` change, or retained `supabase/.temp` change was performed.
+
+Prerequisite state recorded:
+
+- Starting commit was `3d64d38 Record admin cap cron apply verification`.
+- Cron apply and 058 verification had completed.
+- The 058 `function_target` review was treated as expected because the Function URL is read from Vault.
+- `ADMIN_CAP_ANNOUNCEMENT_REAL_SEND_ENABLED='true'` was already enabled from the approved real-send test gate.
+- Cron schedule remained every minute.
+- Cron payload remained `dry_run=false` and `batch_limit=1`.
+
+Runtime verification result:
+
+- User created one future scheduled test announcement from the admin page.
+- Test title was `【テスト】cron自動投稿確認`.
+- Target was `target_channel_key=cap_announcement`.
+- Mention mode was `none`.
+- Discord post occurred.
+- Discord post count was exactly 1.
+- `@everyone` was not present.
+- Body was confirmed to be a test announcement, not a production announcement.
+- DB/admin page status became `posted`.
+- `discord_message_id` was saved; the value itself was not recorded.
+- No duplicate post occurred.
+- No `failed` state occurred.
+
+Safety result:
+
+- No Webhook URL, JWT, full Supabase URL, Discord ID, token value, secret value, or Discord message id value was recorded in docs, console output, chat, or git diff.
+- No mention_mode=everyone or @everyone notification was used.
+- No additional production announcement was created or posted.
+- No batch_limit increase or cron schedule change was performed.
+- No Edge Function redeploy was performed.
+- No SQL Editor DB/RPC/RLS change was performed in this gate.
+
+Next gate:
+
+- Normal admin cap announcement operation can begin for `mention_mode=none` cap update announcements.
+- Any production announcement, multiple-row delivery, retry tuning, cron cadence change, or `mention_mode=everyone` use should remain a separate explicit approval gate.
