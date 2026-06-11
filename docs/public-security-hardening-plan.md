@@ -388,9 +388,15 @@ Follow-up status:
   integration: CAPTCHA display/success, one reset request, reset mail delivery,
   new-password form return, password update, and login with the new password all
   succeeded.
-- Live signup QA with Turnstile remains a separate gate.
-- No concrete email, password, recovery token, JWT/session token, full URL,
-  concrete Turnstile site key, or Turnstile secret key value is recorded.
+- The signup flow was verified on the public site after Turnstile integration:
+  CAPTCHA display/success, one signup request, confirmation mail delivery,
+  confirmation return to mypage, logout, and re-login with the new QA account all
+  succeeded.
+- Login, password-reset, and signup QA are all confirmed, so the Turnstile Auth
+  abuse-protection MVP is complete.
+- No concrete email, password, recovery/confirmation token, JWT/session token,
+  full URL, concrete Turnstile site key, or Turnstile secret key value is
+  recorded.
 
 ## Non-Goals In This Batch
 

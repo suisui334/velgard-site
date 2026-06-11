@@ -352,9 +352,10 @@ Confirmed:
 - After logout, login with the new password succeeded.
 - The password-reset flow is considered operational with Turnstile enabled.
 
-Still pending:
+Follow-up:
 
-- Live signup QA with Turnstile remains a separate gate.
+- Live signup QA with Turnstile was a separate gate at this point and is now
+  recorded in the signup QA section below.
 - Broader login/signup/password-reset abuse monitoring remains a follow-up
   operational task.
 
@@ -365,6 +366,37 @@ Safety:
   documentation batch.
 - No concrete email address, password, recovery token, JWT/session token, full
   URL, concrete Turnstile site key, or Turnstile secret key value is recorded.
+
+## Turnstile Signup QA
+
+Status: signup flow verified on the public site after Turnstile frontend
+integration, site-key configuration, and mobile layout fix.
+
+Confirmed:
+
+- `mypage.html` signup form displays the Turnstile CAPTCHA.
+- CAPTCHA success state was reached.
+- Signup request was submitted once and succeeded.
+- Confirmation mail delivery was confirmed.
+- The confirmation-mail link returned to `mypage.html`.
+- After logout, login with the new QA account succeeded.
+- The signup flow is considered operational with Turnstile enabled.
+- Login, password-reset, and signup QA are all confirmed for the Turnstile MVP.
+
+Conclusion:
+
+- The Auth/mail abuse mitigation MVP for Cloudflare Turnstile is complete.
+- Ongoing monitoring for Auth abuse, Resend delivery health, and future
+  rate-limit tuning remains an operational follow-up.
+
+Safety:
+
+- No Supabase Dashboard change, SQL Editor execution, DB/RPC/RLS mutation,
+  Edge deploy, additional mail test beyond the single signup QA send, or
+  Discord sending was performed in this documentation batch.
+- No concrete email address, password, confirmation token, JWT/session token,
+  full URL, concrete Turnstile site key, or Turnstile secret key value is
+  recorded.
 
 ## Mobile Turnstile Layout Fix
 

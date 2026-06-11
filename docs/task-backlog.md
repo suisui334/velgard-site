@@ -6449,12 +6449,37 @@ Confirmed:
 
 Still pending:
 
-- Live signup QA with Turnstile remains a separate gate.
+- Live signup QA with Turnstile was a separate gate at this point and is now recorded in the next item.
 
 Safety:
 
 - Supabase Dashboard changes, SQL Editor execution, DB/RPC/RLS changes, Edge deploy, additional email sending, Discord sending, credential recording, and Supabase direct DB writes were not performed in this docs batch.
 - No real email address, password, full URL, recovery token, JWT/session token, concrete Site key, or Secret key value was recorded.
+
+## M-14F-35 Turnstile signup QA
+
+Status: signup flow verified after Turnstile CAPTCHA integration.
+
+Confirmed:
+
+- Public `mypage.html` signup form displayed the Turnstile CAPTCHA.
+- CAPTCHA success state was confirmed.
+- Signup send was executed once and succeeded.
+- Confirmation mail arrival was confirmed.
+- The confirmation-mail link returned to `mypage.html`.
+- After logout, re-login with the new QA account succeeded.
+- Signup is considered operational with Turnstile enabled.
+- Login, password reset, and signup QA are all successful.
+- Auth/mail abuse protection with the Turnstile MVP is complete.
+
+Follow-up:
+
+- Continue operational monitoring for Auth abuse, Resend delivery health, and future rate-limit tuning.
+
+Safety:
+
+- Supabase Dashboard changes, SQL Editor execution, DB/RPC/RLS changes, Edge deploy, additional email sending, Discord sending, credential recording, and Supabase direct DB writes were not performed in this docs batch.
+- No real email address, password, full URL, confirmation token, JWT/session token, concrete Site key, or Secret key value was recorded.
 
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
 
