@@ -323,7 +323,10 @@ Membership approval status:
 - `docs/supabase/sql/074_membership_access_control_inventory_select_only.sql`
   was run once as the first inventory diagnostic.
 - `docs/supabase/sql/075_membership_direct_write_grants_detail_select_only.sql`
-  is prepared as a follow-up diagnostic and is not executed yet.
+  was run once as a follow-up diagnostic.
+- `docs/supabase/sql/076_revoke_player_characters_truncate_apply_draft.sql`
+  and `docs/supabase/sql/077_revoke_player_characters_truncate_post_apply_select_only.sql`
+  are prepared but not executed.
 - Invite codes are not adopted for the first gate.
 - New accounts should start as `pending`; only `approved` members can use major
   interactive features.
@@ -341,13 +344,17 @@ Membership approval status:
   appears feasible through the existing role mechanism.
 - 074 reported 34 approved-gate candidate RPCs and three pending-allowed profile
   RPC candidates.
-- 074 also reported `direct_write_grants=2`; details must be checked with 075
-  before schema/helper draft work.
+- 074 also reported `direct_write_grants=2`; 075 clarified the wider direct
+  write surface as 26 grants, with 24 Storage expected exceptions and two
+  app-table review grants.
+- The two review grants are `TRUNCATE` on `public.player_characters` for
+  `anon` and `authenticated`; these should be revoked in a small separate gate
+  before membership schema/helper draft work.
 - This planning step created no SQL apply draft and performed no DB/RPC/RLS or
   Dashboard change.
-- The next gate is a one-time SELECT-only 075 SQL Editor run, then deciding
-  whether direct write grants need a separate revoke review or can be treated as
-  expected exceptions.
+- The next gate is an apply-before-review for 076, followed by 077 SELECT-only
+  confirmation. Membership schema/helper drafts remain paused until the
+  unnecessary player-character TRUNCATE grants are closed.
 
 ### Comment/Application Spam
 

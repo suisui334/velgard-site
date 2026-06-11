@@ -6614,7 +6614,9 @@ Prepared:
 - Added `docs/supabase/sql/075_membership_direct_write_grants_detail_select_only.sql`.
 - Updated `docs/public-security-hardening-plan.md` to record membership approval as a public-readiness P1 gate.
 - 074 was executed once by the user as SELECT-only.
-- 075 is SELECT-only and has not been executed.
+- 075 was executed once by the user as SELECT-only.
+- Added `docs/supabase/sql/076_revoke_player_characters_truncate_apply_draft.sql`.
+- Added `docs/supabase/sql/077_revoke_player_characters_truncate_post_apply_select_only.sql`.
 - No apply draft, DB/RPC/RLS change, SQL apply, Dashboard change, Edge deploy, mail sending, Discord sending, or secret handling was performed.
 
 Design summary:
@@ -6651,20 +6653,30 @@ RPC impact summary:
 - Pending-allowed candidates are `get_my_profile_contact()`, `update_display_name(text)`, and `update_my_discord_id(text)`.
 - Admin-only membership RPCs are future creation candidates.
 - Frontend touchpoints are mypage, session-post, session-detail, notifications, timeline, discord-sync, templates, and player-characters.
-- 074 reported `direct_write_grants=2`, so details must be checked before schema/helper draft work.
+- 074 reported `direct_write_grants=2`, so details had to be checked before schema/helper draft work.
+- 075 reported `direct_write_grants=26`, with 24 Storage direct-write grants classified as expected exceptions.
+- The two app-table review grants are direct `TRUNCATE` on `public.player_characters` for `anon` and `authenticated`.
+- `player_characters` is a core app table, and web-client `TRUNCATE` access is unnecessary.
 
 Next gates:
 
-- Run 075 once as a SQL Editor SELECT-only direct-write detail gate.
-- Record 075 results without concrete identifiers or secret values.
-- Decide whether the two direct write grants are expected exceptions or app-table writes that need a separate revoke review.
-- After 075, decide whether membership state belongs on `profiles` or in a separate membership table.
+- Review 076 as a narrow app-table TRUNCATE revoke gate.
+- If approved, run 076 once in the user's SQL Editor, then run 077 once as SELECT-only.
+- Record whether `public` / `anon` / `authenticated` direct TRUNCATE grants on `public.player_characters` are closed.
+- After 077 confirms the cleanup, decide whether membership state belongs on `profiles` or in a separate membership table.
 - Confirm the approved-gate RPC scope before any apply draft.
 - After inventory, prepare schema/helper draft for membership status and decision logs.
 - Add approval/rejection RPCs in a separate apply gate.
 - Add approved-member gates to existing RPCs in small batches, not as a single broad rewrite.
 - Implement pending/rejected/revoked/blocked UI and approver UI only after DB/RPC gates are reviewed.
 - QA new signup pending state, pending denial, approval transition, approver limitation, admin-only actions, and approved-user normal operation.
+
+076/077 scope:
+
+- 076 only revokes `TRUNCATE` on `public.player_characters` from `public`, `anon`, and `authenticated`.
+- 076 does not change INSERT, UPDATE, DELETE, SELECT, table definitions, RLS policies, RPCs, Storage grants, membership schema, or approved-member gates.
+- 077 is SELECT-only and has not been executed.
+- Storage expected exceptions are intentionally untouched.
 
 Safety:
 

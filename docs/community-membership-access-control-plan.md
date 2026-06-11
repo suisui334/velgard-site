@@ -393,11 +393,22 @@ Prepared gate:
 Prepared follow-up gate:
 
 - `docs/supabase/sql/075_membership_direct_write_grants_detail_select_only.sql`
-- SELECT-only and not executed in this preparation step.
-- The next independent gate is to run 075 once in the user's SQL Editor.
-- Use the result to decide whether the direct grants are expected exceptions or
-  app-table write grants that need a separate revoke review before membership
-  apply drafts.
+- The user ran 075 once as SELECT-only.
+- 075 reported `direct_write_grants=26`, with 24 Storage grants classified as
+  expected exceptions.
+- The two app-table review grants were direct `TRUNCATE` privileges on
+  `public.player_characters` for `anon` and `authenticated`.
+- `player_characters` is a core app table, and web-client `TRUNCATE` access is
+  not needed for the player-character workflow.
+
+Prepared revoke gate:
+
+- `docs/supabase/sql/076_revoke_player_characters_truncate_apply_draft.sql`
+- `docs/supabase/sql/077_revoke_player_characters_truncate_post_apply_select_only.sql`
+- 076 is an apply draft and has not been executed.
+- 077 is a post-apply SELECT-only confirmation SQL.
+- The next independent gate is to review and apply 076 before membership
+  schema/helper draft work continues.
 
 ## Open Questions For Later Gates
 
