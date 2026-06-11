@@ -198,10 +198,22 @@ Decision:
 - Because `missing_any_search_path=0`, the remaining review is not a complete
   missing-search-path emergency. It is a review of functions whose configured
   path is not exactly `public`.
-- No apply draft is prepared in this gate. The next step is 073 SELECT-only
-  exact path classification.
-- 38 functions should not be bulk-edited; choose a small high-priority
-  apply-draft scope after 073 results are recorded.
+- The user then ran 073 once as SELECT-only. It confirmed `security_definer=55`,
+  `search_path_public=17`, `needs_review=38`, `missing_any_search_path=0`,
+  and `p0=0`.
+- No function used `$user` or `pg_temp` in its configured search_path.
+- 37 review rows were `search_path=""` safe empty-path candidates. This is a
+  strict setting when function bodies use schema-qualified references and is
+  not treated as a dangerous path.
+- The P1 web-facing rows were safe empty-path candidates, so a broad
+  search_path apply is not needed.
+- The only manual-review row was `rls_auto_enable()` with `search_path=pg_catalog`;
+  direct EXECUTE is closed for web-client roles and service role, and trigger
+  references are 0, so it remains low-priority historical/supporting cleanup.
+- `handle_new_auth_user_profile()` remains trigger/internal, safe-empty-path
+  candidate, and externally closed.
+- The search_path P1 item is considered complete/hold: no P0, no dangerous
+  path, and no bulk cleanup needed.
 
 Safety:
 
@@ -404,9 +416,8 @@ Initial hardening:
 
 ## Recommended Next Gates
 
-1. Run `073_security_definer_search_path_exact_select_only.sql` once as a SELECT-only exact-path gate.
-2. Record 073 results and choose the first narrow high-priority search_path cleanup scope.
-3. Prepare moderation UI plan for comments, profiles, and avatars.
+1. Keep security definer search_path checks as a per-RPC review requirement when future functions are changed.
+2. Prepare moderation UI plan for comments, profiles, and avatars.
 
 ## Auth CAPTCHA Frontend Gate
 

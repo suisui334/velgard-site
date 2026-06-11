@@ -23,7 +23,9 @@ send mail, or send Discord messages.
   while preserving trigger/internal usage.
 - Auth abuse protection with Turnstile is complete.
 - comment/application spam guard apply and QA are complete.
-- Remaining public-readiness P1 work includes search_path cleanup.
+- The 073 exact-path review found no P0, no `$user`, no `pg_temp`, and no fully
+  missing search_path. The remaining search_path work is complete/hold unless a
+  future RPC change touches an individual function.
 
 ## 072 Result Summary
 
@@ -55,6 +57,48 @@ Interpretation:
 - The next step is to inspect the exact configured path values before choosing
   any apply scope.
 - Bulk-editing all 38 functions remains explicitly out of scope.
+
+## 073 Result Summary
+
+The user ran `073_security_definer_search_path_exact_select_only.sql` once as a
+SELECT-only SQL Editor gate. No additional SQL Editor execution, SQL apply,
+DB/RPC/RLS change, Dashboard change, Edge deploy, mail sending, Discord
+sending, or credential recording was performed in this recording step.
+
+Summary:
+
+- `security_definer=55`
+- `search_path_public=17`
+- `needs_review=38`
+- `missing_any_search_path=0`
+- `p0=0`
+- `$user` path count: 0
+- `pg_temp` path count: 0
+- `safe_empty_path_candidate=37`
+- `needs_manual_review=1`
+
+Interpretation:
+
+- The 37 `search_path=""` functions are treated as safe empty-path candidates.
+  This is a strict pattern when function bodies use schema-qualified references,
+  and it is not a dangerous path by itself.
+- The 36 P1 web-facing RPC rows were also safe empty-path candidates in the
+  exact-path review, so a bulk apply to force `search_path=public` is not needed.
+- The only manual-review function was `rls_auto_enable()` with
+  `search_path=pg_catalog`.
+- `rls_auto_enable()` has direct EXECUTE closed for `public`, `anon`,
+  `authenticated`, and `service_role`, and it has no trigger references, so it
+  can remain low-priority historical/supporting cleanup.
+- `handle_new_auth_user_profile()` was classified as trigger/internal, uses the
+  safe empty-path candidate pattern, and has external EXECUTE closed.
+
+Conclusion:
+
+- No additional search_path apply draft is prepared now.
+- The public-readiness P1 search_path item is considered complete/hold:
+  no P0, no dangerous path, and no bulk cleanup needed.
+- Future changes to individual `security definer` functions should still verify
+  the function's `search_path` and schema qualification as part of that gate.
 
 ## Why No Apply Draft Yet
 
@@ -166,17 +210,16 @@ Use a separate review before applying changes when 072 reports:
 - A function where changing search_path could alter unqualified object
   resolution.
 
-## Proposed Next Gates
+## Operational Follow-Up
 
-1. Run `073_security_definer_search_path_exact_select_only.sql` once as a
-   SELECT-only SQL Editor gate.
-2. Record the 073 results without concrete IDs, emails, full URLs, project refs,
-   tokens, keys, or secrets.
-3. If 073 reports `$user` or `pg_temp`, triage those first.
-4. If 073 confirms empty search_path candidates or other non-public settings,
-   choose a small P1 apply-draft scope rather than bulk-editing all review rows.
-5. Keep trigger/internal and low-priority cleanup for later gates unless 073
-   shows unexpected web-client exposure.
+1. Do not run a bulk search_path cleanup apply for the 38 review rows.
+2. When changing a specific `security definer` function, confirm its
+   `search_path`, schema-qualified references, EXECUTE grants, and caller
+   surface in that same gate.
+3. Keep `rls_auto_enable()` as low-priority historical/supporting cleanup unless
+   a future diagnostic shows renewed external EXECUTE exposure.
+4. Keep trigger/internal functions on a cautious per-function review path rather
+   than mixing them into web-facing RPC cleanup.
 
 ## Non-Goals
 

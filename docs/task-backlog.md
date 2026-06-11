@@ -6528,7 +6528,7 @@ Safety:
 
 ## M-14F-37 security definer search_path inventory
 
-Status: 072 result recorded; exact search_path SELECT-only diagnostic prepared.
+Status: 073 exact search_path review recorded; search_path P1 item complete/hold.
 
 Context:
 
@@ -6543,7 +6543,7 @@ Prepared:
 - Added `docs/supabase/sql/072_security_definer_search_path_inventory_select_only.sql`.
 - Added `docs/supabase/sql/073_security_definer_search_path_exact_select_only.sql`.
 - 072 was executed once by the user as SELECT-only.
-- 073 is SELECT-only and has not been executed.
+- 073 was executed once by the user as SELECT-only.
 - No apply draft was prepared in this gate.
 
 072 result summary:
@@ -6561,6 +6561,23 @@ Prepared:
 - `low=1`.
 - Because `missing_any_search_path=0`, the 38 review rows are not treated as completely missing search_path. They need exact configured value review before any apply draft.
 
+073 result summary:
+
+- `security_definer=55`.
+- `search_path_public=17`.
+- `needs_review=38`.
+- `missing_any_search_path=0`.
+- `p0=0`.
+- `$user` path count was 0.
+- `pg_temp` path count was 0.
+- 37 review rows were `search_path=""` safe empty-path candidates.
+- `search_path=""` is treated as a strict schema-qualified-reference pattern, not a dangerous path by itself.
+- The 36 P1 web-facing rows were safe empty-path candidates; broad apply cleanup is not needed.
+- The only manual-review row was `rls_auto_enable()` with `search_path=pg_catalog`.
+- `rls_auto_enable()` has direct EXECUTE closed for `public`, `anon`, `authenticated`, and `service_role`, and has 0 trigger references, so it can remain low-priority historical/supporting cleanup.
+- `handle_new_auth_user_profile()` is trigger/internal, uses the safe empty-path candidate pattern, and has external EXECUTE closed.
+- No additional search_path apply is planned now.
+
 Classification approach:
 
 - High priority: web-client executable security definer RPCs, especially user-input, write/state-changing, authz/GM/admin, notification/activity, Discord, profile/avatar, session/comment/application, or player-character functions that do not report `search_path=public`.
@@ -6570,10 +6587,9 @@ Classification approach:
 
 Next gates:
 
-- Run 073 once as a SQL Editor SELECT-only exact-path gate.
-- Record 073 results without concrete identifiers or secret values.
-- If 073 reports `$user` or `pg_temp`, triage those first.
-- Choose a small high-priority apply-draft scope only after 073 results are reviewed.
+- Keep search_path checks as a per-function review item when future `security definer` RPCs are changed.
+- Do not bulk-edit the 38 review rows.
+- Continue with other public-readiness follow-ups such as moderation planning.
 
 Safety:
 
