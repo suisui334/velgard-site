@@ -234,11 +234,18 @@ Risks:
 
 Initial hardening:
 
-- CAPTCHA on signup and reset request forms.
-- UI-side cooldown and disabled submit state.
+- CAPTCHA on signup and reset request forms, with Cloudflare Turnstile as the first candidate.
+- UI-side cooldown and disabled submit state for signup/reset request forms.
 - Dashboard rate-limit review in a separate settings gate.
-- Mail-provider bounce/suppression review procedure.
+- Mail-provider bounce/suppression review procedure for the current Custom SMTP provider.
 - Consider invite/admin approval before opening signup broadly.
+
+Planning status:
+
+- `docs/auth-abuse-protection-plan.md` defines the non-destructive rollout sequence.
+- Dashboard changes, CAPTCHA secret entry, frontend CAPTCHA implementation, QA, and rate-limit changes are separate gates.
+- The current MVP recommendation is CAPTCHA on signup and password reset first; login CAPTCHA remains optional until abuse patterns justify the extra friction.
+- Password reset repeat-submit protection should avoid storing submitted emails in browser storage and should remain secondary to Supabase-side CAPTCHA/rate limits.
 
 ### Registration Spam
 

@@ -6640,6 +6640,52 @@ Safety:
 
 - No real user id, email, full URL, project identifier, JWT, token, key, or secret was recorded.
 
+## M-14F-27 auth abuse protection plan
+
+Status: Auth/mail abuse hardening plan prepared non-destructively.
+
+Background:
+
+- Custom SMTP is already in use for Supabase Auth mail.
+- The 066/067/068/069 public-security gates resolved the P0 unsafe anon RPC exposure.
+- The next public-readiness risk is signup and password-reset abuse that could consume Auth/SMTP send capacity or damage sending reputation.
+
+Reviewed local flow:
+
+- `mypage.html` uses `assets/js/mypageAuthClient.js` for login, signup, password reset, and password recovery completion.
+- Signup uses Supabase Auth `signUp` with the runtime mypage redirect and `display_name` metadata.
+- Password reset uses `resetPasswordForEmail` with the runtime mypage redirect.
+- Existing forms have in-flight disabled/busy states, but no CAPTCHA token plumbing and no post-success cooldown.
+
+Prepared:
+
+- `docs/auth-abuse-protection-plan.md`
+
+Plan summary:
+
+- Use Cloudflare Turnstile as the first CAPTCHA candidate.
+- Add CAPTCHA to signup and password reset first.
+- Keep login CAPTCHA optional until public abuse patterns justify the extra friction.
+- Treat Turnstile site key as public frontend config but do not record concrete values in docs.
+- Treat Turnstile secret key as secret-equivalent and only enter it during a dedicated Supabase Dashboard gate.
+- Do not enable Supabase CAPTCHA enforcement until the frontend can pass CAPTCHA tokens for the protected Auth flows.
+- Review Supabase Auth Rate Limits in a separate Dashboard/settings gate without changing values during the initial review.
+- Add frontend password-reset repeat-submit cooldown in a later implementation gate; do not store submitted emails in browser storage.
+- Monitor Resend bounce/suppression and Auth 429 trends after broader public exposure.
+
+Separated gates:
+
+- Dashboard preparation: create/confirm Turnstile site and review Supabase Bot and Abuse Protection settings without recording keys.
+- Frontend implementation: add CAPTCHA widgets/token plumbing for signup and password reset.
+- Dashboard enforcement: enable Supabase CAPTCHA after frontend deployment.
+- QA: verify signup, reset, login, non-enumerating copy, and no normal-flow HTTP 429 recurrence.
+- Rate-limit review: inspect Auth email/rate-limit settings and provider signals; any value changes require a separate settings gate.
+
+Safety:
+
+- Supabase Dashboard changes, CAPTCHA secret entry, SQL Editor execution, DB/RPC/RLS changes, SQL apply, Edge deploy, email sending, Discord sending, and credential recording were not performed.
+- No real email, user id, full URL, project identifier, CAPTCHA key, API key, JWT, token, or secret value was recorded.
+
 ## M-15A-01 notification and TIMELINE label localization
 
 Status: notification bell and TIMELINE list labels localized and simplified.
