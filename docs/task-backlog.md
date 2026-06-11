@@ -6101,6 +6101,14 @@ Safety:
 
 Status: non-destructive SQL draft preparation completed.
 
+Apply-before-review follow-up:
+
+- Initial 061 review found a blocker: GM/admin management comments would also create `authenticated` activity rows.
+- Because management comments can occur on non-public or draft sessions, the shared timeline could expose that an internal session/comment existed.
+- 061 was revised to record only PL-side comments/applications as activity rows.
+- GM/admin management comments keep existing owner notification behavior but do not create shared activity rows in the MVP.
+- GM/internal operation activity is deferred until a stricter visibility model is reviewed.
+
 Created:
 
 - `docs/supabase/sql/061_activity_events_instrument_session_events_apply_draft.sql`
@@ -6110,7 +6118,7 @@ Scope:
 
 - 061 targets only `public.create_application_comment(text,text)`.
 - Existing comment/application behavior, frontend payload, return value, grants, PC snapshot behavior, and owner notification instrumentation are preserved.
-- 061 adds `record_activity_event(...)` calls for comment/application timeline events:
+- 061 adds `record_activity_event(...)` calls for PL-side comment/application timeline events:
   - `session_comment`
   - `session_application`
 - Activity entries use `authenticated` visibility and a relative `session-detail.html?id=...` target path.

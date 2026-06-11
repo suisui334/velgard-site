@@ -2,7 +2,7 @@
 -- DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED
 --
 -- Purpose:
--- - Wire the existing comment/application entry point to the shared activity timeline.
+-- - Wire the existing player comment/application entry point to the shared activity timeline.
 -- - Keep private owner notifications and public/authenticated activity timeline events separate.
 -- - Preserve frontend arguments and return value for create_application_comment(text, text).
 --
@@ -10,24 +10,28 @@
 -- - Replace public.create_application_comment(text, text) only.
 -- - Preserve existing comment/application behavior, owner notification instrumentation,
 --   PC snapshot behavior, grants, and return shape.
--- - Add public.record_activity_event(...) calls for:
+-- - Add public.record_activity_event(...) calls for PL-side events only:
 --   - session_comment
 --   - session_application
+-- - Keep GM/admin management comments as private owner-notification behavior only.
 --
 -- Deliberately not included in this draft:
 -- - create_session_post activity instrumentation. That RPC is larger and should be
 --   reviewed in a separate focused draft before replacing it again.
+-- - GM/admin management comment activity. Management comments can exist on
+--   non-public sessions, so they should not be exposed in the shared timeline
+--   until a stricter visibility design is reviewed.
 -- - session edit, approval/rejection, close mark, delete, Discord, email, or repair events.
 -- - Any full URL, real user id, email, token, project ref, Discord id, or secret recording.
 --
 -- Activity visibility policy:
--- - Comment/application events are stored with authenticated visibility.
+-- - PL comment/application events are stored with authenticated visibility.
 -- - The activity body is a short generic summary, not the raw comment/application text.
 -- - The target path stays relative: session-detail.html?id=<session id>.
 --
 -- Failure policy:
--- - Activity insertion is part of the same RPC transaction.
--- - If activity instrumentation fails, the comment/application RPC fails and rolls back.
+-- - PL-side activity insertion is part of the same RPC transaction.
+-- - If activity instrumentation fails, the PL comment/application RPC fails and rolls back.
 -- - This matches the notification MVP policy so instrumentation problems are visible
 --   during QA instead of silently losing timeline events.
 
@@ -136,20 +140,8 @@ begin
       )
     );
 
-    perform public.record_activity_event(
-      v_actor_id,
-      'session_comment',
-      v_target_session_id,
-      'authenticated',
-      'Session comment',
-      'A management comment was posted.',
-      'session-detail.html?id=' || v_target_session_id,
-      jsonb_build_object(
-        'source', 'create_application_comment',
-        'event', 'management_comment'
-      )
-    );
-
+    -- Intentionally do not create a shared activity row for GM/admin
+    -- management comments. They may occur on non-public sessions.
     return v_new_comment_id;
   end if;
 

@@ -426,6 +426,13 @@ Remaining timeline tasks:
 
 Prepared non-destructive SQL drafts for comment/application activity timeline generation.
 
+Apply-before-review follow-up:
+
+- The first 061 draft was blocked because GM/admin management comments also wrote `authenticated` activity rows.
+- Management comments can occur on non-public or draft sessions, so recording them in the shared activity timeline could expose that an internal session/comment existed.
+- The draft was revised so the MVP records only PL-side comments/applications as activity rows.
+- GM/admin management comments keep the existing owner notification behavior but do not create shared activity rows.
+
 Created:
 
 - `docs/supabase/sql/061_activity_events_instrument_session_events_apply_draft.sql`
@@ -436,7 +443,7 @@ Created:
 - Replaces only `public.create_application_comment(text,text)`.
 - Preserves the existing frontend payload and return value.
 - Preserves the existing owner notification helper call added in the notification instrumentation batch.
-- Adds `public.record_activity_event(...)` calls for:
+- Adds `public.record_activity_event(...)` calls for PL-side events only:
   - `session_comment`
   - `session_application`
 - Stores comment/application activity with `authenticated` visibility.
@@ -456,6 +463,7 @@ Design notes:
 - Activity rows are shared timeline events, not private notifications.
 - Self-actions may create activity rows even though private self-notifications are skipped by the owner notification helper.
 - Comment/application activity is treated as login-visible because comment and application context can contain player-specific information.
+- GM/admin management comments are not included in the MVP timeline feed. They should stay out of shared activity until a stricter visibility model for internal GM operations is reviewed.
 - Session creation activity is not included in 061. `create_session_post(...)` is a larger RPC and should be instrumented in a separate focused apply draft after its current live signature/body are reviewed.
 
 Safety:

@@ -2,7 +2,7 @@
 -- SELECT ONLY / NO MUTATION
 --
 -- Purpose:
--- - Confirm comment/application activity timeline instrumentation after a separately
+-- - Confirm player comment/application activity timeline instrumentation after a separately
 --   approved 061 apply gate.
 -- - Return boolean/status style results only.
 -- - Do not return function bodies, real user ids, emails, tokens, full URLs,
@@ -114,6 +114,7 @@ target_summary as (
     coalesce(bool_or(function_def like '%authenticated%'), false) as has_authenticated_visibility,
     coalesce(bool_or(function_def like '%A participation application was posted.%'), false) as has_generic_application_body,
     coalesce(bool_or(function_def like '%A comment was posted.%'), false) as has_generic_comment_body,
+    coalesce(bool_or(function_def like '%A management comment was posted.%'), false) as has_management_activity_body,
     coalesce(bool_or(function_def like '%v_actor_id%'), false) as passes_actor_to_helpers,
     min(signature) as signature
   from target_rpc
@@ -147,6 +148,7 @@ ready_summary as (
       and ts.has_authenticated_visibility
       and ts.has_generic_application_body
       and ts.has_generic_comment_body
+      and not ts.has_management_activity_body
       and ts.passes_actor_to_helpers
       and ahs.helper_count = 1
       and ahs.all_security_definer
@@ -248,7 +250,7 @@ output_rows as (
     'create_application_comment_has_comment_activity_type',
     case when has_session_comment_type then 'ok' else 'review' end,
     has_session_comment_type::text,
-    'Follow-up or management comments should produce session_comment activity.'
+    'PL follow-up comments should produce session_comment activity.'
   from target_summary
 
   union all
@@ -281,6 +283,15 @@ output_rows as (
   union all
   select
     140,
+    'create_application_comment_skips_management_activity',
+    case when not has_management_activity_body then 'ok' else 'review' end,
+    (not has_management_activity_body)::text,
+    'GM/admin management comments should not write shared activity rows in this MVP.'
+  from target_summary
+
+  union all
+  select
+    150,
     'create_application_comment_passes_actor',
     case when passes_actor_to_helpers then 'ok' else 'review' end,
     passes_actor_to_helpers::text,
@@ -289,7 +300,7 @@ output_rows as (
 
   union all
   select
-    150,
+    160,
     'record_activity_event_exists',
     case when helper_count = 1 then 'ok' else 'review' end,
     helper_count::text,
@@ -298,7 +309,7 @@ output_rows as (
 
   union all
   select
-    160,
+    170,
     'record_activity_event_security_definer',
     case when all_security_definer then 'ok' else 'review' end,
     all_security_definer::text,
@@ -307,7 +318,7 @@ output_rows as (
 
   union all
   select
-    170,
+    180,
     'record_activity_event_search_path_public',
     case when all_search_path_public then 'ok' else 'review' end,
     all_search_path_public::text,
@@ -316,7 +327,7 @@ output_rows as (
 
   union all
   select
-    180,
+    190,
     'record_activity_event_web_client_direct_execute',
     case when not authenticated_execute and not anon_execute then 'ok' else 'review' end,
     concat('authenticated=', authenticated_execute, ',anon=', anon_execute),
@@ -325,7 +336,7 @@ output_rows as (
 
   union all
   select
-    190,
+    200,
     'create_session_owner_notification_still_present',
     case when helper_count = 1 then 'ok' else 'review' end,
     helper_count::text,
@@ -334,7 +345,7 @@ output_rows as (
 
   union all
   select
-    200,
+    210,
     'session_create_activity_scope',
     'ok',
     'future',
@@ -342,7 +353,7 @@ output_rows as (
 
   union all
   select
-    210,
+    220,
     'session_update_and_status_activity_scope',
     'ok',
     'future',
@@ -350,7 +361,7 @@ output_rows as (
 
   union all
   select
-    220,
+    230,
     'post_apply_ready_for_activity_generation_qa',
     case when ready_for_activity_generation_qa then 'ok' else 'review' end,
     ready_for_activity_generation_qa::text,
