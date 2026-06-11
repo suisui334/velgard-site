@@ -6526,6 +6526,42 @@ Safety:
 - Codex did not execute additional SQL Editor actions, SQL apply, DB/RPC/RLS changes, Supabase Dashboard changes, Edge deploy, email sending, Discord sending, credential recording, or Supabase direct DB writes in this QA recording step.
 - No real email, user id, session id, activity id, notification id, full URL, project identifier, token, key, or secret value was recorded.
 
+## M-14F-37 security definer search_path inventory
+
+Status: non-destructive inventory docs and SELECT-only diagnostic prepared.
+
+Context:
+
+- Public-readiness diagnostics left security definer `search_path=public` cleanup as a P1 item.
+- The P0 unsafe anon RPC exposure was closed by the 068/069 gate.
+- Auth/Turnstile and comment/application spam guard P1 work are complete.
+- Repo history contains historical drafts and later replacement SQL, so the current live function list cannot be safely inferred from repository files alone.
+
+Prepared:
+
+- Added `docs/security-definer-search-path-audit.md`.
+- Added `docs/supabase/sql/072_security_definer_search_path_inventory_select_only.sql`.
+- 072 is SELECT-only and has not been executed.
+- No apply draft was prepared in this gate.
+
+Classification approach:
+
+- High priority: web-client executable security definer RPCs, especially user-input, write/state-changing, authz/GM/admin, notification/activity, Discord, profile/avatar, session/comment/application, or player-character functions that do not report `search_path=public`.
+- Medium priority: trigger/internal functions such as updated-at helpers or auth profile handlers whose direct web-client EXECUTE is closed.
+- Low priority/hold: historical helpers, closed-execute functions, or possible legacy overloads with no clear active web or trigger path.
+- Additional confirmation: public read RPCs, service-role/cron functions, overloads, or any function where repo and current DB metadata may diverge.
+
+Next gates:
+
+- Run 072 once as a SQL Editor SELECT-only inventory gate.
+- Record 072 results without concrete identifiers or secret values.
+- Choose a small high-priority apply-draft scope only after 072 results are reviewed.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard changes, Edge deploy, email sending, Discord sending, credential recording, and Supabase direct DB writes were not performed.
+- No real email, user id, session id, activity id, notification id, full URL, project identifier, token, key, or secret value was recorded.
+
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
 
 Status: Cloudflare Turnstile frontend integration implemented.

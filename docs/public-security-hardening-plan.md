@@ -171,6 +171,39 @@ Conclusion:
 - No additional SQL Editor execution, DB/RPC/RLS changes, Dashboard changes, Edge deploy, mail sending, Discord sending, or credential recording were performed in this recording step.
 - Remaining public-readiness follow-up moves to P1 items: Auth CAPTCHA/rate-limit/password-reset abuse controls, comment/application spam guards, and security definer `search_path=public` cleanup.
 
+### 072 Security Definer Search Path Inventory
+
+Prepared:
+
+- `docs/security-definer-search-path-audit.md`
+- `docs/supabase/sql/072_security_definer_search_path_inventory_select_only.sql`
+
+Scope:
+
+- Non-destructive classification of security definer functions that do not
+  report `search_path=public`.
+- Categorize functions into high-priority web surfaces, additional-confirmation
+  candidates, trigger/internal functions, and low-priority or historical
+  candidates.
+- Return function signatures, owner role names, search_path flags, EXECUTE
+  exposure, trigger-reference counts, and broad object-reference hints only.
+
+Decision:
+
+- No apply draft is prepared in this gate because the full current live list of
+  affected functions must be confirmed from the database first.
+- 072 is the next SELECT-only SQL Editor gate.
+- After 072 results are recorded, choose a small high-priority apply-draft
+  scope; do not bulk-edit all functions at once.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Dashboard changes, Edge
+  deploy, mail sending, Discord sending, and credential recording are not
+  performed in this preparation step.
+- No concrete user id, email, session id, activity id, notification id, full
+  URL, project identifier, token, key, or secret value is recorded.
+
 ## Priority List
 
 ### P0: Must Fix Before Wider Public Release
@@ -364,8 +397,9 @@ Initial hardening:
 
 ## Recommended Next Gates
 
-1. Prepare security definer search_path cleanup plan for remaining P1 functions.
-2. Prepare moderation UI plan for comments, profiles, and avatars.
+1. Run `072_security_definer_search_path_inventory_select_only.sql` once as a SELECT-only inventory gate.
+2. Record 072 results and choose the first narrow high-priority search_path cleanup scope.
+3. Prepare moderation UI plan for comments, profiles, and avatars.
 
 ## Auth CAPTCHA Frontend Gate
 
