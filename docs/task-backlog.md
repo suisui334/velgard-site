@@ -6374,3 +6374,33 @@ Safety:
 
 - No additional SQL Editor execution, DB/RPC/RLS change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, or secret/API key/token recording was performed in this recording step.
 - No real URL, user id, session id, activity id, notification id, email, JWT, token, project ref, or internal id value was recorded.
+
+## M-14F-16 shared header brand overlap fix
+
+Status: shared header CSS adjusted for the post-TIMELINE navigation width.
+
+Issue:
+
+- On non-mypage pages, the shared header brand text overlapped with the `TOP` navigation item.
+- The likely trigger was the additional `TIMELINE` navigation item increasing the total inline navigation width.
+- The previous mypage-specific header adjustment did not cover the common header layout used by other pages.
+
+Changed:
+
+- Updated the common header CSS in `assets/css/style.css`.
+- Desktop brand text is kept as one block so the end of the title does not collide with navigation.
+- The shared nav now flexes in the remaining header space instead of overlapping the brand.
+- At intermediate desktop widths, nav spacing, padding, font size, and notification/account controls are compacted.
+- The shared nav can wrap within its own area before the mobile hamburger breakpoint instead of eating into the brand.
+- Updated HTML stylesheet cache-busts so the shared header fix is picked up across pages.
+
+Preserved:
+
+- Existing mypage header behavior remains covered by the shared fix and the mobile hamburger behavior.
+- `TIMELINE` remains in the shared navigation.
+- No notification bell, ACCOUNT, logout, timeline, DB, Discord, or storage behavior was changed.
+
+Safety:
+
+- SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
+- No real email, user id, full URL, project identifier, credential, or secret value was recorded.
