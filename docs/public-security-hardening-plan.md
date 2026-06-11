@@ -278,6 +278,19 @@ Initial hardening:
 - Optional session-level lock or GM/admin moderation action.
 - Keep notification/activity generation transactional so failures are visible during QA.
 
+Preparation status:
+
+- `067` classified comment/application spam guards as a public-readiness review item: existing length guard was present, while cooldown and URL-count guards were missing.
+- `070_comment_application_spam_guard_apply_draft.sql` has been prepared but not executed.
+- `071_comment_application_spam_guard_post_apply_select_only.sql` has been prepared as the post-apply SELECT-only confirmation.
+- The 070 draft is limited to `public.create_application_comment(text,text)`.
+- Planned guards:
+  - same user and same session PL comment/application cooldown for 60 seconds;
+  - maximum two URL-like tokens per submitted body.
+- Existing owner notification generation, PL activity generation, PC snapshot handling, and GM/admin management-comment shared TIMELINE skip are intended to remain unchanged.
+- SQL apply and real comment/application QA remain separate gates.
+- No real user id, email, session id, activity id, notification id, full URL, token, key, project identifier, or secret value is recorded.
+
 ### RLS/RPC
 
 Risks:
@@ -344,12 +357,11 @@ Initial hardening:
 
 ## Recommended Next Gates
 
-1. Review `068_public_security_revoke_unsafe_anon_rpc_apply_draft.sql` before apply.
-2. If approved, run 068 once as a SQL Editor apply gate, then run 069 once as a SELECT-only post-apply gate.
-3. Prepare Auth abuse hardening design for CAPTCHA, rate-limit review, and optional invite/admin approval.
-4. Prepare comment/application cooldown and URL-count RPC draft.
-5. Prepare security definer search_path cleanup plan for remaining P1 functions.
-6. Prepare moderation UI plan for comments, profiles, and avatars.
+1. Review `070_comment_application_spam_guard_apply_draft.sql` before apply.
+2. If approved, run 070 once as a SQL Editor apply gate, then run 071 once as a SELECT-only post-apply gate.
+3. Run real comment/application spam-guard QA in a separate gate after 071 passes.
+4. Prepare security definer search_path cleanup plan for remaining P1 functions.
+5. Prepare moderation UI plan for comments, profiles, and avatars.
 
 ## Auth CAPTCHA Frontend Gate
 

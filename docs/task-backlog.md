@@ -6481,6 +6481,39 @@ Safety:
 - Supabase Dashboard changes, SQL Editor execution, DB/RPC/RLS changes, Edge deploy, additional email sending, Discord sending, credential recording, and Supabase direct DB writes were not performed in this docs batch.
 - No real email address, password, full URL, confirmation token, JWT/session token, concrete Site key, or Secret key value was recorded.
 
+## M-14F-36 comment/application spam guard preparation
+
+Status: non-destructive apply draft preparation completed.
+
+Context:
+
+- Public-readiness diagnostics marked comment/application spam guards as review/P1 work.
+- `create_application_comment(text,text)` already had body length validation.
+- Cooldown and URL-count guards were not present.
+- Turnstile Auth CAPTCHA MVP is complete for login, password reset, and signup, so the next public-readiness focus moved to server-side comment/application abuse controls.
+
+Prepared:
+
+- Added `docs/supabase/sql/070_comment_application_spam_guard_apply_draft.sql`.
+- Added `docs/supabase/sql/071_comment_application_spam_guard_post_apply_select_only.sql`.
+- 070 is an apply draft only and is not executed.
+- 071 is SELECT-only and is not executed.
+- Scope is limited to `public.create_application_comment(text,text)`.
+- Planned guards are same-user/same-session PL comment/application cooldown for 60 seconds and maximum two URL-like tokens per submitted body.
+- Existing owner notification generation, PL activity generation, PC snapshot handling, authenticated-only execute, security definer/search path, and GM/admin management-comment shared TIMELINE skip are intended to remain intact.
+
+Next gates:
+
+- Review 070 before any SQL Editor apply.
+- If approved, run 070 once in SQL Editor as an apply gate.
+- Run 071 once as a SELECT-only post-apply confirmation.
+- Real comment/application spam-guard QA remains a separate gate after 071 passes.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard changes, Edge deploy, email sending, Discord sending, credential recording, and Supabase direct DB writes were not performed.
+- No real email, user id, session id, activity id, notification id, full URL, project identifier, token, key, or secret value was recorded.
+
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
 
 Status: Cloudflare Turnstile frontend integration implemented.
