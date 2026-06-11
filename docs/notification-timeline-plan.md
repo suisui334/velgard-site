@@ -567,6 +567,63 @@ Next gate:
 - Re-run logged-in TIMELINE QA after the frontend cache-bust is public.
 - Confirm notification bell read-state behavior with an existing notification history.
 
+## 063 Diagnosis and Activity Generation Fix Draft
+
+The 063 SELECT-only diagnostics were run once by the user after the timeline/read-history triage.
+
+063 results:
+
+- `activity_events_total_count=0`.
+- `activity_events_authenticated_pl_count=0`.
+- `activity_events_visibility_counts=public=0,authenticated=0,private=0`.
+- `activity_events_type_counts=comment=0,application=0`.
+- `diagnosis_next_step=activity_missing`.
+- `get_activity_timeline(...)` exists and keeps the expected security/search_path/return-shape patterns.
+- `create_application_comment(...)` still had the static activity-generation pattern expected from the prior draft.
+- The GM/admin management-comment activity skip pattern remained OK.
+- Notification history support was confirmed separately: read-state counts were present as `total=2,unread=0,read=2`, so the notification list can retain read history.
+
+Conclusion:
+
+- TIMELINE non-display is primarily an activity-generation issue, not a TIMELINE frontend rendering issue.
+- The previous helper-call pattern was statically present, but real PL comment/application QA still produced no `activity_events` rows.
+- The next fix should make PL-side activity generation explicit inside `create_application_comment(text,text)` and verify that an activity row is produced before returning success.
+
+Prepared next drafts:
+
+- `docs/supabase/sql/064_activity_events_generation_fix_apply_draft.sql`
+- `docs/supabase/sql/065_activity_events_generation_fix_post_apply_select_only.sql`
+
+064 scope:
+
+- Replaces only `public.create_application_comment(text,text)`.
+- Keeps existing comment/application behavior, PC snapshot behavior, owner notification helper call, validation, authenticated-only frontend contract, and return shape.
+- Keeps GM/admin management comments out of shared activity.
+- Writes PL-side comment/application activity through the concrete `activity_events` path inside the same transaction.
+- Keeps activity visibility as `authenticated`.
+- Keeps target paths relative.
+- Keeps activity bodies generic and does not store raw comment text.
+- Treats activity generation failure as a visible RPC failure so timeline instrumentation cannot silently drop rows during QA.
+
+065 scope:
+
+- SELECT-only.
+- Confirms the RPC signature/security/search_path/execute privileges.
+- Confirms owner notifications remain connected.
+- Confirms the concrete activity path, completion guard, event types, relative target path, authenticated visibility, generic body text, and management-comment skip.
+- Confirms real activity counts after a later apply and QA without returning row contents or identifiers.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Edge Function deploy, email sending, Discord sending, Supabase Dashboard changes, and secret/API key/token recording were not performed in this preparation step.
+- No real user id, session id, activity id, notification id, email, JWT, token, full URL, project ref, or internal id value was recorded.
+
+Next gate:
+
+- Review `064_activity_events_generation_fix_apply_draft.sql` before any SQL Editor execution.
+- If approved, run 064 once in a separate SQL apply gate, then run 065 once as a SELECT-only confirmation gate.
+- After confirmation, re-run real PL comment/application TIMELINE display QA.
+
 ## Non-Goals for This Batch
 
 - SQL Editor execution.
