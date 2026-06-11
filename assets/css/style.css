@@ -199,16 +199,19 @@ img {
 .global-nav {
   min-width: 0;
   justify-self: stretch;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(6, max-content);
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  flex-wrap: wrap;
-  row-gap: 4px;
+  gap: 4px 5px;
   align-content: center;
 }
 
 .global-nav a {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 9px 12px;
   border-radius: 6px;
   color: var(--muted);
@@ -522,9 +525,8 @@ img {
   }
 
   .global-nav {
-    gap: 2px;
-    flex-wrap: wrap;
-    row-gap: 2px;
+    grid-template-columns: repeat(6, max-content);
+    gap: 2px 3px;
     align-content: center;
   }
 

@@ -6405,6 +6405,35 @@ Safety:
 - SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
 - No real email, user id, full URL, project identifier, credential, or secret value was recorded.
 
+## M-14F-19 shared header nav row balance
+
+Status: shared header main navigation balanced into two six-item rows.
+
+Issue:
+
+- After the logo/action layout fix, the main nav still wrapped naturally by available text width.
+- That left most nav items on the first row and only `CALENDAR` / `TIMELINE` on the second row, which looked visually unbalanced.
+
+Changed:
+
+- Treated the 12 main navigation items as their own grid.
+- Desktop/intermediate header navigation now lays out as six columns by two rows in DOM order.
+- The top row is `TOP` / `WORLD` / `CAMPAIGN` / `REGULATION` / `SPOT` / `CHARACTER`.
+- The bottom row is `SCENARIOS` / `TERMS` / `GALLERY` / `TOOLS` / `CALENDAR` / `TIMELINE`.
+- Notification bell, ACCOUNT, and logout remain outside the nav grid in the right-side action area.
+- Updated stylesheet cache-busts across shared HTML pages.
+
+Preserved:
+
+- The logo brand remains separate from navigation.
+- Notification panel initial hidden behavior remains in place; unread badges do not auto-open the panel.
+- Narrow-width hamburger navigation remains the escape path for mobile layouts.
+
+Safety:
+
+- SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
+- No real email, user id, full URL, project identifier, credential, or secret value was recorded.
+
 ## M-14F-18 shared header actions layout fix
 
 Status: shared header logo, nav, notification, ACCOUNT, and logout layout rebalanced.
