@@ -624,6 +624,53 @@ Next gate:
 - If approved, run 064 once in a separate SQL apply gate, then run 065 once as a SELECT-only confirmation gate.
 - After confirmation, re-run real PL comment/application TIMELINE display QA.
 
+## Activity Generation Fix Apply Confirmation
+
+The 064 activity generation fix apply gate has completed.
+
+Applied by the user in their Supabase SQL Editor:
+
+- `docs/supabase/sql/064_activity_events_generation_fix_apply_draft.sql`
+- Executed once.
+- Apply succeeded.
+
+SELECT-only confirmation:
+
+- `docs/supabase/sql/065_activity_events_generation_fix_post_apply_select_only.sql`
+- Executed after the 064 apply.
+- Confirmation completed successfully.
+
+Confirmed results:
+
+- `create_application_comment(text,text)` signature is preserved.
+- `security definer` is OK.
+- `search_path=public` is OK.
+- authenticated can execute the RPC.
+- anon cannot execute the RPC.
+- Existing owner notification helper call remains present.
+- PL comment/application branches include activity generation.
+- Activity completion guard and failure guard are present.
+- Activity types cover application and comment events.
+- Target path remains relative.
+- Activity visibility is `authenticated`.
+- Activity body uses generic text and does not store the raw comment body.
+- GM/admin management comments do not create shared activity rows.
+- The old dependency on the internal activity helper is removed for this RPC path.
+- Real activity count checks are still `review` before the next real QA because no new PL comment/application activity was generated in this confirmation step.
+- `post_apply_ready_for_activity_generation_qa=true`.
+
+Safety:
+
+- Codex did not run SQL Editor.
+- No additional SQL Editor execution, DB/RPC/RLS change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, or secret/API key/token recording was performed in this recording step.
+- No real user id, session id, activity id, notification id, email, JWT, token, project ref, or full URL was recorded.
+
+Next gate:
+
+- Perform real PL comment/application posting QA.
+- Confirm `timeline.html` shows the new activity card.
+- Confirm newest-first ordering and detail-link navigation with real activity rows.
+
 ## Non-Goals for This Batch
 
 - SQL Editor execution.
