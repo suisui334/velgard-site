@@ -6405,6 +6405,37 @@ Safety:
 - SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
 - No real email, user id, full URL, project identifier, credential, or secret value was recorded.
 
+## M-14F-18 shared header actions layout fix
+
+Status: shared header logo, nav, notification, ACCOUNT, and logout layout rebalanced.
+
+Issue:
+
+- After changing the shared header to image-first branding, nav items were visually high against the logo.
+- ACCOUNT was no longer reliably visible because account controls were still mixed into the wrapping nav area.
+- The notification dropdown could appear before the bell was clicked because CSS display rules overrode the `hidden` attribute.
+
+Changed:
+
+- Split the shared header into explicit logo, navigation, user action, and menu-toggle areas.
+- Moved ACCOUNT and the notification bell into a dedicated right-side action area.
+- Kept `TIMELINE`, the notification bell, ACCOUNT, and logout in a natural horizontal row on desktop.
+- Recentered nav items vertically against the header logo.
+- Added explicit `[hidden]` handling for notification shell/panel elements so the notification panel stays closed until the bell is clicked.
+- Adjusted medium and narrow width sizing so the right-side actions do not get swallowed by the nav.
+- Updated CSS and main script cache-busts across shared HTML pages.
+
+Preserved:
+
+- The shared logo brand remains linked to `index.html`.
+- Existing notification history behavior, unread badge behavior, mypage logout insertion, and hamburger navigation behavior are preserved.
+- No timeline, notification RPC, DB, Discord, or storage behavior was changed.
+
+Safety:
+
+- SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
+- No real email, user id, full URL, project identifier, credential, or secret value was recorded.
+
 ## M-14F-17 shared header logo brand
 
 Status: shared header brand changed from long text-first display to existing logo image-first display.

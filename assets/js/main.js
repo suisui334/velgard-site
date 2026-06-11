@@ -99,8 +99,11 @@ function renderHeader(site, page) {
         <a class="brand ${logoImage ? "brand--image" : "brand--text"}" href="index.html">
           ${brandContent}
         </a>
+        <nav class="global-nav" aria-label="グローバルナビゲーション">${links}</nav>
+        <div class="header-actions">
+          ${accountLink}
+        </div>
         <button class="nav-toggle" type="button" aria-label="メニューを開く" aria-expanded="false">☰</button>
-        <nav class="global-nav" aria-label="グローバルナビゲーション">${links}${accountLink}</nav>
       </div>
     </header>
   `;
