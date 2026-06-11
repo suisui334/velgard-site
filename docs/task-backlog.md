@@ -6332,3 +6332,45 @@ Next gate:
 
 - Proceed to real PL comment/application posting QA.
 - Confirm TIMELINE card display, newest-first ordering, and detail-link navigation with real activity rows.
+
+## M-14F-15 activity timeline generation QA
+
+Status: PL-side activity generation and TIMELINE card display confirmed by user QA.
+
+Prerequisite confirmation:
+
+- `docs/supabase/sql/064_activity_events_generation_fix_apply_draft.sql` was executed once by the user in Supabase SQL Editor and apply succeeded.
+- `docs/supabase/sql/065_activity_events_generation_fix_post_apply_select_only.sql` was executed and SELECT-only confirmation was OK.
+- `post_apply_ready_for_activity_generation_qa=true`.
+
+QA finding:
+
+- The first post-apply check used an admin/management-side comment.
+- TIMELINE did not show a card for that action.
+- This is expected because GM/admin management comments intentionally do not create shared `activity_events` rows.
+- The user then posted a PL comment as a test player who was not the GM/owner.
+- TIMELINE displayed a card for that PL-side activity.
+
+Conclusion:
+
+- PL comment/application-side activity generation is working for the MVP path.
+- TIMELINE display of a real PL-side activity card is successful.
+- The earlier admin/management-side non-display is treated as intended behavior, not a regression.
+
+Not yet fully recorded in this QA note:
+
+- Whether long comment body text is never exposed on the rendered TIMELINE card.
+- Whether the TIMELINE card detail link was clicked and confirmed.
+- Whether newest-first ordering was confirmed with multiple real activity rows.
+- Whether smartphone-width display was confirmed with real activity cards.
+
+Future scope:
+
+- `create_session_post(...)` activity instrumentation remains a separate future gate.
+- Session edit/status/close/delete and other activity sources remain separate future gates.
+- GM/admin management comment activity remains excluded until shared timeline visibility is reviewed.
+
+Safety:
+
+- No additional SQL Editor execution, DB/RPC/RLS change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, or secret/API key/token recording was performed in this recording step.
+- No real URL, user id, session id, activity id, notification id, email, JWT, token, project ref, or internal id value was recorded.

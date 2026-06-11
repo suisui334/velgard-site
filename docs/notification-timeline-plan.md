@@ -671,6 +671,43 @@ Next gate:
 - Confirm `timeline.html` shows the new activity card.
 - Confirm newest-first ordering and detail-link navigation with real activity rows.
 
+## Activity Timeline Generation QA
+
+The post-064 TIMELINE generation QA was performed by the user.
+
+Context:
+
+- The 064 apply and 065 SELECT-only confirmation were completed before this QA.
+- `post_apply_ready_for_activity_generation_qa=true`.
+- The first check used an admin/management-side user comment.
+- That did not show a TIMELINE card.
+- This is expected behavior because GM/admin management comments intentionally do not create shared `activity_events` rows.
+
+Confirmed:
+
+- A later QA used a test player who was not the GM/owner.
+- That player posted a PL comment.
+- The TIMELINE page displayed a card for the PL-side activity.
+- PL comment/application-side activity generation and TIMELINE display are therefore considered successful for the MVP path.
+
+Still pending or not recorded in this QA note:
+
+- Long comment body exposure check on the rendered TIMELINE card.
+- Detail-link navigation from the TIMELINE card.
+- Newest-first ordering with multiple real activity rows.
+- Smartphone-width TIMELINE display with real activity cards.
+
+Future scope:
+
+- `create_session_post(...)` and other session create/edit/status activity instrumentation remain separate future gates.
+- GM/admin management comment activity remains intentionally excluded until a stricter shared-timeline visibility design is reviewed.
+
+Safety:
+
+- Codex did not run SQL Editor.
+- No additional DB/RPC/RLS change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, or secret/API key/token recording was performed in this recording step.
+- No real URL, user id, session id, activity id, notification id, email, JWT, token, or project ref was recorded.
+
 ## Non-Goals for This Batch
 
 - SQL Editor execution.
