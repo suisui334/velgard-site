@@ -152,6 +152,25 @@ Safety:
 - `069` is SELECT-only and is not executed in this batch.
 - No concrete account/contact/internal identifiers, full external addresses, project identifiers, or credential values are recorded.
 
+### 068/069 Apply Result
+
+`068` was run once by the user in Supabase SQL Editor and applied successfully.
+`069` was then run once as a SELECT-only confirmation and returned OK.
+
+Confirmed:
+
+- The scope was limited to `rls_auto_enable()` and `set_updated_at()`.
+- Both target functions still exist.
+- Direct EXECUTE from `public`, `anon`, and `authenticated` is closed for both target functions.
+- `set_updated_at()` trigger references remain, so internal trigger usage is preserved while direct web-client execution is no longer exposed.
+- `post_apply_ready_for_public_security_qa=true`.
+
+Conclusion:
+
+- The unsafe anon RPC exposure identified as a P0 candidate in `067` is treated as resolved.
+- No additional SQL Editor execution, DB/RPC/RLS changes, Dashboard changes, Edge deploy, mail sending, Discord sending, or credential recording were performed in this recording step.
+- Remaining public-readiness follow-up moves to P1 items: Auth CAPTCHA/rate-limit/password-reset abuse controls, comment/application spam guards, and security definer `search_path=public` cleanup.
+
 ## Priority List
 
 ### P0: Must Fix Before Wider Public Release
@@ -164,7 +183,7 @@ Safety:
 - Add URL-count and excessive-length guardrails for comments/applications.
 - Run 066 SELECT-only audit and review any `review` rows before broader publication.
 - Verify anon has no direct table mutation privileges and no non-read RPCs beyond intentionally public read/check functions.
-- Revoke web-client EXECUTE from non-read helper/trigger RPCs such as `rls_auto_enable()` and `set_updated_at()`.
+- Revoke web-client EXECUTE from non-read helper/trigger RPCs such as `rls_auto_enable()` and `set_updated_at()`. Done for the 067 P0 targets by the 068/069 gate.
 - Verify internal helper RPCs for notifications/activity are not executable by web client roles.
 - Verify private notifications are recipient-only and GM/admin management comments do not enter shared TIMELINE.
 - Keep Discord `@everyone`, dry-run, deploy, and real-send operations as explicit gates.

@@ -6602,6 +6602,44 @@ Safety:
 - SQL Editor execution, DB/RPC/RLS changes, SQL apply, Dashboard changes, Edge deploy, email sending, Discord sending, credential recording, and Supabase direct DB writes were not performed.
 - No real user id, email, session id, activity id, notification id, URL, project identifier, token, key, or secret was recorded.
 
+## M-14F-26 unsafe anon RPC revoke apply result
+
+Status: P0 unsafe anon RPC exposure closed.
+
+Apply execution:
+
+- `068_public_security_revoke_unsafe_anon_rpc_apply_draft.sql` was run once by the user in Supabase SQL Editor.
+- Apply succeeded.
+- Codex did not run SQL Editor and did not perform DB/RPC/RLS changes directly.
+
+SELECT-only confirmation:
+
+- `069_public_security_revoke_unsafe_anon_rpc_post_apply_select_only.sql` was run once as a SELECT-only confirmation.
+- Confirmation returned OK.
+
+Confirmed:
+
+- The target scope was limited to `rls_auto_enable()` and `set_updated_at()`.
+- Both target functions still exist.
+- Direct EXECUTE from `public`, `anon`, and `authenticated` is closed for both target functions.
+- `set_updated_at()` trigger references remain, so internal trigger use is preserved while direct web-client execution is closed.
+- `post_apply_ready_for_public_security_qa=true`.
+
+Conclusion:
+
+- The unsafe anon RPC exposure identified as a P0 candidate in `067` is treated as resolved.
+- No additional SQL Editor execution, DB/RPC/RLS changes, Dashboard changes, Edge deploy, email sending, Discord sending, or credential recording were performed in this recording step.
+
+Remaining follow-up:
+
+- P1: Auth CAPTCHA, Auth rate limits, password-reset/signup abuse controls, and Resend bounce/suppression review.
+- P1: comment/application cooldown and URL-count guards.
+- P1: security definer `search_path=public` cleanup, including review of read-oriented public RPCs that do not yet report the expected search path.
+
+Safety:
+
+- No real user id, email, full URL, project identifier, JWT, token, key, or secret was recorded.
+
 ## M-15A-01 notification and TIMELINE label localization
 
 Status: notification bell and TIMELINE list labels localized and simplified.
