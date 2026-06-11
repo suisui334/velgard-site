@@ -53,6 +53,14 @@ function setStatus(statusElement, message, isError = false) {
   statusElement.classList.toggle("is-error", isError);
 }
 
+async function waitForAuthBootstrap(client) {
+  try {
+    await client.auth.getSession();
+  } catch {
+    // Timeline can still show public activity if auth restoration is unavailable.
+  }
+}
+
 function createTextElement(tagName, className, text) {
   const element = document.createElement(tagName);
   element.className = className;
@@ -161,6 +169,7 @@ export async function renderTimeline(root) {
     return;
   }
 
+  await waitForAuthBootstrap(client);
   const { data, error } = await client.rpc("get_activity_timeline", { p_limit: TIMELINE_LIMIT });
   if (error) {
     setStatus(status, "タイムラインを読み込めませんでした。時間をおいて再度お試しください。", true);

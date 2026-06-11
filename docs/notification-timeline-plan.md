@@ -523,6 +523,50 @@ Next gate:
 - Perform real comment/application posting QA and confirm `timeline.html` shows activity rows.
 - Confirm activity cards render newest-first and link to the related session detail page.
 
+## Timeline Display / Notification Read History Triage
+
+User-side QA after 061 found that a PL-side comment/application could be posted, but the TIMELINE page still did not show an activity card. The same QA flow also found that notification content disappeared from the bell panel after read-state changes, while the desired behavior is to clear only the unread badge and keep recent notifications as history.
+
+Findings:
+
+- `create_application_comment(text,text)` still contains the PL-side `record_activity_event(...)` call according to the applied 061/062 documentation.
+- PL comment/application activity uses `authenticated` visibility, so logged-out TIMELINE views should not be expected to show those rows.
+- `get_activity_timeline(...)` is designed to return `authenticated` rows only when the request has a logged-in auth context.
+- The TIMELINE frontend was updated to wait for Supabase auth bootstrap before calling `get_activity_timeline(...)`, reducing the chance that a logged-in browser renders as anonymous during initial page load.
+- `get_my_notifications(integer, boolean)` is designed to return read and unread notifications when `p_unread_only=false`.
+- The notification bell frontend now keeps a local notification history cache during read-state changes, renders read items with a distinct class, and continues requesting `p_unread_only=false`.
+
+Created:
+
+- `docs/supabase/sql/063_notification_timeline_display_diagnostics_select_only.sql`
+
+063 scope:
+
+- SELECT-only diagnostics.
+- Returns counts and boolean/status checks only.
+- Checks whether `activity_events` rows exist after real PL comment/application actions.
+- Checks whether relevant rows use `authenticated` visibility, safe relative target paths, generic bodies, and comment/application event types.
+- Checks whether `get_activity_timeline(...)` still has the authenticated visibility branch and frontend-compatible return shape.
+- Checks whether `get_my_notifications(...)` supports read notification history.
+- Does not return activity ids, notification ids, session ids, titles, bodies, user ids, emails, tokens, project refs, or full URLs.
+
+Interpretation for the next gate:
+
+- If `activity_events_authenticated_pl_count=0`, the activity row was not created and the next fix should focus on RPC instrumentation.
+- If activity rows exist and `get_activity_timeline_authenticated_visibility_branch=true`, the next verification should focus on logged-in TIMELINE rendering and session context.
+- If notification history support is OK, read-history behavior should remain a frontend/UI concern rather than an RPC change.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Edge Function deploy, email sending, Discord sending, Supabase Dashboard changes, and secret/API key/token recording were not performed.
+- No real user id, activity id, notification id, session id, email, JWT, token, project ref, or full URL was recorded.
+
+Next gate:
+
+- Run 063 once as a SELECT-only SQL Editor confirmation gate.
+- Re-run logged-in TIMELINE QA after the frontend cache-bust is public.
+- Confirm notification bell read-state behavior with an existing notification history.
+
 ## Non-Goals for This Batch
 
 - SQL Editor execution.

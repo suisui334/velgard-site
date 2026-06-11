@@ -370,6 +370,11 @@ img {
   background: rgba(184, 162, 207, 0.16);
 }
 
+.notification-panel__item.is-read {
+  background: rgba(247, 247, 243, 0.52);
+  opacity: 0.78;
+}
+
 .notification-panel__link {
   min-width: 0;
   display: grid;

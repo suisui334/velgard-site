@@ -6191,3 +6191,47 @@ Next gate:
 
 - Perform real comment/application posting QA and confirm TIMELINE display with actual activity rows.
 - Confirm activity rows render newest-first and detail links work.
+
+## M-14F-12 timeline display and notification read-history triage
+
+Status: low-risk frontend hardening completed; SELECT-only diagnostics prepared for the remaining TIMELINE data-path question.
+
+User-side symptoms:
+
+- A PL-side comment/application action by a non-owner user succeeded.
+- TIMELINE still did not show an activity card.
+- Notification bell content disappeared after read-state changes, but the desired behavior is for the unread badge to clear while recent notifications remain visible as read history.
+
+Findings:
+
+- `activity_events` rows use `authenticated` visibility for PL comments/applications, so logged-out TIMELINE views may correctly show no cards.
+- `get_activity_timeline(...)` should return authenticated rows only when the request has a logged-in auth context.
+- The frontend may have rendered the TIMELINE before auth restoration was fully available, so `assets/js/renderTimeline.js` now waits for Supabase auth bootstrap before calling the timeline RPC.
+- `get_my_notifications(integer, boolean)` is designed to support read+unread history when `p_unread_only=false`.
+- `assets/js/notificationBellClient.js` already requests `p_unread_only=false`; it now also preserves a local notification history cache during read-state changes and marks read items with a distinct class so the panel does not collapse to an empty state immediately after read actions.
+
+Changed:
+
+- `assets/js/renderTimeline.js`
+  - Waits for auth bootstrap before the initial `get_activity_timeline(...)` call.
+- `assets/js/notificationBellClient.js`
+  - Keeps cached notification rows during individual/all read operations.
+  - Keeps notification list display as history after read-state changes.
+  - Adds read-state classing for already-read rows.
+- `assets/css/style.css`
+  - Adds subdued read-notification styling.
+- `assets/js/main.js`
+  - Updates cache-busts for the TIMELINE and notification bell scripts.
+- `docs/supabase/sql/063_notification_timeline_display_diagnostics_select_only.sql`
+  - SELECT-only diagnostics for activity row existence, timeline RPC visibility/return-shape patterns, and notification read-history support.
+
+Next diagnostic gate:
+
+- Run 063 once as a SELECT-only SQL Editor gate.
+- If `activity_events_authenticated_pl_count=0`, the PL action did not create activity rows and an RPC instrumentation fix is likely needed.
+- If activity rows exist and the timeline RPC visibility checks are OK, re-check logged-in TIMELINE rendering after the frontend update is public.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, and secret/API key/token recording were not performed.
+- No real user id, session id, activity id, notification id, email, JWT, token, full URL, project ref, or internal id value was recorded.

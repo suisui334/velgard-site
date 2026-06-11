@@ -17,10 +17,10 @@ import { renderGallery } from "./renderGallery.js?v=20260529-gallery-swipe";
 import { renderUpdates } from "./renderUpdates.js";
 import { renderTools } from "./renderTools.js?v=20260529-calendar-date-tools-history";
 import { renderCalendar } from "./renderCalendar.js?v=20260608-calendar-grid-fix";
-import { renderTimeline } from "./renderTimeline.js?v=20260611-activity-timeline";
+import { renderTimeline } from "./renderTimeline.js?v=20260611-activity-timeline-auth";
 import { renderMypage } from "./renderMypage.js?v=20260605-user-name-ui";
 import { renderAdminCapAnnouncements } from "./renderAdminCapAnnouncements.js?v=20260610-admin-cap-rpc-ui-fix";
-import { initNotificationBell } from "./notificationBellClient.js?v=20260611-notification-bell";
+import { initNotificationBell } from "./notificationBellClient.js?v=20260611-notification-read-history";
 
 const navItems = [
   { label: "TOP", href: "index.html", key: "home", enabled: true },

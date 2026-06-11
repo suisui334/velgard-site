@@ -25,7 +25,8 @@ const state = {
   markAll: null,
   isOpen: false,
   isAuthenticated: false,
-  listLoading: false
+  listLoading: false,
+  cachedItems: []
 };
 
 function createBellSvg() {
@@ -150,6 +151,7 @@ function setBellVisible(visible) {
   if (!visible) {
     setPanelOpen(false);
     setUnreadCount(0);
+    cacheNotifications([]);
   }
 }
 
@@ -209,6 +211,7 @@ function createNotificationItem(item) {
   const listItem = document.createElement("li");
   listItem.className = "notification-panel__item";
   listItem.classList.toggle("is-unread", item?.is_read === false);
+  listItem.classList.toggle("is-read", item?.is_read === true);
 
   const link = document.createElement("a");
   link.className = "notification-panel__link";
@@ -273,6 +276,24 @@ function renderNotifications(items = []) {
   });
 }
 
+function cacheNotifications(items = []) {
+  state.cachedItems = Array.isArray(items) ? items : [];
+}
+
+function markCachedNotificationRead(notificationId = "") {
+  if (!notificationId || !state.cachedItems.length) return;
+  state.cachedItems = state.cachedItems.map((item) => (
+    item?.notification_id === notificationId
+      ? { ...item, is_read: true }
+      : item
+  ));
+}
+
+function markAllCachedNotificationsRead() {
+  if (!state.cachedItems.length) return;
+  state.cachedItems = state.cachedItems.map((item) => ({ ...item, is_read: true }));
+}
+
 async function refreshUnreadCount() {
   if (!state.client || !state.isAuthenticated) return;
   const { data, error } = await state.client.rpc("get_my_unread_notification_count");
@@ -283,7 +304,7 @@ async function refreshUnreadCount() {
   setUnreadCount(data);
 }
 
-async function loadNotificationList() {
+async function loadNotificationList(options = {}) {
   if (!state.client || !state.isAuthenticated || state.listLoading) return;
   state.listLoading = true;
   setStatus("読み込み中");
@@ -297,7 +318,11 @@ async function loadNotificationList() {
       setStatus(LOAD_ERROR_MESSAGE, true);
       return;
     }
-    renderNotifications(Array.isArray(data) ? data : []);
+    const items = Array.isArray(data) ? data : [];
+    if (items.length || !options.preserveCached || !state.cachedItems.length) {
+      cacheNotifications(items);
+    }
+    renderNotifications(state.cachedItems);
     await refreshUnreadCount();
   } catch {
     renderNotifications([]);
@@ -317,7 +342,9 @@ async function markNotificationRead(notificationId) {
     setStatus(LOAD_ERROR_MESSAGE, true);
     return;
   }
-  await loadNotificationList();
+  markCachedNotificationRead(notificationId);
+  renderNotifications(state.cachedItems);
+  await loadNotificationList({ preserveCached: true });
   await refreshUnreadCount();
 }
 
@@ -332,7 +359,9 @@ async function markAllNotificationsRead() {
   } finally {
     state.markAll.disabled = false;
   }
-  await loadNotificationList();
+  markAllCachedNotificationsRead();
+  renderNotifications(state.cachedItems);
+  await loadNotificationList({ preserveCached: true });
   await refreshUnreadCount();
 }
 
