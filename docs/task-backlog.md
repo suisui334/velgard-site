@@ -6528,7 +6528,7 @@ Safety:
 
 ## M-14F-37 security definer search_path inventory
 
-Status: non-destructive inventory docs and SELECT-only diagnostic prepared.
+Status: 072 result recorded; exact search_path SELECT-only diagnostic prepared.
 
 Context:
 
@@ -6541,8 +6541,25 @@ Prepared:
 
 - Added `docs/security-definer-search-path-audit.md`.
 - Added `docs/supabase/sql/072_security_definer_search_path_inventory_select_only.sql`.
-- 072 is SELECT-only and has not been executed.
+- Added `docs/supabase/sql/073_security_definer_search_path_exact_select_only.sql`.
+- 072 was executed once by the user as SELECT-only.
+- 073 is SELECT-only and has not been executed.
 - No apply draft was prepared in this gate.
+
+072 result summary:
+
+- `security_definer=55`.
+- `search_path_public=17`.
+- `needs_review=38`.
+- `missing_any_search_path=0`.
+- `p0=0`.
+- `p1=36`.
+- `p2=2`.
+- `high_web=35`.
+- `additional_confirmation=1`.
+- `trigger_internal=1`.
+- `low=1`.
+- Because `missing_any_search_path=0`, the 38 review rows are not treated as completely missing search_path. They need exact configured value review before any apply draft.
 
 Classification approach:
 
@@ -6553,9 +6570,10 @@ Classification approach:
 
 Next gates:
 
-- Run 072 once as a SQL Editor SELECT-only inventory gate.
-- Record 072 results without concrete identifiers or secret values.
-- Choose a small high-priority apply-draft scope only after 072 results are reviewed.
+- Run 073 once as a SQL Editor SELECT-only exact-path gate.
+- Record 073 results without concrete identifiers or secret values.
+- If 073 reports `$user` or `pg_temp`, triage those first.
+- Choose a small high-priority apply-draft scope only after 073 results are reviewed.
 
 Safety:
 

@@ -177,6 +177,7 @@ Prepared:
 
 - `docs/security-definer-search-path-audit.md`
 - `docs/supabase/sql/072_security_definer_search_path_inventory_select_only.sql`
+- `docs/supabase/sql/073_security_definer_search_path_exact_select_only.sql`
 
 Scope:
 
@@ -190,11 +191,17 @@ Scope:
 
 Decision:
 
-- No apply draft is prepared in this gate because the full current live list of
-  affected functions must be confirmed from the database first.
-- 072 is the next SELECT-only SQL Editor gate.
-- After 072 results are recorded, choose a small high-priority apply-draft
-  scope; do not bulk-edit all functions at once.
+- The user ran 072 once as SELECT-only. It reported `security_definer=55`,
+  `search_path_public=17`, `needs_review=38`, `missing_any_search_path=0`,
+  `p0=0`, `p1=36`, `p2=2`, `high_web=35`,
+  `additional_confirmation=1`, `trigger_internal=1`, and `low=1`.
+- Because `missing_any_search_path=0`, the remaining review is not a complete
+  missing-search-path emergency. It is a review of functions whose configured
+  path is not exactly `public`.
+- No apply draft is prepared in this gate. The next step is 073 SELECT-only
+  exact path classification.
+- 38 functions should not be bulk-edited; choose a small high-priority
+  apply-draft scope after 073 results are recorded.
 
 Safety:
 
@@ -397,8 +404,8 @@ Initial hardening:
 
 ## Recommended Next Gates
 
-1. Run `072_security_definer_search_path_inventory_select_only.sql` once as a SELECT-only inventory gate.
-2. Record 072 results and choose the first narrow high-priority search_path cleanup scope.
+1. Run `073_security_definer_search_path_exact_select_only.sql` once as a SELECT-only exact-path gate.
+2. Record 073 results and choose the first narrow high-priority search_path cleanup scope.
 3. Prepare moderation UI plan for comments, profiles, and avatars.
 
 ## Auth CAPTCHA Frontend Gate
