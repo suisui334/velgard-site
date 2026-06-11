@@ -1,0 +1,241 @@
+# Public Security Hardening Plan
+
+## Purpose
+
+This document is a non-destructive pre-public security inventory for gradually widening the site beyond the current trusted group.
+
+This batch did not run SQL Editor, change DB/RPC/RLS, apply SQL, deploy Edge Functions, send mail, send Discord messages, change Supabase Dashboard settings, or record credentials/internal concrete values.
+
+## Current Assumptions
+
+- The site is currently operated for a small trusted group.
+- Wider public access should assume malicious users, automated signup attempts, spam comments, and scraping.
+- Most application writes are intended to go through RPCs rather than direct frontend table mutation.
+- Avatar Storage is intentionally public-read because avatars are public profile assets, but object mutation should remain owner-path-only.
+- Notification rows are private recipient data.
+- Activity TIMELINE rows are shared events with explicit visibility and must not leak draft/private/management-only context.
+- Discord sync is a separate high-risk integration and should remain behind explicit gates.
+
+## Inventory Snapshot
+
+Frontend/static review:
+
+- No Supabase JS direct `.insert/.update/.delete/.upsert` table mutation path was found in the current `assets/js` scan.
+- Existing frontend DB writes appear to be routed through RPCs.
+- Existing frontend direct table access includes read/query paths for display or ownership checks; these still rely on RLS/RPC boundaries and should be audited with 066.
+- Avatar upload/remove uses Supabase Storage for the `avatars` bucket and metadata RPCs for profile updates.
+- Notification bell and TIMELINE use read/mark-read/timeline RPCs rather than direct notification/activity table mutation.
+
+Known high-risk areas:
+
+- Auth email endpoints can be abused for signup and password-reset email sending.
+- Comment/application RPCs need anti-spam throttling before public traffic.
+- Public profile and activity surfaces must stay minimal.
+- Discord sync must not expose webhook details, duplicate posts, or uncontrolled mentions.
+
+## 066 SELECT-Only Audit
+
+Prepared:
+
+- `docs/supabase/sql/066_public_security_audit_select_only.sql`
+
+Scope:
+
+- Public schema RLS enabled status.
+- anon/authenticated table privilege summary.
+- Key table direct write grant checks.
+- anon/authenticated executable RPC exposure.
+- internal helper RPC exposure.
+- security definer search path checks.
+- Storage bucket and avatar policy shape.
+- public profile column exposure.
+- notification/activity policy summaries.
+- Discord sync RPC exposure.
+- Auth user confirmation counts.
+- Static comment/application spam guard patterns.
+- TIMELINE visibility and management-comment skip patterns.
+
+Safety:
+
+- SELECT-only.
+- Returns counts, booleans, names, signatures, and status notes.
+- Does not return row contents, contact values, concrete account identifiers, concrete session/activity/notification identifiers, full external addresses, project identifiers, or credential values.
+- SQL Editor execution is a separate gate.
+
+## Priority List
+
+### P0: Must Fix Before Wider Public Release
+
+- Add CAPTCHA to signup and password-reset request flows, preferably Cloudflare Turnstile or equivalent.
+- Review Supabase Auth rate limits for signup and password-reset email sending.
+- Decide whether public signup should remain open, become invite-code gated, or require admin approval before write privileges.
+- Add frontend submit debouncing/disabled states for signup and password-reset forms to reduce accidental repeated sends.
+- Add comment/application RPC cooldowns per user and per session.
+- Add URL-count and excessive-length guardrails for comments/applications.
+- Run 066 SELECT-only audit and review any `review` rows before broader publication.
+- Verify anon has no direct table mutation privileges and no non-read RPCs beyond intentionally public read/check functions.
+- Verify internal helper RPCs for notifications/activity are not executable by web client roles.
+- Verify private notifications are recipient-only and GM/admin management comments do not enter shared TIMELINE.
+- Keep Discord `@everyone`, dry-run, deploy, and real-send operations as explicit gates.
+
+### P1: Should Fix Before Small Public Expansion
+
+- Add display name moderation rules: length, control-character rejection, impersonation guidance, and admin rename path.
+- Decide handling for unconfirmed mail accounts: read-only, blocked from posting, or cleanup review.
+- Add lightweight account age or confirmation gates before comment/application posting.
+- Add admin-facing moderation tools for comments/applications: hide, delete, or lock comment posting on a session.
+- Add rate monitoring for Resend bounce/suppression and Supabase Auth email activity.
+- Add admin documentation for responding to spam users and inappropriate avatars.
+- Add a safe avatar moderation policy: report/remove workflow and old-object cleanup plan.
+- Review public profile columns any time profile fields are added.
+- Add periodic SELECT-only security audit procedure using 066 or follow-up diagnostics.
+
+### P2: Improve After Initial Public Use
+
+- Add activity/timeline filters and anti-noise controls if comments become frequent.
+- Add per-user notification preferences before any email notification expansion.
+- Add session-level comment lock/cooldown overrides for GM/admin.
+- Add abuse telemetry dashboards with counts only, no private row dumps.
+- Add bounce/suppression maintenance checklist for mail provider operations.
+- Add automated stale avatar object cleanup after delete/replace once safe operational controls exist.
+- Add Discord resync/repair UI only after duplicate-post and permission boundaries are re-reviewed.
+
+### P3: Future Expansion
+
+- Invite-code issuance and admin approval workflow.
+- Trust tiers for new users.
+- Full audit log viewer for admin-only operational diagnostics.
+- Report/appeal flow for comments, profiles, and avatars.
+- Fine-grained TIMELINE visibility model for GM/admin-only operational events.
+- Email notifications using existing Custom SMTP after preference/rate-limit design.
+
+## Area Notes
+
+### Auth And Mail Abuse
+
+Risks:
+
+- Bulk signup emails.
+- Bulk password-reset emails.
+- Sending to nonexistent addresses causing bounce/suppression.
+- Mail provider quota exhaustion.
+
+Initial hardening:
+
+- CAPTCHA on signup and reset request forms.
+- UI-side cooldown and disabled submit state.
+- Dashboard rate-limit review in a separate settings gate.
+- Mail-provider bounce/suppression review procedure.
+- Consider invite/admin approval before opening signup broadly.
+
+### Registration Spam
+
+Risks:
+
+- Bulk account creation.
+- Abusive display names.
+- Unconfirmed accounts posting.
+
+Initial hardening:
+
+- Confirmed-mail requirement before posting/commenting.
+- Display name validation and admin rename/disable path.
+- Optional account-age or approval gate before public interactions.
+
+### Comment/Application Spam
+
+Risks:
+
+- Repeated comments/applications.
+- Long text and many links.
+- Notification bell and TIMELINE spam.
+
+Initial hardening:
+
+- RPC-level cooldown per user/session.
+- Body length and URL-count limits.
+- Optional session-level lock or GM/admin moderation action.
+- Keep notification/activity generation transactional so failures are visible during QA.
+
+### RLS/RPC
+
+Risks:
+
+- Direct table mutation grants to anon/authenticated.
+- Helper RPCs directly executable by web clients.
+- security definer functions without search path.
+- Public profile view leaking fields.
+
+Initial hardening:
+
+- Run 066.
+- Review every `review` row.
+- Treat direct table mutation grants and missing search path as P0 unless there is a documented reason.
+- Keep helper RPCs internal.
+
+### Storage / Avatars
+
+Risks:
+
+- Inappropriate images.
+- Cross-user object overwrite.
+- Large or unsupported file upload.
+- Old avatar objects left behind.
+
+Initial hardening:
+
+- Keep public read for avatars but owner-path-only mutation.
+- Keep MIME and size limits.
+- Add moderation/removal procedure.
+- Plan safe stale-object cleanup later.
+
+### Discord Sync
+
+Risks:
+
+- Accidental `@everyone`.
+- Duplicate posts.
+- Existing post edits/deletes by unauthorized users.
+- Webhook or post identifiers exposed.
+
+Initial hardening:
+
+- Keep every deploy, dry-run, and real-send as a separate gate.
+- Keep mention mode explicit and create-only.
+- Keep allowed mentions restricted.
+- Keep sync RPC permission checks owner/admin based.
+- Never record webhook values or concrete Discord identifiers in docs.
+
+### TIMELINE And Notifications
+
+Risks:
+
+- Draft/private/management activity leaking into shared TIMELINE.
+- Private recipient notifications visible to others.
+- Logged-out TIMELINE showing too much.
+
+Initial hardening:
+
+- Keep notifications recipient-scoped.
+- Keep PL comment/application activity `authenticated`.
+- Keep GM/admin management comments out of shared TIMELINE.
+- Review any new activity event type before enabling it.
+
+## Recommended Next Gates
+
+1. Run `066_public_security_audit_select_only.sql` once as a SELECT-only SQL Editor gate.
+2. Review any `review` rows and decide P0 fixes.
+3. Prepare Auth abuse hardening design for CAPTCHA, rate-limit review, and optional invite/admin approval.
+4. Prepare comment/application cooldown and URL-count RPC draft.
+5. Prepare moderation UI plan for comments, profiles, and avatars.
+
+## Non-Goals In This Batch
+
+- SQL Editor execution.
+- DB/RPC/RLS mutation.
+- SQL apply.
+- Edge Function deploy.
+- Email sending.
+- Discord sending.
+- Supabase Dashboard changes.
+- Recording concrete account/contact/internal identifiers, full external addresses, project identifiers, or credential values.

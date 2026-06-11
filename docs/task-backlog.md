@@ -6434,6 +6434,41 @@ Safety:
 - SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
 - No real contact, account, event, page, project, credential, or internal identifier value was recorded.
 
+## M-14F-23 public security hardening inventory
+
+Status: non-destructive pre-public security inventory prepared.
+
+Context:
+
+- Current operation is still trusted-group oriented, but future wider access should assume malicious users and automated abuse.
+- The audit focuses on Auth/mail abuse, registration spam, comment/application spam, RLS/RPC exposure, avatar Storage, Discord sync, notifications, and TIMELINE visibility.
+
+Created:
+
+- `docs/public-security-hardening-plan.md`
+- `docs/supabase/sql/066_public_security_audit_select_only.sql`
+
+Findings and plan:
+
+- Frontend static scan did not find Supabase JS direct table mutation calls in `assets/js`; current application writes remain RPC-based, with avatar Storage upload/remove limited to the avatar feature path.
+- The plan classifies improvements as P0/P1/P2/P3.
+- P0 items include CAPTCHA/rate-limit review for signup/reset, optional invite/admin approval, comment/application cooldown and URL-count limits, 066 audit execution, helper RPC exposure review, and Discord gate discipline.
+- P1 items include display-name moderation, unconfirmed-account handling, account-age/approval gates, moderation tools, mail bounce/suppression checks, and avatar moderation procedure.
+- 066 is SELECT-only and returns counts/statuses, table/function names, signatures, policy summaries, and booleans only.
+- 066 does not return row contents, contact values, concrete account/session/activity/notification identifiers, full external addresses, project identifiers, or credential values.
+- Auth provider rate-limit and CAPTCHA settings cannot be fully verified from SQL; those remain a separate Dashboard review gate.
+
+Next gate:
+
+- Run `066_public_security_audit_select_only.sql` once as a SQL Editor SELECT-only confirmation gate.
+- Review any `review` rows before broader public release.
+- Prepare focused P0 drafts for Auth abuse hardening and comment/application anti-spam guards after 066 results.
+
+Safety:
+
+- SQL Editor execution, DB/Auth/RLS changes, Storage changes, SQL apply, Edge Function deploy, email sending, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
+- No real contact, account, event, page, project, credential, or internal identifier value was recorded.
+
 ## M-15A-01 notification and TIMELINE label localization
 
 Status: notification bell and TIMELINE list labels localized and simplified.
