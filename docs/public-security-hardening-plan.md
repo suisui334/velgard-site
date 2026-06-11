@@ -321,7 +321,9 @@ Membership approval status:
 - `docs/community-membership-access-control-plan.md` records the non-destructive
   approval-control design.
 - `docs/supabase/sql/074_membership_access_control_inventory_select_only.sql`
-  is prepared as the first inventory diagnostic and is not executed yet.
+  was run once as the first inventory diagnostic.
+- `docs/supabase/sql/075_membership_direct_write_grants_detail_select_only.sql`
+  is prepared as a follow-up diagnostic and is not executed yet.
 - Invite codes are not adopted for the first gate.
 - New accounts should start as `pending`; only `approved` members can use major
   interactive features.
@@ -334,11 +336,18 @@ Membership approval status:
   status changes, and strong moderation remain admin-only.
 - The gate must be enforced in DB/RPC helpers, not only by hiding frontend
   buttons.
+- 074 confirmed that membership state is not implemented yet, `user_roles`
+  exists, `has_role(text)` / `is_admin()` exist, and `membership_approver`
+  appears feasible through the existing role mechanism.
+- 074 reported 34 approved-gate candidate RPCs and three pending-allowed profile
+  RPC candidates.
+- 074 also reported `direct_write_grants=2`; details must be checked with 075
+  before schema/helper draft work.
 - This planning step created no SQL apply draft and performed no DB/RPC/RLS or
   Dashboard change.
-- The next gate is a one-time SELECT-only 074 SQL Editor run, then deciding
-  whether membership state belongs on `profiles` or in a separate membership
-  table.
+- The next gate is a one-time SELECT-only 075 SQL Editor run, then deciding
+  whether direct write grants need a separate revoke review or can be treated as
+  expected exceptions.
 
 ### Comment/Application Spam
 

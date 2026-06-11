@@ -375,11 +375,29 @@ or secret values.
 Prepared gate:
 
 - `docs/supabase/sql/074_membership_access_control_inventory_select_only.sql`
+- The user ran 074 once as SELECT-only.
+- 074 showed no existing membership table, no membership-status-like column on
+  `profiles`, no role-like column on `profiles`, and no membership/role-like
+  exposure through `public_profiles`.
+- Existing role storage is present through `user_roles`, and `has_role(text)` /
+  `is_admin()` exist, so adding `membership_approver` to the existing role
+  mechanism looks feasible.
+- The auth profile trigger exists and has external EXECUTE closed.
+- Target table RLS is enabled.
+- 34 RPCs are approved-gate candidates.
+- Pending-allowed candidates are `get_my_profile_contact()`,
+  `update_display_name(text)`, and `update_my_discord_id(text)`.
+- Direct write grants returned `direct_write_grants=2`, so details must be
+  checked before schema/helper draft work.
+
+Prepared follow-up gate:
+
+- `docs/supabase/sql/075_membership_direct_write_grants_detail_select_only.sql`
 - SELECT-only and not executed in this preparation step.
-- The next independent gate is to run 074 once in the user's SQL Editor.
-- Use the result to decide whether membership state belongs on `profiles` or in
-  a separate `community_memberships` table, and to confirm the approved-gate RPC
-  scope before drafting any apply SQL.
+- The next independent gate is to run 075 once in the user's SQL Editor.
+- Use the result to decide whether the direct grants are expected exceptions or
+  app-table write grants that need a separate revoke review before membership
+  apply drafts.
 
 ## Open Questions For Later Gates
 

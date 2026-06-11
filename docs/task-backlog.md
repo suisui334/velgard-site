@@ -6611,8 +6611,10 @@ Prepared:
 
 - Added `docs/community-membership-access-control-plan.md`.
 - Added `docs/supabase/sql/074_membership_access_control_inventory_select_only.sql`.
+- Added `docs/supabase/sql/075_membership_direct_write_grants_detail_select_only.sql`.
 - Updated `docs/public-security-hardening-plan.md` to record membership approval as a public-readiness P1 gate.
-- 074 is SELECT-only and has not been executed.
+- 074 was executed once by the user as SELECT-only.
+- 075 is SELECT-only and has not been executed.
 - No apply draft, DB/RPC/RLS change, SQL apply, Dashboard change, Edge deploy, mail sending, Discord sending, or secret handling was performed.
 
 Design summary:
@@ -6635,11 +6637,28 @@ RPC impact summary:
 - Public read surfaces can remain readable where existing policy already permits them, but pending logged-in users should not gain authenticated TIMELINE/private notification visibility.
 - Frontend hiding is not sufficient; DB/RPC helpers must enforce approved status.
 
+074 result summary:
+
+- Membership tables are not present yet.
+- `profiles` has no membership-status-like column and no role-like column.
+- `public_profiles` does not expose membership or role-like fields.
+- Existing role storage is `user_roles=true`.
+- `has_role(text)` and `is_admin()` exist.
+- `membership_approver` appears feasible through the existing role mechanism.
+- Auth profile trigger count is 1 and external EXECUTE is closed.
+- Target table RLS is enabled.
+- Approved-gate candidate RPC count is 34.
+- Pending-allowed candidates are `get_my_profile_contact()`, `update_display_name(text)`, and `update_my_discord_id(text)`.
+- Admin-only membership RPCs are future creation candidates.
+- Frontend touchpoints are mypage, session-post, session-detail, notifications, timeline, discord-sync, templates, and player-characters.
+- 074 reported `direct_write_grants=2`, so details must be checked before schema/helper draft work.
+
 Next gates:
 
-- Run 074 once as a SQL Editor SELECT-only inventory gate.
-- Record 074 results without concrete identifiers or secret values.
-- Decide whether membership state belongs on `profiles` or in a separate membership table.
+- Run 075 once as a SQL Editor SELECT-only direct-write detail gate.
+- Record 075 results without concrete identifiers or secret values.
+- Decide whether the two direct write grants are expected exceptions or app-table writes that need a separate revoke review.
+- After 075, decide whether membership state belongs on `profiles` or in a separate membership table.
 - Confirm the approved-gate RPC scope before any apply draft.
 - After inventory, prepare schema/helper draft for membership status and decision logs.
 - Add approval/rejection RPCs in a separate apply gate.
