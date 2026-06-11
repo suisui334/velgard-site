@@ -108,6 +108,50 @@ Safety:
 - Does not return concrete user, session, activity, notification, email, project, URL, token, key, or secret values.
 - SQL Editor execution remains the next independent gate.
 
+### 067 Result Summary
+
+`067` was run once by the user in Supabase SQL Editor as a SELECT-only detail
+gate. No DB/RPC/RLS changes, SQL apply, Dashboard changes, Edge deploy, mail
+sending, Discord sending, or credential recording were performed.
+
+Confirmed OK or low-risk:
+
+- Public table RLS, direct table write grants, key table write grants, internal helper direct execute, Discord anon exposure, public profile column shape, avatar Storage, and notification/TIMELINE policy checks remained OK from 066.
+- `activity_events` contains authenticated PL activity rows.
+- Management-like activity heuristic returned zero.
+- `get_activity_timeline(integer)` and `get_public_session_comments(text)` are anon-readable RPCs that are easier to justify as public/read surfaces.
+
+P0 candidate:
+
+- `rls_auto_enable()` and `set_updated_at()` were anon-executable non-read-named RPCs.
+- They should not be directly callable by web-client roles before wider public exposure.
+
+P1 follow-up:
+
+- `get_public_session_application_counts(text)` is read-like, but needs `search_path=public` cleanup.
+- 38 security definer functions do not currently report `search_path=public`.
+- Comment/application cooldown and URL-count guards are still missing.
+- Auth/signup/reset abuse hardening needs Dashboard/provider review for CAPTCHA, Auth rate limits, and Resend bounce/suppression handling.
+
+### 068/069 Unsafe Anon RPC Revoke Draft
+
+Prepared:
+
+- `docs/supabase/sql/068_public_security_revoke_unsafe_anon_rpc_apply_draft.sql`
+- `docs/supabase/sql/069_public_security_revoke_unsafe_anon_rpc_post_apply_select_only.sql`
+
+Scope:
+
+- `068` revokes direct EXECUTE on `public.rls_auto_enable()` and `public.set_updated_at()` from `public`, `anon`, and `authenticated`.
+- `068` does not change function bodies, triggers, tables, RLS policies, Storage policies, or read RPCs.
+- `069` confirms the target functions still exist, web-client EXECUTE is closed, and `set_updated_at()` remains referenced by triggers by count only.
+
+Safety:
+
+- `068` is an apply draft and is not executed in this batch.
+- `069` is SELECT-only and is not executed in this batch.
+- No concrete account/contact/internal identifiers, full external addresses, project identifiers, or credential values are recorded.
+
 ## Priority List
 
 ### P0: Must Fix Before Wider Public Release
@@ -120,6 +164,7 @@ Safety:
 - Add URL-count and excessive-length guardrails for comments/applications.
 - Run 066 SELECT-only audit and review any `review` rows before broader publication.
 - Verify anon has no direct table mutation privileges and no non-read RPCs beyond intentionally public read/check functions.
+- Revoke web-client EXECUTE from non-read helper/trigger RPCs such as `rls_auto_enable()` and `set_updated_at()`.
 - Verify internal helper RPCs for notifications/activity are not executable by web client roles.
 - Verify private notifications are recipient-only and GM/admin management comments do not enter shared TIMELINE.
 - Keep Discord `@everyone`, dry-run, deploy, and real-send operations as explicit gates.
@@ -129,6 +174,8 @@ Safety:
 - Add display name moderation rules: length, control-character rejection, impersonation guidance, and admin rename path.
 - Decide handling for unconfirmed mail accounts: read-only, blocked from posting, or cleanup review.
 - Add lightweight account age or confirmation gates before comment/application posting.
+- Clean up security definer functions that do not pin `search_path=public`.
+- Review and repair `get_public_session_application_counts(text)` search_path while preserving its read-only public surface.
 - Add admin-facing moderation tools for comments/applications: hide, delete, or lock comment posting on a session.
 - Add rate monitoring for Resend bounce/suppression and Supabase Auth email activity.
 - Add admin documentation for responding to spam users and inappropriate avatars.
@@ -269,11 +316,12 @@ Initial hardening:
 
 ## Recommended Next Gates
 
-1. Run `067_public_security_review_details_select_only.sql` once as a SELECT-only SQL Editor gate.
-2. Review the security definer search_path detail rows and anon-executable RPC detail rows.
+1. Review `068_public_security_revoke_unsafe_anon_rpc_apply_draft.sql` before apply.
+2. If approved, run 068 once as a SQL Editor apply gate, then run 069 once as a SELECT-only post-apply gate.
 3. Prepare Auth abuse hardening design for CAPTCHA, rate-limit review, and optional invite/admin approval.
 4. Prepare comment/application cooldown and URL-count RPC draft.
-5. Prepare moderation UI plan for comments, profiles, and avatars.
+5. Prepare security definer search_path cleanup plan for remaining P1 functions.
+6. Prepare moderation UI plan for comments, profiles, and avatars.
 
 ## Non-Goals In This Batch
 

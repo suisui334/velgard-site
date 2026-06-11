@@ -6532,6 +6532,76 @@ Safety:
 - 067 is SELECT-only and returns function signatures, counts, booleans, and status notes only.
 - It does not return function bodies, row contents, concrete user/session/activity/notification identifiers, contact values, full addresses, project identifiers, or credential values.
 
+## M-14F-25 unsafe anon RPC revoke draft
+
+Status: 067 SELECT-only result recorded and P0 unsafe anon RPC revoke draft prepared.
+
+067 execution:
+
+- `067_public_security_review_details_select_only.sql` was run once by the user in Supabase SQL Editor.
+- The result was shared as `check_name / status / result_value / note` only.
+- No SQL apply, DB/RPC/RLS changes, Dashboard changes, Edge deploy, email sending, Discord sending, or credential recording were performed.
+
+067 OK summary:
+
+- Public table RLS remained enabled.
+- anon/authenticated direct table write grants remained zero.
+- Key table direct write grants remained zero.
+- Internal helper direct execute remained zero.
+- Discord sync RPC anon execution remained zero.
+- `public_profiles` remains minimal by column review.
+- avatars bucket and Storage policies remain OK.
+- notification/TIMELINE policies remain OK.
+- `activity_events` has authenticated PL activity rows, and management-like activity heuristic returned zero.
+
+067 review summary:
+
+- Auth/mail abuse still needs Dashboard/provider review outside SQL.
+- Comment/application spam guard has length protection, but cooldown and URL-count guards are absent.
+- 38 of 55 security definer functions do not report `search_path=public`.
+- anon-executable RPC count is five.
+- `get_activity_timeline(integer)` and `get_public_session_comments(text)` are read-oriented anon surfaces.
+- `get_public_session_application_counts(text)` is read-oriented but remains P1 because it needs search_path cleanup.
+- `rls_auto_enable()` and `set_updated_at()` are P0 candidates because they are anon-executable non-read-named helper/trigger functions.
+
+Created:
+
+- `docs/supabase/sql/068_public_security_revoke_unsafe_anon_rpc_apply_draft.sql`
+- `docs/supabase/sql/069_public_security_revoke_unsafe_anon_rpc_post_apply_select_only.sql`
+
+068 scope:
+
+- Revoke direct EXECUTE on `public.rls_auto_enable()` from `public`, `anon`, and `authenticated`.
+- Revoke direct EXECUTE on `public.set_updated_at()` from `public`, `anon`, and `authenticated`.
+- Do not change function bodies, triggers, tables, RLS policies, Storage policies, or read RPCs.
+- Treat `set_updated_at()` as trigger helper; trigger use should not require web-client EXECUTE grants.
+
+069 scope:
+
+- SELECT-only post-apply confirmation.
+- Confirm both target functions still exist.
+- Confirm public/anon/authenticated direct EXECUTE is closed.
+- Confirm `set_updated_at()` still has trigger references by count only.
+- Do not return table names, row contents, function bodies, concrete identifiers, contact values, project values, full addresses, or credentials.
+
+Remaining P1/P2:
+
+- P1: security definer `search_path=public` cleanup.
+- P1: `get_public_session_application_counts(text)` search_path cleanup while preserving read-only public behavior.
+- P1: comment/application cooldown and URL-count guards.
+- P1/P0 planning: Auth CAPTCHA, Auth rate limits, password-reset/signup UI anti-spam, and Resend bounce/suppression review.
+- P2: unconfirmed-account monitoring and avatar cleanup/moderation procedure.
+
+Next gate:
+
+- Review `068_public_security_revoke_unsafe_anon_rpc_apply_draft.sql` before apply.
+- If approved, run 068 once as SQL Editor apply, then run 069 once as SELECT-only confirmation.
+
+Safety:
+
+- SQL Editor execution, DB/RPC/RLS changes, SQL apply, Dashboard changes, Edge deploy, email sending, Discord sending, credential recording, and Supabase direct DB writes were not performed.
+- No real user id, email, session id, activity id, notification id, URL, project identifier, token, key, or secret was recorded.
+
 ## M-15A-01 notification and TIMELINE label localization
 
 Status: notification bell and TIMELINE list labels localized and simplified.
