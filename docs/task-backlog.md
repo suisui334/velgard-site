@@ -6405,6 +6405,36 @@ Safety:
 - SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
 - No real email, user id, full URL, project identifier, credential, or secret value was recorded.
 
+## M-15A-01 notification and TIMELINE label localization
+
+Status: notification bell and TIMELINE list labels localized and simplified.
+
+Issue:
+
+- Notification and TIMELINE rows could expose system-like type/body wording for application/comment events.
+- Because the first comment also acts as a participation application in this site, showing `session_application` as a separate application action felt too technical for users.
+
+Changed:
+
+- Display-only mapping keeps DB/RPC type values unchanged.
+- `session_comment` and `session_application` both render as `actor がコメントしました`.
+- Unknown notification/activity types render as `actor が更新しました`.
+- Future session registration activity labels are prepared as `actor が依頼書を登録しました`.
+- Notification and TIMELINE rows show `依頼書：title` as the session supplement.
+- Raw comment/application body text is omitted from list displays; details remain available from the session detail link.
+- Updated `main.js` cache-busts across shared HTML pages.
+
+Preserved:
+
+- Notification unread/read state, detail navigation, and mark-read behavior are unchanged.
+- TIMELINE detail links and empty/error states are unchanged.
+- Internal `notification_type` and `event_type` values remain unchanged.
+
+Safety:
+
+- SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, email sending, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
+- No real contact, account, event, page, project, credential, or internal identifier value was recorded.
+
 ## M-14F-20 mobile logout menu placement
 
 Status: mobile header logout control moved into the hamburger menu.

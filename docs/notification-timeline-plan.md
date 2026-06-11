@@ -708,6 +708,28 @@ Safety:
 - No additional DB/RPC/RLS change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, or secret/API key/token recording was performed in this recording step.
 - No real URL, user id, session id, activity id, notification id, email, JWT, token, or project ref was recorded.
 
+## Notification And TIMELINE Display Labels
+
+The notification bell and TIMELINE display layer now uses simplified Japanese wording.
+
+Display policy:
+
+- Internal `notification_type` / `event_type` values remain unchanged.
+- `session_comment` and `session_application` are both displayed as a comment action.
+- This matches the current site behavior where the first comment can also act as the participation application.
+- The user-facing title is `actor がコメントしました` when an actor display name is available.
+- Missing actor display names fall back to a generic user label.
+- Session-created activity labels are prepared as `actor が依頼書を登録しました` for future instrumentation.
+- Unknown types fall back to `actor が更新しました`.
+- Lists show the session title as `依頼書：title`.
+- Raw comment/application body text is not displayed in the notification list or TIMELINE list; users should open the session detail page for full context.
+
+Safety:
+
+- This was a frontend display-only change.
+- No SQL Editor execution, DB/RPC/RLS change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, or credential recording was performed.
+- No real contact, account, event, page, project, credential, or internal identifier value was recorded.
+
 ## Non-Goals for This Batch
 
 - SQL Editor execution.

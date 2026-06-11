@@ -6,12 +6,15 @@ const EMPTY_MESSAGE = "通知はありません";
 const LOAD_ERROR_MESSAGE = "通知を読み込めませんでした";
 const TYPE_LABELS = {
   session_comment: "コメント",
-  session_application: "参加申請",
+  session_application: "コメント",
   session_comment_updated: "コメント更新",
-  application_status_changed: "申請状況",
+  application_status_changed: "申請状況更新",
   session_created: "依頼書登録",
+  session_post_created: "依頼書登録",
   session_updated: "依頼書更新"
 };
+const COMMENT_NOTIFICATION_TYPES = new Set(["session_comment", "session_application"]);
+const SESSION_CREATED_NOTIFICATION_TYPES = new Set(["session_created", "session_post_created"]);
 
 const state = {
   initialized: false,
@@ -183,6 +186,17 @@ function getTypeLabel(type) {
   return TYPE_LABELS[type] || "通知";
 }
 
+function getActorLabel(item) {
+  const name = typeof item?.actor_display_name === "string" ? item.actor_display_name.trim() : "";
+  if (!name) return "ユーザーさん";
+  return /(?:さん|様|くん|ちゃん)$/.test(name) ? name : `${name}さん`;
+}
+
+function getSessionTitle(item) {
+  const title = typeof item?.session_title === "string" ? item.session_title.trim() : "";
+  return title || "タイトル未設定";
+}
+
 function formatDateTime(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
@@ -195,16 +209,21 @@ function formatDateTime(value) {
 }
 
 function getNotificationTitle(item) {
-  return item?.title || item?.session_title || "通知";
+  const actor = getActorLabel(item);
+  if (COMMENT_NOTIFICATION_TYPES.has(item?.notification_type)) {
+    return `${actor}がコメントしました`;
+  }
+  if (SESSION_CREATED_NOTIFICATION_TYPES.has(item?.notification_type)) {
+    return `${actor}が依頼書を登録しました`;
+  }
+  if (item?.notification_type === "session_comment_updated") {
+    return `${actor}がコメントを更新しました`;
+  }
+  return `${actor}が更新しました`;
 }
 
 function getNotificationBody(item) {
-  const raw = typeof item?.body === "string" ? item.body.trim() : "";
-  if (raw) return raw;
-  if (item?.actor_display_name) {
-    return `${item.actor_display_name} からの更新です`;
-  }
-  return "";
+  return `依頼書：${getSessionTitle(item)}`;
 }
 
 function createNotificationItem(item) {
@@ -228,12 +247,11 @@ function createNotificationItem(item) {
 
   const sessionTitle = document.createElement("span");
   sessionTitle.className = "notification-panel__session";
-  const sessionTitleText = typeof item?.session_title === "string" ? item.session_title.trim() : "";
-  sessionTitle.textContent = sessionTitleText && sessionTitleText !== title.textContent ? sessionTitleText : "";
+  sessionTitle.textContent = getNotificationBody(item);
 
   const body = document.createElement("span");
   body.className = "notification-panel__body";
-  body.textContent = getNotificationBody(item);
+  body.textContent = "";
 
   link.append(meta, title);
   if (sessionTitle.textContent) link.append(sessionTitle);

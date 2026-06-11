@@ -5,11 +5,14 @@ const FALLBACK_TARGET = "calendar.html";
 
 const EVENT_TYPE_LABELS = {
   session_comment: "コメント",
-  session_application: "参加申請",
+  session_application: "コメント",
   application_status_changed: "申請状況",
   session_created: "依頼書登録",
+  session_post_created: "依頼書登録",
   session_updated: "依頼書更新"
 };
+const COMMENT_EVENT_TYPES = new Set(["session_comment", "session_application"]);
+const SESSION_CREATED_EVENT_TYPES = new Set(["session_created", "session_post_created"]);
 
 const VISIBILITY_LABELS = {
   public: "公開",
@@ -29,6 +32,28 @@ function normalizeTargetPath(value) {
 
 function getEventTypeLabel(type) {
   return EVENT_TYPE_LABELS[type] || "更新";
+}
+
+function getActorLabel(item) {
+  const name = typeof item?.actor_display_name === "string" ? item.actor_display_name.trim() : "";
+  if (!name) return "ユーザーさん";
+  return /(?:さん|様|くん|ちゃん)$/.test(name) ? name : `${name}さん`;
+}
+
+function getSessionTitle(item) {
+  const title = typeof item?.session_title === "string" ? item.session_title.trim() : "";
+  return title || "タイトル未設定";
+}
+
+function getTimelineTitle(item) {
+  const actor = getActorLabel(item);
+  if (COMMENT_EVENT_TYPES.has(item?.event_type)) {
+    return `${actor}がコメントしました`;
+  }
+  if (SESSION_CREATED_EVENT_TYPES.has(item?.event_type)) {
+    return `${actor}が依頼書を登録しました`;
+  }
+  return `${actor}が更新しました`;
 }
 
 function getVisibilityLabel(visibility) {
@@ -92,19 +117,10 @@ function createTimelineCard(item) {
     head.append(time);
   }
 
-  const titleText = item?.title || item?.session_title || "更新";
-  const title = createTextElement("h2", "timeline-card__title", titleText);
+  const title = createTextElement("h2", "timeline-card__title", getTimelineTitle(item));
 
   const metaItems = [];
-  if (item?.session_title && item.session_title !== titleText) {
-    metaItems.push(`依頼書: ${item.session_title}`);
-  }
-  if (item?.actor_display_name) {
-    metaItems.push(`更新者: ${item.actor_display_name}`);
-  }
-
-  const bodyText = typeof item?.body === "string" ? item.body.trim() : "";
-  const body = createTextElement("p", "timeline-card__body", bodyText || "詳細は依頼書ページで確認できます。");
+  metaItems.push(`依頼書：${getSessionTitle(item)}`);
 
   const footer = document.createElement("div");
   footer.className = "timeline-card__footer";
@@ -119,7 +135,7 @@ function createTimelineCard(item) {
   link.textContent = "詳細を見る";
   footer.append(link);
 
-  article.append(head, title, body, footer);
+  article.append(head, title, footer);
   return article;
 }
 
