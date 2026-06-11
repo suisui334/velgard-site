@@ -1,76 +1,14 @@
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js";
+import {
+  formatActivityDateTime,
+  getActivitySessionLabel,
+  getActivityTitle,
+  getActivityTypeLabel,
+  getActivityVisibilityLabel,
+  normalizeActivityTargetPath
+} from "./activityTimelineDisplay.js?v=20260611-home-activity";
 
 const TIMELINE_LIMIT = 50;
-const FALLBACK_TARGET = "calendar.html";
-
-const EVENT_TYPE_LABELS = {
-  session_comment: "コメント",
-  session_application: "コメント",
-  application_status_changed: "申請状況",
-  session_created: "依頼書登録",
-  session_post_created: "依頼書登録",
-  session_updated: "依頼書更新"
-};
-const COMMENT_EVENT_TYPES = new Set(["session_comment", "session_application"]);
-const SESSION_CREATED_EVENT_TYPES = new Set(["session_created", "session_post_created"]);
-
-const VISIBILITY_LABELS = {
-  public: "公開",
-  authenticated: "ログイン限定",
-  private: "限定"
-};
-
-function normalizeTargetPath(value) {
-  const target = typeof value === "string" ? value.trim() : "";
-  if (!target) return FALLBACK_TARGET;
-  if (/[\r\n]/.test(target)) return FALLBACK_TARGET;
-  if (/^[a-z][a-z0-9+.-]*:/i.test(target)) return FALLBACK_TARGET;
-  if (target.startsWith("//")) return FALLBACK_TARGET;
-  if (target.includes("..")) return FALLBACK_TARGET;
-  return target.replace(/^\/+/, "") || FALLBACK_TARGET;
-}
-
-function getEventTypeLabel(type) {
-  return EVENT_TYPE_LABELS[type] || "更新";
-}
-
-function getActorLabel(item) {
-  const name = typeof item?.actor_display_name === "string" ? item.actor_display_name.trim() : "";
-  if (!name) return "ユーザーさん";
-  return /(?:さん|様|くん|ちゃん)$/.test(name) ? name : `${name}さん`;
-}
-
-function getSessionTitle(item) {
-  const title = typeof item?.session_title === "string" ? item.session_title.trim() : "";
-  return title || "タイトル未設定";
-}
-
-function getTimelineTitle(item) {
-  const actor = getActorLabel(item);
-  if (COMMENT_EVENT_TYPES.has(item?.event_type)) {
-    return `${actor}がコメントしました`;
-  }
-  if (SESSION_CREATED_EVENT_TYPES.has(item?.event_type)) {
-    return `${actor}が依頼書を登録しました`;
-  }
-  return `${actor}が更新しました`;
-}
-
-function getVisibilityLabel(visibility) {
-  return VISIBILITY_LABELS[visibility] || "";
-}
-
-function formatDateTime(value) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("ja-JP", {
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  }).format(date);
-}
 
 function setStatus(statusElement, message, isError = false) {
   statusElement.textContent = message;
@@ -100,15 +38,15 @@ function createTimelineCard(item) {
   const head = document.createElement("div");
   head.className = "timeline-card__head";
 
-  const type = createTextElement("span", "timeline-card__type", getEventTypeLabel(item?.event_type));
+  const type = createTextElement("span", "timeline-card__type", getActivityTypeLabel(item?.event_type));
   head.append(type);
 
-  const visibilityText = getVisibilityLabel(item?.visibility);
+  const visibilityText = getActivityVisibilityLabel(item?.visibility);
   if (visibilityText) {
     head.append(createTextElement("span", "timeline-card__visibility", visibilityText));
   }
 
-  const timeText = formatDateTime(item?.created_at);
+  const timeText = formatActivityDateTime(item?.created_at, { includeYear: true });
   if (timeText) {
     const time = document.createElement("time");
     time.className = "timeline-card__time";
@@ -117,10 +55,10 @@ function createTimelineCard(item) {
     head.append(time);
   }
 
-  const title = createTextElement("h2", "timeline-card__title", getTimelineTitle(item));
+  const title = createTextElement("h2", "timeline-card__title", getActivityTitle(item));
 
   const metaItems = [];
-  metaItems.push(`依頼書：${getSessionTitle(item)}`);
+  metaItems.push(getActivitySessionLabel(item));
 
   const footer = document.createElement("div");
   footer.className = "timeline-card__footer";
@@ -131,7 +69,7 @@ function createTimelineCard(item) {
 
   const link = document.createElement("a");
   link.className = "button timeline-card__link";
-  link.href = normalizeTargetPath(item?.target_path);
+  link.href = normalizeActivityTargetPath(item?.target_path);
   link.textContent = "詳細を見る";
   footer.append(link);
 

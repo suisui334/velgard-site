@@ -1,4 +1,12 @@
-import { imageFallbackAttr, imageOrPlaceholder, isVisible, loadJson } from "./dataLoader.js";
+import {
+  escapeActivityHtml,
+  formatActivityDateTime,
+  getActivitySessionLabel,
+  getActivityTitle,
+  normalizeActivityTargetPath
+} from "./activityTimelineDisplay.js?v=20260611-home-activity";
+import { imageFallbackAttr, imageOrPlaceholder } from "./dataLoader.js";
+import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js";
 
 const homeNavItems = [
   { label: "WORLD", href: "world.html", text: "舞台紹介" },
@@ -14,13 +22,64 @@ const homeNavItems = [
   { label: "CAMPAIGN", href: "campaigns.html", text: "仮公開" }
 ];
 
-function sortUpdates(items) {
-  return [...items].sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+const HOME_ACTIVITY_LIMIT = 5;
+
+async function loadHomeActivities() {
+  const client = await createSupabaseBrowserClient();
+  if (!client) {
+    return { items: [], isAuthenticated: false, hasError: true };
+  }
+
+  let isAuthenticated = false;
+  try {
+    const { data } = await client.auth.getSession();
+    isAuthenticated = Boolean(data?.session);
+  } catch {
+    // The home activity panel can still render a quiet empty state if auth bootstrap fails.
+  }
+
+  const { data, error } = await client.rpc("get_activity_timeline", { p_limit: HOME_ACTIVITY_LIMIT });
+  if (error) {
+    return { items: [], isAuthenticated, hasError: true };
+  }
+
+  return {
+    items: Array.isArray(data) ? data : [],
+    isAuthenticated,
+    hasError: false
+  };
+}
+
+function renderHomeActivityList(activityState) {
+  if (!activityState.items.length) {
+    if (activityState.hasError) {
+      return `<p class="empty">最近の活動を読み込めませんでした。</p>`;
+    }
+    if (!activityState.isAuthenticated) {
+      return `<p class="empty">ログインすると最近の活動を確認できます。</p>`;
+    }
+    return `<p class="empty">まだ更新はありません。</p>`;
+  }
+
+  return activityState.items.map((item) => {
+    const href = escapeActivityHtml(normalizeActivityTargetPath(item?.target_path));
+    const title = escapeActivityHtml(getActivityTitle(item));
+    const session = escapeActivityHtml(getActivitySessionLabel(item));
+    const createdAt = formatActivityDateTime(item?.created_at, { includeYear: false });
+    return `
+      <a href="${href}" class="home-latest-item home-activity-item">
+        <time>${escapeActivityHtml(createdAt)}</time>
+        <span>
+          <strong>${title}</strong>
+          <small>${session}</small>
+        </span>
+      </a>
+    `;
+  }).join("");
 }
 
 export async function renderHome(root, site) {
-  const updates = await loadJson("data/updates.json");
-  const latest = sortUpdates(updates.filter((item) => isVisible(item) || !item.status)).slice(0, 3);
+  const activityState = await loadHomeActivities();
   const logoImage = site.logoImage && site.logoImage.trim() ? site.logoImage : "";
   const keyvisualImage = imageOrPlaceholder(site.keyvisual, site, "keyvisual");
   const logoFallback = `
@@ -52,18 +111,13 @@ export async function renderHome(root, site) {
           </a>
         `).join("")}
       </nav>
-      <section class="home-latest" aria-labelledby="home-latest-title">
+      <section class="home-latest" aria-labelledby="home-activity-title">
         <div class="home-latest-head">
-          <h2 id="home-latest-title">LATEST</h2>
-          <a href="updates.html">ALL</a>
+          <h2 id="home-activity-title">TIMELINE</h2>
+          <a href="timeline.html">ALL</a>
         </div>
         <div class="home-latest-list">
-          ${latest.length ? latest.map((item) => `
-            <a href="updates.html" class="home-latest-item">
-              <time>${item.date || ""}</time>
-              <span>${item.title || "更新"}</span>
-            </a>
-          `).join("") : `<p class="empty">更新履歴はまだありません。</p>`}
+          ${renderHomeActivityList(activityState)}
         </div>
       </section>
       <div class="home-visual">

@@ -6405,6 +6405,35 @@ Safety:
 - SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
 - No real email, user id, full URL, project identifier, credential, or secret value was recorded.
 
+## M-14F-22 home activity timeline panel
+
+Status: TOP lower-left legacy update history replaced with recent activity.
+
+Changed:
+
+- Removed the old static `LATEST` / update-history display from the TOP landing panel.
+- Added a compact home activity panel that reads the existing `get_activity_timeline(...)` RPC.
+- The panel links to `timeline.html` for the full list.
+- Reused shared activity display helpers so TOP and TIMELINE use the same simplified Japanese wording.
+- `session_comment` and `session_application` both render as a comment action.
+- TOP does not expose long comment/application body text; it shows only actor action, session title, and compact timestamp.
+- Activity links are normalized to relative in-site paths before rendering.
+- Logged-out empty state explains that recent activity is available after login when no visible rows are returned.
+- Logged-in empty state remains a simple no-activity message.
+- Local static browser check confirmed the TOP panel has the `TIMELINE` heading, no old `LATEST` heading, no old updates link inside the panel, a natural logged-out empty state, and no body-level horizontal overflow.
+
+Preserved:
+
+- No DB/RPC/RLS changes were made; the existing timeline read RPC is used.
+- Session-create activity instrumentation remains a future gate.
+- Notification bell, ACCOUNT, shared header, and TIMELINE page behavior were not intentionally changed beyond sharing the display helper.
+- The old `updates.html` page and footer/header links were not removed in this batch.
+
+Safety:
+
+- SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
+- No real contact, account, event, page, project, credential, or internal identifier value was recorded.
+
 ## M-15A-01 notification and TIMELINE label localization
 
 Status: notification bell and TIMELINE list labels localized and simplified.

@@ -1,5 +1,5 @@
 import { loadJson } from "./dataLoader.js";
-import { renderHome } from "./renderHome.js?v=20260529-calendar-phase1";
+import { renderHome } from "./renderHome.js?v=20260611-home-activity";
 import { renderWorld } from "./renderWorld.js?v=20260528-responsive-ui-fix";
 import { renderCampaigns } from "./renderCampaigns.js";
 import { renderCampaignDetail } from "./renderCampaignDetail.js";
@@ -17,7 +17,7 @@ import { renderGallery } from "./renderGallery.js?v=20260529-gallery-swipe";
 import { renderUpdates } from "./renderUpdates.js";
 import { renderTools } from "./renderTools.js?v=20260529-calendar-date-tools-history";
 import { renderCalendar } from "./renderCalendar.js?v=20260608-calendar-grid-fix";
-import { renderTimeline } from "./renderTimeline.js?v=20260611-localized-activity-labels";
+import { renderTimeline } from "./renderTimeline.js?v=20260611-home-activity";
 import { renderMypage } from "./renderMypage.js?v=20260605-user-name-ui";
 import { renderAdminCapAnnouncements } from "./renderAdminCapAnnouncements.js?v=20260610-admin-cap-rpc-ui-fix";
 import { initNotificationBell } from "./notificationBellClient.js?v=20260611-localized-activity-labels";

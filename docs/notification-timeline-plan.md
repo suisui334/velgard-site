@@ -730,6 +730,34 @@ Safety:
 - No SQL Editor execution, DB/RPC/RLS change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, or credential recording was performed.
 - No real contact, account, event, page, project, credential, or internal identifier value was recorded.
 
+## Home Recent Activity Panel
+
+The TOP page lower-left legacy update-history panel has been replaced with a compact recent activity panel.
+
+Implemented:
+
+- Removed the old static `LATEST` / update-history feed from the home landing panel.
+- The home panel now reads the existing `get_activity_timeline(...)` RPC.
+- The panel links to `timeline.html` for the full activity view.
+- The display uses the same simplified Japanese activity wording as the TIMELINE page.
+- `session_comment` and `session_application` both display as a comment action.
+- Long comment/application body text is not shown on TOP.
+- Each home activity item shows only the actor action, session title, and compact timestamp.
+- Activity target paths are normalized as relative in-site paths before rendering links.
+- If no rows are visible while logged out, the panel shows a natural login-aware empty state.
+- If a logged-in user has no visible activity rows, the panel shows a natural empty state.
+
+Current limits:
+
+- The home panel depends on the existing activity RPC and does not add DB/RPC/RLS changes.
+- Session-create activity instrumentation is still a future gate.
+- If an event type is unknown, the shared display helper falls back to a generic update label.
+
+Safety:
+
+- No SQL Editor execution, DB/RPC/RLS change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, or credential recording was performed.
+- No real contact, account, event, page, project, credential, or internal identifier value was recorded.
+
 ## Non-Goals for This Batch
 
 - SQL Editor execution.
