@@ -284,13 +284,15 @@ Preparation status:
 - `070_comment_application_spam_guard_apply_draft.sql` was later run once by the user in SQL Editor and applied successfully.
 - The first `071_comment_application_spam_guard_post_apply_select_only.sql` post-apply check confirmed the RPC, signature, privileges, cooldown, length guard, notifications, activity generation, PC snapshot handling, and management-comment TIMELINE skip, but reported `create_application_comment_url_count_guard=review` because the regex-pattern detector did not match the applied function text.
 - The URL guard implementation itself still has the counter, `regexp_matches(v_comment_body, ...)`, `> 2` threshold, and safe error branch, so this was treated as a SELECT-only detection mismatch rather than a DB/RPC fix.
-- `071_comment_application_spam_guard_post_apply_select_only.sql` has been revised to detect the URL guard by structure instead of an exact deparsed regex-literal shape. The revised 071 has not been executed yet.
+- The revised `071_comment_application_spam_guard_post_apply_select_only.sql` was rerun once as SELECT-only and returned all OK.
+- The confirmed OK items include `create_application_comment(text,text)` existence/signature, `security definer`, `search_path=public`, authenticated-only EXECUTE, anon denial, existing length guard, URL counter, URL `> 2` threshold, URL error branch, same-user/same-session PL comment/application 60-second cooldown, PL-branch cooldown scope, owner notification preservation, TIMELINE activity generation preservation, GM/admin management activity skip preservation, and PC snapshot preservation.
+- `post_apply_ready_for_comment_spam_guard_qa=true`.
 - The 070 draft is limited to `public.create_application_comment(text,text)`.
 - Planned guards:
   - same user and same session PL comment/application cooldown for 60 seconds;
   - maximum two URL-like tokens per submitted body.
-- Existing owner notification generation, PL activity generation, PC snapshot handling, and GM/admin management-comment shared TIMELINE skip are intended to remain unchanged.
-- The next gate is rerunning the revised 071 SELECT-only confirmation once; real comment/application QA remains a separate gate after 071 passes.
+- Existing owner notification generation, PL activity generation, PC snapshot handling, and GM/admin management-comment shared TIMELINE skip are confirmed preserved by the revised 071 check.
+- The next gate is real comment/application spam-guard QA.
 - No real user id, email, session id, activity id, notification id, full URL, token, key, project identifier, or secret value is recorded.
 
 ### RLS/RPC
@@ -359,10 +361,9 @@ Initial hardening:
 
 ## Recommended Next Gates
 
-1. Rerun the revised `071_comment_application_spam_guard_post_apply_select_only.sql` once as a SELECT-only confirmation gate.
-2. Run real comment/application spam-guard QA in a separate gate after 071 passes.
-3. Prepare security definer search_path cleanup plan for remaining P1 functions.
-4. Prepare moderation UI plan for comments, profiles, and avatars.
+1. Run real comment/application spam-guard QA in a separate gate.
+2. Prepare security definer search_path cleanup plan for remaining P1 functions.
+3. Prepare moderation UI plan for comments, profiles, and avatars.
 
 ## Auth CAPTCHA Frontend Gate
 
