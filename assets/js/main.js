@@ -62,8 +62,30 @@ const renderers = {
   "admin-cap-announcements": renderAdminCapAnnouncements
 };
 
+function escapeAttribute(value = "") {
+  return String(value).replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#39;"
+  })[character]);
+}
+
 function renderHeader(site, page) {
   const header = document.querySelector("#site-header");
+  const logoImage = site.logoImage && site.logoImage.trim() ? site.logoImage.trim() : "";
+  const brandLabel = site.title || site.shortTitle || "Velgard";
+  const brandFallback = `
+          <span class="brand-text-fallback">
+            <span class="brand-mark">Sword World 2.5 Stage</span>
+            <span class="brand-title">${escapeAttribute(brandLabel)}</span>
+          </span>
+  `;
+  const brandContent = logoImage ? `
+          <img class="brand-logo-image" src="${escapeAttribute(logoImage)}" alt="${escapeAttribute(brandLabel)}" onerror="this.hidden=true;this.closest('.brand').classList.add('is-logo-fallback');">
+          ${brandFallback}
+  ` : brandFallback;
   const links = navItems.filter((item) => item.enabled).map(({ label, href, key }) => {
     const active = page === key || (page === "campaign-detail" && key === "campaigns") || (page === "episode-detail" && key === "campaigns") || (page === "spot-detail" && key === "spots") || ((page === "scenario-detail" || page === "hooks") && key === "scenarios") || (page === "session-detail" && key === "calendar");
     return `<a href="${href}" class="${active ? "is-active" : ""}">${label}</a>`;
@@ -74,9 +96,8 @@ function renderHeader(site, page) {
   header.innerHTML = `
     <header class="site-header">
       <div class="header-inner">
-        <a class="brand" href="index.html">
-          <span class="brand-mark">Sword World 2.5 Stage</span>
-          <span class="brand-title">${site.title}</span>
+        <a class="brand ${logoImage ? "brand--image" : "brand--text"}" href="index.html">
+          ${brandContent}
         </a>
         <button class="nav-toggle" type="button" aria-label="メニューを開く" aria-expanded="false">☰</button>
         <nav class="global-nav" aria-label="グローバルナビゲーション">${links}${accountLink}</nav>

@@ -134,9 +134,42 @@ img {
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 clamp(132px, 12vw, 176px);
+  width: clamp(132px, 12vw, 176px);
+  min-width: 0;
+}
+
+.brand--text,
+.brand.is-logo-fallback {
   display: grid;
   gap: 0;
+  flex: 0 0 auto;
+  width: auto;
   min-width: 220px;
+}
+
+.brand-logo-image {
+  width: 100%;
+  max-height: 54px;
+  object-fit: contain;
+  object-position: left center;
+  filter: drop-shadow(0 6px 12px rgba(28, 32, 36, 0.16));
+}
+
+.brand-text-fallback {
+  display: none;
+}
+
+.brand--text .brand-text-fallback,
+.brand.is-logo-fallback .brand-text-fallback {
+  display: grid;
+  gap: 0;
+}
+
+.brand.is-logo-fallback .brand-logo-image {
+  display: none;
 }
 
 .brand-mark {
@@ -169,7 +202,9 @@ img {
   align-items: center;
   justify-content: flex-end;
   gap: 4px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  row-gap: 4px;
+  align-content: center;
 }
 
 .global-nav a {
@@ -422,7 +457,15 @@ img {
 
 @media (min-width: 1181px) {
   .brand {
+    flex: 0 0 clamp(132px, 12vw, 176px);
+    width: clamp(132px, 12vw, 176px);
+    min-width: 0;
+  }
+
+  .brand--text,
+  .brand.is-logo-fallback {
     flex: 0 0 auto;
+    width: auto;
     min-width: max-content;
   }
 
@@ -444,6 +487,21 @@ img {
   .brand-title {
     font-size: 0.94rem;
     letter-spacing: 0.02em;
+  }
+
+  .brand {
+    flex-basis: clamp(112px, 10vw, 150px);
+    width: clamp(112px, 10vw, 150px);
+  }
+
+  .brand--text,
+  .brand.is-logo-fallback {
+    width: auto;
+    min-width: max-content;
+  }
+
+  .brand-logo-image {
+    max-height: 46px;
   }
 
   .global-nav {
@@ -5896,7 +5954,19 @@ body.is-modal-open .back-to-top {
   }
 
   .brand {
+    flex-basis: min(148px, 48vw);
+    width: min(148px, 48vw);
     min-width: 0;
+  }
+
+  .brand--text,
+  .brand.is-logo-fallback {
+    width: auto;
+    min-width: 0;
+  }
+
+  .brand-logo-image {
+    max-height: 44px;
   }
 
   .brand-title {

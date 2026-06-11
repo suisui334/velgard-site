@@ -6404,3 +6404,32 @@ Safety:
 
 - SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
 - No real email, user id, full URL, project identifier, credential, or secret value was recorded.
+
+## M-14F-17 shared header logo brand
+
+Status: shared header brand changed from long text-first display to existing logo image-first display.
+
+Issue:
+
+- Even after the shared header spacing fix, the long brand text still competed with `TOP` / `WORLD` and the post-`TIMELINE` navigation width.
+- Text compaction alone left the brand and nav areas visually cramped at desktop and intermediate widths.
+
+Changed:
+
+- Reused the existing `assets/images/common/velgard-logo.png` brand asset from `data/site.json`.
+- Updated the shared header renderer so the left brand link displays the logo image first.
+- Kept the existing text brand as a fallback only when the logo image cannot load.
+- Added header-specific logo sizing so the brand area has a predictable width and does not collide with navigation.
+- Kept nav wrapping/compaction behavior for intermediate widths and the existing hamburger behavior for narrow widths.
+- Updated CSS and main script cache-busts across shared HTML pages.
+
+Preserved:
+
+- The brand link still navigates to `index.html`.
+- The home page large logo/hero behavior is not changed.
+- Existing mypage header behavior, notification bell, ACCOUNT/logout controls, and `TIMELINE` nav remain in place.
+
+Safety:
+
+- SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
+- No real email, user id, full URL, project identifier, credential, or secret value was recorded.
