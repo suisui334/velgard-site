@@ -6596,6 +6596,57 @@ Safety:
 - SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard changes, Edge deploy, email sending, Discord sending, credential recording, and Supabase direct DB writes were not performed.
 - No real email, user id, session id, activity id, notification id, full URL, project identifier, token, key, or secret value was recorded.
 
+## M-14F-38 community membership approval controls
+
+Status: non-destructive membership approval design prepared.
+
+Context:
+
+- Public signup can remain available, but community outsiders should not be able to use major interactive features immediately after signup.
+- Invite codes are not adopted for the first gate.
+- Approval lag should be reduced later by granting a limited `membership_approver` authority to trusted operators without giving them admin.
+- Admin authority remains separate and stronger than membership approval.
+
+Prepared:
+
+- Added `docs/community-membership-access-control-plan.md`.
+- Updated `docs/public-security-hardening-plan.md` to record membership approval as a public-readiness P1 gate.
+- No SELECT-only SQL file, apply draft, DB/RPC/RLS change, SQL apply, Dashboard change, Edge deploy, mail sending, Discord sending, or secret handling was performed.
+
+Design summary:
+
+- Membership statuses: `pending`, `approved`, `rejected`, `revoked`, `blocked`.
+- New signup users should start as `pending`.
+- `approved` users can use normal member features.
+- `pending` users may log in, view mypage basics, and update review-related profile/application information.
+- `pending` users should not create/edit/delete session posts, comment/apply, manage PCs, manage templates, use Discord sync, or use notifications/TIMELINE.
+- `membership_approver` can list pending users, approve pending users, reject pending users, and record short decision notes.
+- `membership_approver` cannot grant roles, grant admin, grant approver authority, unblock users, manage revoked/blocked states, manage session posts, operate Discord sync, or view secrets.
+- Admin-only scope remains role grants, approver grants/removal, blocked/revoked changes, force status changes, and decision-log management.
+- `member` should be treated as a derived approved-membership permission in the MVP unless a later DB review chooses to mirror it into a role table.
+
+RPC impact summary:
+
+- Approved-member gates are needed for session post lifecycle RPCs, comment/application mutation RPCs, GM/application management RPCs, player-character RPCs, template RPCs, Discord sync helper/check/record RPCs, notification RPCs, and authenticated TIMELINE reads.
+- Pending-safe candidates are account basics and review profile fields, such as display name, contact field, and applicant note.
+- Avatar upload/update is recommended to remain approved-only until moderation procedure is in place.
+- Public read surfaces can remain readable where existing policy already permits them, but pending logged-in users should not gain authenticated TIMELINE/private notification visibility.
+- Frontend hiding is not sufficient; DB/RPC helpers must enforce approved status.
+
+Next gates:
+
+- Prepare a SELECT-only membership access-control inventory diagnostic before any apply draft.
+- After inventory, prepare schema/helper draft for membership status and decision logs.
+- Add approval/rejection RPCs in a separate apply gate.
+- Add approved-member gates to existing RPCs in small batches, not as a single broad rewrite.
+- Implement pending/rejected/revoked/blocked UI and approver UI only after DB/RPC gates are reviewed.
+- QA new signup pending state, pending denial, approval transition, approver limitation, admin-only actions, and approved-user normal operation.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard changes, Edge deploy, email sending, Discord sending, credential recording, and Supabase direct DB writes were not performed.
+- No real email, user id, session id, notification id, activity id, full URL, project identifier, token, key, or secret value was recorded.
+
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
 
 Status: Cloudflare Turnstile frontend integration implemented.

@@ -244,7 +244,7 @@ Safety:
 
 - Add display name moderation rules: length, control-character rejection, impersonation guidance, and admin rename path.
 - Decide handling for unconfirmed mail accounts: read-only, blocked from posting, or cleanup review.
-- Add lightweight account age or confirmation gates before comment/application posting.
+- Add community membership approval gates before comment/application posting and other interactive writes.
 - Clean up security definer functions that do not pin `search_path=public`.
 - Review and repair `get_public_session_application_counts(text)` search_path while preserving its read-only public surface.
 - Add admin-facing moderation tools for comments/applications: hide, delete, or lock comment posting on a session.
@@ -308,12 +308,32 @@ Risks:
 - Bulk account creation.
 - Abusive display names.
 - Unconfirmed accounts posting.
+- Community outsiders signing up and immediately using write features.
 
 Initial hardening:
 
 - Confirmed-mail requirement before posting/commenting.
 - Display name validation and admin rename/disable path.
-- Optional account-age or approval gate before public interactions.
+- Community membership approval gate before public interactions.
+
+Membership approval status:
+
+- `docs/community-membership-access-control-plan.md` records the non-destructive
+  approval-control design.
+- Invite codes are not adopted for the first gate.
+- New accounts should start as `pending`; only `approved` members can use major
+  interactive features.
+- Pending users may log in and update account/profile/application information
+  needed for review, but should not create sessions, comment/apply, manage PCs
+  or templates, use Discord sync, or use notifications/TIMELINE.
+- `membership_approver` is designed as a limited authority separate from
+  `admin`; it can approve or reject pending users only.
+- Granting/removing `membership_approver`, blocking/unblocking users, forced
+  status changes, and strong moderation remain admin-only.
+- The gate must be enforced in DB/RPC helpers, not only by hiding frontend
+  buttons.
+- This planning step created no SQL apply draft and performed no DB/RPC/RLS or
+  Dashboard change.
 
 ### Comment/Application Spam
 
@@ -417,7 +437,8 @@ Initial hardening:
 ## Recommended Next Gates
 
 1. Keep security definer search_path checks as a per-RPC review requirement when future functions are changed.
-2. Prepare moderation UI plan for comments, profiles, and avatars.
+2. Prepare a SELECT-only membership inventory diagnostic before any membership schema/apply draft.
+3. Prepare moderation UI plan for comments, profiles, and avatars.
 
 ## Auth CAPTCHA Frontend Gate
 
