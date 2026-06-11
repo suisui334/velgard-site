@@ -6405,6 +6405,33 @@ Safety:
 - SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
 - No real email, user id, full URL, project identifier, credential, or secret value was recorded.
 
+## M-14F-33 mobile Turnstile CAPTCHA layout
+
+Status: smartphone-width mypage Auth CAPTCHA layout fixed.
+
+Issue:
+
+- After Turnstile CAPTCHA was enabled and the public site key was configured, the mypage login form showed a working CAPTCHA widget, but the widget area overflowed to the right on iPhone/Safari-sized screens.
+- The login submit button could also escape the form flow and appear to the right of the CAPTCHA.
+- Auth token plumbing was not treated as the issue; the problem was the mobile layout around login/signup/password-reset forms.
+
+Changed:
+
+- Scoped mypage login, signup, and password-reset forms to a one-column layout instead of inheriting the shared horizontal `.calendar-form` flex behavior.
+- Added width, max-width, min-width, and box-sizing constraints around the CAPTCHA panel, widget wrapper, iframe, fields, and submit buttons.
+- Added a compact Turnstile widget mode for very narrow screens and kept flexible sizing elsewhere.
+- Updated mypage stylesheet/Auth script cache-busts.
+
+Deferred:
+
+- Live login/signup/password-reset Auth QA remains a separate gate because it can send Auth email.
+- Secret key and concrete site-key values were not recorded.
+
+Safety:
+
+- SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, email sending, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
+- No real email, user id, full URL, project identifier, Turnstile secret, concrete site key, credential, or token value was recorded.
+
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
 
 Status: Cloudflare Turnstile frontend integration implemented.

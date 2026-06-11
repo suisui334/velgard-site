@@ -2266,10 +2266,20 @@ input[type="search"] {
 }
 
 .auth-captcha-widget {
+  display: flex;
+  justify-content: center;
+  width: 100%;
   max-width: 100%;
   min-width: 0;
   min-height: 65px;
-  overflow: hidden;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.auth-captcha-widget > div,
+.auth-captcha-widget iframe {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .auth-captcha-panel.is-unconfigured .auth-captcha-widget {
@@ -4442,6 +4452,39 @@ body[data-page="mypage"] .mypage-applications {
   gap: 16px;
 }
 
+body[data-page="mypage"] [data-mypage-login-form],
+body[data-page="mypage"] [data-mypage-signup-form],
+body[data-page="mypage"] [data-mypage-password-reset-form] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+body[data-page="mypage"] [data-mypage-login-form] .calendar-date-label,
+body[data-page="mypage"] [data-mypage-signup-form] .calendar-date-label,
+body[data-page="mypage"] [data-mypage-password-reset-form] .calendar-date-label,
+body[data-page="mypage"] [data-mypage-login-form] .auth-captcha-panel,
+body[data-page="mypage"] [data-mypage-signup-form] .auth-captcha-panel,
+body[data-page="mypage"] [data-mypage-password-reset-form] .auth-captcha-panel {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+body[data-page="mypage"] [data-mypage-login-form] .button,
+body[data-page="mypage"] [data-mypage-signup-form] .button,
+body[data-page="mypage"] [data-mypage-password-reset-form] .button {
+  justify-self: start;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 body[data-page="mypage"] .mypage-details {
   min-width: 0;
   border: 2px solid rgba(86, 96, 106, 0.24);
@@ -6324,6 +6367,27 @@ body.is-modal-open .back-to-top {
 
   .calendar-actions .button {
     width: 100%;
+  }
+
+  body[data-page="mypage"] [data-mypage-login-form],
+  body[data-page="mypage"] [data-mypage-signup-form],
+  body[data-page="mypage"] [data-mypage-password-reset-form] {
+    gap: 10px;
+  }
+
+  body[data-page="mypage"] .auth-captcha-panel {
+    padding: 10px;
+  }
+
+  body[data-page="mypage"] .auth-captcha-widget {
+    justify-content: center;
+  }
+
+  body[data-page="mypage"] [data-mypage-login-form] .button,
+  body[data-page="mypage"] [data-mypage-signup-form] .button,
+  body[data-page="mypage"] [data-mypage-password-reset-form] .button {
+    width: 100%;
+    justify-self: stretch;
   }
 
   .calendar-month-panel {

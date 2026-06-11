@@ -334,3 +334,46 @@ Not performed in this batch:
 - Discord sending.
 - Recording CAPTCHA secret, concrete site key, tokens, concrete emails, project
   identifiers, or full URLs.
+
+## Mobile Turnstile Layout Fix
+
+Status: smartphone-width layout fix prepared for the Auth CAPTCHA forms.
+
+Issue:
+
+- After Turnstile enforcement and public site-key configuration, the widget
+  rendered successfully on mypage but pushed beyond the login card on
+  iPhone/Safari-sized screens.
+- The submit button could flow to the right of the CAPTCHA area because the
+  Auth forms still inherited the wider shared `.calendar-form` flex layout.
+
+Changed:
+
+- Scoped login, signup, and password-reset forms on mypage to a single-column
+  grid layout.
+- Constrained the CAPTCHA panel, widget wrapper, iframe, inputs, and submit
+  buttons to the parent card width.
+- Use the compact Turnstile widget on very narrow screens while keeping the
+  flexible widget elsewhere.
+- Updated mypage cache-busts for the stylesheet and Auth client script.
+
+Next QA gate:
+
+- Confirm login, signup, and password-reset forms fit within the mypage card on
+  smartphone-width Safari/Chrome.
+- Confirm Turnstile completion still produces a token and Auth requests can
+  proceed.
+- Perform live login/signup/password-reset QA separately because those checks
+  can send Auth email.
+
+Not performed in this batch:
+
+- Signup/password-reset/login live QA.
+- Supabase Dashboard changes.
+- SQL Editor execution.
+- DB/RPC/RLS mutation.
+- Edge deploy.
+- Email sending.
+- Discord sending.
+- Recording CAPTCHA secret, concrete site key, tokens, concrete emails, project
+  identifiers, or full URLs.

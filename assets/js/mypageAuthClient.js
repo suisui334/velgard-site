@@ -285,8 +285,11 @@
       loadTurnstileSdk()
         .then((turnstile) => {
           if (!target.isConnected || !turnstile || typeof turnstile.render !== "function" || rendered) return;
+          const isNarrowViewport = typeof window.matchMedia === "function"
+            && window.matchMedia("(max-width: 360px)").matches;
           widgetId = turnstile.render(target, {
             sitekey: config.turnstileSiteKey,
+            size: isNarrowViewport ? "compact" : "flexible",
             callback: (value) => {
               token = typeof value === "string" ? value : "";
               setStatusText(token ? "" : "CAPTCHA認証を完了してください。", !token);
