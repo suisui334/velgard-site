@@ -246,6 +246,8 @@ Planning status:
 - Dashboard changes, CAPTCHA secret entry, frontend CAPTCHA implementation, QA, and rate-limit changes are separate gates.
 - The current MVP recommendation is CAPTCHA on signup and password reset first; login CAPTCHA remains optional until abuse patterns justify the extra friction.
 - Password reset repeat-submit protection should avoid storing submitted emails in browser storage and should remain secondary to Supabase-side CAPTCHA/rate limits.
+- Current Supabase Auth Rate Limits were reviewed without saving changes. The email-send limit is 30 emails/h, so signup/password-reset abuse can still consume the hourly mail budget.
+- Next candidate remains CAPTCHA introduction, especially for signup and password reset.
 
 ### Registration Spam
 

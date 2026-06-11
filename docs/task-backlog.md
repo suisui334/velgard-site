@@ -6686,6 +6686,41 @@ Safety:
 - Supabase Dashboard changes, CAPTCHA secret entry, SQL Editor execution, DB/RPC/RLS changes, SQL apply, Edge deploy, email sending, Discord sending, and credential recording were not performed.
 - No real email, user id, full URL, project identifier, CAPTCHA key, API key, JWT, token, or secret value was recorded.
 
+## M-14F-28 auth rate limits dashboard snapshot
+
+Status: Supabase Auth Rate Limits reviewed without changes.
+
+Dashboard review:
+
+- The user checked Authentication -> Rate Limits in the Supabase Dashboard.
+- No settings were changed.
+- Save changes was not pressed.
+
+Observed values:
+
+- Rate limit for sending emails: 30 emails/h.
+- Rate limit for sending SMS messages: 30 sms/h.
+- Rate limit for token refreshes: 150 requests/5 min.
+- Rate limit for token verifications: 30 requests/5 min.
+- Rate limit for anonymous users: 30 requests/h.
+- Rate limit for sign-ups and sign-ins: 30 requests/5 min.
+- Rate limit for Web3 sign-ups and sign-ins: 30 requests/5 min.
+
+Public-readiness concern:
+
+- The email-send limit of 30 emails/h can be consumed by signup or password reset abuse.
+- Custom SMTP increased delivery reliability, but it does not by itself prevent request abuse or protect sending reputation.
+
+Next candidate:
+
+- Introduce Cloudflare Turnstile or equivalent CAPTCHA, prioritizing signup and password reset.
+- Keep any Dashboard setting changes, CAPTCHA secret entry, frontend CAPTCHA implementation, and QA as separate gates.
+
+Safety:
+
+- SQL Editor execution, DB/RPC/RLS changes, SQL apply, Edge deploy, email sending, Discord sending, Supabase Dashboard changes, and credential recording were not performed.
+- No real email, user id, full URL, project identifier, secret, API key, JWT, token, or CAPTCHA key value was recorded.
+
 ## M-15A-01 notification and TIMELINE label localization
 
 Status: notification bell and TIMELINE list labels localized and simplified.

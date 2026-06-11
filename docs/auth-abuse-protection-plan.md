@@ -176,6 +176,30 @@ Operational notes:
 - Review Resend logs, bounce/suppression state, and domain reputation after
   public signup is enabled more broadly.
 
+### Current Dashboard Snapshot
+
+The user reviewed Authentication -> Rate Limits in the Supabase Dashboard.
+No settings were changed and Save changes was not pressed.
+
+Current values observed:
+
+- Rate limit for sending emails: 30 emails/h.
+- Rate limit for sending SMS messages: 30 sms/h.
+- Rate limit for token refreshes: 150 requests/5 min.
+- Rate limit for token verifications: 30 requests/5 min.
+- Rate limit for anonymous users: 30 requests/h.
+- Rate limit for sign-ups and sign-ins: 30 requests/5 min.
+- Rate limit for Web3 sign-ups and sign-ins: 30 requests/5 min.
+
+Public-readiness concern:
+
+- The email sending limit of 30 emails/h can still be consumed by signup or
+  password reset abuse, even after Custom SMTP migration.
+- The next recommended mitigation remains CAPTCHA, prioritizing signup and
+  password reset with Cloudflare Turnstile or equivalent.
+- Any future rate-limit value changes must be handled as a separate Dashboard
+  settings gate.
+
 ## Password Reset Repeat-Submit Protection
 
 Frontend cooldown is a helper, not the primary security boundary. The primary
