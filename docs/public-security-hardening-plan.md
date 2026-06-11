@@ -62,6 +62,52 @@ Safety:
 - Does not return row contents, contact values, concrete account identifiers, concrete session/activity/notification identifiers, full external addresses, project identifiers, or credential values.
 - SQL Editor execution is a separate gate.
 
+### 066 Result Summary
+
+`066` was run once by the user in Supabase SQL Editor as a SELECT-only gate.
+No DB/RPC/RLS changes, SQL apply, Dashboard changes, Edge deploy, mail sending,
+Discord sending, or credential recording were performed.
+
+Confirmed OK:
+
+- Public base tables have RLS enabled.
+- anon/authenticated roles have no direct public table write grants.
+- Key tables for sessions, notifications/activity, profiles, and roles have no direct web-client write grants.
+- Internal notification/activity helper functions are not directly executable by anon or authenticated web-client roles.
+- Discord sync RPCs are not anon-executable.
+- `public_profiles` remains minimal by column-name review.
+- notification/activity policies are present.
+- avatars bucket and owner-path Storage policy shape match the current MVP.
+
+Review items:
+
+- `security_definer_search_path`: `security_definer=55`, `missing_search_path=38`.
+- `rpc_anon_exposure_summary`: `anon_executable=5`, `anon_non_read_named=2`.
+- `comment_application_spam_guards_static`: length guard present, cooldown and URL-count guards missing by static pattern.
+- `timeline_activity_visibility_static`: authenticated activity pattern present; the management-skip detector needs a more precise check.
+- Auth/mail abuse controls still require Dashboard and provider review outside SQL.
+
+### 067 Review Detail Audit
+
+Prepared:
+
+- `docs/supabase/sql/067_public_security_review_details_select_only.sql`
+
+Scope:
+
+- List `security definer` functions that do not pin `search_path=public`, returning function signatures and booleans only.
+- List anon-executable RPCs with read-name/helper/security-definer/search-path flags.
+- Detail `create_application_comment(text,text)` anti-spam guard patterns.
+- Re-check whether GM/admin management comments can enter shared TIMELINE activity, using the post-064/065 static patterns.
+- Include an explicit Dashboard-only gate note for CAPTCHA, Auth rate limits, signup/reset abuse controls, and Resend bounce/suppression checks.
+
+Safety:
+
+- SELECT-only.
+- Does not return function bodies or row contents.
+- Does not return concrete user, session, activity, notification, email, project, URL, token, key, or secret values.
+- SQL Editor execution remains the next independent gate.
+
 ## Priority List
 
 ### P0: Must Fix Before Wider Public Release
@@ -223,8 +269,8 @@ Initial hardening:
 
 ## Recommended Next Gates
 
-1. Run `066_public_security_audit_select_only.sql` once as a SELECT-only SQL Editor gate.
-2. Review any `review` rows and decide P0 fixes.
+1. Run `067_public_security_review_details_select_only.sql` once as a SELECT-only SQL Editor gate.
+2. Review the security definer search_path detail rows and anon-executable RPC detail rows.
 3. Prepare Auth abuse hardening design for CAPTCHA, rate-limit review, and optional invite/admin approval.
 4. Prepare comment/application cooldown and URL-count RPC draft.
 5. Prepare moderation UI plan for comments, profiles, and avatars.

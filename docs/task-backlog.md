@@ -6469,6 +6469,69 @@ Safety:
 - SQL Editor execution, DB/Auth/RLS changes, Storage changes, SQL apply, Edge Function deploy, email sending, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
 - No real contact, account, event, page, project, credential, or internal identifier value was recorded.
 
+## M-14F-24 public security 066 result and 067 detail draft
+
+Status: 066 SELECT-only result recorded and focused review detail SQL prepared.
+
+066 execution:
+
+- `066_public_security_audit_select_only.sql` was run once by the user in Supabase SQL Editor.
+- The result was shared as `check_name / status / result_value / note` only.
+- No SQL apply, DB/RPC/RLS changes, Dashboard changes, Edge deploy, email sending, Discord sending, or credential recording were performed.
+
+066 OK summary:
+
+- `public_tables_rls_enabled`: ok, all public base tables have RLS enabled.
+- `anon_direct_table_write_grants`: ok, zero direct table write grants.
+- `authenticated_direct_table_write_grants`: ok, zero direct table write grants.
+- `key_tables_direct_write_grants`: ok, key session/notification/activity/profile/role tables have zero direct write grants.
+- `internal_helper_direct_execute`: ok, notification/activity internal helpers are not directly executable by anon/authenticated.
+- `discord_sync_rpc_exposure`: ok, Discord RPCs are not anon-executable.
+- `public_profiles_minimal_columns`: ok, minimal public profile columns by name review.
+- `notification_activity_policies`: ok.
+- `avatars_bucket_and_limits`: ok.
+- `avatars_storage_policies`: ok.
+
+066 review summary:
+
+- `security_definer_search_path`: review, many security definer functions need search_path detail review.
+- `rpc_anon_exposure_summary`: review, anon-executable RPCs include non-read-named candidates requiring manual triage.
+- `comment_application_spam_guards_static`: review, length guard exists but cooldown and URL-count guards are missing by static pattern.
+- `timeline_activity_visibility_static`: review, authenticated activity pattern exists but management-skip detection needs a more precise follow-up.
+- `auth_user_confirmation_counts`: info, one unconfirmed account exists by count-only result.
+- Auth/mail abuse controls cannot be fully verified by SQL and remain a Dashboard/provider review gate.
+
+Created:
+
+- `docs/supabase/sql/067_public_security_review_details_select_only.sql`
+
+067 scope:
+
+- Detail security definer functions without `search_path=public`.
+- Detail anon-executable RPCs, including the anon non-read-named candidates.
+- Detail `create_application_comment(text,text)` cooldown and URL-count guard gaps.
+- Re-check whether GM/admin management comments can enter shared TIMELINE activity or whether 066 was an exact-pattern false positive.
+- Keep Auth CAPTCHA, Auth rate limits, signup/reset abuse controls, and Resend bounce/suppression as non-SQL manual gates.
+
+Priority notes:
+
+- P0 if anon has dangerous write/helper RPC exposure.
+- P0 for signup/password-reset abuse controls via CAPTCHA/rate-limit review.
+- P1 for `security definer` search_path cleanup.
+- P1 for comment/application cooldown and URL-count guards.
+- P1 if management activity leakage is real.
+- P2 for unconfirmed-account monitoring and avatar cleanup/moderation procedure.
+
+Next gate:
+
+- Run `067_public_security_review_details_select_only.sql` once as a SQL Editor SELECT-only confirmation gate.
+- Do not apply DB/RPC/RLS changes until 067 result is reviewed.
+
+Safety:
+
+- 067 is SELECT-only and returns function signatures, counts, booleans, and status notes only.
+- It does not return function bodies, row contents, concrete user/session/activity/notification identifiers, contact values, full addresses, project identifiers, or credential values.
+
 ## M-15A-01 notification and TIMELINE label localization
 
 Status: notification bell and TIMELINE list labels localized and simplified.
