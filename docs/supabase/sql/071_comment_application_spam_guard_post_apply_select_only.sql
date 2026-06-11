@@ -71,7 +71,8 @@ target_summary as (
     coalesce(bool_and(function_config ilike '%search_path=public%'), false) as all_search_path_public,
     coalesce(bool_or(function_def like '%length(v_comment_body) > 4000%'), false) as has_length_guard,
     coalesce(bool_or(function_def like '%v_url_match_count%'), false) as has_url_count_variable,
-    coalesce(bool_or(function_def like '%regexp_matches%' and function_def like '%https?%' and function_def like '%://%' and function_def like '%www\.%'), false) as has_url_regex_guard,
+    coalesce(bool_or(function_def like '%from regexp_matches(v_comment_body%'), false) as has_url_regex_guard,
+    coalesce(bool_or(function_def like '%if v_url_match_count > 2 then%'), false) as has_url_threshold_guard,
     coalesce(bool_or(function_def like '%raise exception%' and function_def like '%URL%' and function_def like '%2%'), false) as has_url_error_message,
     coalesce(bool_or(function_def like '%v_recent_comment_exists%'), false) as has_cooldown_variable,
     coalesce(bool_or(function_def like '%sc.session_id = v_target_session_id%'), false) as cooldown_checks_same_session,
@@ -107,6 +108,7 @@ ready_summary as (
       and ts.has_length_guard
       and ts.has_url_count_variable
       and ts.has_url_regex_guard
+      and ts.has_url_threshold_guard
       and ts.has_url_error_message
       and ts.has_cooldown_variable
       and ts.cooldown_checks_same_session
@@ -207,10 +209,18 @@ output_rows as (
   select
     70,
     'create_application_comment_url_count_guard',
-    case when has_url_count_variable and has_url_regex_guard and has_url_error_message then 'ok' else 'review' end,
+    case
+      when has_url_count_variable
+       and has_url_regex_guard
+       and has_url_threshold_guard
+       and has_url_error_message
+      then 'ok'
+      else 'review'
+    end,
     concat(
       'counter=', has_url_count_variable,
       ',regex=', has_url_regex_guard,
+      ',threshold=', has_url_threshold_guard,
       ',message=', has_url_error_message
     ),
     'URL-like tokens should be counted and rejected above two matches.'

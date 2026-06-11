@@ -281,14 +281,16 @@ Initial hardening:
 Preparation status:
 
 - `067` classified comment/application spam guards as a public-readiness review item: existing length guard was present, while cooldown and URL-count guards were missing.
-- `070_comment_application_spam_guard_apply_draft.sql` has been prepared but not executed.
-- `071_comment_application_spam_guard_post_apply_select_only.sql` has been prepared as the post-apply SELECT-only confirmation.
+- `070_comment_application_spam_guard_apply_draft.sql` was later run once by the user in SQL Editor and applied successfully.
+- The first `071_comment_application_spam_guard_post_apply_select_only.sql` post-apply check confirmed the RPC, signature, privileges, cooldown, length guard, notifications, activity generation, PC snapshot handling, and management-comment TIMELINE skip, but reported `create_application_comment_url_count_guard=review` because the regex-pattern detector did not match the applied function text.
+- The URL guard implementation itself still has the counter, `regexp_matches(v_comment_body, ...)`, `> 2` threshold, and safe error branch, so this was treated as a SELECT-only detection mismatch rather than a DB/RPC fix.
+- `071_comment_application_spam_guard_post_apply_select_only.sql` has been revised to detect the URL guard by structure instead of an exact deparsed regex-literal shape. The revised 071 has not been executed yet.
 - The 070 draft is limited to `public.create_application_comment(text,text)`.
 - Planned guards:
   - same user and same session PL comment/application cooldown for 60 seconds;
   - maximum two URL-like tokens per submitted body.
 - Existing owner notification generation, PL activity generation, PC snapshot handling, and GM/admin management-comment shared TIMELINE skip are intended to remain unchanged.
-- SQL apply and real comment/application QA remain separate gates.
+- The next gate is rerunning the revised 071 SELECT-only confirmation once; real comment/application QA remains a separate gate after 071 passes.
 - No real user id, email, session id, activity id, notification id, full URL, token, key, project identifier, or secret value is recorded.
 
 ### RLS/RPC
@@ -357,11 +359,10 @@ Initial hardening:
 
 ## Recommended Next Gates
 
-1. Review `070_comment_application_spam_guard_apply_draft.sql` before apply.
-2. If approved, run 070 once as a SQL Editor apply gate, then run 071 once as a SELECT-only post-apply gate.
-3. Run real comment/application spam-guard QA in a separate gate after 071 passes.
-4. Prepare security definer search_path cleanup plan for remaining P1 functions.
-5. Prepare moderation UI plan for comments, profiles, and avatars.
+1. Rerun the revised `071_comment_application_spam_guard_post_apply_select_only.sql` once as a SELECT-only confirmation gate.
+2. Run real comment/application spam-guard QA in a separate gate after 071 passes.
+3. Prepare security definer search_path cleanup plan for remaining P1 functions.
+4. Prepare moderation UI plan for comments, profiles, and avatars.
 
 ## Auth CAPTCHA Frontend Gate
 

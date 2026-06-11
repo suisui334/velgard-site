@@ -6483,7 +6483,7 @@ Safety:
 
 ## M-14F-36 comment/application spam guard preparation
 
-Status: non-destructive apply draft preparation completed.
+Status: 070 apply completed by user; 071 URL guard static check revised after one review result.
 
 Context:
 
@@ -6496,22 +6496,25 @@ Prepared:
 
 - Added `docs/supabase/sql/070_comment_application_spam_guard_apply_draft.sql`.
 - Added `docs/supabase/sql/071_comment_application_spam_guard_post_apply_select_only.sql`.
-- 070 is an apply draft only and is not executed.
-- 071 is SELECT-only and is not executed.
+- 070 was executed once by the user in SQL Editor and applied successfully.
+- The first 071 SELECT-only post-apply confirmation was executed once. Most checks returned OK, including RPC existence, signature, security definer, search path, execute privileges, cooldown columns, length guard, cooldown guard, cooldown scope, owner notification preservation, activity generation preservation, management activity skip preservation, and PC snapshot preservation.
+- `create_application_comment_url_count_guard` returned review with `counter=true`, `regex=false`, and `message=true`.
+- Review of 070 showed the URL guard itself is present: it counts `regexp_matches(v_comment_body, ...)`, rejects `v_url_match_count > 2`, and uses a user-facing error without internal details.
+- The review outcome is that the 071 regex detector was too dependent on the exact deparsed regex literal shape, not that an additional DB/RPC fix is needed.
+- 071 has been revised to detect the URL guard by structure: URL counter variable, body regexp count call, `> 2` threshold, and safe URL error branch.
+- The revised 071 has not been executed yet.
 - Scope is limited to `public.create_application_comment(text,text)`.
 - Planned guards are same-user/same-session PL comment/application cooldown for 60 seconds and maximum two URL-like tokens per submitted body.
 - Existing owner notification generation, PL activity generation, PC snapshot handling, authenticated-only execute, security definer/search path, and GM/admin management-comment shared TIMELINE skip are intended to remain intact.
 
 Next gates:
 
-- Review 070 before any SQL Editor apply.
-- If approved, run 070 once in SQL Editor as an apply gate.
-- Run 071 once as a SELECT-only post-apply confirmation.
-- Real comment/application spam-guard QA remains a separate gate after 071 passes.
+- Run the revised 071 once as a SELECT-only post-apply confirmation gate.
+- Real comment/application spam-guard QA remains a separate gate after revised 071 passes.
 
 Safety:
 
-- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard changes, Edge deploy, email sending, Discord sending, credential recording, and Supabase direct DB writes were not performed.
+- Codex did not execute SQL Editor, SQL apply, DB/RPC/RLS changes, Supabase Dashboard changes, Edge deploy, email sending, Discord sending, credential recording, or Supabase direct DB writes in this follow-up.
 - No real email, user id, session id, activity id, notification id, full URL, project identifier, token, key, or secret value was recorded.
 
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
