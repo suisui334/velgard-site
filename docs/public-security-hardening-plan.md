@@ -351,6 +351,33 @@ Initial hardening:
 5. Prepare security definer search_path cleanup plan for remaining P1 functions.
 6. Prepare moderation UI plan for comments, profiles, and avatars.
 
+## Auth CAPTCHA Frontend Gate
+
+Status: Supabase-side CAPTCHA enforcement is enabled and the frontend integration
+has been added as a follow-up gate.
+
+Notes:
+
+- Supabase Attack Protection CAPTCHA was enabled with Cloudflare Turnstile in a
+  separate Dashboard gate.
+- The Turnstile secret key remains Dashboard-only and is not recorded.
+- The frontend now has a runtime `turnstileSiteKey` field for the public site
+  key, but the concrete value is not recorded in docs.
+- Login, signup, and password-reset request forms pass a Turnstile
+  `captchaToken` to Supabase Auth.
+- Missing site-key or incomplete CAPTCHA blocks Auth requests before they reach
+  Supabase.
+- Live signup/password-reset/login QA is still a separate gate because it sends
+  Auth traffic and mail.
+
+Security impact:
+
+- This addresses the next Auth/mail abuse mitigation after the unsafe anon RPC
+  exposure was closed.
+- Rate-limit settings still remain unchanged.
+- Password-reset local cooldown and server-side comment/application spam guards
+  remain separate follow-up tasks.
+
 ## Non-Goals In This Batch
 
 - SQL Editor execution.

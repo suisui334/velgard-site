@@ -6405,6 +6405,40 @@ Safety:
 - SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
 - No real email, user id, full URL, project identifier, credential, or secret value was recorded.
 
+## M-14F-29 Turnstile Auth CAPTCHA frontend
+
+Status: Cloudflare Turnstile frontend integration implemented.
+
+Context:
+
+- Supabase Authentication Attack Protection CAPTCHA is enabled in the Dashboard.
+- Provider is Cloudflare Turnstile.
+- The Turnstile secret key was entered and saved in the Supabase Dashboard by the user.
+- The frontend had not yet supplied `captchaToken`, so protected Auth flows could fail.
+
+Changed:
+
+- Added a public `turnstileSiteKey` runtime-config field.
+- Added Turnstile widget rendering for login, signup, and password-reset request forms on mypage.
+- Signup now passes `options.captchaToken` to Supabase Auth.
+- Password reset now passes `captchaToken` to Supabase Auth.
+- Login also passes `options.captchaToken`, matching Supabase CAPTCHA protection coverage for sign-in, sign-up, and password reset flows.
+- Auth submit is blocked if the site key is missing or CAPTCHA is incomplete.
+- CAPTCHA tokens are kept in memory only and reset after Auth requests.
+- Added mypage CAPTCHA UI styling and cache-bust updates.
+
+Notes:
+
+- The concrete Turnstile site key is not recorded in docs.
+- The committed runtime-config field remains a placeholder until the public site key is supplied through the deployment/runtime config.
+- Secret key values are not needed by frontend code and were not requested.
+- Real signup/password-reset/login QA is left to the next gate because it can send Auth requests and email.
+
+Safety:
+
+- SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, email sending, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed in this code gate.
+- No real email, user id, full URL, project identifier, CAPTCHA secret, concrete site key, API key, JWT, token, or credential value was recorded.
+
 ## M-14F-22 home activity timeline panel
 
 Status: TOP lower-left legacy update history replaced with recent activity.

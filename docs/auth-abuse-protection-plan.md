@@ -244,3 +244,57 @@ If public exposure grows:
    behavior.
 5. Rate-limit review gate: inspect current Supabase Auth rate limits and Resend
    abuse signals; change values only in a separate explicit settings gate.
+
+## Frontend Turnstile Implementation
+
+Status: frontend integration prepared after Supabase CAPTCHA enforcement was
+enabled in the Dashboard.
+
+Dashboard state recorded without concrete keys:
+
+- Supabase Authentication Attack Protection has CAPTCHA protection enabled.
+- Provider is Cloudflare Turnstile.
+- The Turnstile secret key was entered and saved in the Supabase Dashboard by
+  the user.
+- No secret key, token, concrete site key, project identifier, or full URL is
+  recorded in this repository.
+
+Frontend implementation:
+
+- `mypage.html` loads the updated runtime config and mypage Auth client assets.
+- Runtime config now exposes a public `turnstileSiteKey` field.
+- The committed site-key placeholder remains blank; the concrete public site key
+  must be supplied through the runtime config before live Auth QA.
+- Login, signup, and password-reset request forms render a Cloudflare Turnstile
+  widget when the site key is configured.
+- Auth requests pass the widget token as `captchaToken`.
+- Signup uses `signUp` with `options.captchaToken`.
+- Password reset uses `resetPasswordForEmail` with `captchaToken`.
+- Login is also wired with `signInWithPassword` `options.captchaToken` because
+  Supabase CAPTCHA protection applies to sign-in, sign-up, and password reset
+  flows.
+- If the site key is missing or the widget is incomplete, the UI blocks submit
+  with a generic CAPTCHA message instead of sending an Auth request.
+- The token is kept only in memory and the widget is reset after each request.
+
+Next QA gate:
+
+- Add the concrete public Turnstile site key to runtime config without recording
+  it in docs.
+- Confirm signup displays CAPTCHA and succeeds after completion.
+- Confirm password reset displays CAPTCHA and sends the reset mail after
+  completion.
+- Confirm login remains usable with CAPTCHA enforcement enabled.
+- Confirm no secret key, token, real email, project identifier, or full URL is
+  captured in docs.
+
+Not performed in this batch:
+
+- Supabase Dashboard changes.
+- SQL Editor execution.
+- DB/RPC/RLS mutation.
+- Edge deploy.
+- Email sending QA.
+- Discord sending.
+- Recording CAPTCHA secret, concrete site key, tokens, concrete emails, project
+  identifiers, or full URLs.

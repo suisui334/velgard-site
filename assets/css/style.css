@@ -2241,6 +2241,59 @@ input[type="search"] {
   width: 100%;
 }
 
+.auth-captcha-panel {
+  display: grid;
+  flex: 1 1 100%;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 12px;
+  box-sizing: border-box;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 250, 0.78);
+}
+
+.auth-captcha-label,
+.auth-captcha-status {
+  margin: 0;
+}
+
+.auth-captcha-label {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.auth-captcha-widget {
+  max-width: 100%;
+  min-width: 0;
+  min-height: 65px;
+  overflow: hidden;
+}
+
+.auth-captcha-panel.is-unconfigured .auth-captcha-widget {
+  min-height: auto;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.auth-captcha-status {
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.auth-captcha-status[hidden] {
+  display: none;
+}
+
+.auth-captcha-status.is-error {
+  color: var(--rust);
+}
+
 .calendar-actions {
   display: flex;
   flex-wrap: wrap;

@@ -3,6 +3,8 @@
 
   const SDK_SRC = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
   const SDK_LOAD_KEY = "__VELGARD_SUPABASE_SDK_LOAD";
+  const TURNSTILE_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+  const TURNSTILE_LOAD_KEY = "__VELGARD_TURNSTILE_SDK_LOAD";
   const MIN_PASSWORD_LENGTH = 8;
   const DISPLAY_NAME_MAX_LENGTH = 40;
   const AVATAR_BUCKET = "avatars";
@@ -194,12 +196,156 @@
     const config = window.VELGARD_SUPABASE_CONFIG || {};
     return {
       url: typeof config.url === "string" ? config.url.trim() : "",
-      anonKey: typeof config.anonKey === "string" ? config.anonKey.trim() : ""
+      anonKey: typeof config.anonKey === "string" ? config.anonKey.trim() : "",
+      turnstileSiteKey: typeof config.turnstileSiteKey === "string" ? config.turnstileSiteKey.trim() : ""
     };
   }
 
   function hasConfig(config) {
     return Boolean(config.url && config.anonKey);
+  }
+
+  function hasTurnstileConfig(config = getConfig()) {
+    return Boolean(config.turnstileSiteKey);
+  }
+
+  function loadTurnstileSdk() {
+    if (window.turnstile && typeof window.turnstile.render === "function") {
+      return Promise.resolve(window.turnstile);
+    }
+
+    if (window[TURNSTILE_LOAD_KEY]) {
+      return window[TURNSTILE_LOAD_KEY];
+    }
+
+    window[TURNSTILE_LOAD_KEY] = new Promise((resolve, reject) => {
+      const existing = document.querySelector(`script[src^="${TURNSTILE_SRC.split("?")[0]}"]`);
+      if (existing) {
+        existing.addEventListener("load", () => resolve(window.turnstile), { once: true });
+        existing.addEventListener("error", () => reject(new Error("turnstile-sdk-load-failed")), { once: true });
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = TURNSTILE_SRC;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => resolve(window.turnstile);
+      script.onerror = () => reject(new Error("turnstile-sdk-load-failed"));
+      document.head.append(script);
+    });
+
+    return window[TURNSTILE_LOAD_KEY];
+  }
+
+  function createTurnstileControl(purpose) {
+    const config = getConfig();
+    const wrapper = document.createElement("div");
+    wrapper.className = "auth-captcha-panel";
+    wrapper.dataset.authCaptchaPurpose = purpose;
+
+    const label = document.createElement("p");
+    label.className = "auth-captcha-label";
+    label.textContent = "CAPTCHA";
+
+    const target = document.createElement("div");
+    target.className = "auth-captcha-widget";
+
+    const status = document.createElement("p");
+    status.className = "auth-captcha-status";
+    status.setAttribute("role", "status");
+    status.setAttribute("aria-live", "polite");
+
+    wrapper.append(label, target, status);
+
+    let widgetId = null;
+    let token = "";
+    let rendered = false;
+    let renderFailed = false;
+
+    function setStatusText(message, isError = false) {
+      status.textContent = message || "";
+      status.hidden = !message;
+      status.classList.toggle("is-error", Boolean(isError));
+    }
+
+    function clearToken(message = "") {
+      token = "";
+      setStatusText(message);
+    }
+
+    function mount() {
+      if (!hasTurnstileConfig(config)) {
+        wrapper.classList.add("is-unconfigured");
+        target.textContent = "CAPTCHA設定が未完了です。";
+        setStatusText("管理者側のCAPTCHA Site key設定後に送信できます。", true);
+        return;
+      }
+
+      loadTurnstileSdk()
+        .then((turnstile) => {
+          if (!target.isConnected || !turnstile || typeof turnstile.render !== "function" || rendered) return;
+          widgetId = turnstile.render(target, {
+            sitekey: config.turnstileSiteKey,
+            callback: (value) => {
+              token = typeof value === "string" ? value : "";
+              setStatusText(token ? "" : "CAPTCHA認証を完了してください。", !token);
+            },
+            "expired-callback": () => {
+              clearToken("CAPTCHAの有効期限が切れました。もう一度認証してください。");
+            },
+            "error-callback": () => {
+              clearToken("CAPTCHAを読み込めませんでした。時間を置いて再度お試しください。");
+            }
+          });
+          rendered = true;
+        })
+        .catch(() => {
+          renderFailed = true;
+          setStatusText("CAPTCHAを読み込めませんでした。時間を置いて再度お試しください。", true);
+        });
+    }
+
+    function reset() {
+      token = "";
+      if (window.turnstile && widgetId !== null && typeof window.turnstile.reset === "function") {
+        window.turnstile.reset(widgetId);
+      }
+    }
+
+    function getToken() {
+      return token;
+    }
+
+    function isReady() {
+      return hasTurnstileConfig(config) && !renderFailed;
+    }
+
+    return {
+      element: wrapper,
+      getToken,
+      isReady,
+      mount,
+      reset,
+      setStatusText
+    };
+  }
+
+  function requireCaptchaToken(control, elements) {
+    if (!control) return "";
+    if (!control.isReady()) {
+      setMessage(elements, "CAPTCHAを利用できません。設定または通信状態を確認してください。");
+      return null;
+    }
+
+    const token = control.getToken();
+    if (!token) {
+      control.setStatusText("CAPTCHA認証を完了してください。", true);
+      setMessage(elements, "CAPTCHA認証を完了してから送信してください。");
+      return null;
+    }
+
+    return token;
   }
 
   function getMypageRedirectUrl() {
@@ -1372,17 +1518,19 @@
     submit.type = "submit";
     submit.dataset.mypageLoginSubmit = "";
     submit.dataset.mypageFormSubmit = "";
+    const captcha = createTurnstileControl("login");
     submit.textContent = "ログイン";
 
     form.append(
       createInputField("メールアドレス", emailInput),
       createInputField("パスワード", passwordInput),
+      captcha.element,
       submit
     );
 
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      handleLogin(client, elements, form);
+      handleLogin(client, elements, form, captcha);
     });
 
     const forgotActions = document.createElement("div");
@@ -1399,6 +1547,7 @@
 
     forgotActions.append(forgotPassword);
     elements.content.append(form, forgotActions);
+    captcha.mount();
   }
 
   function renderSignupForm(client, elements) {
@@ -1436,6 +1585,7 @@
     submit.type = "submit";
     submit.dataset.mypageSignupSubmit = "";
     submit.dataset.mypageFormSubmit = "";
+    const captcha = createTurnstileControl("signup");
     submit.textContent = "登録する";
 
     form.append(
@@ -1443,15 +1593,17 @@
       createInputField("メールアドレス", emailInput),
       createInputField("パスワード", passwordInput),
       createInputField("パスワード確認", passwordConfirmInput),
+      captcha.element,
       submit
     );
 
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      handleSignup(client, elements, form);
+      handleSignup(client, elements, form, captcha);
     });
 
     elements.content.append(form);
+    captcha.mount();
   }
 
   function renderPasswordResetForm(client, elements, initialEmail = "") {
@@ -1472,16 +1624,18 @@
     submit.type = "submit";
     submit.dataset.mypagePasswordResetSubmit = "";
     submit.dataset.mypageFormSubmit = "";
+    const captcha = createTurnstileControl("password-reset");
     submit.textContent = "再設定メールを送る";
 
     form.append(
       createInputField("メールアドレス", emailInput),
+      captcha.element,
       submit
     );
 
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      handlePasswordReset(client, elements, form);
+      handlePasswordReset(client, elements, form, captcha);
     });
 
     const actions = document.createElement("div");
@@ -1497,6 +1651,7 @@
 
     actions.append(backToLogin);
     elements.content.append(form, actions);
+    captcha.mount();
   }
 
   function createDisplayNameEditor(client, elements, session) {
@@ -3472,7 +3627,7 @@
     setMessage(elements, message || "");
   }
 
-  async function handleLogin(client, elements, form) {
+  async function handleLogin(client, elements, form, captcha) {
     const emailInput = form.querySelector('input[name="email"]');
     const passwordInput = form.querySelector('input[name="password"]');
     const email = emailInput ? emailInput.value.trim() : "";
@@ -3484,10 +3639,20 @@
       return;
     }
 
+    const captchaToken = requireCaptchaToken(captcha, elements);
+    if (captchaToken === null) {
+      if (passwordInput) passwordInput.value = "";
+      return;
+    }
+
     try {
       setMessage(elements, "");
       setFormBusy(form, true, "送信中", "ログイン");
-      const { data, error } = await client.auth.signInWithPassword({ email, password });
+      const { data, error } = await client.auth.signInWithPassword({
+        email,
+        password,
+        options: { captchaToken }
+      });
       if (passwordInput) passwordInput.value = "";
 
       if (error || !data || !data.session) {
@@ -3500,11 +3665,12 @@
       if (passwordInput) passwordInput.value = "";
       setMessage(elements, "ログインできませんでした。入力内容を確認してください。");
     } finally {
+      if (captcha && form.isConnected) captcha.reset();
       if (form.isConnected) setFormBusy(form, false, "送信中", "ログイン");
     }
   }
 
-  async function handlePasswordReset(client, elements, form) {
+  async function handlePasswordReset(client, elements, form, captcha) {
     const emailInput = form.querySelector('input[name="email"]');
     const email = emailInput ? emailInput.value.trim() : "";
 
@@ -3513,11 +3679,15 @@
       return;
     }
 
+    const captchaToken = requireCaptchaToken(captcha, elements);
+    if (captchaToken === null) return;
+
     try {
       setMessage(elements, "");
       setFormBusy(form, true, "送信中", "再設定メールを送る");
       const { error } = await client.auth.resetPasswordForEmail(email, {
-        redirectTo: getMypageRedirectUrl()
+        redirectTo: getMypageRedirectUrl(),
+        captchaToken
       });
 
       if (emailInput) emailInput.value = "";
@@ -3532,6 +3702,7 @@
       if (emailInput) emailInput.value = "";
       setMessage(elements, "パスワード再設定メールを送信できませんでした。時間を置いて再度お試しください。");
     } finally {
+      if (captcha && form.isConnected) captcha.reset();
       if (form.isConnected) setFormBusy(form, false, "送信中", "再設定メールを送る");
     }
   }
@@ -3554,7 +3725,7 @@
     return "登録できませんでした。入力内容を確認してください。";
   }
 
-  async function handleSignup(client, elements, form) {
+  async function handleSignup(client, elements, form, captcha) {
     const displayNameInput = form.querySelector('input[name="displayName"]');
     const emailInput = form.querySelector('input[name="email"]');
     const passwordInput = form.querySelector('input[name="password"]');
@@ -3594,6 +3765,12 @@
       return;
     }
 
+    const captchaToken = requireCaptchaToken(captcha, elements);
+    if (captchaToken === null) {
+      clearSignupPasswords(form);
+      return;
+    }
+
     try {
       setMessage(elements, "");
       setFormBusy(form, true, "登録中", "登録する");
@@ -3602,6 +3779,7 @@
         password,
         options: {
           emailRedirectTo: getMypageRedirectUrl(),
+          captchaToken,
           data: {
             display_name: displayName
           }
@@ -3634,6 +3812,7 @@
       clearSignupPasswords(form);
       setMessage(elements, "登録できませんでした。入力内容を確認してください。");
     } finally {
+      if (captcha && form.isConnected) captcha.reset();
       if (form.isConnected) setFormBusy(form, false, "登録中", "登録する");
     }
   }

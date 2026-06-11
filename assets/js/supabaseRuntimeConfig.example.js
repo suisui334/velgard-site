@@ -5,5 +5,6 @@
 
 window.VELGARD_SUPABASE_CONFIG = {
   url: "",
-  anonKey: ""
+  anonKey: "",
+  turnstileSiteKey: ""
 };
