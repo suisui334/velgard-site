@@ -6432,6 +6432,30 @@ Safety:
 - SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, email sending, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
 - No real email, user id, full URL, project identifier, Turnstile secret, concrete site key, credential, or token value was recorded.
 
+## M-14F-34 Turnstile password reset QA
+
+Status: password-reset flow verified after Turnstile CAPTCHA integration.
+
+Confirmed:
+
+- Public `mypage.html` password-reset form displayed the Turnstile CAPTCHA.
+- CAPTCHA success state was confirmed.
+- Password-reset send was executed once and succeeded.
+- Reset mail arrival was confirmed.
+- The reset-mail link returned to `mypage.html` and displayed the new-password form.
+- New password update succeeded.
+- After logout, login with the new password succeeded.
+- Password reset is considered operational with Turnstile enabled.
+
+Still pending:
+
+- Live signup QA with Turnstile remains a separate gate.
+
+Safety:
+
+- Supabase Dashboard changes, SQL Editor execution, DB/RPC/RLS changes, Edge deploy, additional email sending, Discord sending, credential recording, and Supabase direct DB writes were not performed in this docs batch.
+- No real email address, password, full URL, recovery token, JWT/session token, concrete Site key, or Secret key value was recorded.
+
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
 
 Status: Cloudflare Turnstile frontend integration implemented.

@@ -335,6 +335,37 @@ Not performed in this batch:
 - Recording CAPTCHA secret, concrete site key, tokens, concrete emails, project
   identifiers, or full URLs.
 
+## Turnstile Password Reset QA
+
+Status: password-reset flow verified on the public site after Turnstile
+frontend integration and mobile layout fix.
+
+Confirmed:
+
+- `mypage.html` password-reset form displays the Turnstile CAPTCHA.
+- CAPTCHA success state was reached.
+- Password-reset request was submitted once and succeeded.
+- Reset mail delivery was confirmed.
+- The reset-mail link returned to `mypage.html` and displayed the new-password
+  form.
+- New password update succeeded.
+- After logout, login with the new password succeeded.
+- The password-reset flow is considered operational with Turnstile enabled.
+
+Still pending:
+
+- Live signup QA with Turnstile remains a separate gate.
+- Broader login/signup/password-reset abuse monitoring remains a follow-up
+  operational task.
+
+Safety:
+
+- No Supabase Dashboard change, SQL Editor execution, DB/RPC/RLS mutation,
+  Edge deploy, additional mail test, or Discord sending was performed in this
+  documentation batch.
+- No concrete email address, password, recovery token, JWT/session token, full
+  URL, concrete Turnstile site key, or Turnstile secret key value is recorded.
+
 ## Mobile Turnstile Layout Fix
 
 Status: smartphone-width layout fix prepared for the Auth CAPTCHA forms.

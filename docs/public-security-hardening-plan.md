@@ -384,8 +384,13 @@ Follow-up status:
   recording the concrete value in docs.
 - The Turnstile secret key remains Supabase Dashboard-only.
 - Runtime config cache-bust for mypage was updated.
-- Live Auth QA for login, signup, and password reset remains a separate gate
-  because it can send Auth requests and email.
+- The password-reset flow was verified on the public site after Turnstile
+  integration: CAPTCHA display/success, one reset request, reset mail delivery,
+  new-password form return, password update, and login with the new password all
+  succeeded.
+- Live signup QA with Turnstile remains a separate gate.
+- No concrete email, password, recovery token, JWT/session token, full URL,
+  concrete Turnstile site key, or Turnstile secret key value is recorded.
 
 ## Non-Goals In This Batch
 
