@@ -422,6 +422,53 @@ Remaining timeline tasks:
 - Re-run public QA after activity rows exist, including real-card newest-first ordering and detail-link navigation.
 - Perform a user-side smartphone-width check if needed, because Codex Browser did not expose viewport resizing for this public QA pass.
 
+## Activity Event Instrumentation Preparation
+
+Prepared non-destructive SQL drafts for comment/application activity timeline generation.
+
+Created:
+
+- `docs/supabase/sql/061_activity_events_instrument_session_events_apply_draft.sql`
+- `docs/supabase/sql/062_activity_events_instrument_post_apply_select_only.sql`
+
+061 scope:
+
+- Replaces only `public.create_application_comment(text,text)`.
+- Preserves the existing frontend payload and return value.
+- Preserves the existing owner notification helper call added in the notification instrumentation batch.
+- Adds `public.record_activity_event(...)` calls for:
+  - `session_comment`
+  - `session_application`
+- Stores comment/application activity with `authenticated` visibility.
+- Uses a relative target path in the same `session-detail.html?id=...` form expected by the timeline UI.
+- Uses short generic activity bodies instead of storing raw long comment/application text in the shared activity feed.
+- Keeps activity generation in the same RPC transaction as the comment/application write, matching the notification MVP failure policy.
+
+062 scope:
+
+- SELECT-only post-apply confirmation SQL.
+- Confirms the target RPC still has the expected signature, security definer, `search_path=public`, authenticated execute, anon non-execute, owner notification helper call, activity helper call, event types, relative target path, authenticated visibility, generic body strings, and actor handoff.
+- Confirms `record_activity_event(...)` exists, uses `search_path=public`, and is not directly executable by anon/authenticated web clients.
+- Leaves session create/update/status/delete activity instrumentation as future scope.
+
+Design notes:
+
+- Activity rows are shared timeline events, not private notifications.
+- Self-actions may create activity rows even though private self-notifications are skipped by the owner notification helper.
+- Comment/application activity is treated as login-visible because comment and application context can contain player-specific information.
+- Session creation activity is not included in 061. `create_session_post(...)` is a larger RPC and should be instrumented in a separate focused apply draft after its current live signature/body are reviewed.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Edge Function deploy, email sending, Discord sending, Supabase Dashboard changes, and secret/API key/token recording were not performed.
+- No real user id, activity id, notification id, session id, email, JWT, token, project ref, or full URL was recorded.
+
+Next gate:
+
+- Review `061_activity_events_instrument_session_events_apply_draft.sql` before any SQL Editor execution.
+- If approved and applied, run 062 once as a SELECT-only confirmation gate.
+- Then perform real comment/application activity generation QA and re-run timeline public QA with real activity rows.
+
 ## Non-Goals for This Batch
 
 - SQL Editor execution.

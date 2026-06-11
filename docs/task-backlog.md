@@ -6096,3 +6096,46 @@ Safety:
 
 - SQL Editor execution, DB/RPC/RLS changes, Edge Function deploy, email sending, Discord sending, Supabase Dashboard changes, secret/API key/token recording, and code changes were not performed.
 - No real user id, session id, notification id, email, JWT, token, full URL, project ref, or internal id value was recorded.
+
+## M-14F-10 activity event instrumentation preparation
+
+Status: non-destructive SQL draft preparation completed.
+
+Created:
+
+- `docs/supabase/sql/061_activity_events_instrument_session_events_apply_draft.sql`
+- `docs/supabase/sql/062_activity_events_instrument_post_apply_select_only.sql`
+
+Scope:
+
+- 061 targets only `public.create_application_comment(text,text)`.
+- Existing comment/application behavior, frontend payload, return value, grants, PC snapshot behavior, and owner notification instrumentation are preserved.
+- 061 adds `record_activity_event(...)` calls for comment/application timeline events:
+  - `session_comment`
+  - `session_application`
+- Activity entries use `authenticated` visibility and a relative `session-detail.html?id=...` target path.
+- Activity body text is a short generic summary rather than raw long comment/application text.
+- Activity insertion is in the same RPC transaction as the comment/application write, so instrumentation failure would roll back the RPC during QA.
+- Self-notification remains private-notification behavior; activity can still record the actor's own action because timeline events are shared activity records.
+
+Deferred:
+
+- `create_session_post(...)` activity instrumentation is left for a later focused draft because the create RPC is larger and should not be replaced casually.
+- Session edit, approval/rejection, close mark, delete, Discord, and email activity events remain future gates.
+
+062 confirmation plan:
+
+- SELECT-only.
+- Confirms the target RPC signature, `security definer`, `search_path=public`, authenticated execute, anon non-execute, owner notification helper call, activity helper call, event types, relative target path, authenticated visibility, generic body strings, actor handoff, and activity helper direct-execute safety.
+- Does not return function bodies or real identifiers.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard changes, and secret/API key/token recording were not performed.
+- No real user id, activity id, notification id, session id, email, JWT, token, full URL, project ref, or internal id value was recorded.
+
+Next gate:
+
+- Apply-before-final-review for 061.
+- If approved, run 061 in a separate SQL Editor apply gate, then run 062 in a separate SELECT-only confirmation gate.
+- After confirmation, create a real comment/application and re-run timeline QA with actual activity rows.
