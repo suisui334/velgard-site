@@ -372,6 +372,15 @@ The diagnostic should return only `check_name / status / result_value / note`
 and must not return concrete user ids, emails, full URLs, tokens, project refs,
 or secret values.
 
+Prepared gate:
+
+- `docs/supabase/sql/074_membership_access_control_inventory_select_only.sql`
+- SELECT-only and not executed in this preparation step.
+- The next independent gate is to run 074 once in the user's SQL Editor.
+- Use the result to decide whether membership state belongs on `profiles` or in
+  a separate `community_memberships` table, and to confirm the approved-gate RPC
+  scope before drafting any apply SQL.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one

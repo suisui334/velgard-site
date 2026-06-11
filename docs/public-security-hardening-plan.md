@@ -320,6 +320,8 @@ Membership approval status:
 
 - `docs/community-membership-access-control-plan.md` records the non-destructive
   approval-control design.
+- `docs/supabase/sql/074_membership_access_control_inventory_select_only.sql`
+  is prepared as the first inventory diagnostic and is not executed yet.
 - Invite codes are not adopted for the first gate.
 - New accounts should start as `pending`; only `approved` members can use major
   interactive features.
@@ -334,6 +336,9 @@ Membership approval status:
   buttons.
 - This planning step created no SQL apply draft and performed no DB/RPC/RLS or
   Dashboard change.
+- The next gate is a one-time SELECT-only 074 SQL Editor run, then deciding
+  whether membership state belongs on `profiles` or in a separate membership
+  table.
 
 ### Comment/Application Spam
 

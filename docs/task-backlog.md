@@ -6610,8 +6610,10 @@ Context:
 Prepared:
 
 - Added `docs/community-membership-access-control-plan.md`.
+- Added `docs/supabase/sql/074_membership_access_control_inventory_select_only.sql`.
 - Updated `docs/public-security-hardening-plan.md` to record membership approval as a public-readiness P1 gate.
-- No SELECT-only SQL file, apply draft, DB/RPC/RLS change, SQL apply, Dashboard change, Edge deploy, mail sending, Discord sending, or secret handling was performed.
+- 074 is SELECT-only and has not been executed.
+- No apply draft, DB/RPC/RLS change, SQL apply, Dashboard change, Edge deploy, mail sending, Discord sending, or secret handling was performed.
 
 Design summary:
 
@@ -6635,7 +6637,10 @@ RPC impact summary:
 
 Next gates:
 
-- Prepare a SELECT-only membership access-control inventory diagnostic before any apply draft.
+- Run 074 once as a SQL Editor SELECT-only inventory gate.
+- Record 074 results without concrete identifiers or secret values.
+- Decide whether membership state belongs on `profiles` or in a separate membership table.
+- Confirm the approved-gate RPC scope before any apply draft.
 - After inventory, prepare schema/helper draft for membership status and decision logs.
 - Add approval/rejection RPCs in a separate apply gate.
 - Add approved-member gates to existing RPCs in small batches, not as a single broad rewrite.
