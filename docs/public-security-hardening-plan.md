@@ -378,6 +378,15 @@ Security impact:
 - Password-reset local cooldown and server-side comment/application spam guards
   remain separate follow-up tasks.
 
+Follow-up status:
+
+- The public Turnstile site key has been configured in runtime config without
+  recording the concrete value in docs.
+- The Turnstile secret key remains Supabase Dashboard-only.
+- Runtime config cache-bust for mypage was updated.
+- Live Auth QA for login, signup, and password reset remains a separate gate
+  because it can send Auth requests and email.
+
 ## Non-Goals In This Batch
 
 - SQL Editor execution.

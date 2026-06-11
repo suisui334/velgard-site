@@ -298,3 +298,39 @@ Not performed in this batch:
 - Discord sending.
 - Recording CAPTCHA secret, concrete site key, tokens, concrete emails, project
   identifiers, or full URLs.
+
+## Turnstile Site Key Runtime Configuration
+
+Status: public Turnstile site key configured in runtime config.
+
+Notes:
+
+- The user provided the public Cloudflare Turnstile site key through the local
+  clipboard/workspace path rather than chat.
+- `assets/js/supabaseRuntimeConfig.js` now has a non-empty `turnstileSiteKey`.
+- The concrete site key value is not recorded in docs.
+- The Turnstile secret key remains Dashboard-only and was not requested,
+  displayed, or written to the repository.
+- `mypage.html` runtime config cache-bust was updated so the deployed page
+  reloads the configured value.
+
+Next QA gate:
+
+- Verify login displays Turnstile and succeeds after completion.
+- Verify signup displays Turnstile and succeeds after completion.
+- Verify password reset displays Turnstile and sends the reset mail after
+  completion.
+- Do not record concrete emails, tokens, project identifiers, full URLs, the
+  site key value, or the secret key value during QA.
+
+Not performed in this batch:
+
+- Signup/password-reset/login live QA.
+- Supabase Dashboard changes.
+- SQL Editor execution.
+- DB/RPC/RLS mutation.
+- Edge deploy.
+- Email sending.
+- Discord sending.
+- Recording CAPTCHA secret, concrete site key, tokens, concrete emails, project
+  identifiers, or full URLs.

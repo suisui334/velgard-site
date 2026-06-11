@@ -6439,6 +6439,34 @@ Safety:
 - SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, email sending, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed in this code gate.
 - No real email, user id, full URL, project identifier, CAPTCHA secret, concrete site key, API key, JWT, token, or credential value was recorded.
 
+## M-14F-30 Turnstile public site key runtime config
+
+Status: public Turnstile site key configured.
+
+Context:
+
+- Supabase Dashboard CAPTCHA enforcement was already enabled with Cloudflare Turnstile.
+- Frontend widget and `captchaToken` plumbing were implemented in `9aac205`.
+- `turnstileSiteKey` was still blank, so Auth forms could render the missing-configuration state.
+
+Changed:
+
+- Read the user-provided public Turnstile site key from the local clipboard/workspace path without printing it.
+- Set `assets/js/supabaseRuntimeConfig.js` `turnstileSiteKey` to a non-empty value.
+- Updated the `mypage.html` runtime config cache-bust so the deployed page reloads the configured key.
+- Recorded the configuration state in Auth/security docs without writing the concrete key value.
+
+Next gate:
+
+- Run live Auth QA for login, signup, and password reset with CAPTCHA completion.
+- Confirm Auth mail behavior without recording concrete emails, tokens, full URLs, project identifiers, site key values, or secret key values.
+
+Safety:
+
+- Secret key was not requested, displayed, stored, or recorded.
+- SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, email sending tests, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
+- No real email, user id, full URL, project identifier, CAPTCHA secret, concrete site key, API key, JWT, token, or credential value was recorded in docs.
+
 ## M-14F-22 home activity timeline panel
 
 Status: TOP lower-left legacy update history replaced with recent activity.
