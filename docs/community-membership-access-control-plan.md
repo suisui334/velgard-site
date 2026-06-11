@@ -405,10 +405,17 @@ Prepared revoke gate:
 
 - `docs/supabase/sql/076_revoke_player_characters_truncate_apply_draft.sql`
 - `docs/supabase/sql/077_revoke_player_characters_truncate_post_apply_select_only.sql`
-- 076 is an apply draft and has not been executed.
-- 077 is a post-apply SELECT-only confirmation SQL.
-- The next independent gate is to review and apply 076 before membership
-  schema/helper draft work continues.
+- The user ran 076 once in their SQL Editor and the apply succeeded.
+- The user ran 077 once as SELECT-only and all checks were OK.
+- `public.player_characters` exists.
+- Direct `TRUNCATE` grants for `public`, `anon`, and `authenticated` are all
+  closed.
+- Direct `INSERT`, `UPDATE`, and `DELETE` grants are also 0.
+- Storage expected exceptions were intentionally out of scope and were not
+  changed.
+- `post_apply_ready_for_membership_schema_design=true`.
+- The unnecessary `public.player_characters` TRUNCATE grants found by 075 are
+  resolved, so the next gate can return to membership schema/helper design.
 
 ## Open Questions For Later Gates
 

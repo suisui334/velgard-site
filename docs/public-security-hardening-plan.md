@@ -326,7 +326,8 @@ Membership approval status:
   was run once as a follow-up diagnostic.
 - `docs/supabase/sql/076_revoke_player_characters_truncate_apply_draft.sql`
   and `docs/supabase/sql/077_revoke_player_characters_truncate_post_apply_select_only.sql`
-  are prepared but not executed.
+  were run once by the user as the narrow cleanup apply and SELECT-only
+  confirmation gate.
 - Invite codes are not adopted for the first gate.
 - New accounts should start as `pending`; only `approved` members can use major
   interactive features.
@@ -348,13 +349,15 @@ Membership approval status:
   write surface as 26 grants, with 24 Storage expected exceptions and two
   app-table review grants.
 - The two review grants are `TRUNCATE` on `public.player_characters` for
-  `anon` and `authenticated`; these should be revoked in a small separate gate
-  before membership schema/helper draft work.
-- This planning step created no SQL apply draft and performed no DB/RPC/RLS or
-  Dashboard change.
-- The next gate is an apply-before-review for 076, followed by 077 SELECT-only
-  confirmation. Membership schema/helper drafts remain paused until the
-  unnecessary player-character TRUNCATE grants are closed.
+  `anon` and `authenticated`; 076 revoked the unnecessary direct TRUNCATE
+  exposure.
+- 077 confirmed `public.player_characters` exists, direct TRUNCATE grants for
+  `public`, `anon`, and `authenticated` are 0, direct INSERT/UPDATE/DELETE
+  grants are 0, and `post_apply_ready_for_membership_schema_design=true`.
+- Storage expected exceptions were intentionally out of scope and were not
+  changed.
+- The 075 player-character TRUNCATE finding is resolved, so the next gate can
+  return to membership schema/helper design.
 
 ### Comment/Application Spam
 
