@@ -6147,3 +6147,47 @@ Next gate:
 - Apply-before-final-review for 061.
 - If approved, run 061 in a separate SQL Editor apply gate, then run 062 in a separate SELECT-only confirmation gate.
 - After confirmation, create a real comment/application and re-run timeline QA with actual activity rows.
+
+## M-14F-11 activity event instrumentation apply confirmation
+
+Status: activity event instrumentation apply and SELECT-only confirmation completed.
+
+User-side SQL Editor execution:
+
+- `docs/supabase/sql/061_activity_events_instrument_session_events_apply_draft.sql` was executed once by the user.
+- The 061 apply succeeded.
+- Codex did not run SQL Editor.
+
+SELECT-only confirmation:
+
+- `docs/supabase/sql/062_activity_events_instrument_post_apply_select_only.sql` was executed by the user after the 061 apply.
+- The SELECT-only confirmation was OK.
+
+Confirmed:
+
+- `create_application_comment(text,text)` signature is preserved.
+- `security definer` is OK.
+- `search_path=public` is OK.
+- authenticated can execute the RPC.
+- anon cannot execute the RPC.
+- Existing owner notification helper call remains present.
+- Activity helper call is present.
+- Application activity type is present.
+- Comment activity type is present.
+- Target path is relative.
+- Visibility is `authenticated`.
+- Activity body uses generic text and does not store raw comment body.
+- GM/admin management comments do not create shared activity rows.
+- `record_activity_event(...)` helper exists.
+- Activity helper direct execution by web clients remains unavailable.
+- `post_apply_ready_for_activity_generation_qa=true`.
+
+Safety:
+
+- No additional SQL Editor execution, DB/RPC/RLS change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, or secret/API key/token recording was performed by Codex in this recording step.
+- No real user id, session id, activity id, notification id, email, JWT, token, full URL, project ref, or internal id value was recorded.
+
+Next gate:
+
+- Perform real comment/application posting QA and confirm TIMELINE display with actual activity rows.
+- Confirm activity rows render newest-first and detail links work.

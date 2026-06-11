@@ -477,6 +477,52 @@ Next gate:
 - If approved and applied, run 062 once as a SELECT-only confirmation gate.
 - Then perform real comment/application activity generation QA and re-run timeline public QA with real activity rows.
 
+## Activity Event Instrumentation Apply Confirmation
+
+The activity instrumentation apply gate has completed.
+
+Applied by the user in their Supabase SQL Editor:
+
+- `docs/supabase/sql/061_activity_events_instrument_session_events_apply_draft.sql`
+- Executed once.
+- Apply succeeded.
+
+SELECT-only confirmation:
+
+- `docs/supabase/sql/062_activity_events_instrument_post_apply_select_only.sql`
+- Executed after the 061 apply.
+- Confirmation completed successfully.
+
+Confirmed results:
+
+- `create_application_comment(text,text)` signature is preserved.
+- `security definer` is preserved.
+- `search_path=public` is confirmed.
+- authenticated can execute the RPC.
+- anon cannot execute the RPC.
+- Existing owner notification helper call remains present.
+- Activity helper call is present for PL-side events.
+- `session_application` activity type is present.
+- `session_comment` activity type is present.
+- Target path remains relative.
+- Activity visibility is `authenticated`.
+- Activity body uses generic text and does not store the raw comment body.
+- GM/admin management comments do not create shared activity rows.
+- `record_activity_event(...)` helper exists.
+- Activity helper is not directly executable by web client roles.
+- `post_apply_ready_for_activity_generation_qa=true`.
+
+Safety:
+
+- Codex did not run SQL Editor.
+- No additional SQL Editor execution, DB/RPC/RLS change, Edge Function deploy, email sending, Discord sending, Supabase Dashboard change, or secret/API key/token recording was performed in this recording step.
+- No real user id, session id, activity id, notification id, email, JWT, token, project ref, or full URL was recorded.
+
+Next gate:
+
+- Perform real comment/application posting QA and confirm `timeline.html` shows activity rows.
+- Confirm activity cards render newest-first and link to the related session detail page.
+
 ## Non-Goals for This Batch
 
 - SQL Editor execution.
