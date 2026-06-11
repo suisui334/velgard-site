@@ -6405,6 +6405,35 @@ Safety:
 - SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
 - No real email, user id, full URL, project identifier, credential, or secret value was recorded.
 
+## M-14F-20 mobile logout menu placement
+
+Status: mobile header logout control moved into the hamburger menu.
+
+Issue:
+
+- On mobile mypage, the header exposed logo, notification/account controls, logout, and the hamburger button in one row.
+- The visible logout button made the header cramped because the logo image and ACCOUNT action already use the available width.
+
+Changed:
+
+- Kept the desktop logout button next to ACCOUNT for wide layouts.
+- Added a logged-in-only logout control to the end of the hamburger navigation menu.
+- Hid the desktop header logout button on narrow widths so logout is only exposed after opening the menu.
+- Reused the existing mypage logout handler for both desktop and mobile menu logout controls.
+- Updated stylesheet and mypage auth script cache-busts.
+
+Preserved:
+
+- ACCOUNT remains visible on mobile.
+- Notification bell behavior and initial hidden panel state are unchanged.
+- The hamburger menu remains the mobile navigation escape path.
+- Unauthenticated users do not receive a logout menu item.
+
+Safety:
+
+- SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
+- No real email, user id, full URL, project identifier, credential, or secret value was recorded.
+
 ## M-14F-19 shared header nav row balance
 
 Status: shared header main navigation balanced into two six-item rows.

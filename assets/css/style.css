@@ -227,6 +227,36 @@ img {
   background: rgba(184, 162, 207, 0.22);
 }
 
+.global-nav .account-nav__logout-menu {
+  display: none;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 12px;
+  border: 1px solid rgba(86, 96, 106, 0.2);
+  border-radius: 6px;
+  background: rgba(255, 255, 250, 0.58);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.global-nav .account-nav__logout-menu:hover,
+.global-nav .account-nav__logout-menu:focus-visible {
+  color: var(--soot);
+  background: rgba(183, 53, 53, 0.12);
+  outline: none;
+}
+
+.global-nav .account-nav__logout-menu:focus-visible {
+  outline: 2px solid rgba(183, 53, 53, 0.28);
+  outline-offset: 2px;
+}
+
 .header-actions {
   min-width: 0;
   width: max-content;
@@ -5770,6 +5800,16 @@ body.is-modal-open .back-to-top {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .global-nav .account-nav__logout-menu {
+    grid-column: 1 / -1;
+    display: inline-flex;
+    width: 100%;
+  }
+
+  .header-actions .account-nav__logout {
+    display: none;
+  }
+
   .notification-nav {
     justify-content: center;
   }
@@ -5818,6 +5858,16 @@ body.is-modal-open .back-to-top {
   .global-nav.is-open {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .global-nav .account-nav__logout-menu {
+    grid-column: 1 / -1;
+    display: inline-flex;
+    width: 100%;
+  }
+
+  .header-actions .account-nav__logout {
+    display: none;
   }
 
   .notification-nav {

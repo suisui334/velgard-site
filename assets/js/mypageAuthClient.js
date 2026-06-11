@@ -3288,7 +3288,7 @@
   }
 
   function removeNavLogoutButton() {
-    document.querySelector("[data-mypage-nav-logout]")?.remove();
+    document.querySelectorAll("[data-mypage-nav-logout]").forEach((button) => button.remove());
   }
 
   function refreshHeaderNotifications() {
@@ -3306,6 +3306,13 @@
     const logout = createLogoutButton(client, elements, "button danger account-nav__logout");
     logout.dataset.mypageNavLogout = "";
     accountLink.insertAdjacentElement("afterend", logout);
+    const mobileNav = document.querySelector(".global-nav");
+    if (mobileNav) {
+      const menuLogout = createLogoutButton(client, elements, "account-nav__logout-menu");
+      menuLogout.dataset.mypageNavLogout = "";
+      menuLogout.dataset.mypageMobileNavLogout = "";
+      mobileNav.append(menuLogout);
+    }
     return logout;
   }
 
