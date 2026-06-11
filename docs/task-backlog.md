@@ -6483,7 +6483,7 @@ Safety:
 
 ## M-14F-36 comment/application spam guard preparation
 
-Status: comment/application spam guard apply and revised 071 confirmation completed.
+Status: comment/application spam guard apply, revised 071 confirmation, and real QA completed.
 
 Context:
 
@@ -6505,17 +6505,25 @@ Prepared:
 - The revised 071 SELECT-only confirmation was rerun once and all items returned OK.
 - Confirmed OK items include `create_application_comment(text,text)` existence/signature, security definer, `search_path=public`, authenticated-only EXECUTE, anon denial, existing length guard, URL-like token counter, URL `> 2` threshold, URL error branch, same-user/same-session PL comment/application 60-second cooldown, PL branch scope, owner notification preservation, TIMELINE activity generation preservation, GM/admin management activity skip preservation, and PC snapshot preservation.
 - `post_apply_ready_for_comment_spam_guard_qa=true`.
+- Real QA after 070 apply was completed with a test PL account and a test session.
+- A normal comment post succeeded.
+- Same-PL/same-session repeat posting within 60 seconds was blocked.
+- A comment containing three URL-like tokens was blocked.
+- A comment containing two URL-like tokens succeeded.
+- After refreshing the session detail page, posted comment display remained normal.
+- This confirms the expected operating pattern of one character-sheet URL plus one supplemental URL remains allowed.
+- The comment/application spam guard is considered ready for operation, and the public-readiness P1 comment/application spam guard item is complete.
 - Scope is limited to `public.create_application_comment(text,text)`.
 - Planned guards are same-user/same-session PL comment/application cooldown for 60 seconds and maximum two URL-like tokens per submitted body.
 - Existing owner notification generation, PL activity generation, PC snapshot handling, authenticated-only execute, security definer/search path, and GM/admin management-comment shared TIMELINE skip are intended to remain intact.
 
 Next gates:
 
-- Real comment/application spam-guard QA is the next separate gate.
+- Continue with the remaining public-readiness P1 items, including security definer search_path cleanup and moderation planning.
 
 Safety:
 
-- Codex did not execute additional SQL Editor actions, SQL apply, DB/RPC/RLS changes, Supabase Dashboard changes, Edge deploy, email sending, Discord sending, credential recording, or Supabase direct DB writes in this recording step.
+- Codex did not execute additional SQL Editor actions, SQL apply, DB/RPC/RLS changes, Supabase Dashboard changes, Edge deploy, email sending, Discord sending, credential recording, or Supabase direct DB writes in this QA recording step.
 - No real email, user id, session id, activity id, notification id, full URL, project identifier, token, key, or secret value was recorded.
 
 ## M-14F-29 Turnstile Auth CAPTCHA frontend

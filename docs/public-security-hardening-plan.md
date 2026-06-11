@@ -292,7 +292,10 @@ Preparation status:
   - same user and same session PL comment/application cooldown for 60 seconds;
   - maximum two URL-like tokens per submitted body.
 - Existing owner notification generation, PL activity generation, PC snapshot handling, and GM/admin management-comment shared TIMELINE skip are confirmed preserved by the revised 071 check.
-- The next gate is real comment/application spam-guard QA.
+- Real QA after the 070 apply confirmed that a test PL account can post one normal comment to a test session, same-PL/same-session repeat posting within 60 seconds is blocked, a body with three URL-like tokens is blocked, and a body with two URL-like tokens is accepted.
+- Refreshing the session detail page after posted comments showed no comment-display regression.
+- The expected operating pattern of one character-sheet URL plus one supplemental URL remains allowed.
+- The comment/application spam guard is considered ready for operation, and this public-readiness P1 item is complete.
 - No real user id, email, session id, activity id, notification id, full URL, token, key, project identifier, or secret value is recorded.
 
 ### RLS/RPC
@@ -361,9 +364,8 @@ Initial hardening:
 
 ## Recommended Next Gates
 
-1. Run real comment/application spam-guard QA in a separate gate.
-2. Prepare security definer search_path cleanup plan for remaining P1 functions.
-3. Prepare moderation UI plan for comments, profiles, and avatars.
+1. Prepare security definer search_path cleanup plan for remaining P1 functions.
+2. Prepare moderation UI plan for comments, profiles, and avatars.
 
 ## Auth CAPTCHA Frontend Gate
 
