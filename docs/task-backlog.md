@@ -6786,10 +6786,36 @@ Apply result:
 - The auth trigger function is not directly executable by web roles.
 - `public_profiles` does not expose membership or role information.
 - `post_apply_ready_for_membership_gate_design=true`.
-- SQL Editor additional execution, SQL apply, DB/RPC/RLS additional changes,
-  Dashboard changes, Edge deploy, email sending, Discord sending, credential
-  recording, and Supabase direct DB writes were not performed in this recording
-  step.
+
+## M-14F-41 mypage membership status display
+
+Status: low-risk frontend display implemented.
+
+Changed:
+
+- Added a membership status display to the account overview area on `mypage.html`.
+- The display reads the signed-in user's own status through
+  `get_my_membership_status()`.
+- The UI shows Japanese guidance for `pending`, `approved`, `rejected`,
+  `revoked`, and `blocked`.
+- The error state is intentionally generic and does not expose permission or
+  internal details.
+- Updated mypage CSS and script cache-busts.
+
+Boundary:
+
+- This step is guidance-only. It does not yet block session posting, editing,
+  comments, applications, templates, notifications, TIMELINE, or Discord sync.
+- The 34 approved-member RPC gates remain a later gate.
+- Approve/reject RPCs and membership approver UI remain later gates.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard
+  changes, Edge deploy, mail sending, Discord sending, and Supabase direct DB
+  writes were not performed.
+- No real user id, email, session id, full URL, project identifier, token, JWT,
+  secret, or API key was recorded.
 
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
 

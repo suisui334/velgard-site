@@ -462,6 +462,19 @@ Prepared foundation gate:
 - The next gate is approved-member gate design or membership approver RPC
   design.
 
+Mypage status display gate:
+
+- Added a low-risk frontend display for the signed-in user's own membership
+  status on `mypage.html`.
+- The display calls `get_my_membership_status()` and shows Japanese guidance
+  for `pending`, `approved`, `rejected`, `revoked`, and `blocked`.
+- The display does not expose concrete user ids, emails, URLs, tokens, project
+  identifiers, or role internals.
+- This is guidance only. The 34 approved-member RPC gates, approve/reject RPCs,
+  and membership approver UI remain separate later gates.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS change, Dashboard change, Edge
+  deploy, mail sending, Discord sending, or credential recording was performed.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one

@@ -15,6 +15,34 @@
     "image/jpeg": "jpg",
     "image/webp": "webp"
   });
+  const MEMBERSHIP_STATUS_VIEWS = Object.freeze({
+    pending: {
+      label: "承認待ち",
+      tone: "pending",
+      message: "現在、管理者承認待ちです。承認後に依頼書への参加申請やコメント投稿などが利用できるようになります。手動確認のため、反映まで時間がかかる場合があります。"
+    },
+    approved: {
+      label: "承認済み",
+      tone: "approved",
+      message: "承認済みです。通常機能を利用できます。"
+    },
+    rejected: {
+      label: "未承認",
+      tone: "rejected",
+      message: "承認されていないため、主要機能は利用できません。"
+    },
+    revoked: {
+      label: "利用停止中",
+      tone: "revoked",
+      message: "現在、このアカウントは利用停止中です。"
+    },
+    blocked: {
+      label: "利用不可",
+      tone: "blocked",
+      message: "現在、このアカウントでは利用できません。"
+    }
+  });
+  const MEMBERSHIP_STATUS_VALUES = new Set(Object.keys(MEMBERSHIP_STATUS_VIEWS));
   const DISCORD_ID_MAX_LENGTH = 100;
   const PC_NAME_MAX_LENGTH = 40;
   const DISCORD_USER_ID_EXAMPLE = "123456789012345678";
@@ -1823,6 +1851,122 @@
     }
   }
 
+  function normalizeMembershipStatus(status) {
+    const normalized = typeof status === "string" ? status.trim().toLowerCase() : "";
+    return MEMBERSHIP_STATUS_VALUES.has(normalized) ? normalized : "pending";
+  }
+
+  function getMembershipStatusView(status) {
+    return MEMBERSHIP_STATUS_VIEWS[normalizeMembershipStatus(status)];
+  }
+
+  function getMembershipStatusRow(data) {
+    return Array.isArray(data) ? data[0] : data;
+  }
+
+  function setMembershipPanelLoading(panel) {
+    panel.badge.className = "mypage-membership-badge is-loading";
+    panel.badge.textContent = "確認中";
+    panel.message.textContent = "会員状態を確認しています。";
+    panel.state.textContent = "";
+    panel.state.hidden = true;
+    panel.state.classList.remove("is-error");
+  }
+
+  function setMembershipPanelValue(panel, status) {
+    const view = getMembershipStatusView(status);
+    panel.badge.className = `mypage-membership-badge is-${view.tone}`;
+    panel.badge.textContent = view.label;
+    panel.message.textContent = view.message;
+    panel.state.textContent = "";
+    panel.state.hidden = true;
+    panel.state.classList.remove("is-error");
+  }
+
+  function setMembershipPanelError(panel) {
+    panel.badge.className = "mypage-membership-badge is-error";
+    panel.badge.textContent = "確認不可";
+    panel.message.textContent = "会員状態を確認できませんでした。";
+    panel.state.textContent = "時間をおいて再度お試しください。";
+    panel.state.hidden = false;
+    panel.state.classList.add("is-error");
+  }
+
+  function createMembershipStatusPanel(session) {
+    const container = document.createElement("section");
+    container.className = "mypage-profile-panel mypage-membership-panel";
+    container.dataset.mypageMembershipPanel = "";
+
+    const head = document.createElement("div");
+    head.className = "mypage-profile-panel-head";
+
+    const title = document.createElement("h3");
+    title.textContent = "会員状態";
+
+    const description = document.createElement("p");
+    description.textContent = "コミュニティ承認の現在の状態です。";
+
+    head.append(title, description);
+
+    const card = document.createElement("div");
+    card.className = "mypage-membership-card";
+
+    const badge = document.createElement("span");
+    badge.className = "mypage-membership-badge is-loading";
+    badge.dataset.mypageMembershipBadge = "";
+
+    const message = document.createElement("p");
+    message.className = "mypage-membership-message";
+    message.dataset.mypageMembershipMessage = "";
+
+    const note = document.createElement("p");
+    note.className = "mypage-profile-note mypage-membership-note";
+    note.textContent = "この表示は案内です。主要機能の制限は今後の承認ゲートでサーバー側にも追加します。";
+
+    const state = document.createElement("p");
+    state.className = "mypage-profile-state";
+    state.dataset.mypageMembershipState = "";
+    state.setAttribute("role", "status");
+    state.setAttribute("aria-live", "polite");
+    state.hidden = true;
+
+    card.append(badge, message, note, state);
+
+    const panel = {
+      container,
+      badge,
+      message,
+      note,
+      state,
+      session
+    };
+
+    setMembershipPanelLoading(panel);
+    container.append(head, card);
+    return panel;
+  }
+
+  async function loadMembershipStatus(client, panel) {
+    try {
+      const session = await getActiveSession(client, panel.session);
+      if (!session) {
+        setMembershipPanelError(panel);
+        return;
+      }
+
+      const { data, error } = await client.rpc("get_my_membership_status");
+      if (error) {
+        setMembershipPanelError(panel);
+        return;
+      }
+
+      const row = getMembershipStatusRow(data);
+      setMembershipPanelValue(panel, row && row.status);
+    } catch {
+      setMembershipPanelError(panel);
+    }
+  }
+
   function createAvatarEditor(client, elements, session) {
     const container = document.createElement("section");
     container.className = "mypage-profile-panel mypage-avatar-panel";
@@ -3523,6 +3667,7 @@
     );
     clearContent(elements);
 
+    const membershipPanel = createMembershipStatusPanel(session);
     const displayNameEditor = createDisplayNameEditor(client, elements, session);
     const avatarEditor = createAvatarEditor(client, elements, session);
     const playerCharacterPanel = createPlayerCharacterPanel(client, elements, session);
@@ -3548,7 +3693,7 @@
     });
 
     actions.append(changePassword);
-    accountDetails.body.append(displayNameEditor.container, avatarEditor.container, actions);
+    accountDetails.body.append(membershipPanel.container, displayNameEditor.container, avatarEditor.container, actions);
     profileDetails.body.append(playerCharacterPanel.container, discordIdEditor.container);
     scheduleDetails.body.append(applicationsPanel.container);
     templateDetails.body.append(templatePanel.container);
@@ -3559,6 +3704,7 @@
       templateDetails.details
     );
     setMessage(elements, message || "");
+    loadMembershipStatus(client, membershipPanel);
     loadDisplayName(client, displayNameEditor);
     loadAvatarProfile(client, avatarEditor);
     loadPlayerCharacters(client, playerCharacterPanel);

@@ -4625,6 +4625,71 @@ body[data-page="mypage"] [data-mypage-discord-id-current-value].is-invalid {
   color: var(--rust);
 }
 
+body[data-page="mypage"] .mypage-membership-panel {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+body[data-page="mypage"] .mypage-membership-card {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.68);
+  box-sizing: border-box;
+}
+
+body[data-page="mypage"] .mypage-membership-badge {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(86, 96, 106, 0.12);
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 900;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="mypage"] .mypage-membership-badge.is-approved {
+  background: rgba(111, 143, 104, 0.18);
+  color: var(--leaf);
+}
+
+body[data-page="mypage"] .mypage-membership-badge.is-pending {
+  background: rgba(203, 160, 82, 0.18);
+  color: #8b650f;
+}
+
+body[data-page="mypage"] .mypage-membership-badge.is-rejected,
+body[data-page="mypage"] .mypage-membership-badge.is-revoked,
+body[data-page="mypage"] .mypage-membership-badge.is-blocked,
+body[data-page="mypage"] .mypage-membership-badge.is-error {
+  background: rgba(150, 69, 48, 0.16);
+  color: var(--rust);
+}
+
+body[data-page="mypage"] .mypage-membership-message,
+body[data-page="mypage"] .mypage-membership-note {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="mypage"] .mypage-membership-message {
+  margin: 0;
+  color: var(--soot);
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.7;
+}
+
 body[data-page="mypage"] .mypage-avatar-panel {
   display: grid;
   gap: 10px;
