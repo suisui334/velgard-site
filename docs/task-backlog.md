@@ -6692,6 +6692,60 @@ Safety:
 - SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard changes, Edge deploy, email sending, Discord sending, credential recording, and Supabase direct DB writes were not performed.
 - No real email, user id, session id, notification id, activity id, full URL, project identifier, token, key, or secret value was recorded.
 
+## M-14F-40 membership foundation draft
+
+Status: membership foundation apply draft prepared, not executed.
+
+Context:
+
+- Membership approval design, 074 inventory, 075 direct-write detail review, and 076/077 player-character TRUNCATE cleanup are complete.
+- Membership state is still not implemented in DB.
+- Existing users should initially be treated as approved.
+- Future signups should start as pending.
+- Invite codes are not part of the first gate.
+- `membership_approver` remains separate from admin and is intended only for approval workflow authority.
+
+Prepared:
+
+- Added `docs/supabase/sql/078_membership_foundation_apply_draft.sql`.
+- Added `docs/supabase/sql/079_membership_foundation_post_apply_select_only.sql`.
+- 078 is `DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED`.
+- 079 is SELECT-only and has not been executed.
+
+078 scope:
+
+- Creates private `public.community_memberships`.
+- Uses status values `pending`, `approved`, `rejected`, `revoked`, and `blocked`.
+- Keeps membership state out of `profiles` and `public_profiles`.
+- Backfills existing auth users as `approved`.
+- Adds a separate auth.users insert trigger for future `pending` membership rows.
+- Does not replace `handle_new_auth_user_profile()`, so profile creation remains on its existing path.
+- Extends existing `user_roles` role storage to allow `membership_approver`.
+- Adds `is_approved_member()`, `is_membership_approver()`, and `get_my_membership_status()` helpers.
+- Keeps direct table grants closed and expects web access through reviewed RPCs.
+
+Deferred:
+
+- 34 approved-gate candidate RPC updates.
+- Approve/reject RPCs.
+- Approver UI.
+- Role grant/revoke UI or RPCs.
+- Dedicated membership event log table.
+- Invite codes.
+- email hash deny list.
+- Discord, Edge, mail, and Dashboard changes.
+
+Next gates:
+
+- Review 078 before apply.
+- If approved, run 078 once in the user's SQL Editor, then run 079 once as SELECT-only.
+- After 079 confirms the foundation, design approve/reject RPCs and then add approved-member gates in small batches.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard changes, Edge deploy, email sending, Discord sending, credential recording, and Supabase direct DB writes were not performed in this preparation step.
+- No real email, user id, session id, full URL, project identifier, token, key, or secret value was recorded.
+
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
 
 Status: Cloudflare Turnstile frontend integration implemented.

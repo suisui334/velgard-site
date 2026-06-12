@@ -358,6 +358,17 @@ Membership approval status:
   changed.
 - The 075 player-character TRUNCATE finding is resolved, so the next gate can
   return to membership schema/helper design.
+- `docs/supabase/sql/078_membership_foundation_apply_draft.sql` and
+  `docs/supabase/sql/079_membership_foundation_post_apply_select_only.sql` are
+  prepared but not executed.
+- 078 keeps membership state in a private `community_memberships` table,
+  backfills existing users as `approved`, creates `pending` rows for future
+  signups through a separate auth trigger, and adds helper RPCs for approved
+  member and membership approver checks.
+- 078 does not add the 34 approved gates, approve/reject RPCs, approver UI,
+  invite codes, email deny lists, Discord, Edge, mail, or Dashboard changes.
+- The next gate is apply-before-review for 078, then 079 SELECT-only
+  confirmation.
 
 ### Comment/Application Spam
 

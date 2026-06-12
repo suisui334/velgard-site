@@ -417,6 +417,26 @@ Prepared revoke gate:
 - The unnecessary `public.player_characters` TRUNCATE grants found by 075 are
   resolved, so the next gate can return to membership schema/helper design.
 
+Prepared foundation gate:
+
+- `docs/supabase/sql/078_membership_foundation_apply_draft.sql`
+- `docs/supabase/sql/079_membership_foundation_post_apply_select_only.sql`
+- 078 is an apply draft and has not been executed.
+- 079 is a post-apply SELECT-only confirmation SQL and has not been executed.
+- The foundation keeps membership state in a new private
+  `community_memberships` table instead of adding it to `profiles`, so
+  `public_profiles` stays free of membership/role status.
+- Existing auth users are backfilled as `approved`.
+- Future auth users get a separate membership trigger row with `pending`
+  status; the existing profile creation trigger is not replaced.
+- The existing `user_roles` model is extended to allow
+  `membership_approver`, with helper RPCs for approved-member and approver
+  checks.
+- Approve/reject RPCs, approver UI, and approved gates for the 34 candidate
+  RPCs remain separate later gates.
+- A dedicated membership event log table is also deferred; the foundation keeps
+  only current status and a bounded review note.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one
