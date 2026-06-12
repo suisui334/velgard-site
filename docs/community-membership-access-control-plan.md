@@ -421,8 +421,17 @@ Prepared foundation gate:
 
 - `docs/supabase/sql/078_membership_foundation_apply_draft.sql`
 - `docs/supabase/sql/079_membership_foundation_post_apply_select_only.sql`
-- 078 is an apply draft and has not been executed.
-- 079 is a post-apply SELECT-only confirmation SQL and has not been executed.
+- The first 078 SQL Editor apply attempt stopped with a syntax error before a
+  successful apply was confirmed.
+- The user did not rerun 078 after the error.
+- The error was caused by `current_user` being used as a table alias inside
+  `get_my_membership_status()`. The corrected draft now uses `auth_context`
+  instead.
+- `docs/supabase/sql/080_membership_foundation_failed_apply_state_select_only.sql`
+  was prepared to inspect whether the failed attempt left any partial
+  membership objects before deciding the next apply gate.
+- 079 remains a post-apply SELECT-only confirmation SQL and has not been
+  executed successfully for the membership foundation.
 - The foundation keeps membership state in a new private
   `community_memberships` table instead of adding it to `profiles`, so
   `public_profiles` stays free of membership/role status.
@@ -436,6 +445,8 @@ Prepared foundation gate:
   RPCs remain separate later gates.
 - A dedicated membership event log table is also deferred; the foundation keeps
   only current status and a bounded review note.
+- The next gate is either 080 SELECT-only partial-state confirmation or a fresh
+  apply-before-review of the corrected 078, depending on coordinator choice.
 
 ## Open Questions For Later Gates
 

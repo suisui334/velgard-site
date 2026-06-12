@@ -360,15 +360,22 @@ Membership approval status:
   return to membership schema/helper design.
 - `docs/supabase/sql/078_membership_foundation_apply_draft.sql` and
   `docs/supabase/sql/079_membership_foundation_post_apply_select_only.sql` are
-  prepared but not executed.
+  prepared. The first 078 SQL Editor apply attempt stopped with a syntax error
+  and was not rerun.
 - 078 keeps membership state in a private `community_memberships` table,
   backfills existing users as `approved`, creates `pending` rows for future
   signups through a separate auth trigger, and adds helper RPCs for approved
   member and membership approver checks.
 - 078 does not add the 34 approved gates, approve/reject RPCs, approver UI,
   invite codes, email deny lists, Discord, Edge, mail, or Dashboard changes.
-- The next gate is apply-before-review for 078, then 079 SELECT-only
-  confirmation.
+- The 078 syntax error was caused by using `current_user` as a table alias in
+  `get_my_membership_status()`. The draft was corrected to use `auth_context`.
+- `docs/supabase/sql/080_membership_foundation_failed_apply_state_select_only.sql`
+  was prepared to check for partial objects from the failed attempt before
+  another apply gate.
+- The next gate is 080 SELECT-only partial-state confirmation or a fresh
+  apply-before-review of the corrected 078, followed by 079 after a successful
+  foundation apply.
 
 ### Comment/Application Spam
 

@@ -172,10 +172,10 @@ as $$
     cm.blocked_at,
     cm.created_at,
     cm.updated_at
-  from (select auth.uid() as current_user_id) current_user
+  from (select auth.uid() as current_user_id) auth_context
   left join public.community_memberships cm
-    on cm.user_id = current_user.current_user_id
-  where current_user.current_user_id is not null;
+    on cm.user_id = auth_context.current_user_id
+  where auth_context.current_user_id is not null;
 $$;
 
 revoke all on function public.is_membership_approver() from public;

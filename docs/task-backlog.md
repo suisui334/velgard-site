@@ -6746,6 +6746,23 @@ Safety:
 - SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard changes, Edge deploy, email sending, Discord sending, credential recording, and Supabase direct DB writes were not performed in this preparation step.
 - No real email, user id, session id, full URL, project identifier, token, key, or secret value was recorded.
 
+Follow-up:
+
+- The first user-side SQL Editor apply attempt for 078 stopped with a syntax
+  error near `current_user`.
+- The user did not rerun 078 after the error, and no successful apply was
+  recorded.
+- The syntax issue was traced to `current_user` being used as a table alias in
+  `get_my_membership_status()`.
+- Corrected 078 to use the safer alias `auth_context` instead.
+- Added `docs/supabase/sql/080_membership_foundation_failed_apply_state_select_only.sql`
+  so the next gate can inspect whether the failed attempt left any partial
+  membership objects before another apply decision.
+- 079 remains the post-successful-apply SELECT-only confirmation SQL.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS changes, Dashboard changes,
+  Edge deploy, email sending, Discord sending, credential recording, or
+  Supabase direct DB writes were performed in this fix-preparation step.
+
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
 
 Status: Cloudflare Turnstile frontend integration implemented.
