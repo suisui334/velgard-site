@@ -680,10 +680,10 @@ Prelaunch main-flow inventory:
   records, edit/delete session posts, or touch Discord sync.
 - It records the current actor split for anonymous, approved, unapproved,
   session owner, and admin users.
-- Static review found one policy mismatch to resolve before wider launch:
-  current frontend membership gates also block anonymous `calendar` and
-  `session-detail` views, while the desired launch policy says unauthenticated
-  visitors should be able to read session posts but not act.
+- Anonymous and unapproved users are intentionally blocked from `calendar`,
+  `session-detail`, `timeline`, and `session-post` by the approved-member gate.
+  The earlier read-only anonymous browsing expectation was a documentation
+  interpretation error and is not a required fix.
 - No concrete user id, email, session id, application id, comment id, Discord
   message id, full post URL, token, project identifier, Webhook URL, or secret
   is recorded.
@@ -698,8 +698,6 @@ Prelaunch main-flow inventory:
   to holding the role.
 - Whether rejected users can update applicant notes and re-request review.
 - Whether pending users can read public comments or only static public pages.
-- Whether anonymous users should regain read-only access to session detail and
-  calendar while keeping all application/comment/session-post actions gated.
 
 ## Non-Goals For This Gate
 

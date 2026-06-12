@@ -664,12 +664,13 @@ Notes:
   membership/role exposure.
 - Discord sync wiring remains present for session create/update/delete, so live
   session-post QA must be split from Discord-safe QA gates.
-- A launch-policy mismatch remains: desired unauthenticated read-only session
-  browsing is not currently matched by the frontend, because `calendar` and
-  `session-detail` render the approved-member gate for anonymous users too.
+- Anonymous and unapproved users are intentionally blocked from `calendar` and
+  `session-detail` by the approved-member gate; this is the correct access
+  control behavior, not a launch-policy mismatch.
 - Live QA for session-post create/update/delete, owner close/delete, broader
-  admin management, calendar visual state, mypage empty/status state, and
-  Discord sync remains separated into explicit later gates.
+  admin management, approved-user calendar visual state, mypage empty/status
+  state, anonymous/unapproved gate display, and Discord sync remains separated
+  into explicit later gates.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
   Edge deploy, dry_run=false, Discord operation, mail sending, or secret
   recording was performed in this inventory step.

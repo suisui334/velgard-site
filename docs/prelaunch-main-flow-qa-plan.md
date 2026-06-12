@@ -58,26 +58,26 @@ Code-level review points:
 
 ### Not Logged In
 
-Expected public-read policy:
+Expected access policy:
 
 - Static world/regulation/gallery/terms style pages remain publicly readable.
-- The requested target policy says unauthenticated visitors should be able to
-  view session posts but not apply, comment, or create posts.
+- `calendar`, `session-detail`, `timeline`, and `session-post` are community
+  operation surfaces and require an approved account.
+- Unauthenticated visitors cannot view session posts, apply, comment, create
+  posts, edit posts, delete posts, or close posts.
 
 Current static finding:
 
 - `session-detail`, `calendar`, `timeline`, and `session-post` currently render
   the membership gate notice for non-approved states, including anonymous
   users.
-- This means unauthenticated read-only session-detail browsing is not currently
-  satisfied by the frontend implementation.
+- This is the intended access control behavior.
 
 Required follow-up:
 
-- Decide whether anonymous users should regain read-only access to session
-  detail and/or calendar.
-- If yes, create a separate frontend/RPC review gate to split read access from
-  write/action access.
+- No anonymous read-only session browsing fix is required.
+- Later QA should confirm anonymous users see the approved-member gate on
+  calendar/session-detail rather than the session content.
 
 ### Approved Normal User
 
@@ -164,7 +164,7 @@ Static/recorded state:
 | Flow | Static state | Live QA status | Next action |
 | --- | --- | --- | --- |
 | Session post create | Approved frontend gate present; create RPC path still used from session-post UI; Discord create sync remains wired | Not run in this inventory | Explicit create QA gate with Discord-safe plan |
-| Session detail display | Approved frontend gate present; anonymous read-only expectation currently mismatches implementation | Not run in this inventory | Decide anonymous read policy, then live display QA |
+| Session detail display | Approved frontend gate present for anonymous/unapproved users as intended | Not run in this inventory | Live approved/unapproved display QA later |
 | Application/comment create | Four target RPCs DB-gated and functional QA passed | Confirmed | No immediate follow-up for first gate |
 | Application cancel | DB-gated and functional QA passed | Confirmed | No immediate follow-up for first gate |
 | Comment edit/delete | DB-gated and functional QA passed | Confirmed | No immediate follow-up for first gate |
@@ -184,7 +184,7 @@ or synchronize live data:
 2. Session owner edit/delete/close QA.
 3. Discord create/update/delete sync QA, including no duplicate post and no
    unintended mention checks.
-4. Anonymous read-only policy QA after the product decision is made.
+4. Anonymous/unapproved access-gate display QA for calendar and session-detail.
 5. Calendar visual QA for type colors, close mark, and GM name after safe test
    data is selected.
 6. Mypage empty-state and status-state visual QA for approved/unapproved/admin
@@ -212,10 +212,10 @@ Stop before live QA if any of these are needed or likely:
 - The main-flow static inventory did not find evidence that static JSON fixtures
   returned to normal UI or that membership/role state is exposed through the
   inspected public profile path.
-- The main open product/implementation mismatch is unauthenticated read-only
-  session access: current frontend gating blocks anonymous session-detail and
-  calendar views, while the desired prelaunch policy says unauthenticated
-  visitors should be able to read session posts but not act.
+- Anonymous and unapproved users are intentionally blocked from
+  `calendar` and `session-detail` by the approved-member gate. The previous
+  read-only expectation was a documentation interpretation error and is not a
+  required fix.
 - The remaining major flows need explicit live QA gates because they can mutate
   live data or touch Discord sync.
 

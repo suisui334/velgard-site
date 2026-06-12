@@ -6649,14 +6649,15 @@ Static findings:
 - Discord sync wiring for session create/update/delete remains present and
   unchanged, so live session-post QA must be separated from Discord-safe QA.
 
-Review item:
+Access policy correction:
 
-- The requested launch policy says unauthenticated visitors should be able to
-  read session posts while application/comment/post actions remain unavailable.
-- Current frontend gating does not match that policy: anonymous users are also
-  shown the approved-member gate for `calendar` and `session-detail`.
-- A separate decision/fix gate is needed if anonymous read-only session browsing
-  should be restored before wider launch.
+- Anonymous and unapproved users are intentionally blocked from `calendar` and
+  `session-detail`; they should see the approved-member gate rather than
+  session content.
+- The earlier read-only anonymous browsing expectation was a documentation
+  interpretation error.
+- No anonymous read-only session browsing fix is required for the current
+  launch policy.
 
 Deferred live QA gates:
 
@@ -6666,7 +6667,7 @@ Deferred live QA gates:
 - Calendar visual QA for type colors, close mark, and GM name display.
 - Mypage approved/unapproved/admin empty/status-state QA.
 - Broader GM/admin application-management QA.
-- Anonymous read-only session-detail/calendar QA after the policy decision.
+- Anonymous/unapproved approved-gate display QA for calendar/session-detail.
 
 Safety:
 
