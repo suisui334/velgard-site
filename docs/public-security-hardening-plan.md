@@ -391,6 +391,20 @@ Membership approval status:
 - `post_apply_ready_for_membership_gate_design=true`.
 - The next gate is approved-member gate design or membership approver RPC
   design.
+- `docs/supabase/sql/081_membership_approval_rpc_apply_draft.sql` and
+  `docs/supabase/sql/082_membership_approval_rpc_post_apply_select_only.sql`
+  are prepared but not executed.
+- 081 is limited to pending-list, approve, and reject RPCs. It does not add the
+  34 approved gates, approver UI, forced status changes, role management RPCs,
+  invite codes, Auth email hooks, email hash deny lists, Discord, Edge, mail,
+  Storage, or Dashboard changes.
+- The intended authority split remains: admin can approve/reject pending users,
+  and `membership_approver` can approve/reject pending users only when the
+  approver account is itself approved.
+- 082 will confirm RPC existence, security definer/search_path, authenticated
+  execute only, internal admin/approver guards, self-action denial,
+  pending-only transitions, closed direct table grants, and no membership/role
+  exposure through `public_profiles`.
 
 ### Comment/Application Spam
 

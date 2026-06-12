@@ -6817,6 +6817,53 @@ Safety:
 - No real user id, email, session id, full URL, project identifier, token, JWT,
   secret, or API key was recorded.
 
+## M-14F-42 membership approval RPC draft
+
+Status: unexecuted approval RPC apply draft prepared.
+
+Created:
+
+- `docs/supabase/sql/081_membership_approval_rpc_apply_draft.sql`
+- `docs/supabase/sql/082_membership_approval_rpc_post_apply_select_only.sql`
+
+Scope:
+
+- 081 adds only the minimum approval workflow RPC surface:
+  `get_pending_community_members(integer)`,
+  `approve_community_member(uuid,text)`, and
+  `reject_community_member(uuid,text)`.
+- Pending listing returns no email values and is limited to admin or approved
+  `membership_approver` accounts.
+- Approve/reject only support `pending -> approved` and `pending -> rejected`.
+- Admin can act; `membership_approver` can act only when the approver account is
+  also approved.
+- Approve/reject deny self-action and keep `review_note` bounded.
+
+Out of scope:
+
+- The 34 approved-member RPC gates.
+- Approver UI.
+- Role grant/revoke RPCs.
+- Forced revoked/blocked/status-change administration.
+- Invite code, Before User Created Hook, Send Email Hook, email hash deny list,
+  Discord, Edge, mail, Storage, and Dashboard changes.
+
+Confirmation plan:
+
+- 082 is SELECT-only and checks RPC existence, security definer/search_path,
+  authenticated-only web execute grants, internal admin/approver guards,
+  self-action denial, pending-only transitions, closed direct table grants, and
+  no membership/role exposure through `public_profiles`.
+- SQL Editor execution and SQL apply are next-gate work.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard
+  changes, Edge deploy, mail sending, Discord sending, and Supabase direct DB
+  writes were not performed.
+- No real user id, email, session id, full URL, project identifier, token, JWT,
+  secret, or API key was recorded.
+
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
 
 Status: Cloudflare Turnstile frontend integration implemented.

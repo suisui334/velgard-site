@@ -475,6 +475,25 @@ Mypage status display gate:
 - No SQL Editor execution, SQL apply, DB/RPC/RLS change, Dashboard change, Edge
   deploy, mail sending, Discord sending, or credential recording was performed.
 
+Prepared approval RPC gate:
+
+- `docs/supabase/sql/081_membership_approval_rpc_apply_draft.sql`
+- `docs/supabase/sql/082_membership_approval_rpc_post_apply_select_only.sql`
+- 081 is an unexecuted apply draft for the minimum approval workflow RPCs only.
+- The draft adds pending listing plus `pending -> approved` and
+  `pending -> rejected` RPCs.
+- Admin can act; `membership_approver` can act only when the approver account is
+  also approved.
+- Approvers cannot approve/reject themselves.
+- The draft does not add the 34 approved-member gates, approver UI, role
+  grant/revoke RPCs, forced status changes, invite codes, Auth email hooks,
+  email hash deny lists, Discord, Edge, mail, Storage, or Dashboard changes.
+- 082 is a SELECT-only post-apply confirmation SQL for RPC existence, grants,
+  internal authorization guards, pending-only transitions, direct table grants,
+  and public profile non-exposure.
+- SQL Editor execution and SQL apply are next-gate work. No concrete user ids,
+  emails, full URLs, tokens, project identifiers, or secrets are recorded.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one
