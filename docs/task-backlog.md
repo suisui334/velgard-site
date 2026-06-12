@@ -6612,6 +6612,72 @@ Safety:
   message id, full post URL, project identifier, token, JWT, secret, Webhook
   URL, or API key was recorded.
 
+## M-14F-51 prelaunch main flow QA inventory
+
+Status: non-destructive main-flow inventory prepared.
+
+Created:
+
+- `docs/prelaunch-main-flow-qa-plan.md`
+
+Scope:
+
+- Reviewed the main public-site operation paths after membership UI
+  restrictions and the first comment/application approved-member RPC gate.
+- Covered session post create/update/delete, session detail display,
+  application/comment flows, GM/admin management display, mypage, calendar,
+  TIMELINE, Discord sync wiring, static session fixtures, and public profile
+  exposure.
+- Covered actor differences for anonymous visitors, approved normal users,
+  unapproved/pending/rejected-equivalent users, session owners, and admins.
+
+Static findings:
+
+- `CALENDAR` and `TIMELINE` shared-nav links are marked as requiring approved
+  membership.
+- `calendar`, `session-detail`, `session-post`, and `timeline` render the
+  approved-member notice when the current membership state is not approved.
+- Mypage keeps unapproved users on minimal account/status surfaces and does not
+  show avatar, PC, template, schedule, notification, or approval management
+  surfaces to ordinary unapproved users.
+- The four comment/application RPCs are DB-gated and their functional QA has
+  passed.
+- Static session JSON fixtures are not loaded in normal UI unless an explicit
+  development URL flag is present.
+- The inspected `public_profiles` frontend path selects `display_name` only;
+  no membership or role state is exposed there.
+- Discord sync wiring for session create/update/delete remains present and
+  unchanged, so live session-post QA must be separated from Discord-safe QA.
+
+Review item:
+
+- The requested launch policy says unauthenticated visitors should be able to
+  read session posts while application/comment/post actions remain unavailable.
+- Current frontend gating does not match that policy: anonymous users are also
+  shown the approved-member gate for `calendar` and `session-detail`.
+- A separate decision/fix gate is needed if anonymous read-only session browsing
+  should be restored before wider launch.
+
+Deferred live QA gates:
+
+- Approved session-post create/update/delete QA.
+- Session owner edit/delete/close QA.
+- Discord create/update/delete sync QA.
+- Calendar visual QA for type colors, close mark, and GM name display.
+- Mypage approved/unapproved/admin empty/status-state QA.
+- Broader GM/admin application-management QA.
+- Anonymous read-only session-detail/calendar QA after the policy decision.
+
+Safety:
+
+- No live data was created, edited, deleted, or synchronized in this inventory.
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard
+  changes, Edge deploy, dry_run=false, Discord operations, mail sending,
+  secret/Webhook changes, and Supabase direct DB writes were not performed.
+- No real email, user id, session id, application id, comment id, Discord
+  message/channel id, full post URL, project identifier, token, JWT, secret,
+  Webhook URL, or API key was recorded.
+
 ## M-14F-33 mobile Turnstile CAPTCHA layout
 
 Status: smartphone-width mypage Auth CAPTCHA layout fixed.

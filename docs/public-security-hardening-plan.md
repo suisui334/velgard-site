@@ -646,6 +646,37 @@ Notes:
 - No concrete user id, email, session id, full URL, token, project identifier,
   or secret is recorded.
 
+## Prelaunch Main Flow Inventory
+
+Status: non-destructive inventory prepared.
+
+Notes:
+
+- `docs/prelaunch-main-flow-qa-plan.md` records the main public-site flow
+  inventory after the membership frontend restrictions and the first
+  comment/application approved-member RPC gate.
+- The inventory covers unauthenticated visitors, approved users, unapproved
+  users, session owners, and admins.
+- Static review confirms that normal UI no longer loads static session JSON
+  fixtures unless an explicit development URL flag is present.
+- Static review confirms that the inspected `public_profiles` frontend path
+  selects `display_name` only, and recent SQL checks already confirmed no
+  membership/role exposure.
+- Discord sync wiring remains present for session create/update/delete, so live
+  session-post QA must be split from Discord-safe QA gates.
+- A launch-policy mismatch remains: desired unauthenticated read-only session
+  browsing is not currently matched by the frontend, because `calendar` and
+  `session-detail` render the approved-member gate for anonymous users too.
+- Live QA for session-post create/update/delete, owner close/delete, broader
+  admin management, calendar visual state, mypage empty/status state, and
+  Discord sync remains separated into explicit later gates.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
+  Edge deploy, dry_run=false, Discord operation, mail sending, or secret
+  recording was performed in this inventory step.
+- No concrete user id, email, session id, application id, comment id, Discord
+  message/channel id, full post URL, token, project identifier, Webhook URL, or
+  secret is recorded.
+
 ## Non-Goals In This Batch
 
 - SQL Editor execution.

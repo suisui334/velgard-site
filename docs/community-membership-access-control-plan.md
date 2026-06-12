@@ -671,6 +671,23 @@ Comment/application approved-member RPC gate functional QA result:
 - No concrete user id, email, session id, application id, comment id, Discord
   message id, full post URL, token, project identifier, or secret is recorded.
 
+Prelaunch main-flow inventory:
+
+- Added `docs/prelaunch-main-flow-qa-plan.md` as a non-destructive inventory of
+  session post, session detail, application/comment, GM/admin, mypage, calendar,
+  TIMELINE, and Discord sync surfaces after the first approved-member RPC gate.
+- The inventory separates static checks from later live QA gates that can create
+  records, edit/delete session posts, or touch Discord sync.
+- It records the current actor split for anonymous, approved, unapproved,
+  session owner, and admin users.
+- Static review found one policy mismatch to resolve before wider launch:
+  current frontend membership gates also block anonymous `calendar` and
+  `session-detail` views, while the desired launch policy says unauthenticated
+  visitors should be able to read session posts but not act.
+- No concrete user id, email, session id, application id, comment id, Discord
+  message id, full post URL, token, project identifier, Webhook URL, or secret
+  is recorded.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one
@@ -681,6 +698,8 @@ Comment/application approved-member RPC gate functional QA result:
   to holding the role.
 - Whether rejected users can update applicant notes and re-request review.
 - Whether pending users can read public comments or only static public pages.
+- Whether anonymous users should regain read-only access to session detail and
+  calendar while keeping all application/comment/session-post actions gated.
 
 ## Non-Goals For This Gate
 
