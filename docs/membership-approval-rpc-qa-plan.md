@@ -260,6 +260,33 @@ Do not record:
 - If QA accidentally targets a real account, stop and open a separate incident
   review gate before attempting any status change.
 
+## Functional QA Result
+
+The membership approval UI/RPC functional QA was completed through mypage.
+
+Confirmed:
+
+- Admin can see the mypage `会員承認` panel.
+- The pending list shows the disposable pending users prepared for approve and
+  reject QA.
+- Email values and concrete user ids are not displayed in the UI.
+- Admin approved the dedicated pending approval QA user through the UI.
+- After approval, that QA user's mypage membership status displayed
+  `approved` / 承認済み.
+- Admin rejected the dedicated pending rejection QA user through the UI.
+- After rejection, that QA user's mypage membership status displayed
+  `rejected` / 承認されていない.
+- The rejected user does not see the membership approval panel.
+- A normal approved non-admin user does not see the membership approval panel.
+
+Result:
+
+- The membership approval UI/RPC functional QA is treated as successful.
+- The 34 approved-member gates, revoked/blocked operations, forced status
+  changes, and membership approver role-grant UI remain separate later gates.
+- No concrete email address, user id, session id, full URL, project identifier,
+  token, JWT, secret, or API key is recorded.
+
 ## Recommended Execution Order
 
 1. Confirm disposable pending QA accounts exist.
@@ -275,6 +302,6 @@ Do not record:
 
 ## Next Gate
 
-Run the functional QA once the required disposable pending users are ready.
-If pending QA users are not ready, the next gate should prepare them without
-recording concrete email, user id, token, full URL, or project ref values.
+The UI/RPC functional QA is complete. The next membership gates are the 34
+approved-member RPC gates, revoked/blocked or force-status administration, and
+membership approver role-grant UI, each as separate reviewed work.

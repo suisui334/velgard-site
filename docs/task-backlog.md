@@ -6935,6 +6935,40 @@ Safety:
 - No real user id, email, session id, full URL, project identifier, token, JWT,
   secret, or API key was recorded.
 
+## M-14F-45 membership approval UI/RPC functional QA
+
+Status: membership approval UI/RPC functional QA completed successfully.
+
+Confirmed:
+
+- Admin could see the mypage `会員承認` panel.
+- The pending list showed the disposable pending users prepared for approve and
+  reject QA.
+- Email values and concrete user ids were not displayed in the UI.
+- Admin approved the dedicated pending approval QA user through the UI.
+- After approval, that QA user's mypage membership status displayed
+  `approved` / 承認済み.
+- Admin rejected the dedicated pending rejection QA user through the UI.
+- After rejection, that QA user's mypage membership status displayed
+  `rejected` / 承認されていない.
+- The rejected QA user did not see the membership approval panel.
+- A normal approved non-admin user did not see the membership approval panel.
+
+Result:
+
+- The membership approval UI/RPC functional QA is treated as successful.
+- The 34 approved-member gates, revoked/blocked operations, forced status
+  changes, and membership approver role-grant UI remain unimplemented and stay
+  as separate next gates.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard
+  changes, Edge deploy, mail sending, Discord sending, and Supabase direct DB
+  writes were not performed.
+- No real email, user id, session id, full URL, project identifier, token, JWT,
+  secret, or API key was recorded.
+
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
 
 Status: Cloudflare Turnstile frontend integration implemented.

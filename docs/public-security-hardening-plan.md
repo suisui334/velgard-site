@@ -419,6 +419,18 @@ Membership approval status:
 - The UI gate adds pending-list, approve, and reject operation surfaces only; it
   does not add approved-member gates, revoked/blocked management, forced status
   changes, or role-grant UI.
+- The user completed mypage approval UI/RPC functional QA.
+- Admin could view pending users, approve one disposable pending user, and
+  reject one disposable pending user through the UI.
+- The UI did not show email values or concrete user ids.
+- Approved/rejected membership status displays were confirmed from the target
+  users' mypage views.
+- Rejected users and normal approved non-admin users did not see the approval
+  panel.
+- The approval UI/RPC path is treated as successful.
+- The 34 approved-member gates, revoked/blocked operations, force-status
+  administration, and membership approver role-grant UI remain separate later
+  public-hardening gates.
 
 ### Comment/Application Spam
 

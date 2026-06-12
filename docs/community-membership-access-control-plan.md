@@ -522,6 +522,24 @@ Approval RPC functional QA planning:
 - This UI gate still does not add the 34 approved-member gates, revoked/blocked
   management, forced status changes, or membership approver role-grant UI.
 
+Approval UI/RPC functional QA result:
+
+- The user completed functional QA through the mypage approval UI.
+- Admin could see the `会員承認` panel and the disposable pending users prepared
+  for approve/reject QA.
+- The UI did not display email values or concrete user ids.
+- Admin approval through the UI succeeded, and the approved QA user's mypage
+  status displayed `approved` / 承認済み.
+- Admin rejection through the UI succeeded, and the rejected QA user's mypage
+  status displayed `rejected` / 承認されていない.
+- The rejected QA user and a normal approved non-admin user did not see the
+  approval panel.
+- The membership approval UI/RPC functional QA is treated as successful.
+- The 34 approved-member gates, revoked/blocked operations, forced status
+  changes, and membership approver role-grant UI remain separate later gates.
+- No concrete user id, email, full URL, token, project identifier, or secret is
+  recorded.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one
