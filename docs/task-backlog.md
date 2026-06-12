@@ -6444,6 +6444,57 @@ Safety:
 - No real email, user id, session id, full URL, project identifier, token, or
   secret value was recorded.
 
+## M-14F-48 comment/application approved-member RPC gate apply
+
+Status: apply confirmed; ready for functional QA.
+
+Apply result:
+
+- The user ran
+  `docs/supabase/sql/083_membership_gate_comment_application_apply_draft.sql`
+  once in their SQL Editor and the apply succeeded without errors.
+- The user ran
+  `docs/supabase/sql/084_membership_gate_comment_application_post_apply_select_only.sql`
+  once as SELECT-only after the 083 apply, and all checks returned `ok`.
+- `post_apply_ready_for_comment_application_membership_gate_qa=true`.
+
+Confirmed scope:
+
+- The approved-member gate was added only to the four comment/application RPCs:
+  `create_application_comment(text,text)`,
+  `cancel_my_session_application(text)`,
+  `update_application_comment(uuid,text)`, and
+  `delete_application_comment_and_maybe_cancel(uuid)`.
+- The expected/found/signature check matched all four target RPCs.
+- Existing signatures, return shapes, `security definer`, `search_path=public`,
+  authenticated-only EXECUTE, anon denial, and public denial were preserved.
+- `create_application_comment(text,text)` kept its existing length guard, URL
+  count guard, same-session/same-user 60-second cooldown, owner notification
+  generation, TIMELINE activity generation, PC snapshot handling, and GM/admin
+  management comment TIMELINE skip.
+- Application cancellation, comment editing, comment deletion, and
+  delete-then-maybe-cancel behavior kept their existing permission boundaries.
+- Web-role direct table write grants on `session_comments` and
+  `session_applications` remain closed.
+- `public_profiles` still does not expose membership or role state.
+
+Next gate:
+
+- Run functional QA with approved and unapproved users to confirm approved users
+  can use normal comment/application flows while `pending`, `rejected`,
+  `revoked`, and `blocked` users are rejected at the RPC layer.
+
+Safety:
+
+- SQL Editor execution was limited to the one reviewed 083 apply and one
+  SELECT-only 084 confirmation performed by the user.
+- Codex did not perform SQL Editor execution, SQL apply, DB/RPC/RLS changes,
+  Supabase Dashboard changes, Edge deploy, dry_run, Discord operations, mail
+  sending, secret/Webhook changes, or Supabase direct DB writes in this docs
+  step.
+- No real email, user id, session id, full URL, project identifier, token, JWT,
+  secret, Webhook URL, or API key was recorded.
+
 ## M-14F-33 mobile Turnstile CAPTCHA layout
 
 Status: smartphone-width mypage Auth CAPTCHA layout fixed.

@@ -595,6 +595,38 @@ Comment/application approved-member RPC gate draft:
 - No concrete user id, email, session id, full URL, token, project identifier,
   or secret is recorded.
 
+Comment/application approved-member RPC gate apply confirmation:
+
+- The user ran
+  `docs/supabase/sql/083_membership_gate_comment_application_apply_draft.sql`
+  once in their SQL Editor and the apply succeeded.
+- The user ran
+  `docs/supabase/sql/084_membership_gate_comment_application_post_apply_select_only.sql`
+  once as SELECT-only after the 083 apply, and all checks returned `ok`.
+- `post_apply_ready_for_comment_application_membership_gate_qa=true`.
+- The gate is confirmed on the four comment/application RPCs only:
+  `create_application_comment(text,text)`,
+  `cancel_my_session_application(text)`,
+  `update_application_comment(uuid,text)`, and
+  `delete_application_comment_and_maybe_cancel(uuid)`.
+- Existing signatures, return shapes, `security definer`, `search_path=public`,
+  authenticated-only EXECUTE, anon denial, and public denial were preserved.
+- `create_application_comment(text,text)` kept its existing length guard, URL
+  count guard, same-user/same-session 60-second cooldown, owner notification
+  generation, TIMELINE activity generation, PC snapshot handling, and GM/admin
+  management comment TIMELINE skip.
+- Application withdrawal, comment edit, comment delete, and maybe-cancel
+  behavior kept their existing permission boundaries.
+- Web-role direct table write grants on `session_comments` and
+  `session_applications` remain closed.
+- `public_profiles` still does not expose membership or role state.
+- The next gate is functional QA with approved and unapproved users.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS change, Dashboard change, Edge
+  deploy, mail sending, Discord sending, or credential recording was performed
+  by Codex in this documentation step.
+- No concrete user id, email, session id, full URL, token, project identifier,
+  or secret is recorded.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one

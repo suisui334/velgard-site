@@ -598,8 +598,8 @@ Follow-up status:
 
 ## Membership Approved Gate Follow-Up
 
-Status: frontend restriction is implemented; the first DB/RPC gate draft is
-prepared but not executed.
+Status: frontend restriction is implemented; the first DB/RPC gate is applied
+and ready for functional QA.
 
 Notes:
 
@@ -618,9 +618,20 @@ Notes:
   `delete_application_comment_and_maybe_cancel(uuid)`.
 - The rest of the approved-member gate list remains intentionally out of this
   draft and should be handled through smaller later gates.
-- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
-  Edge deploy, mail sending, Discord sending, or secret recording was
-  performed.
+- The user ran 083 once in SQL Editor and the apply succeeded.
+- The user ran 084 once as SELECT-only after the apply, and every check returned
+  `ok`.
+- `post_apply_ready_for_comment_application_membership_gate_qa=true`.
+- Existing signatures, return shapes, security definer mode,
+  `search_path=public`, authenticated-only EXECUTE, existing
+  comment/application guards, owner notifications, TIMELINE activity, PC
+  snapshot handling, and management-comment TIMELINE skip were confirmed.
+- Direct table write grants on comment/application tables remain closed, and
+  `public_profiles` still does not expose membership or role state.
+- The next gate is approved/unapproved functional QA.
+- No additional SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard
+  change, Edge deploy, mail sending, Discord sending, or secret recording was
+  performed by Codex in the documentation step.
 - No concrete user id, email, session id, full URL, token, project identifier,
   or secret is recorded.
 
