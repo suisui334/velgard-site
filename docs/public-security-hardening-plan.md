@@ -596,6 +596,34 @@ Follow-up status:
   full URL, concrete Turnstile site key, or Turnstile secret key value is
   recorded.
 
+## Membership Approved Gate Follow-Up
+
+Status: frontend restriction is implemented; the first DB/RPC gate draft is
+prepared but not executed.
+
+Notes:
+
+- Unapproved users now receive frontend approval guidance for normal UI flows,
+  including calendar, session detail, session post, TIMELINE, notification, PC,
+  template, and avatar surfaces.
+- Frontend hiding is only a normal-operation/UX guard. Raw RPC calls still need
+  server-side approved-member checks.
+- `083_membership_gate_comment_application_apply_draft.sql` prepares the first
+  narrow server-side gate for comment/application RPCs only.
+- `084_membership_gate_comment_application_post_apply_select_only.sql` prepares
+  the post-apply SELECT-only confirmation.
+- The draft covers only `create_application_comment(text,text)`,
+  `cancel_my_session_application(text)`,
+  `update_application_comment(uuid,text)`, and
+  `delete_application_comment_and_maybe_cancel(uuid)`.
+- The rest of the approved-member gate list remains intentionally out of this
+  draft and should be handled through smaller later gates.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
+  Edge deploy, mail sending, Discord sending, or secret recording was
+  performed.
+- No concrete user id, email, session id, full URL, token, project identifier,
+  or secret is recorded.
+
 ## Non-Goals In This Batch
 
 - SQL Editor execution.

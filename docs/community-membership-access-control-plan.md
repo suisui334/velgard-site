@@ -564,6 +564,37 @@ Unapproved member frontend restriction:
 - No concrete user id, email, session id, full URL, token, project identifier,
   or secret is recorded.
 
+Comment/application approved-member RPC gate draft:
+
+- `docs/supabase/sql/083_membership_gate_comment_application_apply_draft.sql`
+  is an unexecuted apply draft.
+- `docs/supabase/sql/084_membership_gate_comment_application_post_apply_select_only.sql`
+  is an unexecuted post-apply SELECT-only confirmation SQL.
+- This is the first DB/RPC-side approved-member gate after the frontend
+  restriction.
+- The draft is limited to the external comment/application RPC surface:
+  `create_application_comment(text,text)`,
+  `cancel_my_session_application(text)`,
+  `update_application_comment(uuid,text)`, and
+  `delete_application_comment_and_maybe_cancel(uuid)`.
+- Each target RPC keeps its existing signature and return shape, stays
+  `security definer` with `search_path=public`, keeps authenticated EXECUTE,
+  keeps anon/public EXECUTE closed, and adds an internal
+  `is_approved_member()` check.
+- Non-approved statuses (`pending`, `rejected`, `revoked`, `blocked`) are
+  rejected with a short generic Japanese message.
+- Existing behavior is intended to remain intact: comment/application creation,
+  reapplication, withdrawal, edit/delete permissions, spam guards, owner
+  notifications, TIMELINE activity, PC snapshot, and GM/admin management
+  comment TIMELINE skip.
+- The remaining approved-member gates for session post, player characters,
+  templates, notifications, TIMELINE, avatar, Discord sync, and GM/admin
+  application operations remain separate later gates.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS change, Dashboard change, Edge
+  deploy, mail sending, Discord sending, or credential recording was performed.
+- No concrete user id, email, session id, full URL, token, project identifier,
+  or secret is recorded.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one

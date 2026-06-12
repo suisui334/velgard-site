@@ -6405,6 +6405,45 @@ Safety:
 - SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
 - No real email, user id, full URL, project identifier, credential, or secret value was recorded.
 
+## M-14F-47 comment/application approved-member RPC gate draft
+
+Status: prepared, not executed.
+
+Changed:
+
+- Added `docs/supabase/sql/083_membership_gate_comment_application_apply_draft.sql`.
+- Added `docs/supabase/sql/084_membership_gate_comment_application_post_apply_select_only.sql`.
+- The 083 draft is limited to comment/application RPCs:
+  `create_application_comment(text,text)`,
+  `cancel_my_session_application(text)`,
+  `update_application_comment(uuid,text)`, and
+  `delete_application_comment_and_maybe_cancel(uuid)`.
+- Each target RPC keeps its existing signature/return shape and adds an
+  internal `is_approved_member()` guard.
+- Existing spam guards, notification generation, TIMELINE activity generation,
+  PC snapshot handling, comment edit/delete permissions, and application
+  withdrawal behavior are intended to remain unchanged.
+- 084 confirms the four RPCs, `security definer`, `search_path=public`,
+  authenticated-only EXECUTE, approved gate text, direct table grant closure,
+  and public_profiles non-exposure without returning function bodies or real
+  identifiers.
+
+Scope:
+
+- This is the first DB/RPC-side approved-member gate after the frontend
+  unapproved-user restriction.
+- Session post, player character, template, notification, TIMELINE, avatar,
+  Discord sync, and remaining GM/admin approved gates are intentionally left for
+  later smaller gates.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard
+  changes, Edge deploy, email sending, Discord sending, and credential
+  recording were not performed.
+- No real email, user id, session id, full URL, project identifier, token, or
+  secret value was recorded.
+
 ## M-14F-33 mobile Turnstile CAPTCHA layout
 
 Status: smartphone-width mypage Auth CAPTCHA layout fixed.
