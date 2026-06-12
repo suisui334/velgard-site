@@ -6495,6 +6495,71 @@ Safety:
 - No real email, user id, session id, full URL, project identifier, token, JWT,
   secret, Webhook URL, or API key was recorded.
 
+## M-14F-49 comment/application approved-member gate QA plan
+
+Status: functional QA plan prepared; live QA not executed.
+
+Created:
+
+- `docs/comment-application-approved-gate-qa-plan.md`
+
+Scope:
+
+- The plan covers functional QA for the four comment/application RPCs gated by
+  083:
+  `create_application_comment(text,text)`,
+  `cancel_my_session_application(text)`,
+  `update_application_comment(uuid,text)`, and
+  `delete_application_comment_and_maybe_cancel(uuid)`.
+- The QA execution is a separate explicit gate because it can create, edit,
+  delete, or cancel real comment/application records.
+- Approved-user happy paths should use the session detail UI where possible.
+- Unapproved-user frontend checks should confirm the approved-gate guidance is
+  shown, while RPC-layer rejection proof needs a separately approved minimal
+  RPC probe because the frontend intentionally hides controls for unapproved
+  users.
+
+Required before execution:
+
+- One approved normal user.
+- One unapproved test user, preferably `pending`; an existing disposable
+  rejected user can provide extra rejection-path confidence.
+- One safe QA session detail page that will not require Discord posting,
+  Discord editing, Edge Function calls, dry_run=false, or broad production-data
+  changes.
+- A cleanup decision for any test comment/application records that are created
+  during the gate.
+
+Planned checks:
+
+- Approved user can create a comment/application.
+- Approved user can edit and delete an owned eligible comment.
+- Approved user can withdraw an owned eligible application when the current UI
+  and application status allow it.
+- Unapproved user is rejected by all four target RPCs with a short Japanese
+  approved-member error.
+- Session detail, comment list, GM/admin display, existing spam guards,
+  notifications, TIMELINE activity, PC snapshot, and management-comment skip
+  are not visibly broken in the smallest reasonable scope.
+- No membership or role state appears through `public_profiles`.
+
+Recording format:
+
+- Use boolean/status fields such as `approved_create_comment=pass`,
+  `unapproved_create_comment_rejected=pass`, and `real_values_recorded=false`.
+- Do not record concrete user ids, emails, session ids, application ids,
+  comment ids, full URLs, tokens, project identifiers, Discord message/channel
+  ids, Webhook URLs, or secrets.
+
+Safety:
+
+- Functional QA was not executed in this planning step.
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard
+  changes, Edge deploy, dry_run, Discord operations, mail sending,
+  secret/Webhook changes, and Supabase direct DB writes were not performed.
+- No real email, user id, session id, application id, comment id, full URL,
+  project identifier, token, JWT, secret, Webhook URL, or API key was recorded.
+
 ## M-14F-33 mobile Turnstile CAPTCHA layout
 
 Status: smartphone-width mypage Auth CAPTCHA layout fixed.

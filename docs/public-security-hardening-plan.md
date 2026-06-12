@@ -628,7 +628,13 @@ Notes:
   snapshot handling, and management-comment TIMELINE skip were confirmed.
 - Direct table write grants on comment/application tables remain closed, and
   `public_profiles` still does not expose membership or role state.
-- The next gate is approved/unapproved functional QA.
+- `docs/comment-application-approved-gate-qa-plan.md` prepares the
+  approved/unapproved functional QA gate.
+- The functional QA execution is not performed in the planning step because it
+  can create, edit, delete, or cancel real comment/application records.
+- Before execution, a human must confirm one approved normal user, one
+  unapproved test user, and one safe QA session that does not require Discord,
+  Edge, dry_run=false, or broad production-data changes.
 - No additional SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard
   change, Edge deploy, mail sending, Discord sending, or secret recording was
   performed by Codex in the documentation step.

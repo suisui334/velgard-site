@@ -627,6 +627,25 @@ Comment/application approved-member RPC gate apply confirmation:
 - No concrete user id, email, session id, full URL, token, project identifier,
   or secret is recorded.
 
+Comment/application approved-member RPC gate QA planning:
+
+- Added `docs/comment-application-approved-gate-qa-plan.md`.
+- The QA execution itself is treated as a separate explicit gate because it can
+  create, edit, delete, or cancel real comment/application records.
+- Required assets before execution are one approved normal user, one unapproved
+  test user, and one safe QA session detail page that will not require Discord,
+  Edge, dry_run=false, or broad production-data changes.
+- Approved-user success paths should use the session detail UI where possible.
+- Unapproved-user frontend checks can use direct page navigation, but the
+  DB/RPC rejection proof needs an explicit minimal RPC probe because the
+  frontend intentionally hides comment/application controls for unapproved
+  users.
+- The plan records the target RPCs, pass/fail result template, stop conditions,
+  and no-real-value recording rule.
+- This planning step does not run the functional QA or call the target RPCs.
+- No concrete user id, email, session id, application id, comment id, full URL,
+  token, project identifier, or secret is recorded.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one
