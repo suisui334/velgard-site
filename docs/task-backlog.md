@@ -6905,6 +6905,36 @@ Safety:
   ids, emails, session ids, full URLs, project identifiers, tokens, JWTs,
   secrets, or API keys.
 
+## M-14F-44 membership approval UI
+
+Status: mypage approval UI implemented for functional QA.
+
+Changed:
+
+- Replaced the temporary-console QA approach with a real mypage UI path.
+- Added a `会員承認` panel that appears only when the pending-list RPC succeeds.
+- The panel lets admin or already-approved `membership_approver` users view
+  pending users, enter an optional review note, and call approve/reject RPCs.
+- The panel does not show email values or concrete user ids.
+- Success reloads the pending list, and failed operations show short Japanese
+  messages without internal details.
+- Smartphone-width styles keep the approval cards, note fields, and action
+  buttons within the page width.
+
+Out of scope:
+
+- The 34 approved-member gates remain unimplemented.
+- Revoked/blocked management, forced status changes, membership approver
+  role-grant UI, SQL apply, and DB/RPC/RLS changes remain separate gates.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard
+  changes, Edge deploy, mail sending, Discord sending, and Supabase direct DB
+  writes were not performed.
+- No real user id, email, session id, full URL, project identifier, token, JWT,
+  secret, or API key was recorded.
+
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
 
 Status: Cloudflare Turnstile frontend integration implemented.

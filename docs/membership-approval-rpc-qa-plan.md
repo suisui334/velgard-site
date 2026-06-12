@@ -9,6 +9,10 @@ This is a non-destructive planning step. It does not run SQL Editor, apply SQL,
 change DB/RPC/RLS, call the live RPCs, create signup traffic, send mail, deploy
 Edge Functions, send Discord messages, or record concrete account identifiers.
 
+The original temporary-console QA idea is superseded. Functional QA should now
+use the mypage approval UI so the tested path matches the intended operation
+surface.
+
 ## Current State
 
 - Membership foundation is applied.
@@ -17,7 +21,8 @@ Edge Functions, send Discord messages, or record concrete account identifiers.
 - `mypage.html` displays the signed-in user's own membership status.
 - The pending-list, approve, and reject RPCs are applied and confirmed by the
   SELECT-only 082 check.
-- Approver UI is not implemented yet.
+- Mypage has a membership approval panel that uses the pending-list, approve,
+  and reject RPCs.
 - The 34 approved-member gates are not implemented yet.
 
 ## RPCs Under QA
@@ -68,25 +73,22 @@ Preferred order:
 Creating new pending QA users may send signup and confirmation email, so it is
 not part of this planning gate.
 
-## RPC Call Method
+## UI Call Method
 
-Because the approver UI is not implemented, the functional QA should call RPCs
-from an already logged-in browser session in DevTools or an equivalent local
-ephemeral harness.
+Functional QA should use the mypage UI rather than a temporary console.
 
 Recommended method:
 
 - Open the public site in the browser.
 - Log in as the test actor for the current case.
-- Use the already loaded Supabase SDK and runtime config to create a temporary
-  client in DevTools.
-- Call only the three reviewed RPCs.
-- Keep returned `user_id` values in local variables only.
+- Open `mypage.html`.
+- For admin or an approved `membership_approver`, use the `会員承認` panel.
+- Use only the displayed approval UI buttons and review-note fields.
 - Do not paste concrete `user_id`, email, session token, JWT, full URL, project
-  ref, or RPC result rows into docs or chat.
+  ref, or raw RPC result rows into docs or chat.
 
-The QA should not use SQL Editor to call the RPCs, because SQL Editor does not
-represent the web-client authenticated role path.
+Temporary DevTools calls are now a fallback only if the UI itself fails to load
+and a separate debug gate approves that fallback.
 
 The QA should not update `community_memberships` directly. All state changes
 must go through the reviewed RPCs.
@@ -98,7 +100,7 @@ must go through the reviewed RPCs.
 Steps:
 
 - Log in as admin.
-- Call `get_pending_community_members`.
+- Open mypage and confirm the `会員承認` panel is visible.
 - Confirm pending QA candidates are returned when available.
 - Confirm no email field is returned.
 - Confirm output is not copied into docs/chat.
@@ -120,7 +122,7 @@ Stop condition:
 Steps:
 
 - Use the dedicated pending approval QA account.
-- Admin calls `approve_community_member` for that pending row.
+- Admin presses the row's `承認` button in the `会員承認` panel.
 - Log in as the approved QA user.
 - Open mypage.
 - Confirm the membership status display shows `approved`.
@@ -140,7 +142,7 @@ Aftercare:
 Steps:
 
 - Use the dedicated pending rejection QA account.
-- Admin calls `reject_community_member` for that pending row.
+- Admin presses the row's `却下` button in the `会員承認` panel.
 - Log in as the rejected QA user.
 - Open mypage.
 - Confirm the membership status display shows `rejected`.
@@ -161,38 +163,40 @@ Aftercare:
 Steps:
 
 - Log in as a normal approved user without admin or `membership_approver`.
-- Call `get_pending_community_members`.
-- Call approve/reject RPCs with a safe non-sensitive target strategy, such as
-  the current user's own id, without recording the id.
+- Open mypage.
+- Confirm the `会員承認` panel is not displayed.
 
 Pass condition:
 
-- Calls fail with a safe authorization error.
 - No pending list or approval action is exposed.
 
 ### 5. Self Approval/Rejection Is Denied
 
 Steps:
 
-- Log in as admin or a future approved `membership_approver`.
-- Call approve/reject with the actor's own auth user id.
+- If the UI ever shows a row that represents the acting user, confirm the row
+  controls are disabled.
 - Do not record the id.
 
 Pass condition:
 
-- The RPC rejects self-action.
+- Self-action is not available through the UI. The RPC-level self-action guard
+  remains confirmed by the 082 SELECT-only check and should be functionally
+  tested only in a separate debug gate if needed.
 
 ### 6. Non-Pending Approval/Rejection Is Denied
 
 Steps:
 
 - After the approval case, try to approve the same already-approved disposable
-  QA account again.
-- Optionally try to reject the same already-approved disposable QA account.
+  QA account again only if it still appears in the UI.
+- In normal operation, the approved row should disappear from the pending list.
 
 Pass condition:
 
-- Non-pending rows are rejected by the RPC.
+- Non-pending rows are not available in the approval UI. RPC-level non-pending
+  denial remains guarded by the applied function and can be separately tested if
+  a safe debug gate is opened.
 
 ### 7. Direct Table Grant Is Not Used
 
@@ -264,9 +268,9 @@ Do not record:
 4. Approved QA user mypage status check.
 5. Admin reject QA.
 6. Rejected QA user mypage status check.
-7. Normal approved user denial QA.
-8. Admin self-action denial QA.
-9. Non-pending denial QA.
+7. Normal approved user UI-hidden QA.
+8. Pending user UI-hidden QA.
+9. Smartphone-width layout check.
 10. Document status-only results.
 
 ## Next Gate

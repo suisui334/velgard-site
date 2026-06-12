@@ -43,6 +43,8 @@
     }
   });
   const MEMBERSHIP_STATUS_VALUES = new Set(Object.keys(MEMBERSHIP_STATUS_VIEWS));
+  const MEMBERSHIP_APPROVAL_LIMIT = 100;
+  const MEMBERSHIP_REVIEW_NOTE_MAX_LENGTH = 1000;
   const DISCORD_ID_MAX_LENGTH = 100;
   const PC_NAME_MAX_LENGTH = 40;
   const DISCORD_USER_ID_EXAMPLE = "123456789012345678";
@@ -1967,6 +1969,261 @@
     }
   }
 
+  function normalizeMembershipApprovalRow(row) {
+    const displayName = normalizeDisplayName(row && row.display_name);
+    const discordHandle = String(row && row.discord_handle ? row.discord_handle : "").trim();
+    return {
+      userId: String(row && row.user_id ? row.user_id : "").trim(),
+      displayName: displayName && displayName !== "display_name_not_set" ? displayName : "ユーザー名未設定",
+      discordHandle,
+      status: normalizeMembershipStatus(row && row.status),
+      reviewNote: String(row && row.review_note ? row.review_note : "").trim(),
+      createdAt: String(row && row.created_at ? row.created_at : "").trim(),
+      updatedAt: String(row && row.updated_at ? row.updated_at : "").trim()
+    };
+  }
+
+  async function fetchPendingCommunityMembers(client) {
+    const { data, error } = await client.rpc("get_pending_community_members", {
+      p_limit: MEMBERSHIP_APPROVAL_LIMIT
+    });
+    if (error) throw error;
+    return (Array.isArray(data) ? data : []).map(normalizeMembershipApprovalRow).filter((row) => row.userId);
+  }
+
+  function setMembershipApprovalPanelState(panel, message, options = {}) {
+    panel.state.textContent = message || "";
+    panel.state.hidden = !message;
+    panel.state.classList.toggle("is-error", Boolean(options.error));
+    panel.state.classList.toggle("is-warn", Boolean(options.warn));
+    panel.state.classList.toggle("is-ok", Boolean(options.ok));
+  }
+
+  function setMembershipApprovalCardBusy(card, busy) {
+    card.textarea.disabled = busy || card.selfAction;
+    card.approveButton.disabled = busy || card.selfAction;
+    card.rejectButton.disabled = busy || card.selfAction;
+    card.approveButton.textContent = busy ? "処理中" : "承認";
+    card.rejectButton.textContent = busy ? "処理中" : "却下";
+  }
+
+  function createMembershipApprovalMeta(labelText, valueText) {
+    const item = document.createElement("div");
+    const label = document.createElement("dt");
+    const value = document.createElement("dd");
+    label.textContent = labelText;
+    value.textContent = valueText || "未設定";
+    item.append(label, value);
+    return item;
+  }
+
+  function createMembershipApprovalCard(client, panel, row) {
+    const card = document.createElement("article");
+    card.className = "mypage-membership-approval-card";
+
+    const head = document.createElement("div");
+    head.className = "mypage-membership-approval-card-head";
+
+    const title = document.createElement("h4");
+    title.textContent = row.displayName;
+
+    const status = document.createElement("span");
+    status.className = "mypage-membership-badge is-pending";
+    status.textContent = getMembershipStatusView(row.status).label;
+
+    head.append(title, status);
+
+    const meta = document.createElement("dl");
+    meta.className = "mypage-membership-approval-meta";
+    meta.append(
+      createMembershipApprovalMeta("Discord ID", row.discordHandle || "未登録"),
+      createMembershipApprovalMeta("登録日時", formatApplicationUpdatedAt(row.createdAt))
+    );
+
+    const noteLabel = document.createElement("label");
+    noteLabel.className = "mypage-membership-approval-note";
+    noteLabel.append(document.createTextNode("審査メモ（任意）"));
+
+    const textarea = document.createElement("textarea");
+    textarea.maxLength = MEMBERSHIP_REVIEW_NOTE_MAX_LENGTH;
+    textarea.rows = 3;
+    textarea.placeholder = "承認/却下メモ";
+    textarea.value = row.reviewNote || "";
+    noteLabel.append(textarea);
+
+    const actions = document.createElement("div");
+    actions.className = "mypage-membership-approval-actions";
+
+    const approveButton = document.createElement("button");
+    approveButton.className = "button primary";
+    approveButton.type = "button";
+    approveButton.textContent = "承認";
+
+    const rejectButton = document.createElement("button");
+    rejectButton.className = "button danger";
+    rejectButton.type = "button";
+    rejectButton.textContent = "却下";
+
+    const selfAction = row.userId === String(panel.session?.user?.id || "");
+    if (selfAction) {
+      approveButton.disabled = true;
+      rejectButton.disabled = true;
+      textarea.disabled = true;
+    }
+
+    const cardController = {
+      textarea,
+      approveButton,
+      rejectButton,
+      selfAction
+    };
+
+    approveButton.addEventListener("click", () => {
+      handleMembershipApprovalDecision(client, panel, row, "approve", cardController);
+    });
+    rejectButton.addEventListener("click", () => {
+      handleMembershipApprovalDecision(client, panel, row, "reject", cardController);
+    });
+
+    actions.append(approveButton, rejectButton);
+    card.append(head, meta, noteLabel, actions);
+
+    if (selfAction) {
+      const selfNote = document.createElement("p");
+      selfNote.className = "mypage-profile-state is-warn";
+      selfNote.textContent = "自分自身の承認/却下はできません。";
+      card.append(selfNote);
+    }
+
+    return card;
+  }
+
+  function renderMembershipApprovalRows(client, panel, rows, message = "") {
+    panel.rows = rows;
+    panel.list.replaceChildren();
+    setMypageDetailsMeta(panel.detailsPanel, rows.length ? `承認待ち ${rows.length}件` : "承認待ちなし");
+
+    if (!rows.length) {
+      const empty = document.createElement("p");
+      empty.className = "mypage-membership-approval-empty";
+      empty.textContent = "承認待ちユーザーはいません。";
+      panel.list.append(empty);
+    } else {
+      rows.forEach((row) => {
+        panel.list.append(createMembershipApprovalCard(client, panel, row));
+      });
+    }
+
+    setMembershipApprovalPanelState(panel, message);
+  }
+
+  async function reloadMembershipApprovalPanel(client, panel, message = "") {
+    setMembershipApprovalPanelState(panel, "承認待ちユーザーを読み込んでいます。");
+    panel.refreshButton.disabled = true;
+    try {
+      const rows = await fetchPendingCommunityMembers(client);
+      renderMembershipApprovalRows(client, panel, rows, message);
+    } catch {
+      setMembershipApprovalPanelState(panel, "承認待ちユーザーを読み込めませんでした。", { error: true });
+    } finally {
+      if (panel.refreshButton.isConnected) panel.refreshButton.disabled = false;
+    }
+  }
+
+  async function handleMembershipApprovalDecision(client, panel, row, action, card) {
+    const actionLabel = action === "approve" ? "承認" : "却下";
+    if (!row.userId || card.selfAction) {
+      setMembershipApprovalPanelState(panel, `${actionLabel}できません。`, { error: true });
+      return;
+    }
+
+    const note = String(card.textarea.value || "").trim();
+    if (Array.from(note).length > MEMBERSHIP_REVIEW_NOTE_MAX_LENGTH) {
+      setMembershipApprovalPanelState(panel, `審査メモは${MEMBERSHIP_REVIEW_NOTE_MAX_LENGTH}文字以内で入力してください。`, { error: true });
+      return;
+    }
+
+    const confirmed = window.confirm(`${row.displayName}さんを${actionLabel}します。続けますか？`);
+    if (!confirmed) return;
+
+    const rpcName = action === "approve" ? "approve_community_member" : "reject_community_member";
+    setMembershipApprovalCardBusy(card, true);
+    setMembershipApprovalPanelState(panel, `${actionLabel}しています。`);
+    try {
+      const { error } = await client.rpc(rpcName, {
+        p_target_user_id: row.userId,
+        p_review_note: note || null
+      });
+      if (error) throw error;
+      await reloadMembershipApprovalPanel(client, panel, `${actionLabel}しました。`);
+    } catch {
+      setMembershipApprovalPanelState(panel, `${actionLabel}できませんでした。一覧を更新してから再度お試しください。`, { error: true });
+    } finally {
+      if (card.approveButton.isConnected || card.rejectButton.isConnected) {
+        setMembershipApprovalCardBusy(card, false);
+      }
+    }
+  }
+
+  function createMembershipApprovalDetails(client, elements, session, rows) {
+    const detailsPanel = createMypageDetails("会員承認", rows.length ? `承認待ち ${rows.length}件` : "承認待ちなし", { className: "mypage-membership-approval-details" });
+    detailsPanel.details.dataset.mypageMembershipApproval = "";
+
+    const note = document.createElement("p");
+    note.className = "mypage-profile-note";
+    note.textContent = "pendingユーザーの承認/却下だけを行います。メールアドレスや内部IDは表示しません。";
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "mypage-membership-approval-toolbar";
+
+    const refreshButton = document.createElement("button");
+    refreshButton.className = "button";
+    refreshButton.type = "button";
+    refreshButton.textContent = "再読み込み";
+
+    toolbar.append(refreshButton);
+
+    const state = document.createElement("p");
+    state.className = "mypage-profile-state";
+    state.setAttribute("role", "status");
+    state.setAttribute("aria-live", "polite");
+    state.hidden = true;
+
+    const list = document.createElement("div");
+    list.className = "mypage-membership-approval-list";
+
+    const panel = {
+      detailsPanel,
+      list,
+      state,
+      refreshButton,
+      rows: [],
+      session
+    };
+
+    refreshButton.addEventListener("click", () => {
+      reloadMembershipApprovalPanel(client, panel);
+    });
+
+    detailsPanel.body.append(note, toolbar, state, list);
+    renderMembershipApprovalRows(client, panel, rows);
+    return panel;
+  }
+
+  async function loadMembershipApprovalPanel(client, elements, session) {
+    try {
+      const activeSession = await getActiveSession(client, session);
+      if (!activeSession || !elements?.content) return;
+      if (elements.content.querySelector("[data-mypage-membership-approval]")) return;
+      const rows = await fetchPendingCommunityMembers(client);
+      if (!elements.content.isConnected) return;
+      const panel = createMembershipApprovalDetails(client, elements, activeSession, rows);
+      elements.content.append(panel.detailsPanel.details);
+    } catch {
+      // Fail closed: users who cannot list pending members should not see this panel.
+    }
+  }
+
   function createAvatarEditor(client, elements, session) {
     const container = document.createElement("section");
     container.className = "mypage-profile-panel mypage-avatar-panel";
@@ -3712,6 +3969,7 @@
     loadTemplatePresets(client, templatePanel);
     loadApplications(client, applicationsPanel, session);
     loadAdminCapAnnouncementLink(client, elements);
+    loadMembershipApprovalPanel(client, elements, session);
   }
 
   function renderPasswordChangeForm(client, elements, message) {

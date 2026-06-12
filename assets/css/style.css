@@ -4690,6 +4690,102 @@ body[data-page="mypage"] .mypage-membership-message {
   line-height: 1.7;
 }
 
+body[data-page="mypage"] .mypage-membership-approval-details,
+body[data-page="mypage"] .mypage-membership-approval-list,
+body[data-page="mypage"] .mypage-membership-approval-card {
+  min-width: 0;
+}
+
+body[data-page="mypage"] .mypage-membership-approval-toolbar,
+body[data-page="mypage"] .mypage-membership-approval-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+body[data-page="mypage"] .mypage-membership-approval-list {
+  display: grid;
+  gap: 12px;
+}
+
+body[data-page="mypage"] .mypage-membership-approval-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(86, 96, 106, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  box-sizing: border-box;
+}
+
+body[data-page="mypage"] .mypage-membership-approval-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+body[data-page="mypage"] .mypage-membership-approval-card-head h4 {
+  min-width: 0;
+  margin: 0;
+  color: var(--soot);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="mypage"] .mypage-membership-approval-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+}
+
+body[data-page="mypage"] .mypage-membership-approval-meta div {
+  min-width: 0;
+}
+
+body[data-page="mypage"] .mypage-membership-approval-meta dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+body[data-page="mypage"] .mypage-membership-approval-meta dd {
+  margin: 2px 0 0;
+  color: var(--soot);
+  font-size: 0.9rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="mypage"] .mypage-membership-approval-note {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+body[data-page="mypage"] .mypage-membership-approval-note textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 84px;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+body[data-page="mypage"] .mypage-membership-approval-empty {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
 body[data-page="mypage"] .mypage-avatar-panel {
   display: grid;
   gap: 10px;
@@ -6702,6 +6798,21 @@ body.is-modal-open .back-to-top {
 
   body[data-page="mypage"] .mypage-application-meta {
     grid-template-columns: 1fr;
+  }
+
+  body[data-page="mypage"] .mypage-membership-approval-meta {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-page="mypage"] .mypage-membership-approval-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  body[data-page="mypage"] .mypage-membership-approval-actions .button {
+    width: 100%;
+    justify-content: center;
   }
 
   body[data-page="mypage"] .mypage-application-detail-link {
