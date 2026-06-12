@@ -6712,14 +6712,19 @@ Result:
 - No contradiction was found between the corrected access policy and the
   anonymous public-site UI.
 
-Deferred:
+Deferred at that time:
 
-- `approved_user_calendar_session_detail=not_tested`.
-- `approved_participation_comment=not_tested`.
-- `unapproved_pending_rejected_live=not_tested`.
-- `owner_gm_edit_delete_close=not_tested`.
-- `admin_management=not_tested`.
-- `discord_sync_operation=not_run`.
+- `approved_user_calendar_session_detail` was deferred in M-14F-52 and is now
+  confirmed in M-14F-53.
+- `approved_participation_comment_surface` was deferred in M-14F-52 and is now
+  confirmed in M-14F-53.
+- `unapproved_pending_rejected_live` was deferred in M-14F-52 and is now
+  confirmed in M-14F-53.
+- `owner_gm_management_surfaces` were deferred in M-14F-52 and are now
+  confirmed in M-14F-53.
+- `admin_management_surfaces` were deferred in M-14F-52 and are now confirmed
+  in M-14F-53.
+- `discord_sync_operation=not_run` remains a separate explicit gate.
 
 Reason:
 
@@ -6740,8 +6745,7 @@ Safety:
 
 ## M-14F-53 authenticated main flow QA gate
 
-Status: user-side authenticated QA gate prepared; Codex-side live execution
-not run.
+Status: user-side authenticated QA completed and recorded.
 
 Created:
 
@@ -6754,31 +6758,44 @@ Baseline:
 - The remaining actors are approved normal user, unapproved/pending/rejected
   user, owner/GM, admin, and a normal-user negative control.
 
-Codex-side result:
+User-side result:
 
-- `qa_executed=false`.
-- `safe_authenticated_session_available=false`.
-- `approved_calendar_view=not_tested`.
-- `approved_session_detail_view=not_tested`.
-- `approved_comment_or_application=not_tested`.
-- `unapproved_mypage_minimal=not_tested`.
-- `unapproved_calendar_gate=not_tested`.
-- `unapproved_session_detail_gate=not_tested`.
-- `unapproved_session_post_gate=not_tested`.
-- `unapproved_timeline_gate=not_tested`.
-- `owner_controls_visible=not_tested`.
+- `qa_executed=true`.
+- `safe_authenticated_session_available=true`.
+- `approved_calendar_view=pass`.
+- `approved_session_detail_view=pass`.
+- `approved_mypage_view=pass`.
+- `approved_application_comment_surface=pass`.
+- `unapproved_pending_rejected_gate=pass`.
+- `unapproved_session_browse_apply_comment_blocked=pass`.
+- `owner_gm_management_panel=pass`.
+- `owner_edit_management_controls=pass`.
+- `owner_close_button_visible=pass`.
 - `owner_mutation_executed=false`.
-- `admin_controls_visible=not_tested`.
-- `normal_user_other_session_management_hidden=not_tested`.
+- `admin_controls_visible=pass`.
+- `normal_user_other_session_management_hidden=pass`.
 - `discord_operation_executed=false`.
+- `raw_value_exposure=none`.
 
-Reason:
+Confirmed:
 
-- Codex did not have safe authenticated browser sessions for the required actor
-  accounts in the current tool context.
-- Approved comment/application checks can create live data.
-- Owner/GM edit/delete/close and admin-management checks can mutate live data
-  and may touch Discord sync if carried too far.
+- Approved normal users can view `calendar`, `session-detail`, and `mypage`.
+- Approved normal users see the application/comment area naturally.
+- Unapproved, pending, or rejected-equivalent users see the approved-member gate
+  and cannot browse session content, apply, or comment.
+- Owner/GM users see the GM/admin management area, management links, and close
+  control for their own session context.
+- Admin users see admin-oriented controls.
+- A normal user cannot edit, delete, or close another user's session.
+- Concrete ids, JWTs, emails, user ids, session ids, application ids, comment
+  ids, Discord ids, and full URLs were not recorded.
+
+Stopped:
+
+- Live data-changing create/edit/delete/close operations were not executed.
+- Discord sync operations were not executed.
+- Public/non-draft session create/edit/delete/close and Discord sync remain
+  separate explicit gates.
 
 Prepared user-side QA:
 

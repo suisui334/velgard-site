@@ -711,15 +711,18 @@ Authenticated main-flow QA gate:
 
 - `docs/authenticated-main-flow-qa-plan.md` records the next live QA gate for
   approved, unapproved, owner/GM, and admin actors.
-- Codex did not run the authenticated live QA because no safe authenticated
-  browser sessions were available in the current tool context.
-- The gate records user-side manual steps, stop conditions, and a status-only
-  result template.
-- The planned checks cover approved calendar/session-detail visibility,
-  approved comment/application operation, unapproved approved-gate behavior,
-  owner/GM control visibility, admin management visibility, and the negative
-  control that a normal user cannot manage another user's session.
-- Final owner/GM edit/delete/close execution and any Discord sync operation
+- The user completed the authenticated main-flow QA on their side.
+- `qa_executed=true`.
+- Approved normal users could view `calendar`, `session-detail`, and `mypage`,
+  and the application/comment area displayed naturally.
+- Unapproved, pending, or rejected-equivalent users saw the approved-member gate
+  and could not browse session content, apply, or comment.
+- Owner/GM users saw the GM/admin management area, management links, and close
+  control for their own session context.
+- Admin users saw admin-oriented controls.
+- A normal user could not edit, delete, or close another user's session.
+- Final owner/GM edit/delete/close execution, public/non-draft
+  create/edit/delete, and any Discord sync operation were not executed and
   remain explicit later gates.
 - No concrete user id, email, session id, application id, comment id, full URL,
   token, project identifier, Discord identifier, Webhook URL, or secret is

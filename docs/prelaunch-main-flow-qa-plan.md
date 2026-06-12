@@ -196,11 +196,13 @@ Authenticated live checks:
 
 | Actor / Flow | Result | Reason |
 | --- | --- | --- |
-| Approved user calendar/session-detail display | `not_tested` | A safe authenticated approved-user browser session was not available in the in-app browser context. |
-| Approved user participation/comment operation | `not_tested` | Creating comments or applications mutates live data and requires a separate explicit QA gate. |
-| Unapproved/pending/rejected live access | `not_tested` | A safe authenticated unapproved-user browser session was not available in the in-app browser context. |
-| Owner/GM edit/delete/close operation | `not_tested` | These operations can edit/delete/close live session posts and may trigger Discord sync, so they remain a separate explicit gate. |
-| Admin management operation | `not_tested` | Admin operations can mutate live data and remain a separate explicit gate. |
+| Approved user calendar/session-detail display | `pass` | User-side QA confirmed approved access to the calendar and session detail surfaces. |
+| Approved user mypage display | `pass` | User-side QA confirmed mypage did not break for an approved normal user. |
+| Approved user application/comment surface | `pass` | User-side QA confirmed the application/comment area displayed naturally. |
+| Unapproved/pending/rejected live access | `pass` | User-side QA confirmed the approved-member gate blocks session browsing, applications, and comments. |
+| Owner/GM management controls | `pass` | User-side QA confirmed GM/admin management area, management links, and close control visibility for the owner/GM context. |
+| Admin management operation surface | `pass` | User-side QA confirmed admin-oriented controls display. |
+| Normal user negative control | `pass` | User-side QA confirmed a normal user cannot edit, delete, or close another user's session. |
 | Discord sync operation | `not_run` | No Discord create/update/delete or `dry_run=false` operation was performed. |
 
 Conclusion:
@@ -219,34 +221,36 @@ Prepared:
 
 - `docs/authenticated-main-flow-qa-plan.md`
 
-Current Codex-side result:
+User-side QA result:
 
-- `qa_executed=false`
-- `safe_authenticated_session_available=false`
-- `approved_calendar_view=not_tested`
-- `approved_session_detail_view=not_tested`
-- `approved_comment_or_application=not_tested`
-- `unapproved_mypage_minimal=not_tested`
-- `unapproved_calendar_gate=not_tested`
-- `unapproved_session_detail_gate=not_tested`
-- `unapproved_session_post_gate=not_tested`
-- `unapproved_timeline_gate=not_tested`
-- `owner_controls_visible=not_tested`
+- `qa_executed=true`
+- `safe_authenticated_session_available=true`
+- `approved_calendar_view=pass`
+- `approved_session_detail_view=pass`
+- `approved_mypage_view=pass`
+- `approved_application_comment_surface=pass`
+- `unapproved_pending_rejected_gate=pass`
+- `unapproved_session_browse_apply_comment_blocked=pass`
+- `owner_gm_management_panel=pass`
+- `owner_edit_management_controls=pass`
+- `owner_close_button_visible=pass`
 - `owner_mutation_executed=false`
-- `admin_controls_visible=not_tested`
-- `normal_user_other_session_management_hidden=not_tested`
+- `admin_controls_visible=pass`
+- `normal_user_other_session_management_hidden=pass`
 - `discord_operation_executed=false`
 
-Reason:
+Confirmed:
 
-- Codex does not have safe authenticated browser sessions for approved,
-  unapproved, owner/GM, or admin actors in the current tool context.
-- Approved comment/application checks can create live data.
-- Owner/GM edit/delete/close and admin-management checks can mutate live data
-  and may touch Discord sync if carried too far.
-- The prepared gate therefore provides user-side manual QA steps, stop
-  conditions, and a boolean/status result template instead of forcing unsafe
-  execution from Codex.
+- Approved normal users can view `calendar`, `session-detail`, and `mypage`.
+- Approved normal users see the application/comment area naturally.
+- Unapproved, pending, or rejected-equivalent users see the approved-member gate
+  and cannot view or operate the session/application/comment surfaces.
+- Owner/GM users see expected own-session management surfaces and the close
+  control.
+- Admin users see admin-oriented controls.
+- A normal user cannot edit, delete, or close another user's session.
+- Data-changing create/edit/delete/close operations and any Discord sync
+  operation were intentionally not executed and remain separate gates.
 
 ## Required Live QA Gates
 
@@ -254,16 +258,12 @@ The following require explicit later gates because they can create, edit, delete
 or synchronize live data:
 
 1. Approved session-post create/update/delete QA.
-2. Session owner edit/delete/close QA.
+2. Session owner edit/delete/close execution QA.
 3. Discord create/update/delete sync QA, including no duplicate post and no
    unintended mention checks.
-4. Authenticated unapproved/pending/rejected access-gate display QA for
-   calendar and session-detail.
-5. Calendar visual QA for type colors, close mark, and GM name after safe test
+4. Calendar visual QA for type colors, close mark, and GM name after safe test
    data is selected.
-6. Mypage empty-state and status-state visual QA for approved/unapproved/admin
-   accounts.
-7. Broader admin/GM application management QA.
+5. Broader admin/GM application management mutation QA.
 
 ## Stop Conditions For Later Live QA
 

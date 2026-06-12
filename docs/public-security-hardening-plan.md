@@ -685,9 +685,15 @@ Notes:
 - `docs/authenticated-main-flow-qa-plan.md` now records the authenticated QA
   gate for approved, unapproved, owner/GM, admin, and normal-user negative
   controls.
-- Codex did not execute the authenticated live QA in this pass because safe
-  authenticated sessions were not available. The document provides user-side
-  manual QA steps, stop conditions, and a status-only result template.
+- The user completed the authenticated main-flow QA.
+- Approved normal users could view `calendar`, `session-detail`, and `mypage`,
+  and the application/comment area displayed naturally.
+- Unapproved, pending, or rejected-equivalent users saw the approved-member gate
+  and could not browse session content, apply, or comment.
+- Owner/GM users saw the GM/admin management area, management links, and close
+  control for their own session context.
+- Admin users saw admin-oriented controls.
+- A normal user could not edit, delete, or close another user's session.
 - Final owner/GM edit/delete/close operations, admin mutations, and Discord
   sync remain separate explicit mutation-aware gates.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,

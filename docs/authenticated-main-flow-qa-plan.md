@@ -80,18 +80,21 @@ Record results as `pass`, `fail`, `not_tested`, or `blocked`.
 
 | Actor / Flow | Expected | Result |
 | --- | --- | --- |
-| approved calendar view | Calendar main UI is visible. | `not_tested` |
-| approved session-detail view | Session detail main UI is visible. | `not_tested` |
-| approved participation/comment | One safe application/comment operation succeeds, if a safe target exists. | `not_tested` |
-| unapproved calendar view | Approved-member gate is shown; calendar main UI is hidden. | `not_tested` |
-| unapproved session-detail view | Approved-member gate is shown; detail/comment/application UI is hidden. | `not_tested` |
-| unapproved session-post view | Approved-member gate is shown; post form is hidden. | `not_tested` |
-| unapproved mypage | Minimal account/status surface is shown. | `not_tested` |
-| owner edit/delete/close controls | Owner/GM sees eligible own-session controls. | `not_tested` |
+| approved calendar view | Calendar main UI is visible. | `pass` |
+| approved session-detail view | Session detail main UI is visible. | `pass` |
+| approved mypage view | Mypage remains usable and visually stable. | `pass` |
+| approved participation/comment surface | Application/comment area is shown naturally. | `pass` |
+| unapproved calendar view | Approved-member gate is shown; calendar main UI is hidden. | `pass` |
+| unapproved session-detail view | Approved-member gate is shown; detail/comment/application UI is hidden. | `pass` |
+| unapproved session-post view | Approved-member gate is shown; post form is hidden. | `pass` |
+| unapproved mypage | Minimal account/status surface is shown. | `pass` |
+| owner GM/admin panel | Owner/GM management area is shown. | `pass` |
+| owner edit/management controls | Owner/GM sees eligible own-session management controls. | `pass` |
+| owner close button | Owner/GM sees the close control. | `pass` |
 | owner dangerous action final click | Stop before final mutation unless a Discord-safe mutation gate is open. | `not_run` |
-| admin management controls | Admin can see expected management controls. | `not_tested` |
-| normal user other-session controls | No edit/delete/close controls for another user's session. | `not_tested` |
-| raw value exposure | No raw ids, email, tokens, full post URLs, or Discord ids shown. | `not_tested` |
+| admin management controls | Admin can see expected management controls. | `pass` |
+| normal user other-session controls | No edit/delete/close controls for another user's session. | `pass` |
+| raw value exposure | No raw ids, email, tokens, full post URLs, or Discord ids shown. | `pass` |
 
 ## User-Side Manual Steps
 
@@ -175,32 +178,46 @@ not_tested_reason=...
 
 ## Current Gate Result
 
-Current Codex-side result:
+User-side QA result:
 
-- `qa_executed=false`
-- `safe_authenticated_session_available=false`
-- `approved_calendar_view=not_tested`
-- `approved_session_detail_view=not_tested`
-- `approved_comment_or_application=not_tested`
-- `unapproved_mypage_minimal=not_tested`
-- `unapproved_calendar_gate=not_tested`
-- `unapproved_session_detail_gate=not_tested`
-- `unapproved_session_post_gate=not_tested`
-- `unapproved_timeline_gate=not_tested`
-- `owner_controls_visible=not_tested`
+- `qa_executed=true`
+- `safe_authenticated_session_available=true`
+- `approved_calendar_view=pass`
+- `approved_session_detail_view=pass`
+- `approved_mypage_view=pass`
+- `approved_application_comment_surface=pass`
+- `unapproved_mypage_minimal=pass`
+- `unapproved_calendar_gate=pass`
+- `unapproved_session_detail_gate=pass`
+- `unapproved_session_post_gate=pass`
+- `unapproved_timeline_gate=pass`
+- `unapproved_application_comment_blocked=pass`
+- `owner_gm_management_panel=pass`
+- `owner_edit_management_controls=pass`
+- `owner_close_button_visible=pass`
 - `owner_mutation_executed=false`
-- `admin_controls_visible=not_tested`
-- `normal_user_other_session_management_hidden=not_tested`
+- `admin_controls_visible=pass`
+- `normal_user_other_session_management_hidden=pass`
 - `discord_operation_executed=false`
-- `raw_value_exposure=not_tested`
+- `raw_value_exposure=none`
 
-Reason:
+Confirmed:
 
-- The current Codex browser context does not have safe authenticated sessions
-  for approved, unapproved, owner/GM, or admin actors.
-- The remaining checks can mutate live data or touch Discord sync if carried
-  too far, so they must be performed by the user with known safe accounts and a
-  safe target session.
+- Approved normal users can view `calendar`, `session-detail`, and `mypage`.
+- Approved normal users see the application/comment area naturally.
+- Unapproved, pending, or rejected-equivalent users see the approved-member gate
+  and cannot view or operate session/application/comment surfaces.
+- Owner/GM users see the GM/admin management area, management links, and close
+  control for their own session context.
+- Admin users see admin-oriented controls.
+- A normal user cannot edit, delete, or close another user's session.
+
+Stopped:
+
+- Live create/edit/delete/close operations that would mutate data or may touch
+  Discord sync were not executed in this QA result.
+- Public/non-draft session creation, edit, delete, close, and Discord sync
+  remain separate explicit gates.
 
 No concrete user id, email, session id, application id, comment id, Discord
 message id, full post URL, token, JWT, project identifier, Webhook URL, API key,
