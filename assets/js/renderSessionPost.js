@@ -9,6 +9,11 @@ import {
   hasSupabaseRuntimeConfig
 } from "./supabaseBrowserClient.js?v=20260601-session-post";
 import {
+  getCurrentMembershipState,
+  isApprovedMembershipState,
+  renderMembershipGateNotice
+} from "./membershipAccessClient.js?v=20260613-unapproved-ui";
+import {
   deleteSyncedSession,
   getDiscordSyncStateModifier,
   getDiscordSyncUiMessage,
@@ -1779,7 +1784,18 @@ async function initializeForm(root, client, access = {}) {
   });
 }
 
-export async function renderSessionPost(root) {
+export async function renderSessionPost(root, _site, options = {}) {
+  const membershipState = options.membershipState || await getCurrentMembershipState();
+  if (!isApprovedMembershipState(membershipState)) {
+    root.innerHTML = renderMembershipGateNotice(membershipState, {
+      eyebrow: "Session Post",
+      title: "依頼書投稿",
+      lead: "依頼書作成・編集は承認済みメンバー向けの機能です。",
+      heading: "承認済みアカウントのみ依頼書投稿を利用できます"
+    });
+    return;
+  }
+
   root.innerHTML = renderShell(getInitialStartAt());
   const authState = root.querySelector("[data-session-post-auth-state]");
   const config = getSupabaseRuntimeConfig();

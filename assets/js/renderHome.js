@@ -7,6 +7,11 @@ import {
 } from "./activityTimelineDisplay.js?v=20260611-home-activity";
 import { imageFallbackAttr, imageOrPlaceholder } from "./dataLoader.js";
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js";
+import {
+  getCurrentMembershipState,
+  isApprovedMembershipState,
+  shouldHideCommunityNav
+} from "./membershipAccessClient.js?v=20260613-unapproved-ui";
 
 const homeNavItems = [
   { label: "WORLD", href: "world.html", text: "舞台紹介" },
@@ -15,7 +20,7 @@ const homeNavItems = [
   { label: "SCENARIOS", href: "scenarios.html", text: "シナリオ" },
   { label: "GALLERY", href: "gallery.html", text: "画像資料" },
   { label: "TOOLS", href: "tools.html", text: "補助ツール" },
-  { label: "CALENDAR", href: "calendar.html", text: "運用カレンダー" },
+  { label: "CALENDAR", href: "calendar.html", text: "運用カレンダー", requiresApproved: true },
   { label: "TERMS", href: "terms.html", text: "用語集" },
   { label: "UPDATES", href: "updates.html", text: "更新履歴" },
   { label: "REGULATION", href: "regulation.html", text: "開催規約" },
@@ -24,28 +29,28 @@ const homeNavItems = [
 
 const HOME_ACTIVITY_LIMIT = 5;
 
-async function loadHomeActivities() {
-  const client = await createSupabaseBrowserClient();
+async function loadHomeActivities(membershipState = null) {
+  const access = membershipState || await getCurrentMembershipState();
+  const client = access.client || await createSupabaseBrowserClient();
   if (!client) {
-    return { items: [], isAuthenticated: false, hasError: true };
+    return { items: [], isAuthenticated: false, isApproved: false, hasError: true };
   }
 
-  let isAuthenticated = false;
-  try {
-    const { data } = await client.auth.getSession();
-    isAuthenticated = Boolean(data?.session);
-  } catch {
-    // The home activity panel can still render a quiet empty state if auth bootstrap fails.
+  const isAuthenticated = Boolean(access.isAuthenticated);
+  const isApproved = isApprovedMembershipState(access);
+  if (!isApproved) {
+    return { items: [], isAuthenticated, isApproved, hasError: false };
   }
 
   const { data, error } = await client.rpc("get_activity_timeline", { p_limit: HOME_ACTIVITY_LIMIT });
   if (error) {
-    return { items: [], isAuthenticated, hasError: true };
+    return { items: [], isAuthenticated, isApproved, hasError: true };
   }
 
   return {
     items: Array.isArray(data) ? data : [],
     isAuthenticated,
+    isApproved,
     hasError: false
   };
 }
@@ -57,6 +62,9 @@ function renderHomeActivityList(activityState) {
     }
     if (!activityState.isAuthenticated) {
       return `<p class="empty">ログインすると最近の活動を確認できます。</p>`;
+    }
+    if (!activityState.isApproved) {
+      return `<p class="empty">承認後に最近の活動を確認できます。</p>`;
     }
     return `<p class="empty">まだ更新はありません。</p>`;
   }
@@ -78,8 +86,10 @@ function renderHomeActivityList(activityState) {
   }).join("");
 }
 
-export async function renderHome(root, site) {
-  const activityState = await loadHomeActivities();
+export async function renderHome(root, site, options = {}) {
+  const membershipState = options.membershipState || null;
+  const activityState = await loadHomeActivities(options.membershipState);
+  const hideCommunityNav = shouldHideCommunityNav(membershipState);
   const logoImage = site.logoImage && site.logoImage.trim() ? site.logoImage : "";
   const keyvisualImage = imageOrPlaceholder(site.keyvisual, site, "keyvisual");
   const logoFallback = `
@@ -104,7 +114,7 @@ export async function renderHome(root, site) {
         ${logoMarkup}
       </div>
       <nav class="home-nav" aria-label="トップページ主要ナビゲーション">
-        ${homeNavItems.map((item) => `
+        ${homeNavItems.filter((item) => !(item.requiresApproved && hideCommunityNav)).map((item) => `
           <a href="${item.href}" class="${item.subtle ? "is-subtle" : ""}">
             <span class="home-nav-label">${item.label}</span>
             <span class="home-nav-text">${item.text}</span>
@@ -114,7 +124,7 @@ export async function renderHome(root, site) {
       <section class="home-latest" aria-labelledby="home-activity-title">
         <div class="home-latest-head">
           <h2 id="home-activity-title">TIMELINE</h2>
-          <a href="timeline.html">ALL</a>
+          ${hideCommunityNav ? "" : `<a href="timeline.html">ALL</a>`}
         </div>
         <div class="home-latest-list">
           ${renderHomeActivityList(activityState)}

@@ -6969,6 +6969,60 @@ Safety:
 - No real email, user id, session id, full URL, project identifier, token, JWT,
   secret, or API key was recorded.
 
+## M-14F-46 unapproved member frontend restrictions
+
+Status: frontend-only unapproved member display restrictions implemented.
+
+Changed:
+
+- Added shared frontend membership status helpers for module-based pages.
+- Header/footer community links hide `CALENDAR` and `TIMELINE` when a signed-in
+  user is not `approved`.
+- Notification bell visibility now requires an authenticated approved member.
+- TOP page activity/TIMELINE preview no longer fetches activity for unapproved
+  users and shows a quiet approved-only message instead.
+- Calendar, session detail, session-post, and TIMELINE pages switch to
+  membership guidance instead of rendering their normal community surfaces for
+  unapproved users.
+- Session detail does not render comment/application or management panels for
+  unapproved users.
+- Session-post does not render the create/edit form or template controls for
+  unapproved users.
+- Mypage now shows only minimal account maintenance for `pending`, `rejected`,
+  `revoked`, and `blocked`: membership state, display name, Discord ID, and
+  account password change.
+- Mypage hides avatar settings, PC management, template management,
+  schedule/application history, and membership approval panel for unapproved
+  users.
+
+Scope:
+
+- Public information pages remain available.
+- This is a UX and normal-operation restriction only; direct URL/RPC access is
+  not a security boundary.
+- The 34 approved-member DB/RPC gates remain the required follow-up.
+- Revoked/blocked operations, forced status changes, and membership approver
+  role-grant UI remain separate later gates.
+
+Verification:
+
+- `node --check` passed for the changed JS files.
+- Local HTTP display checks confirmed unauthenticated calendar, session-post,
+  session-detail, and TIMELINE render approval guidance instead of normal
+  community UI.
+- Local HTTP display checks confirmed TOP/regulation still render without
+  obvious breakage and no horizontal overflow was observed in the checked
+  pages.
+- Live pending/rejected operation QA was skipped for this frontend-only step.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Supabase Dashboard
+  changes, Edge deploy, mail sending, Discord sending, and Supabase direct DB
+  writes were not performed.
+- No real email, user id, session id, full URL, project identifier, token, JWT,
+  secret, or API key was recorded.
+
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
 
 Status: Cloudflare Turnstile frontend integration implemented.

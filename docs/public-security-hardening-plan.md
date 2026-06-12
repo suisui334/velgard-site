@@ -431,6 +431,18 @@ Membership approval status:
 - The 34 approved-member gates, revoked/blocked operations, force-status
   administration, and membership approver role-grant UI remain separate later
   public-hardening gates.
+- A frontend-only unapproved-member display restriction was added after the UI
+  QA.
+- `pending`, `rejected`, `revoked`, and `blocked` users are guided to minimal
+  mypage account maintenance and do not receive normal UI access to calendar,
+  session detail, session-post forms, comments/applications, notification bell,
+  TIMELINE, avatar settings, PC management, template management, or application
+  history.
+- Public information pages remain available.
+- This is not a security boundary. It closes normal UI paths, while direct RPC
+  and URL enforcement remains a later approved-member gate.
+- Static checks and local HTTP display checks were performed; live operation QA
+  was skipped for this frontend-only step.
 
 ### Comment/Application Spam
 

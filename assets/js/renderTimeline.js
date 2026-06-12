@@ -1,5 +1,10 @@
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js";
 import {
+  getCurrentMembershipState,
+  isApprovedMembershipState,
+  renderMembershipGateNotice
+} from "./membershipAccessClient.js?v=20260613-unapproved-ui";
+import {
   formatActivityDateTime,
   getActivitySessionLabel,
   getActivityTitle,
@@ -94,7 +99,18 @@ function renderItems(listElement, items) {
   listElement.append(fragment);
 }
 
-export async function renderTimeline(root) {
+export async function renderTimeline(root, _site, options = {}) {
+  const membershipState = options.membershipState || await getCurrentMembershipState();
+  if (!isApprovedMembershipState(membershipState)) {
+    root.innerHTML = renderMembershipGateNotice(membershipState, {
+      eyebrow: "TIMELINE",
+      title: "更新タイムライン",
+      lead: "更新タイムラインは承認済みメンバー向けの活動一覧です。",
+      heading: "承認後にTIMELINEを確認できます"
+    });
+    return;
+  }
+
   root.innerHTML = `
     <header class="page-title">
       <div class="eyebrow">TIMELINE</div>

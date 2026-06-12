@@ -4690,6 +4690,19 @@ body[data-page="mypage"] .mypage-membership-message {
   line-height: 1.7;
 }
 
+.membership-gate-notice,
+body[data-page="mypage"] .mypage-unapproved-notice {
+  min-width: 0;
+}
+
+.membership-gate-note,
+body[data-page="mypage"] .mypage-unapproved-notice .mypage-profile-note {
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
 body[data-page="mypage"] .mypage-membership-approval-details,
 body[data-page="mypage"] .mypage-membership-approval-list,
 body[data-page="mypage"] .mypage-membership-approval-card {

@@ -1,6 +1,11 @@
 import { loadJson } from "./dataLoader.js";
 import { loadMergedSessions } from "./sessionData.js?v=20260607-static-retire";
 import {
+  getCurrentMembershipState,
+  isApprovedMembershipState,
+  renderMembershipGateNotice
+} from "./membershipAccessClient.js?v=20260613-unapproved-ui";
+import {
   escapeHtml,
   formatSessionApplicationDeadline,
   formatPlayerCount,
@@ -609,7 +614,18 @@ function renderError(message) {
   return `<div class="notice">${escapeHtml(message)}</div>`;
 }
 
-export async function renderCalendar(root) {
+export async function renderCalendar(root, _site, options = {}) {
+  const membershipState = options.membershipState || await getCurrentMembershipState();
+  if (!isApprovedMembershipState(membershipState)) {
+    root.innerHTML = renderMembershipGateNotice(membershipState, {
+      eyebrow: "Calendar",
+      title: "CALENDAR",
+      lead: "運用カレンダーは承認済みメンバー向けの機能です。",
+      heading: "承認後にカレンダーを確認できます"
+    });
+    return;
+  }
+
   const config = await loadJson(CONFIG_URL);
   let sessionsLoadError = false;
   const sessionsData = await loadMergedSessions(SESSIONS_URL).catch((error) => {

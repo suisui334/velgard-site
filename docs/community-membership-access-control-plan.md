@@ -540,6 +540,30 @@ Approval UI/RPC functional QA result:
 - No concrete user id, email, full URL, token, project identifier, or secret is
   recorded.
 
+Unapproved member frontend restriction:
+
+- Added a frontend-only display restriction for users whose membership status
+  is not `approved`.
+- `pending`, `rejected`, `revoked`, and `blocked` users see only minimal mypage
+  account information and membership guidance.
+- The minimal mypage surface keeps display name, Discord ID, membership status,
+  and account password change available as account-maintenance functions.
+- Avatar settings, PC management, template management, schedule/application
+  history, notification bell, TIMELINE, calendar, session detail, comments,
+  applications, and session-post forms are hidden or replaced with approval
+  guidance for unapproved signed-in users.
+- Public world, regulation, gallery, terms, and similar public-information
+  pages remain available.
+- This is a UX and normal-operation restriction only. Direct URL access and raw
+  RPC calls must still be closed by the later approved-member DB/RPC gates.
+- The 34 approved-member RPC gates remain the required server-side follow-up.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS change, Dashboard change, Edge
+  deploy, mail sending, Discord sending, or credential recording was performed.
+- Static checks and local HTTP display checks were used; live operation QA for
+  pending/rejected users is deferred.
+- No concrete user id, email, session id, full URL, token, project identifier,
+  or secret is recorded.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one

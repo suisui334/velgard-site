@@ -10,6 +10,11 @@ import {
 import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260610-avatar-preview";
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js?v=20260601-session-post";
 import {
+  getCurrentMembershipState,
+  isApprovedMembershipState,
+  renderMembershipGateNotice
+} from "./membershipAccessClient.js?v=20260613-unapproved-ui";
+import {
   deleteSyncedSession,
   getDiscordSyncStateModifier,
   getDiscordSyncUiMessage,
@@ -469,7 +474,18 @@ async function initSessionDetailManageActions(root, session) {
   return initSessionDetailManageActionsWithDelete(root, session);
 }
 
-export async function renderSessionDetail(root) {
+export async function renderSessionDetail(root, _site, options = {}) {
+  const membershipState = options.membershipState || await getCurrentMembershipState();
+  if (!isApprovedMembershipState(membershipState)) {
+    root.innerHTML = renderMembershipGateNotice(membershipState, {
+      eyebrow: "Session Detail",
+      title: "セッション予定詳細",
+      lead: "依頼書詳細、参加申請、コメントは承認済みメンバー向けの機能です。",
+      heading: "承認後に依頼書詳細を確認できます"
+    });
+    return;
+  }
+
   const id = getParams().get("id")?.trim();
   if (!id) {
     root.innerHTML = renderNotFound("セッション予定IDが指定されていません。");

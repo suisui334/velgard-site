@@ -1,4 +1,5 @@
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js";
+import { getCurrentMembershipState } from "./membershipAccessClient.js?v=20260613-unapproved-ui";
 
 const NOTIFICATION_LIMIT = 8;
 const FALLBACK_TARGET = "mypage.html";
@@ -28,6 +29,7 @@ const state = {
   markAll: null,
   isOpen: false,
   isAuthenticated: false,
+  isApprovedMember: false,
   listLoading: false,
   cachedItems: []
 };
@@ -313,7 +315,7 @@ function markAllCachedNotificationsRead() {
 }
 
 async function refreshUnreadCount() {
-  if (!state.client || !state.isAuthenticated) return;
+  if (!state.client || !state.isAuthenticated || !state.isApprovedMember) return;
   const { data, error } = await state.client.rpc("get_my_unread_notification_count");
   if (error) {
     setUnreadCount(0);
@@ -323,7 +325,7 @@ async function refreshUnreadCount() {
 }
 
 async function loadNotificationList(options = {}) {
-  if (!state.client || !state.isAuthenticated || state.listLoading) return;
+  if (!state.client || !state.isAuthenticated || !state.isApprovedMember || state.listLoading) return;
   state.listLoading = true;
   setStatus("読み込み中");
   try {
@@ -367,7 +369,7 @@ async function markNotificationRead(notificationId) {
 }
 
 async function markAllNotificationsRead() {
-  if (!state.client || !state.isAuthenticated || !state.markAll) return;
+  if (!state.client || !state.isAuthenticated || !state.isApprovedMember || !state.markAll) return;
   state.markAll.disabled = true;
   try {
     await state.client.rpc("mark_all_my_notifications_read");
@@ -383,26 +385,40 @@ async function markAllNotificationsRead() {
   await refreshUnreadCount();
 }
 
-function handleAuthSession(session) {
+async function handleAuthSession(session) {
   state.isAuthenticated = Boolean(session);
-  setBellVisible(state.isAuthenticated);
-  if (state.isAuthenticated) {
-    refreshUnreadCount();
+  state.isApprovedMember = false;
+  setBellVisible(false);
+  if (!state.isAuthenticated) {
+    setPanelOpen(false);
+    return;
   }
+
+  const membershipState = await getCurrentMembershipState(state.client);
+  state.isAuthenticated = membershipState.isAuthenticated;
+  state.isApprovedMember = membershipState.isApproved;
+  setBellVisible(state.isApprovedMember);
+  if (!state.isApprovedMember) {
+    setPanelOpen(false);
+    return;
+  }
+  refreshUnreadCount();
 }
 
 export function refreshNotificationBell() {
   if (!state.container && !ensureNotificationShell()) return;
   if (!state.client) return;
   state.client.auth.getSession().then(({ data }) => {
-    handleAuthSession(data?.session || null);
+    void handleAuthSession(data?.session || null);
   }).catch(() => {
-    handleAuthSession(null);
+    void handleAuthSession(null);
   });
 }
 
 export function resetNotificationBell() {
   state.isAuthenticated = false;
+  state.isApprovedMember = false;
+  setPanelOpen(false);
   setBellVisible(false);
 }
 
@@ -424,9 +440,9 @@ export async function initNotificationBell() {
     }
 
     const { data } = await state.client.auth.getSession();
-    handleAuthSession(data?.session || null);
+    void handleAuthSession(data?.session || null);
     state.client.auth.onAuthStateChange((_event, session) => {
-      handleAuthSession(session);
+      void handleAuthSession(session);
     });
   } catch {
     resetNotificationBell();

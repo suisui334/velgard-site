@@ -1,5 +1,5 @@
 import { loadJson } from "./dataLoader.js";
-import { renderHome } from "./renderHome.js?v=20260611-home-activity";
+import { renderHome } from "./renderHome.js?v=20260613-unapproved-ui";
 import { renderWorld } from "./renderWorld.js?v=20260528-responsive-ui-fix";
 import { renderCampaigns } from "./renderCampaigns.js";
 import { renderCampaignDetail } from "./renderCampaignDetail.js";
@@ -10,17 +10,22 @@ import { renderSpotDetail } from "./renderSpotDetail.js?v=20260529-ui-polish";
 import { renderCharacters } from "./renderCharacters.js?v=20260529-ui-polish";
 import { renderScenarios } from "./renderScenarios.js?v=20260529-scenario-release-base";
 import { renderScenarioDetail } from "./renderScenarioDetail.js?v=20260529-scenario-release-base";
-import { renderSessionDetail as renderSessionScheduleDetail } from "./renderSessionDetail.js?v=20260610-discord-absolute-link";
-import { renderSessionPost } from "./renderSessionPost.js?v=20260610-discord-absolute-link";
+import { renderSessionDetail as renderSessionScheduleDetail } from "./renderSessionDetail.js?v=20260613-unapproved-ui";
+import { renderSessionPost } from "./renderSessionPost.js?v=20260613-unapproved-ui";
 import { renderTerms } from "./renderTerms.js?v=20260526-term-anchor";
 import { renderGallery } from "./renderGallery.js?v=20260529-gallery-swipe";
 import { renderUpdates } from "./renderUpdates.js";
 import { renderTools } from "./renderTools.js?v=20260529-calendar-date-tools-history";
-import { renderCalendar } from "./renderCalendar.js?v=20260608-calendar-grid-fix";
-import { renderTimeline } from "./renderTimeline.js?v=20260611-home-activity";
+import { renderCalendar } from "./renderCalendar.js?v=20260613-unapproved-ui";
+import { renderTimeline } from "./renderTimeline.js?v=20260613-unapproved-ui";
 import { renderMypage } from "./renderMypage.js?v=20260605-user-name-ui";
 import { renderAdminCapAnnouncements } from "./renderAdminCapAnnouncements.js?v=20260610-admin-cap-rpc-ui-fix";
-import { initNotificationBell } from "./notificationBellClient.js?v=20260611-localized-activity-labels";
+import { initNotificationBell, resetNotificationBell, refreshNotificationBell } from "./notificationBellClient.js?v=20260613-unapproved-ui";
+import {
+  getCurrentMembershipState,
+  isApprovedMembershipStatus,
+  shouldHideCommunityNav
+} from "./membershipAccessClient.js?v=20260613-unapproved-ui";
 
 const navItems = [
   { label: "TOP", href: "index.html", key: "home", enabled: true },
@@ -33,8 +38,8 @@ const navItems = [
   { label: "TERMS", href: "terms.html", key: "terms", enabled: true },
   { label: "GALLERY", href: "gallery.html", key: "gallery", enabled: true },
   { label: "TOOLS", href: "tools.html", key: "tools", enabled: true },
-  { label: "CALENDAR", href: "calendar.html", key: "calendar", enabled: true },
-  { label: "TIMELINE", href: "timeline.html", key: "timeline", enabled: true }
+  { label: "CALENDAR", href: "calendar.html", key: "calendar", enabled: true, requiresApproved: true },
+  { label: "TIMELINE", href: "timeline.html", key: "timeline", enabled: true, requiresApproved: true }
 ];
 
 const renderers = {
@@ -72,7 +77,7 @@ function escapeAttribute(value = "") {
   })[character]);
 }
 
-function renderHeader(site, page) {
+function renderHeader(site, page, membershipState = null) {
   const header = document.querySelector("#site-header");
   const logoImage = site.logoImage && site.logoImage.trim() ? site.logoImage.trim() : "";
   const brandLabel = site.title || site.shortTitle || "Velgard";
@@ -86,9 +91,13 @@ function renderHeader(site, page) {
           <img class="brand-logo-image" src="${escapeAttribute(logoImage)}" alt="${escapeAttribute(brandLabel)}" onerror="this.hidden=true;this.closest('.brand').classList.add('is-logo-fallback');">
           ${brandFallback}
   ` : brandFallback;
-  const links = navItems.filter((item) => item.enabled).map(({ label, href, key }) => {
+  const hideCommunityNav = shouldHideCommunityNav(membershipState);
+  const links = navItems.filter((item) => item.enabled).map(({ label, href, key, requiresApproved }) => {
     const active = page === key || (page === "campaign-detail" && key === "campaigns") || (page === "episode-detail" && key === "campaigns") || (page === "spot-detail" && key === "spots") || ((page === "scenario-detail" || page === "hooks") && key === "scenarios") || (page === "session-detail" && key === "calendar");
-    return `<a href="${href}" class="${active ? "is-active" : ""}">${label}</a>`;
+    const gatedAttrs = requiresApproved
+      ? ` data-community-nav-requires-approved="true"${hideCommunityNav ? " hidden aria-hidden=\"true\"" : ""}`
+      : "";
+    return `<a href="${href}" class="${active ? "is-active" : ""}"${gatedAttrs}>${label}</a>`;
   }).join("");
   const accountLink = `
     <a href="mypage.html" class="account-nav__link" aria-label="マイページへ移動" title="マイページ">ACCOUNT</a>
@@ -115,7 +124,22 @@ function renderHeader(site, page) {
   });
 }
 
-function renderFooter(site) {
+function applyHeaderMembershipAccess(membershipState = null) {
+  const hideCommunityNav = shouldHideCommunityNav(membershipState);
+  document.querySelectorAll("[data-community-nav-requires-approved]").forEach((link) => {
+    link.hidden = hideCommunityNav;
+    link.setAttribute("aria-hidden", String(hideCommunityNav));
+  });
+
+  if (membershipState?.isAuthenticated && !membershipState.isApproved) {
+    resetNotificationBell();
+    return;
+  }
+  refreshNotificationBell();
+}
+
+function renderFooter(site, membershipState = null) {
+  const hideCommunityNav = shouldHideCommunityNav(membershipState);
   document.querySelector("#site-footer").innerHTML = `
     <footer class="site-footer">
       <div class="footer-inner">
@@ -124,7 +148,12 @@ function renderFooter(site) {
           <p>${site.description}</p>
         </div>
         <div class="footer-links">
-          ${navItems.filter((item) => item.enabled).map(({ label, href }) => `<a href="${href}">${label}</a>`).join("")}
+          ${navItems.filter((item) => item.enabled).map(({ label, href, requiresApproved }) => {
+            const gatedAttrs = requiresApproved
+              ? ` data-community-nav-requires-approved="true"${hideCommunityNav ? " hidden aria-hidden=\"true\"" : ""}`
+              : "";
+            return `<a href="${href}"${gatedAttrs}>${label}</a>`;
+          }).join("")}
           <a href="updates.html">UPDATES</a>
         </div>
       </div>
@@ -194,12 +223,26 @@ function setupBackToTopButton() {
 async function init() {
   const site = await loadJson("data/site.json?v=20260527-logo");
   const page = document.body.dataset.page;
+  const membershipState = await getCurrentMembershipState();
   applyTheme(site);
-  renderHeader(site, page);
+  renderHeader(site, page, membershipState);
+  window.VelgardMembership = {
+    applyHeaderAccess: applyHeaderMembershipAccess
+  };
+  window.addEventListener("velgard:membership-status", (event) => {
+    const status = event.detail?.status || "";
+    const isAuthenticated = event.detail?.isAuthenticated === true;
+    applyHeaderMembershipAccess({
+      isAuthenticated,
+      isApproved: isAuthenticated && isApprovedMembershipStatus(status),
+      status
+    });
+  });
   void initNotificationBell();
-  renderFooter(site);
+  applyHeaderMembershipAccess(membershipState);
+  renderFooter(site, membershipState);
   setupBackToTopButton();
-  await renderers[page](document.querySelector("#app"), site);
+  await renderers[page](document.querySelector("#app"), site, { membershipState });
 }
 
 init().catch((error) => {

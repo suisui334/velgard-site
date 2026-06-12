@@ -1501,6 +1501,7 @@
     ensureAuthElements(elements);
     removeNavLogoutButton();
     resetHeaderNotifications();
+    publishMembershipStatus("anonymous", false);
     const isResetMode = mode === "reset";
     setStatus(
       elements,
@@ -1866,6 +1867,35 @@
     return Array.isArray(data) ? data[0] : data;
   }
 
+  function isApprovedMembershipStatus(status) {
+    return normalizeMembershipStatus(status) === "approved";
+  }
+
+  function publishMembershipStatus(status, isAuthenticated = true) {
+    const normalized = isAuthenticated ? normalizeMembershipStatus(status) : "anonymous";
+    try {
+      window.dispatchEvent(new CustomEvent("velgard:membership-status", {
+        detail: {
+          isAuthenticated,
+          status: normalized,
+          isApproved: isAuthenticated && isApprovedMembershipStatus(normalized)
+        }
+      }));
+    } catch {
+      // Header updates are advisory; mypage rendering should not depend on them.
+    }
+  }
+
+  async function fetchMyMembershipStatus(client) {
+    const { data, error } = await client.rpc("get_my_membership_status");
+    if (error) throw error;
+    const row = getMembershipStatusRow(data);
+    return {
+      row,
+      status: normalizeMembershipStatus(row && row.status)
+    };
+  }
+
   function setMembershipPanelLoading(panel) {
     panel.badge.className = "mypage-membership-badge is-loading";
     panel.badge.textContent = "確認中";
@@ -1877,6 +1907,7 @@
 
   function setMembershipPanelValue(panel, status) {
     const view = getMembershipStatusView(status);
+    publishMembershipStatus(status, true);
     panel.badge.className = `mypage-membership-badge is-${view.tone}`;
     panel.badge.textContent = view.label;
     panel.message.textContent = view.message;
@@ -1956,14 +1987,8 @@
         return;
       }
 
-      const { data, error } = await client.rpc("get_my_membership_status");
-      if (error) {
-        setMembershipPanelError(panel);
-        return;
-      }
-
-      const row = getMembershipStatusRow(data);
-      setMembershipPanelValue(panel, row && row.status);
+      const result = await fetchMyMembershipStatus(client);
+      setMembershipPanelValue(panel, result.status);
     } catch {
       setMembershipPanelError(panel);
     }
@@ -3913,7 +3938,26 @@
     }
   }
 
-  function renderAuthenticated(client, elements, message, session) {
+  function createUnapprovedMembershipNotice(status) {
+    const view = getMembershipStatusView(status);
+    const container = document.createElement("section");
+    container.className = "mypage-profile-panel mypage-unapproved-notice";
+
+    const title = document.createElement("h3");
+    title.textContent = "利用できる機能";
+
+    const message = document.createElement("p");
+    message.textContent = view.message;
+
+    const note = document.createElement("p");
+    note.className = "mypage-profile-note";
+    note.textContent = "未承認状態では、表示名・Discord IDなど承認判断に必要な最小プロフィール情報だけを編集できます。カレンダー、依頼書、コメント、参加申請、PC管理、テンプレート、通知、TIMELINE、アイコン設定は承認後に利用できます。";
+
+    container.append(title, message, note);
+    return container;
+  }
+
+  async function renderAuthenticated(client, elements, message, session) {
     ensureAuthElements(elements);
     renderNavLogoutButton(client, elements);
     refreshHeaderNotifications();
@@ -3926,16 +3970,8 @@
 
     const membershipPanel = createMembershipStatusPanel(session);
     const displayNameEditor = createDisplayNameEditor(client, elements, session);
-    const avatarEditor = createAvatarEditor(client, elements, session);
-    const playerCharacterPanel = createPlayerCharacterPanel(client, elements, session);
     const discordIdEditor = createDiscordIdEditor(client, elements, session);
-    const templatePanel = createTemplateManagementPanel(client, elements, session);
-    const applicationsPanel = createApplicationsPanel();
     const accountDetails = createMypageDetails("アカウント概要", "ログイン中");
-    const profileDetails = createMypageDetails("プロフィール / PC情報", "PC名・Discord ID");
-    const scheduleDetails = createMypageDetails("予定 / 申請履歴", "読み込み中");
-    const templateDetails = createMypageDetails("テンプレート管理", "保存済みテンプレート");
-    applicationsPanel.summaryDetails = scheduleDetails;
 
     const actions = document.createElement("div");
     actions.className = "actions";
@@ -3950,7 +3986,43 @@
     });
 
     actions.append(changePassword);
-    accountDetails.body.append(membershipPanel.container, displayNameEditor.container, avatarEditor.container, actions);
+
+    let membershipStatus = "pending";
+    try {
+      const membership = await fetchMyMembershipStatus(client);
+      membershipStatus = membership.status;
+      setMembershipPanelValue(membershipPanel, membershipStatus);
+    } catch {
+      membershipStatus = "pending";
+      setMembershipPanelError(membershipPanel);
+      publishMembershipStatus(membershipStatus, true);
+    }
+
+    accountDetails.body.append(membershipPanel.container, displayNameEditor.container);
+    if (!isApprovedMembershipStatus(membershipStatus)) {
+      setStatus(
+        elements,
+        "ログイン済みです。",
+        "会員承認後にコミュニティ機能を利用できます。現在は最小プロフィール情報だけ確認・編集できます。"
+      );
+      accountDetails.body.append(discordIdEditor.container, createUnapprovedMembershipNotice(membershipStatus), actions);
+      elements.content.append(accountDetails.details);
+      setMessage(elements, message || "");
+      loadDisplayName(client, displayNameEditor);
+      loadProfileContact(client, discordIdEditor);
+      return;
+    }
+
+    const avatarEditor = createAvatarEditor(client, elements, session);
+    const playerCharacterPanel = createPlayerCharacterPanel(client, elements, session);
+    const templatePanel = createTemplateManagementPanel(client, elements, session);
+    const applicationsPanel = createApplicationsPanel();
+    const profileDetails = createMypageDetails("プロフィール / PC情報", "PC名・Discord ID");
+    const scheduleDetails = createMypageDetails("予定 / 申請履歴", "読み込み中");
+    const templateDetails = createMypageDetails("テンプレート管理", "保存済みテンプレート");
+    applicationsPanel.summaryDetails = scheduleDetails;
+
+    accountDetails.body.append(avatarEditor.container, actions);
     profileDetails.body.append(playerCharacterPanel.container, discordIdEditor.container);
     scheduleDetails.body.append(applicationsPanel.container);
     templateDetails.body.append(templatePanel.container);
@@ -3961,7 +4033,6 @@
       templateDetails.details
     );
     setMessage(elements, message || "");
-    loadMembershipStatus(client, membershipPanel);
     loadDisplayName(client, displayNameEditor);
     loadAvatarProfile(client, avatarEditor);
     loadPlayerCharacters(client, playerCharacterPanel);
@@ -4026,7 +4097,7 @@
     back.type = "button";
     back.textContent = "戻る";
     back.addEventListener("click", () => {
-      renderAuthenticated(client, elements);
+      void renderAuthenticated(client, elements);
     });
 
     actions.append(back);
@@ -4067,7 +4138,7 @@
         return;
       }
 
-      renderAuthenticated(client, elements, "", data.session);
+      await renderAuthenticated(client, elements, "", data.session);
     } catch (error) {
       if (passwordInput) passwordInput.value = "";
       setMessage(elements, "ログインできませんでした。入力内容を確認してください。");
@@ -4200,7 +4271,7 @@
       }
 
       if (data && data.session) {
-        renderAuthenticated(
+        await renderAuthenticated(
           client,
           elements,
           "登録を受け付けました。確認メールが届いた場合は、メール内のリンクを確認してください。",
@@ -4266,7 +4337,7 @@
         return;
       }
 
-      renderAuthenticated(client, elements, "パスワードを変更しました。");
+      await renderAuthenticated(client, elements, "パスワードを変更しました。");
     } catch (error) {
       clearPasswordChangeFields(form);
       setMessage(elements, "パスワードを変更できませんでした。時間を置いて再度お試しください。");
@@ -4386,7 +4457,7 @@
       }
 
       if (data && data.session) {
-        renderAuthenticated(client, elements, "", data.session);
+        await renderAuthenticated(client, elements, "", data.session);
         return { status: "authenticated" };
       }
 
