@@ -411,6 +411,10 @@ Membership approval status:
   membership/role exposure through `public_profiles`.
 - `post_apply_ready_for_membership_approval_rpc_qa=true`.
 - The next gate is approval RPC functional QA.
+- `docs/membership-approval-rpc-qa-plan.md` prepares that functional QA without
+  executing RPCs. It requires disposable pending QA accounts, avoids SQL Editor
+  and direct table writes, defers membership-approver-path QA until role
+  provisioning has its own reviewed gate, and records only status-level results.
 
 ### Comment/Application Spam
 

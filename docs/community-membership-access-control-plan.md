@@ -502,6 +502,22 @@ Approval RPC apply confirmation:
 - The next gate is approval RPC functional QA. No concrete user ids, emails,
   full URLs, tokens, project identifiers, or secrets are recorded.
 
+Approval RPC functional QA planning:
+
+- `docs/membership-approval-rpc-qa-plan.md` records the non-destructive QA
+  plan for the applied pending-list, approve, and reject RPCs.
+- Because approver UI is not implemented yet, functional QA should use a
+  logged-in browser session and a local ephemeral RPC caller rather than SQL
+  Editor or direct table writes.
+- Required accounts are admin, normal approved user, one disposable pending
+  user for approval, and one disposable pending user for rejection.
+- New pending QA user creation may send signup/confirmation mail, so it remains
+  a separate gate if no disposable pending users already exist.
+- `membership_approver` path QA is deferred unless a separate reviewed gate
+  safely grants that role to a dedicated approved test account.
+- The QA plan records status-level results only and forbids recording concrete
+  user ids, emails, full URLs, tokens, project identifiers, or secrets.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one

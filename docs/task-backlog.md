@@ -6871,6 +6871,40 @@ Safety:
 - No real user id, email, session id, full URL, project identifier, token, JWT,
   secret, or API key was recorded.
 
+## M-14F-43 membership approval RPC QA plan
+
+Status: non-destructive functional QA plan prepared.
+
+Created:
+
+- `docs/membership-approval-rpc-qa-plan.md`
+
+Plan:
+
+- Functional QA will verify the applied pending-list, approve, and reject RPCs
+  without using SQL Editor or direct table writes.
+- Because approver UI is not implemented yet, the preferred QA path is a
+  logged-in browser session with a local ephemeral RPC caller.
+- Required accounts are admin, a normal approved user, a disposable pending user
+  intended for approval, and a disposable pending user intended for rejection.
+- If no disposable pending users exist, pending QA user creation is a separate
+  gate because signup/confirmation can send mail.
+- Admin path QA covers pending-list retrieval, email absence, approval,
+  rejection, mypage approved/rejected status display, self-action denial, and
+  non-pending denial.
+- Normal approved user QA covers denial for pending-list and approval RPCs.
+- `membership_approver` role-path QA is deferred unless a separate reviewed
+  gate safely provisions a dedicated approved approver test account.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, live RPC execution,
+  signup, mail sending, Supabase Dashboard changes, Edge deploy, Discord
+  sending, and Supabase direct DB writes were not performed.
+- The plan records only status-level outcomes and forbids recording real user
+  ids, emails, session ids, full URLs, project identifiers, tokens, JWTs,
+  secrets, or API keys.
+
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
 
 Status: Cloudflare Turnstile frontend integration implemented.
