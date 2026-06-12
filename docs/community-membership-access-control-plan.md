@@ -430,8 +430,12 @@ Prepared foundation gate:
 - `docs/supabase/sql/080_membership_foundation_failed_apply_state_select_only.sql`
   was prepared to inspect whether the failed attempt left any partial
   membership objects before deciding the next apply gate.
-- 079 remains a post-apply SELECT-only confirmation SQL and has not been
-  executed successfully for the membership foundation.
+- 080 was run once as SELECT-only and showed no partial membership foundation
+  objects from the failed 078 attempt.
+- The corrected 078 was then run once in the user's SQL Editor and the apply
+  succeeded.
+- 079 was run once as SELECT-only after the corrected 078 apply, and all checks
+  were OK.
 - The foundation keeps membership state in a new private
   `community_memberships` table instead of adding it to `profiles`, so
   `public_profiles` stays free of membership/role status.
@@ -441,12 +445,22 @@ Prepared foundation gate:
 - The existing `user_roles` model is extended to allow
   `membership_approver`, with helper RPCs for approved-member and approver
   checks.
+- `community_memberships` exists, RLS is enabled, expected columns and status /
+  review-note constraints are present, own-status and admin/approver read
+  policies exist, and web-role direct table grants remain closed.
+- Existing auth users have membership rows and missing membership count is 0.
+- The separate auth trigger for future `pending` rows exists.
+- `is_approved_member()`, `is_membership_approver()`, and
+  `get_my_membership_status()` exist, are security definer functions with
+  `search_path=public`, and are executable only by authenticated web clients.
+- The auth trigger function is not directly executable by web roles.
+- `post_apply_ready_for_membership_gate_design=true`.
 - Approve/reject RPCs, approver UI, and approved gates for the 34 candidate
   RPCs remain separate later gates.
 - A dedicated membership event log table is also deferred; the foundation keeps
   only current status and a bounded review note.
-- The next gate is either 080 SELECT-only partial-state confirmation or a fresh
-  apply-before-review of the corrected 078, depending on coordinator choice.
+- The next gate is approved-member gate design or membership approver RPC
+  design.
 
 ## Open Questions For Later Gates
 

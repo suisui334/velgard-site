@@ -6694,12 +6694,12 @@ Safety:
 
 ## M-14F-40 membership foundation draft
 
-Status: membership foundation apply draft prepared, not executed.
+Status: membership foundation apply confirmed.
 
 Context:
 
 - Membership approval design, 074 inventory, 075 direct-write detail review, and 076/077 player-character TRUNCATE cleanup are complete.
-- Membership state is still not implemented in DB.
+- Membership foundation is implemented in DB.
 - Existing users should initially be treated as approved.
 - Future signups should start as pending.
 - Invite codes are not part of the first gate.
@@ -6710,7 +6710,7 @@ Prepared:
 - Added `docs/supabase/sql/078_membership_foundation_apply_draft.sql`.
 - Added `docs/supabase/sql/079_membership_foundation_post_apply_select_only.sql`.
 - 078 is `DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED`.
-- 079 is SELECT-only and has not been executed.
+- 079 is SELECT-only and was used for post-apply confirmation.
 
 078 scope:
 
@@ -6737,9 +6737,8 @@ Deferred:
 
 Next gates:
 
-- Review 078 before apply.
-- If approved, run 078 once in the user's SQL Editor, then run 079 once as SELECT-only.
-- After 079 confirms the foundation, design approve/reject RPCs and then add approved-member gates in small batches.
+- Design approved-member gates and apply them in small batches.
+- Design membership approver RPCs and approver UI in separate gates.
 
 Safety:
 
@@ -6762,6 +6761,35 @@ Follow-up:
 - No SQL Editor execution, SQL apply, DB/RPC/RLS changes, Dashboard changes,
   Edge deploy, email sending, Discord sending, credential recording, or
   Supabase direct DB writes were performed in this fix-preparation step.
+
+Apply result:
+
+- The user ran 080 once as SELECT-only and confirmed that the failed 078 attempt
+  left no partial membership foundation objects.
+- The user then ran the corrected 078 once in their SQL Editor, and the apply
+  succeeded.
+- The user ran 079 once as SELECT-only after the corrected 078 apply, and all
+  checks were OK.
+- `community_memberships` exists with RLS enabled.
+- Required columns, status constraint, and review-note length constraint are
+  present.
+- Own-status and admin/approver read policies are present.
+- Direct table grants for web roles remain closed.
+- `user_roles` now has the foundation needed to allow `membership_approver`.
+- Existing auth users were backfilled as `approved`, and missing membership
+  count is 0.
+- The separate auth trigger for future `pending` membership rows exists.
+- Membership helper RPCs, including `is_approved_member()`,
+  `is_membership_approver()`, and `get_my_membership_status()`, exist.
+- Helper RPCs are security definer functions with `search_path=public` and are
+  executable only by authenticated web clients.
+- The auth trigger function is not directly executable by web roles.
+- `public_profiles` does not expose membership or role information.
+- `post_apply_ready_for_membership_gate_design=true`.
+- SQL Editor additional execution, SQL apply, DB/RPC/RLS additional changes,
+  Dashboard changes, Edge deploy, email sending, Discord sending, credential
+  recording, and Supabase direct DB writes were not performed in this recording
+  step.
 
 ## M-14F-29 Turnstile Auth CAPTCHA frontend
 

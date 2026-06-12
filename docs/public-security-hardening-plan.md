@@ -373,9 +373,24 @@ Membership approval status:
 - `docs/supabase/sql/080_membership_foundation_failed_apply_state_select_only.sql`
   was prepared to check for partial objects from the failed attempt before
   another apply gate.
-- The next gate is 080 SELECT-only partial-state confirmation or a fresh
-  apply-before-review of the corrected 078, followed by 079 after a successful
-  foundation apply.
+- 080 was run once as SELECT-only and showed no partial membership foundation
+  objects from the failed attempt.
+- The corrected 078 was run once in the user's SQL Editor and the apply
+  succeeded.
+- 079 was run once as SELECT-only after the corrected 078 apply, and all checks
+  were OK.
+- `community_memberships` exists with RLS enabled, required columns, status and
+  review-note constraints, own-status and admin/approver read policies, and
+  closed web-role direct table grants.
+- Existing auth users were backfilled as `approved`, missing membership count is
+  0, and the future-signup `pending` trigger exists.
+- Membership helper RPCs exist, use security definer with `search_path=public`,
+  are authenticated-only for web execution, and the auth trigger function is not
+  directly executable by web roles.
+- `public_profiles` does not expose membership or role state.
+- `post_apply_ready_for_membership_gate_design=true`.
+- The next gate is approved-member gate design or membership approver RPC
+  design.
 
 ### Comment/Application Spam
 
