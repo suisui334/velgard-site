@@ -6560,6 +6560,58 @@ Safety:
 - No real email, user id, session id, application id, comment id, full URL,
   project identifier, token, JWT, secret, Webhook URL, or API key was recorded.
 
+## M-14F-50 comment/application approved-member gate QA result
+
+Status: functional QA completed successfully.
+
+Confirmed:
+
+- The 083 apply was already completed and the 084 SELECT-only post-apply check
+  returned all `ok`.
+- Functional QA confirmed the approved-member gate behavior for all four target
+  RPCs:
+  `create_application_comment(text,text)`,
+  `cancel_my_session_application(text)`,
+  `update_application_comment(uuid,text)`, and
+  `delete_application_comment_and_maybe_cancel(uuid)`.
+- `qa_executed=true`.
+- `approved_create_comment=pass`.
+- `approved_cancel_application=pass`.
+- `approved_update_comment=pass`.
+- `approved_delete_comment=pass`.
+- `unapproved_create_comment_rejected=pass`.
+- `unapproved_cancel_application_rejected=pass`.
+- `unapproved_update_comment_rejected=pass`.
+- `unapproved_delete_comment_rejected=pass`.
+- `short_japanese_error=pass`.
+- `gm_admin_display=pass`.
+- `spam_guard_regression=pass`.
+- `notification_timeline_regression=pass`.
+- `pc_snapshot_regression=pass`.
+- `public_profiles_membership_exposure=none`.
+
+Result:
+
+- Approved users can perform the expected comment/application operations.
+- Unapproved, pending, and rejected-equivalent users are rejected as expected.
+- The rejection path returns a short Japanese error message and does not expose
+  internal details.
+- GM/admin management comments and existing display behavior were not broken.
+- Existing 60-second cooldown, URL maximum 2 guard, length guard, notification
+  generation, TIMELINE activity generation, PC snapshot handling, and
+  management-comment skip behavior remained intact.
+- No unconfirmed item remains for this first comment/application
+  approved-member gate.
+
+Safety:
+
+- Codex recorded the user-confirmed QA result only; it did not run SQL Editor,
+  SQL apply, DB/RPC/RLS changes, Edge deploy, dry_run=false, Discord
+  operations, secret/Webhook changes, or Supabase direct DB writes.
+- No real email, user id, session id, application id, comment id, Discord
+  message id, full post URL, project identifier, token, JWT, secret, Webhook
+  URL, or API key was recorded.
+
 ## M-14F-33 mobile Turnstile CAPTCHA layout
 
 Status: smartphone-width mypage Auth CAPTCHA layout fixed.

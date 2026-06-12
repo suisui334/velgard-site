@@ -198,3 +198,54 @@ Use this shape:
 The next gate is explicit functional QA execution. It should start only after a
 human confirms the approved test user, unapproved test user, and safe QA session
 are available.
+
+## Functional QA Result
+
+Status: completed successfully.
+
+The user confirmed the functional QA results after the 083 apply and 084
+SELECT-only confirmation.
+
+Result summary:
+
+- `qa_executed=true`
+- `approved_create_comment=pass`
+- `approved_cancel_application=pass`
+- `approved_update_comment=pass`
+- `approved_delete_comment=pass`
+- `unapproved_create_comment_rejected=pass`
+- `unapproved_cancel_application_rejected=pass`
+- `unapproved_update_comment_rejected=pass`
+- `unapproved_delete_comment_rejected=pass`
+- `short_japanese_error=pass`
+- `session_detail_display=pass`
+- `comment_list_display=pass`
+- `gm_admin_display=pass`
+- `spam_guard_regression=pass`
+- `notification_timeline_regression=pass`
+- `pc_snapshot_regression=pass`
+- `public_profiles_membership_exposure=none`
+- `dangerous_operations_performed=false`
+- `real_values_recorded=false`
+
+Confirmed details:
+
+- Approved users can perform the expected comment/application operations through
+  the target RPC paths.
+- Unapproved, pending, and rejected-equivalent users are rejected by the target
+  RPC paths.
+- Rejections use a short Japanese error message and do not expose internal
+  details.
+- The confirmed RPCs are:
+  `create_application_comment(text,text)`,
+  `cancel_my_session_application(text)`,
+  `update_application_comment(uuid,text)`, and
+  `delete_application_comment_and_maybe_cancel(uuid)`.
+- GM/admin management comments and existing display behavior were not broken.
+- Existing 60-second cooldown, URL maximum 2 guard, length guard, owner
+  notifications, TIMELINE activity, PC snapshot handling, and GM/admin
+  management comment skip behavior remained intact.
+
+No concrete user id, email, session id, application id, comment id, Discord
+message id, full post URL, JWT, token, project identifier, Webhook URL, or
+secret is recorded.

@@ -599,7 +599,7 @@ Follow-up status:
 ## Membership Approved Gate Follow-Up
 
 Status: frontend restriction is implemented; the first DB/RPC gate is applied
-and ready for functional QA.
+and functional QA is confirmed.
 
 Notes:
 
@@ -628,13 +628,18 @@ Notes:
   snapshot handling, and management-comment TIMELINE skip were confirmed.
 - Direct table write grants on comment/application tables remain closed, and
   `public_profiles` still does not expose membership or role state.
-- `docs/comment-application-approved-gate-qa-plan.md` prepares the
+- `docs/comment-application-approved-gate-qa-plan.md` records the
   approved/unapproved functional QA gate.
-- The functional QA execution is not performed in the planning step because it
-  can create, edit, delete, or cancel real comment/application records.
-- Before execution, a human must confirm one approved normal user, one
-  unapproved test user, and one safe QA session that does not require Discord,
-  Edge, dry_run=false, or broad production-data changes.
+- Functional QA confirmed that approved users can perform the target
+  comment/application operations and that unapproved, pending, or
+  rejected-equivalent users are rejected by the four target RPCs.
+- The rejection path returns a short Japanese error without exposing internal
+  details.
+- GM/admin management comments, existing display behavior, 60-second cooldown,
+  URL maximum 2 guard, length guard, notifications, TIMELINE activity, PC
+  snapshot handling, and management-comment skip behavior remained intact.
+- No unchecked item remains for this first comment/application approved-member
+  gate.
 - No additional SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard
   change, Edge deploy, mail sending, Discord sending, or secret recording was
   performed by Codex in the documentation step.

@@ -646,6 +646,31 @@ Comment/application approved-member RPC gate QA planning:
 - No concrete user id, email, session id, application id, comment id, full URL,
   token, project identifier, or secret is recorded.
 
+Comment/application approved-member RPC gate functional QA result:
+
+- The user completed functional QA for the four comment/application RPCs after
+  the 083 apply and 084 SELECT-only all-OK confirmation.
+- `qa_executed=true`.
+- Approved-user outcomes:
+  `approved_create_comment=pass`,
+  `approved_cancel_application=pass`,
+  `approved_update_comment=pass`, and
+  `approved_delete_comment=pass`.
+- Unapproved-user outcomes:
+  `unapproved_create_comment_rejected=pass`,
+  `unapproved_cancel_application_rejected=pass`,
+  `unapproved_update_comment_rejected=pass`, and
+  `unapproved_delete_comment_rejected=pass`.
+- Rejection returned a short Japanese error without exposing internal details.
+- GM/admin management comments and existing display behavior were not broken.
+- The existing 60-second cooldown, URL maximum 2 guard, length guard,
+  notification generation, TIMELINE activity, PC snapshot handling, and
+  management-comment skip behavior remained intact.
+- There are no unconfirmed items for this first comment/application
+  approved-member gate.
+- No concrete user id, email, session id, application id, comment id, Discord
+  message id, full post URL, token, project identifier, or secret is recorded.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one
