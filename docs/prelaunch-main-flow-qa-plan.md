@@ -213,6 +213,41 @@ Conclusion:
 - Authenticated approved, unapproved, owner/GM, and admin live-operation QA
   still requires safe account sessions and explicit mutation-aware gates.
 
+## Authenticated Main Flow QA Gate
+
+Prepared:
+
+- `docs/authenticated-main-flow-qa-plan.md`
+
+Current Codex-side result:
+
+- `qa_executed=false`
+- `safe_authenticated_session_available=false`
+- `approved_calendar_view=not_tested`
+- `approved_session_detail_view=not_tested`
+- `approved_comment_or_application=not_tested`
+- `unapproved_mypage_minimal=not_tested`
+- `unapproved_calendar_gate=not_tested`
+- `unapproved_session_detail_gate=not_tested`
+- `unapproved_session_post_gate=not_tested`
+- `unapproved_timeline_gate=not_tested`
+- `owner_controls_visible=not_tested`
+- `owner_mutation_executed=false`
+- `admin_controls_visible=not_tested`
+- `normal_user_other_session_management_hidden=not_tested`
+- `discord_operation_executed=false`
+
+Reason:
+
+- Codex does not have safe authenticated browser sessions for approved,
+  unapproved, owner/GM, or admin actors in the current tool context.
+- Approved comment/application checks can create live data.
+- Owner/GM edit/delete/close and admin-management checks can mutate live data
+  and may touch Discord sync if carried too far.
+- The prepared gate therefore provides user-side manual QA steps, stop
+  conditions, and a boolean/status result template instead of forcing unsafe
+  execution from Codex.
+
 ## Required Live QA Gates
 
 The following require explicit later gates because they can create, edit, delete,

@@ -707,6 +707,24 @@ Prelaunch public-site live QA:
   token, project identifier, Discord identifier, Webhook URL, or secret is
   recorded.
 
+Authenticated main-flow QA gate:
+
+- `docs/authenticated-main-flow-qa-plan.md` records the next live QA gate for
+  approved, unapproved, owner/GM, and admin actors.
+- Codex did not run the authenticated live QA because no safe authenticated
+  browser sessions were available in the current tool context.
+- The gate records user-side manual steps, stop conditions, and a status-only
+  result template.
+- The planned checks cover approved calendar/session-detail visibility,
+  approved comment/application operation, unapproved approved-gate behavior,
+  owner/GM control visibility, admin management visibility, and the negative
+  control that a normal user cannot manage another user's session.
+- Final owner/GM edit/delete/close execution and any Discord sync operation
+  remain explicit later gates.
+- No concrete user id, email, session id, application id, comment id, full URL,
+  token, project identifier, Discord identifier, Webhook URL, or secret is
+  recorded.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one

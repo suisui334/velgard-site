@@ -6667,7 +6667,8 @@ Deferred live QA gates:
 - Calendar visual QA for type colors, close mark, and GM name display.
 - Mypage approved/unapproved/admin empty/status-state QA.
 - Broader GM/admin application-management QA.
-- Anonymous/unapproved approved-gate display QA for calendar/session-detail.
+- Authenticated unapproved/pending/rejected approved-gate display QA for
+  calendar/session-detail.
 
 Safety:
 
@@ -6727,6 +6728,69 @@ Reason:
 - Participation/comment operations can create live data.
 - Owner/GM edit/delete/close and admin-management flows can mutate live data
   and may touch Discord sync, so they require separate explicit gates.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Edge deploy,
+  dry_run=false, Discord operations, secret/Webhook changes, and Supabase
+  direct DB writes were not performed.
+- No real email, user id, session id, application id, comment id, Discord
+  message/channel id, full post URL, project identifier, token, JWT, secret,
+  Webhook URL, or API key was recorded.
+
+## M-14F-53 authenticated main flow QA gate
+
+Status: user-side authenticated QA gate prepared; Codex-side live execution
+not run.
+
+Created:
+
+- `docs/authenticated-main-flow-qa-plan.md`
+
+Baseline:
+
+- Started from `b9a0c60 Record prelaunch main flow QA`.
+- Anonymous public-site QA is complete.
+- The remaining actors are approved normal user, unapproved/pending/rejected
+  user, owner/GM, admin, and a normal-user negative control.
+
+Codex-side result:
+
+- `qa_executed=false`.
+- `safe_authenticated_session_available=false`.
+- `approved_calendar_view=not_tested`.
+- `approved_session_detail_view=not_tested`.
+- `approved_comment_or_application=not_tested`.
+- `unapproved_mypage_minimal=not_tested`.
+- `unapproved_calendar_gate=not_tested`.
+- `unapproved_session_detail_gate=not_tested`.
+- `unapproved_session_post_gate=not_tested`.
+- `unapproved_timeline_gate=not_tested`.
+- `owner_controls_visible=not_tested`.
+- `owner_mutation_executed=false`.
+- `admin_controls_visible=not_tested`.
+- `normal_user_other_session_management_hidden=not_tested`.
+- `discord_operation_executed=false`.
+
+Reason:
+
+- Codex did not have safe authenticated browser sessions for the required actor
+  accounts in the current tool context.
+- Approved comment/application checks can create live data.
+- Owner/GM edit/delete/close and admin-management checks can mutate live data
+  and may touch Discord sync if carried too far.
+
+Prepared user-side QA:
+
+- Required account list for approved, unapproved/pending/rejected, owner/GM,
+  admin, and normal-user negative-control checks.
+- Safe target session requirements.
+- Stop conditions for SQL, Edge, `dry_run=false`, Discord operations,
+  secret/Webhook changes, raw value exposure, and broad data pollution.
+- Manual steps for approved viewing/comment/application, unapproved gate
+  behavior, owner/GM control visibility, admin management visibility, and
+  normal-user negative control.
+- Boolean/status result template that avoids concrete identifiers.
 
 Safety:
 

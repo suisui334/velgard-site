@@ -682,6 +682,14 @@ Notes:
 - Approved, unapproved, owner/GM, and admin live-operation QA remains separated
   because safe authenticated sessions were not available in the in-app browser
   context and those flows can mutate live data or touch Discord sync.
+- `docs/authenticated-main-flow-qa-plan.md` now records the authenticated QA
+  gate for approved, unapproved, owner/GM, admin, and normal-user negative
+  controls.
+- Codex did not execute the authenticated live QA in this pass because safe
+  authenticated sessions were not available. The document provides user-side
+  manual QA steps, stop conditions, and a status-only result template.
+- Final owner/GM edit/delete/close operations, admin mutations, and Discord
+  sync remain separate explicit mutation-aware gates.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
   Edge deploy, dry_run=false, Discord operation, mail sending, or secret
   recording was performed in this inventory step.
