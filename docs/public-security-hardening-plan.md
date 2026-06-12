@@ -703,6 +703,36 @@ Notes:
   message/channel id, full post URL, token, project identifier, Webhook URL, or
   secret is recorded.
 
+## Membership Management Delegation
+
+Status: design and unapplied SQL draft prepared.
+
+Notes:
+
+- `docs/membership-management-delegation-plan.md` records the delegated
+  membership-management design.
+- `docs/supabase/sql/085_membership_management_delegation_apply_draft.sql`
+  prepares the DB/RPC changes but has not been applied.
+- `docs/supabase/sql/086_membership_management_delegation_post_apply_select_only.sql`
+  prepares the post-apply SELECT-only confirmation.
+- The proposed design keeps admin as the master role and uses the existing
+  `membership_approver` role as a limited membership manager authority.
+- Approved membership managers can list and update normal review statuses for
+  `pending`, `approved`, and `rejected` users only.
+- Admin-only RPCs are drafted for granting and revoking the limited
+  `membership_approver` role.
+- The design blocks self actions, admin-target status changes, admin role
+  changes, revoked/blocked normal management, direct table grants, and
+  `public_profiles` membership/role exposure.
+- The existing pending-only approval RPCs and mypage UI are not changed in this
+  batch. UI expansion waits for 085 apply and 086 confirmation.
+- Next gate: apply-before-final-review for 085.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
+  Edge deploy, Discord operation, direct Supabase write, or secret recording was
+  performed.
+- No concrete user id, email, session id, full URL, token, project identifier,
+  or secret is recorded.
+
 ## Non-Goals In This Batch
 
 - SQL Editor execution.

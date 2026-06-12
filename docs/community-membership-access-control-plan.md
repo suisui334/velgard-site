@@ -728,6 +728,34 @@ Authenticated main-flow QA gate:
   token, project identifier, Discord identifier, Webhook URL, or secret is
   recorded.
 
+Membership management delegation preparation:
+
+- Added `docs/membership-management-delegation-plan.md`.
+- Added `docs/supabase/sql/085_membership_management_delegation_apply_draft.sql`.
+- Added `docs/supabase/sql/086_membership_management_delegation_post_apply_select_only.sql`.
+- 085 is an unapplied SQL draft and must not be run without a separate SQL
+  Editor approval gate.
+- 086 is the post-apply SELECT-only confirmation SQL for that future gate.
+- The design keeps admin as the master role while letting approved
+  `membership_approver` users manage normal membership review states.
+- New management scope is limited to normal users in `pending`, `approved`, and
+  `rejected`.
+- Allowed status transitions are `pending -> approved`,
+  `pending -> rejected`, `rejected -> approved`, `rejected -> pending`, and
+  `approved -> rejected`.
+- `approved -> pending`, revoked/blocked management, and admin-target status
+  changes remain out of scope.
+- Admin-only manager-role RPCs are drafted for granting and revoking the
+  limited `membership_approver` role for approved non-admin users.
+- The existing pending-only RPCs and mypage UI remain unchanged until 085 is
+  applied and 086 confirms the result.
+- The next gate is 085 apply-before-final-review, followed by SQL Editor apply,
+  086 SELECT-only confirmation, and then a separate UI implementation gate.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
+  Edge deploy, Discord operation, or secret recording was performed.
+- No concrete user id, email, session id, full URL, token, project identifier,
+  or secret is recorded.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one

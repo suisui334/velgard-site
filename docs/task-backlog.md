@@ -7961,3 +7961,30 @@ Safety:
 
 - SQL Editor execution, DB/Auth/RLS changes, Storage changes, Edge Function deploy, Discord sending, Supabase Dashboard changes, credential recording, and Supabase direct DB writes were not performed.
 - No real email, user id, full URL, project identifier, credential, or secret value was recorded.
+
+## M-14F-56 membership management delegation preparation
+
+Status: design and unapplied SQL draft prepared.
+
+- Latest baseline: `abbb810 Record authenticated main flow QA`.
+- Added `docs/membership-management-delegation-plan.md`.
+- Added `docs/supabase/sql/085_membership_management_delegation_apply_draft.sql`.
+- Added `docs/supabase/sql/086_membership_management_delegation_post_apply_select_only.sql`.
+- 085 prepares delegated membership-management RPCs but has not been applied.
+- 086 prepares SELECT-only post-apply checks and has not been run.
+- The draft keeps admin as the master authority while allowing approved
+  `membership_approver` users to manage normal membership review statuses.
+- Normal management scope is limited to `pending`, `approved`, and `rejected`.
+- Allowed transitions are `pending -> approved`, `pending -> rejected`,
+  `rejected -> approved`, `rejected -> pending`, and `approved -> rejected`.
+- Revoked/blocked management, admin-target changes, admin role management, and
+  remaining approved-member gates are out of scope.
+- Admin-only RPCs are drafted for granting/revoking the limited
+  `membership_approver` role to/from non-admin users.
+- Existing pending-only approval RPCs and current mypage UI remain unchanged
+  until 085 is reviewed, applied, and 086 confirms the result.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
+  Edge deploy, Discord operation, direct Supabase write, or secret recording was
+  performed.
+- No concrete user id, email, session id, full URL, token, project identifier,
+  or secret is recorded.
