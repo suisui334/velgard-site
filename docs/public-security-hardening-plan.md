@@ -391,9 +391,10 @@ Membership approval status:
 - `post_apply_ready_for_membership_gate_design=true`.
 - The next gate is approved-member gate design or membership approver RPC
   design.
-- `docs/supabase/sql/081_membership_approval_rpc_apply_draft.sql` and
-  `docs/supabase/sql/082_membership_approval_rpc_post_apply_select_only.sql`
-  are prepared but not executed.
+- `docs/supabase/sql/081_membership_approval_rpc_apply_draft.sql` was run once
+  in the user's SQL Editor and the apply succeeded.
+- `docs/supabase/sql/082_membership_approval_rpc_post_apply_select_only.sql`
+  was run once as SELECT-only after the 081 apply, and all checks were OK.
 - 081 is limited to pending-list, approve, and reject RPCs. It does not add the
   34 approved gates, approver UI, forced status changes, role management RPCs,
   invite codes, Auth email hooks, email hash deny lists, Discord, Edge, mail,
@@ -401,10 +402,15 @@ Membership approval status:
 - The intended authority split remains: admin can approve/reject pending users,
   and `membership_approver` can approve/reject pending users only when the
   approver account is itself approved.
-- 082 will confirm RPC existence, security definer/search_path, authenticated
-  execute only, internal admin/approver guards, self-action denial,
-  pending-only transitions, closed direct table grants, and no membership/role
-  exposure through `public_profiles`.
+- The pending-list, approve, and reject RPCs exist, are security definer
+  functions with `search_path=public`, are executable by `authenticated` only,
+  and are not executable by `anon` or `public`.
+- The RPCs keep internal admin/approved-approver guards, self-action denial,
+  pending-only transitions, `review_note` length guard, no email
+  reference/return, closed direct grants on `community_memberships`, and no
+  membership/role exposure through `public_profiles`.
+- `post_apply_ready_for_membership_approval_rpc_qa=true`.
+- The next gate is approval RPC functional QA.
 
 ### Comment/Application Spam
 

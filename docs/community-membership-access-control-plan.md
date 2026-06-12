@@ -475,24 +475,32 @@ Mypage status display gate:
 - No SQL Editor execution, SQL apply, DB/RPC/RLS change, Dashboard change, Edge
   deploy, mail sending, Discord sending, or credential recording was performed.
 
-Prepared approval RPC gate:
+Approval RPC apply confirmation:
 
 - `docs/supabase/sql/081_membership_approval_rpc_apply_draft.sql`
 - `docs/supabase/sql/082_membership_approval_rpc_post_apply_select_only.sql`
-- 081 is an unexecuted apply draft for the minimum approval workflow RPCs only.
-- The draft adds pending listing plus `pending -> approved` and
-  `pending -> rejected` RPCs.
-- Admin can act; `membership_approver` can act only when the approver account is
-  also approved.
-- Approvers cannot approve/reject themselves.
-- The draft does not add the 34 approved-member gates, approver UI, role
-  grant/revoke RPCs, forced status changes, invite codes, Auth email hooks,
-  email hash deny lists, Discord, Edge, mail, Storage, or Dashboard changes.
-- 082 is a SELECT-only post-apply confirmation SQL for RPC existence, grants,
-  internal authorization guards, pending-only transitions, direct table grants,
-  and public profile non-exposure.
-- SQL Editor execution and SQL apply are next-gate work. No concrete user ids,
-  emails, full URLs, tokens, project identifiers, or secrets are recorded.
+- The user ran 081 once in their SQL Editor and the apply succeeded.
+- The user ran 082 once as SELECT-only after the 081 apply, and all checks were
+  OK.
+- The pending-list, approve, and reject RPCs exist.
+- All three RPCs are security definer functions with `search_path=public`.
+- The three RPCs are executable by `authenticated` only, and are not executable
+  by `anon` or `public`.
+- Internal guards allow only admin users or already-approved
+  `membership_approver` users to act.
+- Approve/reject RPCs prevent self approval or self rejection.
+- State transitions are limited to `pending -> approved` and
+  `pending -> rejected`.
+- `review_note` keeps a length guard.
+- The RPCs do not reference or return email values.
+- Direct table grants on `community_memberships` remain closed.
+- `public_profiles` still does not expose membership or role state.
+- `post_apply_ready_for_membership_approval_rpc_qa=true`.
+- The 34 approved-member gates, approver UI, role grant/revoke RPCs, forced
+  status changes, invite codes, Auth email hooks, email hash deny lists,
+  Discord, Edge, mail, Storage, and Dashboard changes remain out of scope.
+- The next gate is approval RPC functional QA. No concrete user ids, emails,
+  full URLs, tokens, project identifiers, or secrets are recorded.
 
 ## Open Questions For Later Gates
 
