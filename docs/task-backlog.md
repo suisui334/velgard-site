@@ -6679,6 +6679,64 @@ Safety:
   message/channel id, full post URL, project identifier, token, JWT, secret,
   Webhook URL, or API key was recorded.
 
+## M-14F-52 prelaunch main flow public-site QA
+
+Status: anonymous public-site QA completed; authenticated mutation-capable QA
+split into later explicit gates.
+
+Baseline:
+
+- Started from `a2029ff Correct approved access gate documentation`.
+- The current policy is that anonymous and unapproved users cannot view
+  `calendar`, `session-detail`, `session-post`, or `timeline` community
+  operation surfaces.
+
+Anonymous public-site checks:
+
+- `anonymous_calendar_gate=pass`.
+- `anonymous_session_detail_gate=pass`.
+- `anonymous_session_post_gate=pass`.
+- `anonymous_timeline_gate=pass`.
+- `anonymous_mypage_login_surface=pass`.
+- `anonymous_notification_panel_initial_open=false`.
+- `anonymous_checked_pages_uuid_like_text=false`.
+- `anonymous_checked_pages_jwt_like_text=false`.
+
+Result:
+
+- `calendar`, `session-detail`, `session-post`, and `timeline` rendered the
+  approved-member gate and did not render their main operation surfaces in the
+  anonymous in-app browser context.
+- `mypage` rendered the anonymous account access surface.
+- No contradiction was found between the corrected access policy and the
+  anonymous public-site UI.
+
+Deferred:
+
+- `approved_user_calendar_session_detail=not_tested`.
+- `approved_participation_comment=not_tested`.
+- `unapproved_pending_rejected_live=not_tested`.
+- `owner_gm_edit_delete_close=not_tested`.
+- `admin_management=not_tested`.
+- `discord_sync_operation=not_run`.
+
+Reason:
+
+- Safe authenticated approved/unapproved/owner/admin browser sessions were not
+  available in the in-app browser context.
+- Participation/comment operations can create live data.
+- Owner/GM edit/delete/close and admin-management flows can mutate live data
+  and may touch Discord sync, so they require separate explicit gates.
+
+Safety:
+
+- SQL Editor execution, SQL apply, DB/RPC/RLS changes, Edge deploy,
+  dry_run=false, Discord operations, secret/Webhook changes, and Supabase
+  direct DB writes were not performed.
+- No real email, user id, session id, application id, comment id, Discord
+  message/channel id, full post URL, project identifier, token, JWT, secret,
+  Webhook URL, or API key was recorded.
+
 ## M-14F-33 mobile Turnstile CAPTCHA layout
 
 Status: smartphone-width mypage Auth CAPTCHA layout fixed.

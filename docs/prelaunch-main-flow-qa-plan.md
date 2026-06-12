@@ -175,6 +175,44 @@ Static/recorded state:
 | Static JSON fixtures | Normal load excludes static sessions unless explicit dev URL flag is present | Static confirmed | No action unless fixture flag behavior changes |
 | public_profiles exposure | Frontend inspected path selects `display_name` only; latest SQL checks showed no membership/role exposure | Static/SQL-record confirmed | Recheck when profile view/RPC changes |
 
+## Public Site Live QA Result
+
+This pass used the public site in an anonymous in-app browser context. It did
+not log in, create data, edit data, delete data, run SQL, call Edge Functions,
+or touch Discord.
+
+Anonymous live checks:
+
+| Check | Result | Note |
+| --- | --- | --- |
+| `calendar` anonymous approved gate | `pass` | The approved-member gate rendered and the calendar body did not render. |
+| `session-detail` anonymous approved gate | `pass` | The approved-member gate rendered and the session-detail body did not render. |
+| `session-post` anonymous approved gate | `pass` | The approved-member gate rendered and the post form did not render. |
+| `timeline` anonymous approved gate | `pass` | The approved-member gate rendered and the TIMELINE body did not render. |
+| `mypage` anonymous login surface | `pass` | Login/password inputs rendered; no notification panel was open. |
+| Raw identifier/token exposure in checked anonymous pages | `pass` | No UUID-like or JWT-like text was detected in the checked page bodies. |
+
+Authenticated live checks:
+
+| Actor / Flow | Result | Reason |
+| --- | --- | --- |
+| Approved user calendar/session-detail display | `not_tested` | A safe authenticated approved-user browser session was not available in the in-app browser context. |
+| Approved user participation/comment operation | `not_tested` | Creating comments or applications mutates live data and requires a separate explicit QA gate. |
+| Unapproved/pending/rejected live access | `not_tested` | A safe authenticated unapproved-user browser session was not available in the in-app browser context. |
+| Owner/GM edit/delete/close operation | `not_tested` | These operations can edit/delete/close live session posts and may trigger Discord sync, so they remain a separate explicit gate. |
+| Admin management operation | `not_tested` | Admin operations can mutate live data and remain a separate explicit gate. |
+| Discord sync operation | `not_run` | No Discord create/update/delete or `dry_run=false` operation was performed. |
+
+Conclusion:
+
+- Anonymous users are correctly blocked from `calendar`, `session-detail`,
+  `session-post`, and `timeline` by the approved-member gate.
+- The anonymous mypage surface remains limited to account access.
+- No contradiction was found between the corrected access policy and the
+  anonymous public-site UI.
+- Authenticated approved, unapproved, owner/GM, and admin live-operation QA
+  still requires safe account sessions and explicit mutation-aware gates.
+
 ## Required Live QA Gates
 
 The following require explicit later gates because they can create, edit, delete,
@@ -184,7 +222,8 @@ or synchronize live data:
 2. Session owner edit/delete/close QA.
 3. Discord create/update/delete sync QA, including no duplicate post and no
    unintended mention checks.
-4. Anonymous/unapproved access-gate display QA for calendar and session-detail.
+4. Authenticated unapproved/pending/rejected access-gate display QA for
+   calendar and session-detail.
 5. Calendar visual QA for type colors, close mark, and GM name after safe test
    data is selected.
 6. Mypage empty-state and status-state visual QA for approved/unapproved/admin

@@ -688,6 +688,25 @@ Prelaunch main-flow inventory:
   message id, full post URL, token, project identifier, Webhook URL, or secret
   is recorded.
 
+Prelaunch public-site live QA:
+
+- Anonymous public-site checks were run in an in-app browser context.
+- `calendar`, `session-detail`, `session-post`, and `timeline` all rendered the
+  approved-member gate and did not render their main community operation
+  surfaces.
+- `mypage` rendered the anonymous account access surface, and no notification
+  panel was open.
+- No UUID-like or JWT-like text was detected in the checked anonymous page
+  bodies.
+- Approved, unapproved, owner/GM, and admin live-operation QA was not run in
+  this pass because safe authenticated sessions were not available in the
+  in-app browser context and the relevant operations can mutate live data or
+  touch Discord sync.
+- Those authenticated and mutation-capable checks remain explicit later gates.
+- No concrete user id, email, session id, application id, comment id, full URL,
+  token, project identifier, Discord identifier, Webhook URL, or secret is
+  recorded.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one

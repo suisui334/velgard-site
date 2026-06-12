@@ -669,8 +669,19 @@ Notes:
   control behavior, not a launch-policy mismatch.
 - Live QA for session-post create/update/delete, owner close/delete, broader
   admin management, approved-user calendar visual state, mypage empty/status
-  state, anonymous/unapproved gate display, and Discord sync remains separated
-  into explicit later gates.
+  state, authenticated unapproved gate display, and Discord sync remains
+  separated into explicit later gates.
+- A first public-site anonymous live check was run in the in-app browser:
+  `calendar`, `session-detail`, `session-post`, and `timeline` rendered the
+  approved-member gate and did not render their main community operation
+  surfaces.
+- Anonymous `mypage` rendered the account access surface, and no notification
+  panel was open.
+- No UUID-like or JWT-like text was detected in the checked anonymous page
+  bodies.
+- Approved, unapproved, owner/GM, and admin live-operation QA remains separated
+  because safe authenticated sessions were not available in the in-app browser
+  context and those flows can mutate live data or touch Discord sync.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
   Edge deploy, dry_run=false, Discord operation, mail sending, or secret
   recording was performed in this inventory step.
