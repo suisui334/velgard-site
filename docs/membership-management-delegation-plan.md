@@ -289,6 +289,31 @@ Additional narrowing after `5950771 Classify membership manager grant errors`:
   088 once as a separate SQL Editor SELECT-only gate before preparing any
   DB/RPC apply draft.
 
+Schema-cache narrowing after the UI showed the RPC definition message:
+
+- The UI message `会員管理RPCの定義確認が必要です。` comes from the DB/RPC
+  definition bucket, not from empty `member_key`, empty RPC return data, or list
+  reload failure.
+- Static review again found `grant_membership_manager` /
+  `revoke_membership_manager` calls passing `p_target_member_key: row.memberKey`.
+- The applied SQL signatures remain
+  `grant_membership_manager(p_target_member_key uuid)` and
+  `revoke_membership_manager(p_target_member_key uuid)`, with return shape
+  `TABLE(member_key uuid, role text, membership_status text)`.
+- Because 086 confirmed the RPC definitions while the browser-side call still
+  reaches the definition bucket, PostgREST schema-cache/function-lookup
+  mismatch is now a likely cause.
+- The UI classifier now separates `PGRST202`, schema-cache, and function lookup
+  messages into `会員管理RPCのschema cache更新が必要な可能性があります。`.
+- Created
+  `docs/supabase/sql/089_membership_manager_rpc_schema_cache_reload_manual_gate.sql`
+  as a separate manual gate containing only `notify pgrst, 'reload schema';`.
+  It has not been run.
+- Next safe order: retry once with the new UI classification. If the message is
+  schema-cache related, run 089 once in a separate SQL Editor gate, then retry
+  the manager grant. If the message remains definition-related, inspect 088
+  results before drafting any DB/RPC change.
+
 ## Stop Conditions
 
 Stop before apply or implementation if:

@@ -764,9 +764,12 @@ Notes:
   exposing SQL details or concrete identifiers.
 - 088 SELECT-only diagnostics were prepared as the next optional diagnostic
   gate for actor/target guard and `user_roles` runtime surfaces.
+- A later RPC-definition classification makes PostgREST schema-cache/function
+  lookup mismatch plausible. The UI now separates schema-cache errors, and 089
+  was prepared as a not-yet-run manual reload gate.
 - Next gate: run 088 once if the newly classified UI error is still ambiguous,
-  or proceed to membership management UI functional QA after the manager grant
-  path is understood.
+  run 089 once only if the UI identifies schema-cache, or proceed to membership
+  management UI functional QA after the manager grant path is understood.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
   Edge deploy, Discord operation, direct Supabase write, or secret recording was
   performed by Codex in this UI implementation step.

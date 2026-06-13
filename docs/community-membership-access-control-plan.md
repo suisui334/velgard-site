@@ -860,6 +860,10 @@ Membership manager grant follow-up:
   actor/target guard structure, eligible target counts, `user_roles` insert
   prerequisites, RLS/owner runtime surface, and direct write grants without
   returning concrete identifiers.
+- A later RPC-definition UI bucket points toward a possible PostgREST
+  schema-cache/function-lookup mismatch rather than a frontend argument-name or
+  return-shape mismatch. The UI now has a separate schema-cache message, and
+  089 was prepared as an explicit, not-yet-run manual schema-cache reload gate.
 
 ## Open Questions For Later Gates
 

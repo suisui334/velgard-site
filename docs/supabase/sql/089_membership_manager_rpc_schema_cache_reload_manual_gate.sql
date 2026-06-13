@@ -1,0 +1,23 @@
+-- 089_membership_manager_rpc_schema_cache_reload_manual_gate.sql
+-- DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED
+--
+-- Purpose:
+-- - Reload the PostgREST schema cache if membership manager RPCs exist in SQL
+--   diagnostics but browser-side RPC calls still report function/schema-cache
+--   lookup errors.
+--
+-- Context:
+-- - 085 apply succeeded and 086 confirmed the RPCs exist with authenticated
+--   EXECUTE.
+-- - 087/088 are SELECT-only diagnostics for structure and actor/target
+--   surfaces.
+-- - This file is not a schema change and should be run only as a separate,
+--   explicit SQL Editor gate after confirming the UI error is schema-cache or
+--   function-lookup related.
+--
+-- Safety:
+-- - Do not include concrete user ids, email addresses, management_key values,
+--   URLs, JWTs, tokens, project refs, API keys, Webhook values, or secrets.
+-- - Run at most once in the explicit schema-cache reload gate.
+
+notify pgrst, 'reload schema';

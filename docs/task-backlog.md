@@ -8213,6 +8213,41 @@ Status: 087 diagnostic recorded; frontend error classification improved.
   Discord operation, direct Supabase write, `console.*` addition, or
   `updates.json` change was performed.
 
+## M-14F-64 membership manager RPC schema-cache diagnosis
+
+Status: schema-cache/function-lookup classification added; manual reload gate
+prepared.
+
+- Baseline: `48d9213 Prepare membership manager grant diagnostics`.
+- Reported UI message:
+  `会員管理RPCの定義確認が必要です。`
+- Static review found no frontend RPC signature mismatch:
+  `grant_membership_manager` / `revoke_membership_manager` are still called with
+  `p_target_member_key: row.memberKey`.
+- `memberKey` is derived from the list RPC's `member_key`, held only in JS
+  memory, and not rendered as visible text or DOM data attributes.
+- The SQL draft and 086 confirmation both use
+  `grant_membership_manager(p_target_member_key uuid)` and
+  `revoke_membership_manager(p_target_member_key uuid)`.
+- The grant/revoke RPC return shape is not used by the JS, so array/object
+  return-shape mismatch remains unlikely.
+- Because SQL diagnostics confirmed the RPCs while the browser-side operation
+  still reached the definition bucket, PostgREST schema-cache or function
+  lookup mismatch is now a likely cause.
+- Updated the UI classifier to distinguish `PGRST202`, schema-cache, and
+  function lookup errors as:
+  `会員管理RPCのschema cache更新が必要な可能性があります。`
+- Prepared
+  `docs/supabase/sql/089_membership_manager_rpc_schema_cache_reload_manual_gate.sql`
+  for a separate explicit SQL Editor gate. It contains only
+  `notify pgrst, 'reload schema';` and has not been run.
+- Next safe order: retry once with the new UI classifier; if schema-cache is
+  indicated, run 089 once in a separate gate; if definition/structure remains
+  indicated, use 088 SELECT-only results before drafting DB/RPC changes.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+  Discord operation, direct Supabase write, `console.*` addition, or
+  `updates.json` change was performed.
+
 ## M-14F-63 membership manager grant fallback diagnosis
 
 Status: fallback branch identified; UI error classification expanded; 088

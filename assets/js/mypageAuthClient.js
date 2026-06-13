@@ -2124,8 +2124,15 @@
       return "既に会員管理権限が設定されています。一覧を更新してください。";
     }
     if (
-      ["23502", "23503", "23514", "42702", "42703", "42883"].includes(code) ||
-      hasMessage("violates not-null", "violates foreign key", "violates check", "ambiguous", "does not exist")
+      code === "PGRST202" ||
+      code === "42883" ||
+      hasMessage("schema cache", "could not find the function", "function public.grant_membership_manager", "function public.revoke_membership_manager")
+    ) {
+      return "会員管理RPCのschema cache更新が必要な可能性があります。";
+    }
+    if (
+      ["23502", "23503", "23514", "42702", "42703"].includes(code) ||
+      hasMessage("violates not-null", "violates foreign key", "violates check", "ambiguous", "column", "does not exist")
     ) {
       return "会員管理RPCの定義確認が必要です。";
     }
