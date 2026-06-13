@@ -66,6 +66,30 @@ Apply-before review update:
 - No SQL Editor execution or SQL apply has been performed after these draft
   fixes. The next gate is a fresh apply-before review of the revised 085/086.
 
+Second apply-before review:
+
+- Revised 085 was reviewed again from baseline
+  `b2f95e0 Revise membership delegation apply draft`.
+- `management_key` generation, backfill, default, NOT NULL, and unique-index
+  setup are present and scoped to `community_memberships`.
+- `list_membership_review_users` returns the opaque `member_key` plus display
+  data needed by the management UI; it does not return raw auth user ids, email,
+  or tokens.
+- `set_member_review_status`, `grant_membership_manager`, and
+  `revoke_membership_manager` accept the opaque member key and resolve the raw
+  user id internally.
+- Admin remains the only role that can grant or revoke `membership_approver`.
+- Approved `membership_approver` users can manage normal review status only;
+  they cannot change admin targets, themselves, or other membership managers.
+- Allowed transitions remain `pending -> approved`, `pending -> rejected`,
+  `rejected -> approved`, and `approved -> rejected`; `rejected -> pending`,
+  `approved -> pending`, `revoked`, and `blocked` are outside normal management.
+- 086 was strengthened during review so the public profile exposure check also
+  catches management-key surface columns.
+- Review result: no remaining blocker was found. 085 can proceed to a separate
+  SQL Editor gate for one-time execution, followed by 086 SELECT-only
+  confirmation.
+
 ## Authorization Rules
 
 - `list_membership_review_users` and `set_member_review_status` are available

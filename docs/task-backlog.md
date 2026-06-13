@@ -8026,3 +8026,46 @@ Status: review found issues; revised SQL drafts prepared, apply still blocked.
   085/086.
 - No concrete user id, email, session id, full URL, token, project identifier,
   or secret is recorded.
+
+## M-14F-58 revised membership management delegation apply-before re-review
+
+Status: re-review passed; 085 can move to a separate one-time SQL Editor gate.
+
+- Baseline: `b2f95e0 Revise membership delegation apply draft`.
+- Re-reviewed `docs/supabase/sql/085_membership_management_delegation_apply_draft.sql`
+  and `docs/supabase/sql/086_membership_management_delegation_post_apply_select_only.sql`.
+- SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change, Edge
+  deploy, Discord operation, direct Supabase write, and secret changes were not
+  performed.
+- `community_memberships.management_key` is present in the 085 draft as the
+  opaque UI/RPC action key and replaces raw `user_id` as the management surface.
+- 085 includes generation/default/backfill/NOT NULL/unique-index handling for
+  `management_key`.
+- `list_membership_review_users(text,integer)` returns the opaque `member_key`,
+  display name, optional Discord handle, status, review note, timestamps, and
+  action booleans; it does not return raw `user_id`, email, or tokens.
+- `set_member_review_status(uuid,text,text)`,
+  `grant_membership_manager(uuid)`, and `revoke_membership_manager(uuid)` accept
+  the opaque member key and resolve the raw user id internally.
+- All four RPCs keep `security definer`, `set search_path = public`, and
+  authenticated-only EXECUTE. `anon` / `public` EXECUTE remain closed by the
+  draft grants.
+- Admin remains the only role that can grant or revoke `membership_approver`.
+- Approved `membership_approver` users can list/update normal review status but
+  cannot grant manager authority, change admins, change themselves, or change
+  other membership managers.
+- Normal status transitions are limited to `pending -> approved`,
+  `pending -> rejected`, `rejected -> approved`, and `approved -> rejected`.
+- `rejected -> pending`, `approved -> pending`, revoked/blocked normal
+  management, and admin-target status changes remain excluded.
+- 086 remains SELECT-only and confirms the four RPCs, signatures,
+  `security definer`, `search_path=public`, EXECUTE grants, management-key
+  surface, allowed transitions, non-admin manager-target guard, direct table
+  write closure, and `public_profiles` non-exposure.
+- During re-review, 086 was strengthened so `public_profiles` exposure checks
+  include management-key surface columns as well as membership/role state.
+- Re-review result: no remaining blocker was found. `085` can be run in SQL
+  Editor exactly once in the next explicit apply gate, followed by `086`
+  SELECT-only confirmation.
+- No concrete user id, email, session id, full URL, token, project identifier,
+  or secret is recorded.

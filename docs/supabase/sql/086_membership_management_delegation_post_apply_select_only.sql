@@ -193,7 +193,7 @@ table_privileges as (
 public_profiles_exposure as (
   select
     count(*) filter (
-      where column_name ~* '(membership|role|approval|approved|blocked|revoked|rejected)'
+      where column_name ~* '(membership|role|approval|approved|blocked|revoked|rejected|management)'
     ) as risky_column_count
   from information_schema.columns
   where table_schema = 'public'
@@ -388,7 +388,7 @@ output_rows as (
     'membership_management_delegation_public_profiles_exposure',
     case when risky_column_count = 0 then 'ok' else 'review' end,
     concat('risky_columns=', risky_column_count),
-    'public_profiles should still avoid membership or role state columns.'
+    'public_profiles should still avoid membership, role, or management-key surface columns.'
   from public_profiles_exposure
 
   union all

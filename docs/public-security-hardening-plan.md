@@ -733,7 +733,11 @@ Notes:
 - The same review removed `rejected -> pending` from normal transitions and
   added a non-admin guard so membership managers cannot change another
   membership manager's status.
-- Next gate: fresh apply-before-final-review for the revised 085/086.
+- The revised 085/086 apply-before re-review found no remaining blocker.
+- 086 was strengthened during re-review so `public_profiles` exposure checks
+  also include management-key surface columns.
+- Next gate: SQL Editor one-time execution of 085, followed by 086 SELECT-only
+  confirmation.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
   Edge deploy, Discord operation, direct Supabase write, or secret recording was
   performed.

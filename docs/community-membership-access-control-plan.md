@@ -771,6 +771,29 @@ Membership management delegation preparation:
 - 085 remains unapplied. The next gate is a fresh apply-before review of the
   revised 085/086 before any SQL Editor execution.
 
+Revised 085/086 apply-before re-review:
+
+- Re-reviewed the revised membership management delegation SQL from baseline
+  `b2f95e0 Revise membership delegation apply draft`.
+- `management_key` is used as the opaque UI/RPC action key instead of raw
+  `user_id`, with generation, backfill, default, NOT NULL, and unique-index
+  coverage in the 085 draft.
+- The four RPCs keep `security definer`, `set search_path = public`, and
+  authenticated-only EXECUTE, with internal admin / approved
+  `membership_approver` guards.
+- Admin remains the only role that can grant or revoke `membership_approver`.
+- Non-admin membership managers cannot change admins, themselves, or other
+  membership managers.
+- Normal status changes are limited to `pending -> approved`,
+  `pending -> rejected`, `rejected -> approved`, and `approved -> rejected`;
+  `rejected -> pending`, `approved -> pending`, `revoked`, and `blocked` remain
+  outside normal management.
+- 086 was strengthened so `public_profiles` exposure checks include
+  management-key surface columns.
+- Re-review result: no remaining blocker was found. 085 can proceed to a
+  separate SQL Editor gate for one-time execution, followed by 086 SELECT-only
+  confirmation.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one
