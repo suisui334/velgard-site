@@ -8213,6 +8213,42 @@ Status: 087 diagnostic recorded; frontend error classification improved.
   Discord operation, direct Supabase write, `console.*` addition, or
   `updates.json` change was performed.
 
+## M-14F-65 membership manager grant definition narrowing
+
+Status: public JS delivery confirmed; RPC definition fix draft prepared.
+
+- Baseline: `5a78a2b Prepare membership RPC schema cache gate`.
+- Public `mypage.html` was checked with no-cache headers and is serving the
+  expected `mypageAuthClient.js` cache-bust.
+- The delivered public JS contains the schema-cache message and `PGRST202`
+  branch, so GitHub Pages stale delivery is not the likely cause.
+- The delivered public JS also intentionally still contains
+  `会員管理RPCの定義確認が必要です。` for DB/RPC definition-category failures.
+- Therefore the observed definition message is now treated as a current JS
+  branch, not old JS.
+- Static review still found no frontend signature mismatch:
+  `grant_membership_manager` / `revoke_membership_manager` pass
+  `p_target_member_key: row.memberKey`.
+- The RPC return shape is still not used by the JS.
+- Static SQL review found a likely PL/pgSQL ambiguity surface:
+  `grant_membership_manager` returns a column named `role` and also uses
+  `ON CONFLICT (user_id, role)` during the `user_roles` insert.
+- Prepared
+  `docs/supabase/sql/090_membership_manager_grant_role_conflict_fix_apply_draft.sql`
+  as an unapplied draft to replace only `grant_membership_manager(uuid)`.
+- 090 keeps the same signature, return shape, admin-only guard, target guards,
+  profile guard, and authenticated-only EXECUTE surface.
+- 090 changes duplicate-safe insertion to `ON CONFLICT DO NOTHING` and uses
+  positional `RETURN QUERY` output to avoid role-name ambiguity.
+- Prepared
+  `docs/supabase/sql/091_membership_manager_grant_role_conflict_fix_post_apply_select_only.sql`
+  as the post-apply SELECT-only confirmation.
+- 089 schema-cache reload remains unexecuted; do not run it before the 090/091
+  apply-before review decides whether the definition fix is the next safe gate.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+  Discord operation, direct Supabase write, `console.*` addition, or
+  `updates.json` change was performed.
+
 ## M-14F-64 membership manager RPC schema-cache diagnosis
 
 Status: schema-cache/function-lookup classification added; manual reload gate

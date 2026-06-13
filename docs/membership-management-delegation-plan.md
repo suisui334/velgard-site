@@ -314,6 +314,33 @@ Schema-cache narrowing after the UI showed the RPC definition message:
   the manager grant. If the message remains definition-related, inspect 088
   results before drafting any DB/RPC change.
 
+Public delivery and RPC-definition follow-up:
+
+- Public `mypage.html` was checked with a no-cache request and is serving the
+  expected `mypageAuthClient.js` cache-bust from `5a78a2b`.
+- The delivered public JS contains both the schema-cache message and the older
+  RPC-definition message, by design. Therefore seeing
+  `会員管理RPCの定義確認が必要です。` is not proof of old JS delivery.
+- Because the public JS is current and the old message is still the active
+  branch, the likely bucket is now an actual DB/RPC definition/runtime issue
+  rather than stale GitHub Pages delivery.
+- Static review found a likely PL/pgSQL ambiguity surface in
+  `grant_membership_manager`: the function returns a column named `role` and
+  also uses `ON CONFLICT (user_id, role)` during `user_roles` insertion.
+- Prepared
+  `docs/supabase/sql/090_membership_manager_grant_role_conflict_fix_apply_draft.sql`
+  to replace only `grant_membership_manager(uuid)` while preserving the
+  signature, return shape, admin-only guard, target guards, and
+  authenticated-only EXECUTE surface.
+- The 090 draft changes the duplicate-safe insert to `ON CONFLICT DO NOTHING`
+  and uses positional `RETURN QUERY` output to avoid role-name ambiguity.
+- Prepared
+  `docs/supabase/sql/091_membership_manager_grant_role_conflict_fix_post_apply_select_only.sql`
+  to confirm the replacement without returning concrete identifiers.
+- 089 schema-cache reload remains unexecuted and should not be used before the
+  090/091 apply-before review decides whether the RPC-definition fix is the
+  right next gate.
+
 ## Stop Conditions
 
 Stop before apply or implementation if:

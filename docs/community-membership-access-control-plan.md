@@ -864,6 +864,11 @@ Membership manager grant follow-up:
   schema-cache/function-lookup mismatch rather than a frontend argument-name or
   return-shape mismatch. The UI now has a separate schema-cache message, and
   089 was prepared as an explicit, not-yet-run manual schema-cache reload gate.
+- Public delivery was then checked and current JS was being served. The
+  remaining definition message is therefore treated as a current DB/RPC
+  definition bucket. 090/091 were prepared to fix and verify a likely
+  `grant_membership_manager` role-name conflict around duplicate-safe
+  `user_roles` insertion.
 
 ## Open Questions For Later Gates
 
