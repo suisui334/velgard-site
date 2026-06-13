@@ -880,6 +880,12 @@ Membership manager grant follow-up:
   next step for this manager-grant issue.
 - Next gate: admin-side UI retry for granting membership-manager authority to
   one approved normal user, without recording concrete identifiers.
+- The user completed that admin-side UI retry after 090/091: manager-role grant
+  to an approved normal user was `pass`, the granted user could see and use the
+  membership management UI, and the granted user's behavior after approval use
+  was `pass`.
+- Manager-role revoke and membership-manager status-transition coverage
+  beyond the confirmed grant path remain separate QA items.
 
 ## Open Questions For Later Gates
 

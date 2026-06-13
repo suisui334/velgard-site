@@ -780,6 +780,14 @@ Notes:
   for this issue.
 - Next gate: retry the admin UI manager-role grant path once for an approved
   normal user, without recording concrete identifiers.
+- The user later retried the admin UI manager-role grant path after 090/091.
+  Granting membership-manager authority to an approved normal user was `pass`,
+  the granted user could see and use the membership management UI, and the
+  granted user's behavior after approval use was `pass`.
+- 089 schema-cache reload remains unexecuted and is not needed for the confirmed
+  grant path.
+- Manager-role revoke and non-grant status-transition checks remain separate QA
+  items.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
   Edge deploy, Discord operation, direct Supabase write, or secret recording was
   performed by Codex in this UI implementation step.

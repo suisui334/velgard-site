@@ -8327,6 +8327,33 @@ Status: 090 applied; 091 SELECT-only confirmation all OK.
   mutation, Edge deploy, Discord operation, direct Supabase write, `console.*`
   addition, or `updates.json` change was performed.
 
+## M-14F-68 membership manager grant UI QA
+
+Status: manager-role grant UI path confirmed.
+
+- Baseline: `6ca09fa Record membership manager grant fix apply`.
+- The user confirmed the admin UI path after the 090 apply and 091 all-OK
+  confirmation.
+- Admin granting membership-manager authority to an approved normal user:
+  `pass`.
+- Granted user seeing and using the membership management UI: `pass`.
+- Granted-user behavior after approval workflow use: `pass`.
+- 089 schema-cache reload was not run and is not needed for the currently
+  confirmed manager-grant path.
+- Manager-role revoke from the granted user: `not_tested`; keep as a separate
+  QA item.
+- Approved-to-rejected status switch by a membership manager: `not_tested`;
+  keep as a separate QA item.
+- Rejected-to-approved status switch by a membership manager: `not_tested`;
+  keep as a separate QA item.
+- Pending-to-rejected status switch by a membership manager: `not_tested`;
+  keep as a separate QA item.
+- No concrete user id, email, raw user id, management key value, token, JWT,
+  full URL, project identifier, Webhook value, or secret is recorded.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS additional mutation, Edge
+  deploy, Discord operation, direct Supabase write, `console.*` addition, or
+  `updates.json` change was performed.
+
 ## M-14F-64 membership manager RPC schema-cache diagnosis
 
 Status: schema-cache/function-lookup classification added; manual reload gate

@@ -404,6 +404,27 @@ Public delivery and RPC-definition follow-up:
 - No concrete user id, email, management key value, token, JWT, full URL,
   project identifier, or secret is recorded.
 
+Membership manager grant UI QA after 090/091:
+
+- The user confirmed the admin UI path after the 090 apply and 091 all-OK
+  confirmation.
+- Manager-role grant to an approved normal user: `pass`.
+- Membership management UI visibility and usability for the granted user:
+  `pass`.
+- Granted-user behavior after approval workflow use: `pass`.
+- 089 schema-cache reload was not run and is not needed for the currently
+  confirmed manager-grant path.
+- Manager-role revoke from the granted user: `not_tested`; keep as a separate
+  QA item.
+- Approved-to-rejected status switch by a membership manager: `not_tested`;
+  keep as a separate QA item.
+- Rejected-to-approved status switch by a membership manager: `not_tested`;
+  keep as a separate QA item.
+- Pending-to-rejected status switch by a membership manager: `not_tested`;
+  keep as a separate QA item.
+- No concrete user id, email, management key value, token, JWT, full URL,
+  project identifier, or secret is recorded.
+
 ## Stop Conditions
 
 Stop before apply or implementation if:
