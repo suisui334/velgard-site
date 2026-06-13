@@ -136,22 +136,22 @@ user_roles_unique_indexes as (
     count(*) filter (
       where idx.indisunique
         and (
-          select array_agg(att.attname order by key_cols.ordinality)
+          select array_agg(att.attname::text order by key_cols.ordinality)
           from unnest(idx.indkey) with ordinality as key_cols(attnum, ordinality)
           join pg_attribute att
             on att.attrelid = idx.indrelid
            and att.attnum = key_cols.attnum
-        ) = array['user_id', 'role']
+        ) = array['user_id', 'role']::text[]
     ) as user_role_unique_count,
     count(*) filter (
       where idx.indisprimary
         and (
-          select array_agg(att.attname order by key_cols.ordinality)
+          select array_agg(att.attname::text order by key_cols.ordinality)
           from unnest(idx.indkey) with ordinality as key_cols(attnum, ordinality)
           join pg_attribute att
             on att.attrelid = idx.indrelid
            and att.attnum = key_cols.attnum
-        ) = array['user_id', 'role']
+        ) = array['user_id', 'role']::text[]
     ) as user_role_primary_count
   from pg_index idx
   where idx.indrelid = 'public.user_roles'::regclass
