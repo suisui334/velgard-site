@@ -90,6 +90,36 @@ Second apply-before review:
   SQL Editor gate for one-time execution, followed by 086 SELECT-only
   confirmation.
 
+Post-apply confirmation:
+
+- The user ran `085_membership_management_delegation_apply_draft.sql` once in
+  SQL Editor and the apply succeeded.
+- The user then ran
+  `086_membership_management_delegation_post_apply_select_only.sql` once as a
+  SELECT-only confirmation, and all checks returned `status=ok`.
+- `post_apply_ready_for_membership_management_delegation_qa=true`.
+- The four management RPCs exist:
+  `list_membership_review_users`, `set_member_review_status`,
+  `grant_membership_manager`, and `revoke_membership_manager`.
+- All four RPCs are `security definer` with `search_path=public`.
+- EXECUTE grants are limited to `authenticated`; `anon` and `public` are not
+  executable.
+- Admin / approved membership manager guards, admin-only manager-role
+  grant/revoke, self-action guard, target-admin guard, and non-admin
+  manager-target guard all confirmed OK.
+- Normal management is limited to `pending`, `approved`, and `rejected`;
+  `revoked`, `blocked`, `rejected -> pending`, and `approved -> pending` remain
+  outside normal management.
+- `management_key` column, unique index, list return, and mutation lookup were
+  confirmed OK, with no raw `user_id` column returned.
+- Email surface, direct `community_memberships` write grants, and
+  `public_profiles` membership/role/management-key exposure all confirmed OK.
+- The frontend membership management UI is still not implemented. The next
+  gates are membership management delegation functional QA and the management UI
+  implementation gate.
+- No concrete user id, email, management key value, token, JWT, full URL,
+  project identifier, or secret is recorded.
+
 ## Authorization Rules
 
 - `list_membership_review_users` and `set_member_review_status` are available

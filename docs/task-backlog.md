@@ -8069,3 +8069,44 @@ Status: re-review passed; 085 can move to a separate one-time SQL Editor gate.
   SELECT-only confirmation.
 - No concrete user id, email, session id, full URL, token, project identifier,
   or secret is recorded.
+
+## M-14F-59 membership management delegation apply confirmation
+
+Status: 085 apply succeeded; 086 SELECT-only confirmation all OK.
+
+- The user ran `085_membership_management_delegation_apply_draft.sql` once in
+  SQL Editor and apply succeeded.
+- The user ran `086_membership_management_delegation_post_apply_select_only.sql`
+  once as SELECT-only confirmation.
+- 086 returned all checks with `status=ok`.
+- `post_apply_ready_for_membership_management_delegation_qa=true`.
+- Confirmed target RPCs:
+  `list_membership_review_users`, `set_member_review_status`,
+  `grant_membership_manager`, and `revoke_membership_manager`.
+- All four RPCs are `security definer` with `search_path=public`.
+- EXECUTE grants are `authenticated=4`, `anon=0`, `public=0`.
+- Admin / approved membership manager guard is OK.
+- Manager-role grant/revoke RPCs are admin-only OK.
+- Self-action guard, target-admin guard, and non-admin manager changing another
+  manager guard are OK.
+- Normal management scope is `pending / approved / rejected`.
+- `revoked / blocked` remain outside normal management.
+- `rejected -> pending` and `approved -> pending` remain outside normal
+  management.
+- Manager grant/revoke scope and `grant_requires_approved` are OK.
+- `management_key` column, unique index, list return, and mutation lookup are
+  OK.
+- No raw `user_id` column is returned by the new management RPCs.
+- No email surface was detected.
+- Review note length guard is OK.
+- `community_memberships` direct web write grants remain closed.
+- `public_profiles` exposes no membership, role, or management-key surface.
+- Frontend membership management UI is not implemented yet.
+- Next gates are membership management delegation functional QA and membership
+  management UI implementation.
+- Codex did not run SQL Editor, SQL apply, DB/RPC/RLS additional changes, Edge
+  deploy, dry_run=false, Discord operations, secret/Webhook changes, Supabase JS
+  direct writes, console changes, or updates.json changes in this recording
+  step.
+- No concrete user id, email, session id, management key value, full URL, token,
+  JWT, project identifier, Webhook value, or secret is recorded.

@@ -794,6 +794,34 @@ Revised 085/086 apply-before re-review:
   separate SQL Editor gate for one-time execution, followed by 086 SELECT-only
   confirmation.
 
+Membership management delegation apply confirmation:
+
+- The user ran `085_membership_management_delegation_apply_draft.sql` once in
+  SQL Editor and apply succeeded.
+- The user ran `086_membership_management_delegation_post_apply_select_only.sql`
+  once as SELECT-only confirmation, and all checks returned `status=ok`.
+- `post_apply_ready_for_membership_management_delegation_qa=true`.
+- The four RPCs exist and were confirmed:
+  `list_membership_review_users`, `set_member_review_status`,
+  `grant_membership_manager`, and `revoke_membership_manager`.
+- All four RPCs are `security definer` with `search_path=public`, and EXECUTE is
+  `authenticated=4`, `anon=0`, `public=0`.
+- Admin / approved membership manager guards, admin-only manager-role
+  grant/revoke, self-action guard, target-admin guard, and non-admin
+  manager-target guard are OK.
+- Normal management scope is `pending / approved / rejected`; `revoked`,
+  `blocked`, `rejected -> pending`, and `approved -> pending` are outside normal
+  management.
+- `management_key` column / unique index / list return / mutation lookup are
+  OK, and no raw `user_id` column is returned.
+- Email surface, direct `community_memberships` write grants, and
+  `public_profiles` membership/role/management-key exposure are all absent.
+- The frontend membership management UI is still not implemented. The next
+  gates are membership management delegation functional QA and management UI
+  implementation.
+- No concrete user id, email, management key value, full URL, token, JWT,
+  project identifier, or secret is recorded.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one

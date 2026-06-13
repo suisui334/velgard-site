@@ -736,13 +736,22 @@ Notes:
 - The revised 085/086 apply-before re-review found no remaining blocker.
 - 086 was strengthened during re-review so `public_profiles` exposure checks
   also include management-key surface columns.
-- Next gate: SQL Editor one-time execution of 085, followed by 086 SELECT-only
-  confirmation.
+- The user later ran 085 once in SQL Editor, apply succeeded, then ran 086 once
+  as SELECT-only confirmation. All 086 checks returned `status=ok`.
+- `post_apply_ready_for_membership_management_delegation_qa=true`.
+- The confirmation covered the four RPCs, `security definer`,
+  `search_path=public`, authenticated-only EXECUTE, admin / approved manager
+  guards, admin-only manager-role grant/revoke, self/admin/manager target
+  guards, allowed status scope, `management_key` surface, no raw `user_id`
+  return column, no email surface, no direct `community_memberships` web write
+  grant, and no `public_profiles` membership/role/management-key exposure.
+- Next gates: membership management delegation functional QA and membership
+  management UI implementation.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
   Edge deploy, Discord operation, direct Supabase write, or secret recording was
-  performed.
+  performed by Codex in this recording step.
 - No concrete user id, email, session id, full URL, token, project identifier,
-  or secret is recorded.
+  management key value, or secret is recorded.
 
 ## Non-Goals In This Batch
 
