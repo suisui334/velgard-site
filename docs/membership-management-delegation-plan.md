@@ -235,6 +235,30 @@ Current investigation after `c16a036 Add membership management UI`:
   DB change. If 087 is all OK, inspect the exact UI actor/target condition
   without recording identifiers.
 
+087 result and next narrowing:
+
+- The user ran the revised 087 SELECT-only diagnostic once.
+- `grant_membership_manager` signature, security, static guards, and
+  management-key target lookup were OK.
+- `list_membership_review_users` management-key surface was OK.
+- `user_roles` duplicate-safe key, primary key, and `membership_approver` role
+  allowance were OK.
+- Approved memberships without profile rows were `0`, and approved normal
+  memberships without profile rows were `0`.
+- Existing approved membership managers were `0` in the diagnostic result.
+- `public_profiles` risky columns were `0`.
+- Therefore the first suspected causes, profile-row absence, role constraint
+  absence, and `(user_id, role)` uniqueness absence, are not the likely cause.
+- Static frontend review still found the UI using the expected
+  `p_target_member_key` RPC argument and keeping `member_key` internal to JS.
+- The remaining likely causes are actor/target guard behavior at the moment of
+  operation or the UI's overly generic error handling.
+- The UI now maps safe RPC error codes to short Japanese categories without
+  showing SQL details, raw ids, email, tokens, or concrete management keys.
+- No 088 SQL was created in this gate. If the classified error still does not
+  identify the failing guard, create a separate SELECT-only 088 diagnostic for
+  actor/target conditions without returning concrete identifiers.
+
 ## Stop Conditions
 
 Stop before apply or implementation if:

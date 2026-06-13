@@ -8179,3 +8179,36 @@ Status: frontend mismatch not found; SELECT-only diagnostic prepared.
 - 087 is SELECT-only and must be run at most once in a later diagnostic gate.
 - No concrete user id, email, management key value, full URL, token, JWT,
   project identifier, Webhook value, or secret is recorded.
+
+## M-14F-62 membership manager grant failure narrowing
+
+Status: 087 diagnostic recorded; frontend error classification improved.
+
+- Baseline: `b5041a7 Fix membership manager diagnostics type cast`.
+- The user ran the revised 087 SELECT-only diagnostic once.
+- 087 confirmed `grant_membership_manager` signature/security/static guards OK.
+- 087 confirmed `list_membership_review_users` management-key surface OK.
+- 087 confirmed `user_roles` duplicate-safe key / primary key /
+  `membership_approver` role allowance OK.
+- 087 reported `approved_without_profile=0`,
+  `approved_normal_without_profile=0`, and `approved_existing_manager=0`.
+- 087 reported `public_profiles` risky columns as `0`.
+- Therefore profile absence, role constraint absence, and role uniqueness
+  absence are not treated as the likely cause.
+- Static frontend review again found that manager-role RPC calls use
+  `p_target_member_key`, matching the applied RPC signature.
+- Remaining likely causes are actor admin guard mismatch, target guard state
+  such as self/admin/manager/non-approved target, or the UI previously
+  collapsing all RPC errors into one generic message.
+- Updated the mypage membership management UI to classify safe RPC error codes
+  into short Japanese messages:
+  admin/management-target condition, approved-normal-user requirement,
+  already-configured role state, and the generic fallback.
+- The UI still does not render raw user ids, email, concrete management keys,
+  tokens, full URLs, or SQL details.
+- No 088 SQL was created in this gate. If the classified error remains
+  ambiguous, create a separate SELECT-only 088 actor/target diagnostic without
+  returning concrete identifiers.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+  Discord operation, direct Supabase write, `console.*` addition, or
+  `updates.json` change was performed.

@@ -2097,6 +2097,22 @@
     return `${row.displayName}さんを${label.replace("する", "します")}。続けますか？`;
   }
 
+  function getMembershipManagerRoleErrorMessage(error, granting) {
+    const code = String(error && error.code ? error.code : "").trim();
+    if (code === "42501") {
+      return "admin権限が必要、またはこのユーザーは管理対象外です。";
+    }
+    if (code === "22023") {
+      return granting
+        ? "承認済みの通常ユーザーだけに管理権限を付与できます。"
+        : "管理対象外のユーザーです。";
+    }
+    if (code === "23505") {
+      return "既に会員管理権限が設定されています。一覧を更新してください。";
+    }
+    return "会員管理権限を変更できませんでした。一覧を更新してから再度お試しください。";
+  }
+
   function createMembershipApprovalCard(client, panel, row) {
     const card = document.createElement("article");
     card.className = "mypage-membership-approval-card";
@@ -2298,8 +2314,8 @@
       });
       if (error) throw error;
       await reloadMembershipApprovalPanel(client, panel, `${actionLabel}しました。`);
-    } catch {
-      setMembershipApprovalPanelState(panel, "会員管理権限を変更できませんでした。一覧を更新してから再度お試しください。", { error: true });
+    } catch (error) {
+      setMembershipApprovalPanelState(panel, getMembershipManagerRoleErrorMessage(error, granting), { error: true });
     } finally {
       if (card.buttons.some((action) => action.button.isConnected)) {
         setMembershipApprovalCardBusy(card, false);
