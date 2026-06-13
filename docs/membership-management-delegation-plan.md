@@ -341,6 +341,39 @@ Public delivery and RPC-definition follow-up:
   090/091 apply-before review decides whether the RPC-definition fix is the
   right next gate.
 
+090/091 apply-before review:
+
+- Reviewed from baseline `0884019 Prepare membership manager grant definition fix`.
+- `090_membership_manager_grant_role_conflict_fix_apply_draft.sql` keeps the
+  `DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED` note.
+- 090 is limited to replacing `grant_membership_manager(uuid)`; it does not
+  change `list_membership_review_users`, `set_member_review_status`, or
+  `revoke_membership_manager`.
+- The RPC signature remains `grant_membership_manager(p_target_member_key uuid)`
+  and the return shape remains `TABLE(member_key uuid, role text,
+  membership_status text)`.
+- The review found no raw `user_id`, email, token, concrete management key, or
+  full URL return surface in the revised RPC.
+- `security definer`, `set search_path = public`, authenticated-only EXECUTE,
+  and anon/public EXECUTE closure are preserved.
+- Admin-only authorization, management-key target lookup, approved-user
+  requirement, profile-row requirement, self-action guard, target-admin guard,
+  and the `membership_approver`-only role insertion are preserved.
+- The draft removes `ON CONFLICT (user_id, role)` and uses
+  `ON CONFLICT DO NOTHING` to avoid conflict-target name ambiguity in the
+  returning function.
+- Because broad `ON CONFLICT DO NOTHING` can hide other unique/exclusion
+  conflicts, 091 was strengthened to confirm `user_roles` has no unexpected
+  non-primary unique/exclusion index surface before treating the apply as ready.
+- `091_membership_manager_grant_role_conflict_fix_post_apply_select_only.sql`
+  remains SELECT-only and checks signature, return shape, security/search_path,
+  EXECUTE surface, conflict handling, direct write grants, and
+  `public_profiles` exposure.
+- Review result: no blocker found. `090` can be run once in SQL Editor, followed
+  by one SELECT-only run of `091`.
+- 089 schema-cache reload remains unexecuted and is not the next step while the
+  090 definition fix gate is being tried.
+
 ## Stop Conditions
 
 Stop before apply or implementation if:

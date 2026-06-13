@@ -8249,6 +8249,48 @@ Status: public JS delivery confirmed; RPC definition fix draft prepared.
   Discord operation, direct Supabase write, `console.*` addition, or
   `updates.json` change was performed.
 
+## M-14F-66 membership manager grant definition fix apply-before review
+
+Status: reviewed; 090 may be run once in SQL Editor.
+
+- Baseline: `0884019 Prepare membership manager grant definition fix`.
+- Reviewed
+  `docs/supabase/sql/090_membership_manager_grant_role_conflict_fix_apply_draft.sql`
+  and
+  `docs/supabase/sql/091_membership_manager_grant_role_conflict_fix_post_apply_select_only.sql`.
+- 090 keeps the `DO NOT RUN / NOT EXECUTED / USER SQL EDITOR APPROVAL REQUIRED`
+  note.
+- 090 is limited to `grant_membership_manager(uuid)` and does not change the
+  list/status/revoke membership-management RPCs.
+- The `grant_membership_manager(p_target_member_key uuid)` signature and
+  `TABLE(member_key uuid, role text, membership_status text)` return shape are
+  preserved.
+- `security definer`, `set search_path = public`, authenticated-only EXECUTE,
+  and anon/public EXECUTE closure are preserved.
+- Admin-only guard, management-key lookup, approved target requirement,
+  profile-row requirement, self-action guard, target-admin guard, and
+  `membership_approver`-only insertion are preserved.
+- Raw `user_id`, email, token, concrete management key, and full URL surfaces
+  are not introduced.
+- The draft removes `ON CONFLICT (user_id, role)` and uses
+  `ON CONFLICT DO NOTHING` to avoid the suspected role/conflict-target
+  ambiguity in the returning PL/pgSQL function.
+- 091 was strengthened during review to verify that `user_roles` has no
+  unexpected non-primary unique/exclusion index surface, so broad
+  `ON CONFLICT DO NOTHING` is not treated as ready if an additional conflict
+  surface appears.
+- 091 remains SELECT-only and checks signature, return shape, security,
+  search_path, EXECUTE grants, conflict handling, direct write grants, and
+  `public_profiles` exposure.
+- Review result: no blocker found. Run 090 once in SQL Editor, then run 091
+  once as SELECT-only. If 091 reports `ok`, proceed to the membership manager
+  grant functional QA gate.
+- 089 schema-cache reload remains unexecuted and is not the next step while the
+  090 definition fix gate is being tried.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+  Discord operation, direct Supabase write, `console.*` addition, or
+  `updates.json` change was performed.
+
 ## M-14F-64 membership manager RPC schema-cache diagnosis
 
 Status: schema-cache/function-lookup classification added; manual reload gate

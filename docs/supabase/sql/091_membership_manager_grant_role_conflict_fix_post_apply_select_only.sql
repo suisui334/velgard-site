@@ -112,6 +112,22 @@ direct_write_grants as (
   where table_schema = 'public'
     and table_name = 'user_roles'
 ),
+user_roles_conflict_indexes as (
+  select
+    count(*) filter (
+      where idx.indisunique or idx.indisexclusion
+    ) as conflict_index_count,
+    count(*) filter (
+      where (idx.indisunique or idx.indisexclusion)
+        and idx.indisprimary
+    ) as primary_conflict_index_count,
+    count(*) filter (
+      where (idx.indisunique or idx.indisexclusion)
+        and not idx.indisprimary
+    ) as non_primary_conflict_index_count
+  from pg_index idx
+  where idx.indrelid = 'public.user_roles'::regclass
+),
 public_profile_surface as (
   select
     count(*) filter (
@@ -201,6 +217,24 @@ from patterns
 
 union all
 select
+  'user_roles_conflict_surface',
+  case
+    when conflict_index_count = 1
+     and primary_conflict_index_count = 1
+     and non_primary_conflict_index_count = 0
+    then 'ok'
+    else 'review'
+  end,
+  concat(
+    'conflict_indexes=', conflict_index_count,
+    ',primary_conflict_indexes=', primary_conflict_index_count,
+    ',non_primary_conflict_indexes=', non_primary_conflict_index_count
+  ),
+  'ON CONFLICT DO NOTHING is acceptable only if user_roles has no unexpected non-primary unique/exclusion indexes.'
+from user_roles_conflict_indexes
+
+union all
+select
   'user_roles_direct_write_surface',
   case when user_roles_direct_write_grant_count = 0 then 'ok' else 'review' end,
   concat('direct_write_grants=', user_roles_direct_write_grant_count),
@@ -227,6 +261,9 @@ select
      and (select broad_conflict_safe_count from patterns) = 1
      and (select ambiguous_conflict_target_count from patterns) = 0
      and (select positional_return_count from patterns) = 1
+     and (select conflict_index_count from user_roles_conflict_indexes) = 1
+     and (select primary_conflict_index_count from user_roles_conflict_indexes) = 1
+     and (select non_primary_conflict_index_count from user_roles_conflict_indexes) = 0
      and (select user_roles_direct_write_grant_count from direct_write_grants) = 0
      and (select risky_public_profile_column_count from public_profile_surface) = 0
     then 'ok'
@@ -236,7 +273,8 @@ select
     'signature=', (select signature_count from patterns),
     ',guards=', (select admin_guard_count + management_key_lookup_count + self_guard_count + target_admin_guard_count + approved_guard_count + profile_guard_count from patterns),
     ',safe_conflict=', (select broad_conflict_safe_count from patterns),
-    ',ambiguous_conflict=', (select ambiguous_conflict_target_count from patterns)
+    ',ambiguous_conflict=', (select ambiguous_conflict_target_count from patterns),
+    ',non_primary_conflict_indexes=', (select non_primary_conflict_index_count from user_roles_conflict_indexes)
   ),
   'If ok, retry manager grant functional QA in a separate UI gate.'
 ;
