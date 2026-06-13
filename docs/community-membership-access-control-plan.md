@@ -741,10 +741,9 @@ Membership management delegation preparation:
 - New management scope is limited to normal users in `pending`, `approved`, and
   `rejected`.
 - Allowed status transitions are `pending -> approved`,
-  `pending -> rejected`, `rejected -> approved`, `rejected -> pending`, and
-  `approved -> rejected`.
-- `approved -> pending`, revoked/blocked management, and admin-target status
-  changes remain out of scope.
+  `pending -> rejected`, `rejected -> approved`, and `approved -> rejected`.
+- `approved -> pending`, `rejected -> pending`, revoked/blocked management, and
+  admin-target status changes remain out of scope.
 - Admin-only manager-role RPCs are drafted for granting and revoking the
   limited `membership_approver` role for approved non-admin users.
 - The existing pending-only RPCs and mypage UI remain unchanged until 085 is
@@ -755,6 +754,22 @@ Membership management delegation preparation:
   Edge deploy, Discord operation, or secret recording was performed.
 - No concrete user id, email, session id, full URL, token, project identifier,
   or secret is recorded.
+
+085/086 apply-before review follow-up:
+
+- The apply-before review found that the original 085 draft would have returned
+  raw auth user ids as `member_key` from the membership review list RPC.
+- Because raw user ids must not be shown, logged, or passed through the UI
+  surface, 085 was revised before apply to add and use an opaque private
+  `community_memberships.management_key` action key.
+- 086 was revised to confirm the `management_key` column/index, management-key
+  lookup in mutation RPCs, and absence of `user_id` columns in the new RPC return
+  types.
+- The same review narrowed status transitions by removing `rejected -> pending`
+  and added a non-admin guard so membership managers cannot change another
+  membership manager's status.
+- 085 remains unapplied. The next gate is a fresh apply-before review of the
+  revised 085/086 before any SQL Editor execution.
 
 ## Open Questions For Later Gates
 

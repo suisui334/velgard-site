@@ -726,7 +726,14 @@ Notes:
   `public_profiles` membership/role exposure.
 - The existing pending-only approval RPCs and mypage UI are not changed in this
   batch. UI expansion waits for 085 apply and 086 confirmation.
-- Next gate: apply-before-final-review for 085.
+- Apply-before review found one blocking surface in the initial 085 draft:
+  `member_key` was based on raw auth user id. The draft now adds an opaque
+  private `community_memberships.management_key` and 086 verifies that the new
+  RPC return types do not expose a `user_id` column.
+- The same review removed `rejected -> pending` from normal transitions and
+  added a non-admin guard so membership managers cannot change another
+  membership manager's status.
+- Next gate: fresh apply-before-final-review for the revised 085/086.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
   Edge deploy, Discord operation, direct Supabase write, or secret recording was
   performed.

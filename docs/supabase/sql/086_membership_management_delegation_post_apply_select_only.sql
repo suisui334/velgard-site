@@ -21,6 +21,7 @@ function_rows as (
     p.proacl,
     p.proowner,
     coalesce(array_to_string(p.proconfig, ','), '') as function_config,
+    pg_get_function_result(p.oid) as function_result,
     pg_get_functiondef(p.oid) as function_def
   from pg_proc p
   join pg_namespace n
@@ -71,12 +72,17 @@ function_summary as (
     ) as admin_only_role_rpc_count,
     count(*) filter (
       where proname in ('set_member_review_status', 'grant_membership_manager', 'revoke_membership_manager')
-        and function_def ilike '%p_target_user_id = v_actor_id%'
+        and function_def ilike '%v_target_user_id = v_actor_id%'
     ) as self_action_guard_count,
     count(*) filter (
       where proname in ('set_member_review_status', 'grant_membership_manager', 'revoke_membership_manager')
         and function_def ilike '%role = ''admin''%'
     ) as target_admin_guard_count,
+    count(*) filter (
+      where proname = 'set_member_review_status'
+        and function_def ilike '%not v_is_admin%'
+        and function_def ilike '%role = ''membership_approver''%'
+    ) as target_manager_non_admin_guard_count,
     count(*) filter (
       where proname = 'set_member_review_status'
         and function_def ilike '%v_new_status is null%'
@@ -89,8 +95,9 @@ function_summary as (
     count(*) filter (
       where proname = 'set_member_review_status'
         and function_def ilike '%v_current_status = ''approved'' and v_new_status = ''rejected''%'
-        and function_def ilike '%v_current_status = ''rejected'' and v_new_status in (''approved'', ''pending'')%'
+        and function_def ilike '%v_current_status = ''rejected'' and v_new_status = ''approved''%'
         and function_def ilike '%v_current_status = ''pending'' and v_new_status in (''approved'', ''rejected'')%'
+        and function_def not ilike '%v_current_status = ''rejected'' and v_new_status in (''approved'', ''pending'')%'
     ) as expected_transition_guard_count,
     count(*) filter (
       where proname = 'set_member_review_status'
@@ -102,8 +109,8 @@ function_summary as (
     ) as list_status_scope_count,
     count(*) filter (
       where proname = 'grant_membership_manager'
-        and function_def ilike '%values (p_target_user_id, ''membership_approver'')%'
-        and function_def not ilike '%values (p_target_user_id, ''admin'')%'
+        and function_def ilike '%values (v_target_user_id, ''membership_approver'')%'
+        and function_def not ilike '%values (v_target_user_id, ''admin'')%'
     ) as manager_grant_scope_count,
     count(*) filter (
       where proname = 'revoke_membership_manager'
@@ -113,8 +120,39 @@ function_summary as (
     count(*) filter (
       where proname = 'grant_membership_manager'
         and function_def ilike '%v_status is distinct from ''approved''%'
-    ) as grant_requires_approved_count
+    ) as grant_requires_approved_count,
+    count(*) filter (
+      where proname = 'list_membership_review_users'
+        and function_def ilike '%cm.management_key as member_key%'
+    ) as list_returns_management_key_count,
+    count(*) filter (
+      where proname in ('set_member_review_status', 'grant_membership_manager', 'revoke_membership_manager')
+        and function_def ilike '%p_target_member_key uuid%'
+        and function_def ilike '%cm.management_key = p_target_member_key%'
+    ) as target_member_key_lookup_count,
+    count(*) filter (
+      where function_result ilike '%user_id%'
+    ) as returns_user_id_column_count
   from function_rows
+),
+membership_key_schema as (
+  select
+    (
+      select count(*)
+      from information_schema.columns c
+      where c.table_schema = 'public'
+        and c.table_name = 'community_memberships'
+        and c.column_name = 'management_key'
+        and c.udt_name = 'uuid'
+        and c.is_nullable = 'NO'
+    ) as management_key_column_count,
+    (
+      select count(*)
+      from pg_indexes i
+      where i.schemaname = 'public'
+        and i.tablename = 'community_memberships'
+        and i.indexname = 'community_memberships_management_key_key'
+    ) as management_key_unique_index_count
 ),
 function_privileges as (
   select
@@ -241,11 +279,16 @@ output_rows as (
     case
       when self_action_guard_count = 3
        and target_admin_guard_count >= 3
+       and target_manager_non_admin_guard_count = 1
       then 'ok'
       else 'review'
     end,
-    concat('self_action_guard=', self_action_guard_count, ',target_admin_guard=', target_admin_guard_count),
-    'Status and manager-role mutations should block self actions and admin targets.'
+    concat(
+      'self_action_guard=', self_action_guard_count,
+      ',target_admin_guard=', target_admin_guard_count,
+      ',target_manager_non_admin_guard=', target_manager_non_admin_guard_count
+    ),
+    'Status and manager-role mutations should block self actions, admin targets, and non-admin changes to membership managers.'
   from function_summary
 
   union all
@@ -287,6 +330,30 @@ output_rows as (
     ),
     'Admin-only role RPCs should affect only membership_approver and should not grant admin.'
   from function_summary
+
+  union all
+  select
+    75,
+    'membership_management_delegation_member_key_surface',
+    case
+      when mks.management_key_column_count = 1
+       and mks.management_key_unique_index_count = 1
+       and fs.list_returns_management_key_count = 1
+       and fs.target_member_key_lookup_count = 3
+       and fs.returns_user_id_column_count = 0
+      then 'ok'
+      else 'review'
+    end,
+    concat(
+      'management_key_column=', mks.management_key_column_count,
+      ',management_key_unique_index=', mks.management_key_unique_index_count,
+      ',list_returns_management_key=', fs.list_returns_management_key_count,
+      ',target_member_key_lookup=', fs.target_member_key_lookup_count,
+      ',returns_user_id_column=', fs.returns_user_id_column_count
+    ),
+    'Management RPCs should use the opaque management_key surface and should not return user_id columns.'
+  from function_summary fs
+  cross join membership_key_schema mks
 
   union all
   select
@@ -343,14 +410,20 @@ output_rows as (
        and fs.admin_only_role_rpc_count = 2
        and fs.self_action_guard_count = 3
        and fs.target_admin_guard_count >= 3
+       and fs.target_manager_non_admin_guard_count = 1
        and fs.allowed_status_guard_count = 1
        and fs.revoked_blocked_guard_count = 1
        and fs.expected_transition_guard_count = 1
        and fs.list_status_scope_count = 1
-       and fs.manager_grant_scope_count = 1
-       and fs.manager_revoke_scope_count = 1
-       and fs.grant_requires_approved_count = 1
-       and fs.review_note_guard_count = 1
+      and fs.manager_grant_scope_count = 1
+      and fs.manager_revoke_scope_count = 1
+      and fs.grant_requires_approved_count = 1
+      and mks.management_key_column_count = 1
+      and mks.management_key_unique_index_count = 1
+      and fs.list_returns_management_key_count = 1
+      and fs.target_member_key_lookup_count = 3
+      and fs.returns_user_id_column_count = 0
+      and fs.review_note_guard_count = 1
        and fs.email_pattern_count = 0
        and tp.direct_membership_write_count = 0
        and ppe.risky_column_count = 0
@@ -372,14 +445,20 @@ output_rows as (
        and fs.admin_only_role_rpc_count = 2
        and fs.self_action_guard_count = 3
        and fs.target_admin_guard_count >= 3
+       and fs.target_manager_non_admin_guard_count = 1
        and fs.allowed_status_guard_count = 1
        and fs.revoked_blocked_guard_count = 1
        and fs.expected_transition_guard_count = 1
        and fs.list_status_scope_count = 1
-       and fs.manager_grant_scope_count = 1
-       and fs.manager_revoke_scope_count = 1
-       and fs.grant_requires_approved_count = 1
-       and fs.review_note_guard_count = 1
+      and fs.manager_grant_scope_count = 1
+      and fs.manager_revoke_scope_count = 1
+      and fs.grant_requires_approved_count = 1
+      and mks.management_key_column_count = 1
+      and mks.management_key_unique_index_count = 1
+      and fs.list_returns_management_key_count = 1
+      and fs.target_member_key_lookup_count = 3
+      and fs.returns_user_id_column_count = 0
+      and fs.review_note_guard_count = 1
        and fs.email_pattern_count = 0
        and tp.direct_membership_write_count = 0
        and ppe.risky_column_count = 0
@@ -388,6 +467,7 @@ output_rows as (
     end,
     'If ok, proceed to membership management delegation functional QA and UI implementation gates.'
   from function_summary fs
+  cross join membership_key_schema mks
   cross join privilege_summary ps
   cross join table_privileges tp
   cross join public_profiles_exposure ppe

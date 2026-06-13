@@ -7976,9 +7976,9 @@ Status: design and unapplied SQL draft prepared.
   `membership_approver` users to manage normal membership review statuses.
 - Normal management scope is limited to `pending`, `approved`, and `rejected`.
 - Allowed transitions are `pending -> approved`, `pending -> rejected`,
-  `rejected -> approved`, `rejected -> pending`, and `approved -> rejected`.
-- Revoked/blocked management, admin-target changes, admin role management, and
-  remaining approved-member gates are out of scope.
+  `rejected -> approved`, and `approved -> rejected`.
+- `rejected -> pending`, revoked/blocked management, admin-target changes,
+  admin role management, and remaining approved-member gates are out of scope.
 - Admin-only RPCs are drafted for granting/revoking the limited
   `membership_approver` role to/from non-admin users.
 - Existing pending-only approval RPCs and current mypage UI remain unchanged
@@ -7986,5 +7986,43 @@ Status: design and unapplied SQL draft prepared.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
   Edge deploy, Discord operation, direct Supabase write, or secret recording was
   performed.
+- No concrete user id, email, session id, full URL, token, project identifier,
+  or secret is recorded.
+
+## M-14F-57 membership management delegation apply-before review
+
+Status: review found issues; revised SQL drafts prepared, apply still blocked.
+
+- Baseline: `a67191e Prepare membership management delegation`.
+- Reviewed `docs/supabase/sql/085_membership_management_delegation_apply_draft.sql`
+  and `docs/supabase/sql/086_membership_management_delegation_post_apply_select_only.sql`.
+- SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change, Edge
+  deploy, Discord operation, direct Supabase write, and secret changes were not
+  performed.
+- Initial 085 would have returned raw auth user ids as `member_key` from
+  `list_membership_review_users(text,integer)`.
+- That violates the no raw user id UI/docs/console surface policy, so 085 was
+  revised before apply to add a private opaque
+  `community_memberships.management_key` action key.
+- `list_membership_review_users` now returns `management_key` as `member_key`;
+  `set_member_review_status`, `grant_membership_manager`, and
+  `revoke_membership_manager` resolve targets through that key.
+- 086 now checks the `management_key` column/index, verifies the management-key
+  lookup pattern in the three mutation RPCs, and confirms the new RPC return
+  types do not include a `user_id` column.
+- The review also removed `rejected -> pending` from normal status transitions,
+  leaving `pending -> approved`, `pending -> rejected`, `rejected -> approved`,
+  and `approved -> rejected`.
+- A non-admin guard was added so membership managers cannot change another
+  membership manager's status and thereby indirectly remove delegated
+  management ability.
+- Admin remains the master role; admin-only manager-role grant/revoke RPCs
+  remain admin-only.
+- `security definer`, `set search_path = public`, authenticated-only EXECUTE,
+  direct table grant closure, and `public_profiles` membership/role
+  non-exposure remain the intended 085/086 checks.
+- Because the SQL drafts changed during review, the result is not "ready to
+  apply" yet. The next gate is a fresh apply-before review of the revised
+  085/086.
 - No concrete user id, email, session id, full URL, token, project identifier,
   or secret is recorded.
