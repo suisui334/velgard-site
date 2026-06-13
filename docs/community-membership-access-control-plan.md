@@ -845,6 +845,22 @@ Membership management UI implementation:
   performed in this UI gate.
 - Membership management UI functional QA remains the next explicit gate.
 
+Membership manager grant follow-up:
+
+- 087 SELECT-only diagnostics showed no profile-row absence, no role constraint
+  absence, no duplicate-safe role storage absence, and no `public_profiles`
+  risky membership/role surface.
+- A later admin-side retry still reached the generic UI fallback for manager
+  role changes. Static review found no RPC argument mismatch and no
+  return-shape dependency in the JS.
+- The UI now classifies safe RPC error codes/messages into short Japanese
+  categories without showing SQL details, raw ids, email, concrete
+  management-key values, tokens, or full URLs.
+- 088 SELECT-only diagnostics were prepared for a later gate to review
+  actor/target guard structure, eligible target counts, `user_roles` insert
+  prerequisites, RLS/owner runtime surface, and direct write grants without
+  returning concrete identifiers.
+
 ## Open Questions For Later Gates
 
 - Whether existing trusted accounts are all backfilled to `approved` in one

@@ -8212,3 +8212,36 @@ Status: 087 diagnostic recorded; frontend error classification improved.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
   Discord operation, direct Supabase write, `console.*` addition, or
   `updates.json` change was performed.
+
+## M-14F-63 membership manager grant fallback diagnosis
+
+Status: fallback branch identified; UI error classification expanded; 088
+SELECT-only diagnostic prepared.
+
+- Baseline: `5950771 Classify membership manager grant errors`.
+- Reported UI message:
+  `会員管理権限を変更できませんでした。一覧を更新してから再度お試しください。`
+- Static review identified this as the final fallback branch of
+  `getMembershipManagerRoleErrorMessage`, reached when the RPC returns an error
+  whose code/message was not classified.
+- `grant_membership_manager` returns `TABLE(member_key uuid, role text,
+  membership_status text)`, but the JS does not currently depend on the
+  returned data. It checks `error` only, then reloads the list, so RPC return
+  array/object shape mismatch is not treated as the likely cause.
+- `list_membership_review_users` still returns `member_key`; the UI normalizes
+  it to internal `memberKey` and sends it as `p_target_member_key`.
+- No `management_key` value is rendered as visible text or stored in DOM data
+  attributes.
+- Expanded the UI classifier to inspect safe `error.message` text and common
+  database SQLSTATE categories while still showing only short Japanese
+  categories. SQL details, raw ids, email, tokens, full URLs, and concrete
+  management-key values are not shown.
+- Prepared
+  `docs/supabase/sql/088_membership_manager_grant_actor_target_select_only.sql`
+  for the next gate. 088 is SELECT-only and checks actor/target guard
+  structure, eligible target counts, `user_roles` insert prerequisites,
+  duplicate-safe role storage, RLS/owner runtime surface, direct write grants,
+  and `public_profiles` exposure without returning concrete identifiers.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+  Discord operation, direct Supabase write, `console.*` addition, or
+  `updates.json` change was performed.

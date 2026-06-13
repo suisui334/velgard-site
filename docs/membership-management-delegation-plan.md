@@ -255,9 +255,39 @@ Current investigation after `c16a036 Add membership management UI`:
   operation or the UI's overly generic error handling.
 - The UI now maps safe RPC error codes to short Japanese categories without
   showing SQL details, raw ids, email, tokens, or concrete management keys.
-- No 088 SQL was created in this gate. If the classified error still does not
-  identify the failing guard, create a separate SELECT-only 088 diagnostic for
-  actor/target conditions without returning concrete identifiers.
+
+Additional narrowing after `5950771 Classify membership manager grant errors`:
+
+- A later UI retry still showed the generic fallback:
+  `会員管理権限を変更できませんでした。一覧を更新してから再度お試しください。`
+- That message is the final fallback branch of
+  `getMembershipManagerRoleErrorMessage`; it is reached after
+  `grant_membership_manager` / `revoke_membership_manager` returns an error
+  that is not classified by the current code map.
+- The grant RPC returns `TABLE(member_key uuid, role text,
+  membership_status text)`, but the current JS does not depend on the returned
+  data shape. It only checks `error` and then reloads the list, so an array vs.
+  single-object mismatch is not the likely cause.
+- The list RPC returns `member_key`, and the UI still normalizes it to internal
+  `memberKey`; no `management_key` value is rendered or stored in DOM
+  attributes.
+- The frontend still calls `grant_membership_manager` with
+  `p_target_member_key`, matching the applied RPC argument name.
+- The UI error classifier now also inspects safe `error.message` text and
+  common database SQLSTATE categories, without displaying SQL details or
+  concrete identifiers. This should split future failures into admin/target
+  guard, approved-normal-user requirement, duplicate role state, or DB/RPC
+  definition review.
+- Created
+  `docs/supabase/sql/088_membership_manager_grant_actor_target_select_only.sql`
+  for the next diagnostic gate. It is SELECT-only and checks actor/target guard
+  structure, eligible target counts, `user_roles` insert prerequisites,
+  duplicate-safe role storage, RLS/owner runtime surface, direct write grants,
+  and `public_profiles` exposure without returning raw ids, email, concrete
+  management keys, tokens, or full URLs.
+- If the new UI classification still does not identify the failing guard, run
+  088 once as a separate SQL Editor SELECT-only gate before preparing any
+  DB/RPC apply draft.
 
 ## Stop Conditions
 

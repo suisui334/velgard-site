@@ -755,7 +755,18 @@ Notes:
   displayed or written into DOM data attributes.
 - Email, raw user ids, concrete management-key values, tokens, full URLs, and
   secrets are not shown or recorded.
-- Next gate: membership management UI functional QA.
+- 087 SELECT-only diagnostics did not find profile-row absence, role constraint
+  absence, or duplicate-safe role storage absence as the cause of admin-side
+  manager grant failure.
+- A follow-up frontend review found that the generic manager-role failure
+  message was the final UI fallback branch, not a return-shape mismatch.
+- The UI now classifies safe RPC error codes/messages more narrowly without
+  exposing SQL details or concrete identifiers.
+- 088 SELECT-only diagnostics were prepared as the next optional diagnostic
+  gate for actor/target guard and `user_roles` runtime surfaces.
+- Next gate: run 088 once if the newly classified UI error is still ambiguous,
+  or proceed to membership management UI functional QA after the manager grant
+  path is understood.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
   Edge deploy, Discord operation, direct Supabase write, or secret recording was
   performed by Codex in this UI implementation step.

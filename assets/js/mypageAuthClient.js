@@ -2099,16 +2099,35 @@
 
   function getMembershipManagerRoleErrorMessage(error, granting) {
     const code = String(error && error.code ? error.code : "").trim();
-    if (code === "42501") {
+    const message = String(error && error.message ? error.message : "");
+    const lowerMessage = message.toLowerCase();
+    const hasMessage = (...patterns) => patterns.some((pattern) => {
+      const text = String(pattern || "");
+      return text && (message.includes(text) || lowerMessage.includes(text.toLowerCase()));
+    });
+
+    if (
+      code === "42501" ||
+      hasMessage("会員管理権限がありません", "この権限は変更できません", "管理者の権限", "permission denied", "row-level security")
+    ) {
       return "admin権限が必要、またはこのユーザーは管理対象外です。";
     }
-    if (code === "22023") {
+    if (
+      code === "22023" ||
+      hasMessage("対象の会員状態を確認できません", "承認済みユーザーのみ委任できます", "invalid input")
+    ) {
       return granting
         ? "承認済みの通常ユーザーだけに管理権限を付与できます。"
         : "管理対象外のユーザーです。";
     }
-    if (code === "23505") {
+    if (code === "23505" || hasMessage("duplicate key", "already exists", "既に")) {
       return "既に会員管理権限が設定されています。一覧を更新してください。";
+    }
+    if (
+      ["23502", "23503", "23514", "42702", "42703", "42883"].includes(code) ||
+      hasMessage("violates not-null", "violates foreign key", "violates check", "ambiguous", "does not exist")
+    ) {
+      return "会員管理RPCの定義確認が必要です。";
     }
     return "会員管理権限を変更できませんでした。一覧を更新してから再度お試しください。";
   }
