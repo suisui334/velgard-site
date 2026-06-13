@@ -869,6 +869,17 @@ Membership manager grant follow-up:
   definition bucket. 090/091 were prepared to fix and verify a likely
   `grant_membership_manager` role-name conflict around duplicate-safe
   `user_roles` insertion.
+- The user later ran 090 once in SQL Editor, apply succeeded, and then ran 091
+  once as SELECT-only with all checks returning `status=ok`.
+- 091 confirmed `grant_membership_manager` signature / return shape, security
+  definer, `search_path=public`, authenticated-only EXECUTE, admin/target
+  guards, `ON CONFLICT DO NOTHING`, primary-only `user_roles` conflict indexes,
+  no direct write grants, and no `public_profiles` membership/role/key/email/raw
+  id exposure.
+- 089 schema-cache reload remains unexecuted and is not needed as the immediate
+  next step for this manager-grant issue.
+- Next gate: admin-side UI retry for granting membership-manager authority to
+  one approved normal user, without recording concrete identifiers.
 
 ## Open Questions For Later Gates
 

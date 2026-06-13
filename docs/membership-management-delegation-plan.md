@@ -374,6 +374,36 @@ Public delivery and RPC-definition follow-up:
 - 089 schema-cache reload remains unexecuted and is not the next step while the
   090 definition fix gate is being tried.
 
+090/091 apply confirmation:
+
+- The user ran `090_membership_manager_grant_role_conflict_fix_apply_draft.sql`
+  once in SQL Editor; apply succeeded.
+- The user then ran
+  `091_membership_manager_grant_role_conflict_fix_post_apply_select_only.sql`
+  once as SELECT-only; all checks returned `status=ok`.
+- `post_apply_ready_for_membership_manager_grant_qa=ok`.
+- The applied fix was limited to `grant_membership_manager(uuid)`.
+- The `grant_membership_manager` signature and return shape were preserved.
+- `security definer`, `search_path=public`, authenticated-only EXECUTE, and
+  anon/public EXECUTE closure were confirmed.
+- Admin guard, management-key lookup, self guard, target-admin guard,
+  approved-user guard, and profile-row guard were confirmed.
+- The `user_roles` insert scope remained limited to the intended role grant.
+- `ON CONFLICT DO NOTHING` was confirmed, and the previous
+  `ON CONFLICT (user_id, role)` target was absent.
+- Positional `RETURN QUERY` output was confirmed.
+- `user_roles` conflict indexes were primary-only, with
+  `non_primary_conflict_indexes=0`.
+- Direct write grants were absent, and `public_profiles` still does not expose
+  membership, role, management-key, email, or raw user-id surfaces.
+- 089 schema-cache reload remains unexecuted and is no longer the immediate
+  next step for this issue.
+- Next gate: retry the admin UI path once by granting membership-manager
+  authority to an approved normal user, then confirm the list refresh and
+  manager-role display state.
+- No concrete user id, email, management key value, token, JWT, full URL,
+  project identifier, or secret is recorded.
+
 ## Stop Conditions
 
 Stop before apply or implementation if:

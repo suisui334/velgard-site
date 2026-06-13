@@ -770,6 +770,16 @@ Notes:
 - Next gate: run 088 once if the newly classified UI error is still ambiguous,
   run 089 once only if the UI identifies schema-cache, or proceed to membership
   management UI functional QA after the manager grant path is understood.
+- The later 090 apply succeeded and 091 SELECT-only confirmation returned all
+  checks as `status=ok`, including preserved `grant_membership_manager`
+  signature / return shape, security definer, `search_path=public`,
+  authenticated-only EXECUTE, primary-only `user_roles` conflict indexes,
+  absence of direct write grants, and no `public_profiles`
+  membership/role/management-key/email/raw-id exposure.
+- 089 schema-cache reload remains unexecuted and is not the immediate next step
+  for this issue.
+- Next gate: retry the admin UI manager-role grant path once for an approved
+  normal user, without recording concrete identifiers.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
   Edge deploy, Discord operation, direct Supabase write, or secret recording was
   performed by Codex in this UI implementation step.

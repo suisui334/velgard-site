@@ -8291,6 +8291,42 @@ Status: reviewed; 090 may be run once in SQL Editor.
   Discord operation, direct Supabase write, `console.*` addition, or
   `updates.json` change was performed.
 
+## M-14F-67 membership manager grant definition fix apply confirmation
+
+Status: 090 applied; 091 SELECT-only confirmation all OK.
+
+- Baseline: `ea8ecc4 Review membership manager grant fix`.
+- The user ran
+  `docs/supabase/sql/090_membership_manager_grant_role_conflict_fix_apply_draft.sql`
+  once in SQL Editor; apply succeeded.
+- The user then ran
+  `docs/supabase/sql/091_membership_manager_grant_role_conflict_fix_post_apply_select_only.sql`
+  once as SELECT-only; all checks returned `status=ok`.
+- `post_apply_ready_for_membership_manager_grant_qa=ok`.
+- 090 was a narrow fix limited to `grant_membership_manager(uuid)`.
+- 091 confirmed the `grant_membership_manager` signature and return shape were
+  preserved.
+- 091 confirmed `security_definer=true`, `search_path_public=true`,
+  `authenticated=true`, `anon=false`, and `public=false`.
+- Admin guard, management-key lookup, self guard, target-admin guard,
+  approved guard, and profile guard were confirmed.
+- `insert_scope=1`, `on_conflict_do_nothing=1`,
+  `ambiguous_conflict_target=0`, and `positional_return=1`.
+- `user_roles` conflict indexes were primary-only, with
+  `non_primary_conflict_indexes=0`.
+- Direct write grants were absent.
+- `public_profiles` still does not expose membership, role, management-key,
+  email, or raw user-id surfaces.
+- 089 schema-cache reload remains unexecuted and is not needed as the immediate
+  next step for this manager-grant issue.
+- Next gate: admin-side UI retry for granting membership-manager authority to
+  one approved normal user, then confirm list refresh and manager-role display.
+- No concrete user id, email, raw user id, management key value, token, JWT,
+  full URL, project identifier, Webhook value, or secret is recorded.
+- No SQL Editor execution by Codex, SQL apply by Codex, DB/RPC/RLS additional
+  mutation, Edge deploy, Discord operation, direct Supabase write, `console.*`
+  addition, or `updates.json` change was performed.
+
 ## M-14F-64 membership manager RPC schema-cache diagnosis
 
 Status: schema-cache/function-lookup classification added; manual reload gate
