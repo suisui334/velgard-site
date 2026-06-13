@@ -8144,3 +8144,38 @@ Status: membership management UI implemented; functional QA remains a separate g
   membership manager visibility, normal-user non-visibility, status changes,
   manager-role grant/revoke, and negative controls for admin/manager/self
   targets.
+
+## M-14F-61 membership manager grant failure diagnosis
+
+Status: frontend mismatch not found; SELECT-only diagnostic prepared.
+
+- Baseline: `c16a036 Add membership management UI`.
+- Reported issue: admin-side membership management UI showed
+  `管理権限を付与できませんでした` when trying to grant membership-manager
+  authority to an already-approved user.
+- SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+  operation, direct Supabase write, `console.*` addition, and repeated live
+  grant attempts were not performed.
+- Static review found that the frontend calls `grant_membership_manager` /
+  `revoke_membership_manager` with `p_target_member_key`.
+- The 085 SQL draft defines `grant_membership_manager(p_target_member_key uuid)`
+  and resolves targets through `community_memberships.management_key`, so the
+  first-pass frontend payload-name mismatch suspicion was not confirmed.
+- `list_membership_review_users` returns `member_key`; the UI keeps it as an
+  internal JS `memberKey` value for RPC calls and does not render it as visible
+  text or DOM data attributes.
+- A remaining repo-visible mismatch is that `grant_membership_manager` requires
+  the target to have a `profiles` row before adding a `user_roles` row, while
+  the list RPC's manager-action boolean does not explicitly require profile
+  existence.
+- Role-storage runtime prerequisites also need live SELECT-only confirmation:
+  duplicate-safe `(user_id, role)` uniqueness and a role constraint allowing
+  `membership_approver`.
+- Added
+  `docs/supabase/sql/087_membership_manager_grant_diagnostics_select_only.sql`
+  to check the grant RPC signature, argument name, return shape, execution
+  grants, static guards, role-storage prerequisites, approved memberships
+  without profiles, and `public_profiles` exposure.
+- 087 is SELECT-only and must be run at most once in a later diagnostic gate.
+- No concrete user id, email, management key value, full URL, token, JWT,
+  project identifier, Webhook value, or secret is recorded.

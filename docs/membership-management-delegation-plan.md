@@ -203,6 +203,38 @@ Run after the implemented UI is available on the target environment:
 - `public_profiles` still does not expose membership or role state.
 - No raw ids, email addresses, tokens, or full URLs are displayed or recorded.
 
+## Manager Grant Failure Diagnosis
+
+Current investigation after `c16a036 Add membership management UI`:
+
+- Admin-side UI showed a generic failure when trying to grant the
+  membership-manager role to an already-approved user.
+- SQL Editor execution, SQL apply, DB/RPC/RLS mutation, and repeated live grant
+  attempts were not performed in this investigation.
+- Static review found that the frontend calls `grant_membership_manager` and
+  `revoke_membership_manager` with `p_target_member_key`, matching the 085 SQL
+  draft's argument name.
+- `list_membership_review_users` returns `member_key`, and the UI normalizes it
+  into an internal `memberKey` property for RPC calls. The key is not rendered
+  as visible text or DOM data attributes.
+- No frontend-side raw user id, email, token, or management-key value exposure
+  was found in the changed UI path.
+- A remaining repo-visible mismatch is that `grant_membership_manager` requires
+  the target to have a corresponding `profiles` row before it can add
+  `user_roles`, while the list RPC can expose manager-role actions based on
+  membership status without explicitly checking profile existence.
+- The role table prerequisites also need live confirmation: `user_roles` should
+  have duplicate-safe `(user_id, role)` uniqueness and a role constraint that
+  allows `membership_approver`.
+- Added
+  `docs/supabase/sql/087_membership_manager_grant_diagnostics_select_only.sql`
+  to confirm these runtime prerequisites without returning concrete ids,
+  emails, management-key values, tokens, or full URLs.
+- Next gate: run 087 once as SELECT-only. If it reports missing profile rows or
+  a role-storage prerequisite problem, prepare a narrow apply draft before any
+  DB change. If 087 is all OK, inspect the exact UI actor/target condition
+  without recording identifiers.
+
 ## Stop Conditions
 
 Stop before apply or implementation if:
