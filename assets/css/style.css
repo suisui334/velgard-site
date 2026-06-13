@@ -4722,6 +4722,19 @@ body[data-page="mypage"] .mypage-membership-approval-list {
   gap: 12px;
 }
 
+body[data-page="mypage"] .mypage-membership-approval-group {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+body[data-page="mypage"] .mypage-membership-approval-group-title {
+  margin: 4px 0 0;
+  color: var(--deep);
+  font-size: 0.92rem;
+  letter-spacing: 0;
+}
+
 body[data-page="mypage"] .mypage-membership-approval-card {
   display: grid;
   gap: 10px;
@@ -4747,6 +4760,42 @@ body[data-page="mypage"] .mypage-membership-approval-card-head h4 {
   color: var(--soot);
   font-size: 1rem;
   overflow-wrap: anywhere;
+}
+
+body[data-page="mypage"] .mypage-membership-approval-badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+body[data-page="mypage"] .mypage-membership-role-badge {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border: 1px solid rgba(75, 63, 99, 0.18);
+  border-radius: 999px;
+  background: rgba(75, 63, 99, 0.08);
+  color: var(--deep);
+  font-size: 0.75rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+body[data-page="mypage"] .mypage-membership-role-badge.is-admin {
+  border-color: rgba(150, 69, 48, 0.2);
+  background: rgba(150, 69, 48, 0.12);
+  color: var(--rust);
+}
+
+body[data-page="mypage"] .mypage-membership-role-badge.is-manager {
+  border-color: rgba(111, 143, 104, 0.24);
+  background: rgba(111, 143, 104, 0.14);
+  color: var(--herb);
 }
 
 body[data-page="mypage"] .mypage-membership-approval-meta {

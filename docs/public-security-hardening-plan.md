@@ -745,11 +745,20 @@ Notes:
   guards, allowed status scope, `management_key` surface, no raw `user_id`
   return column, no email surface, no direct `community_memberships` web write
   grant, and no `public_profiles` membership/role/management-key exposure.
-- Next gates: membership management delegation functional QA and membership
-  management UI implementation.
+- The mypage membership management UI was then implemented using the delegated
+  RPCs.
+- The UI groups `pending`, `approved`, and `rejected` users; uses
+  `set_member_review_status` for normal status changes; and uses
+  `grant_membership_manager` / `revoke_membership_manager` only when the RPC
+  marks manager-role actions as allowed.
+- The opaque `member_key` is held only as an internal JS action key and is not
+  displayed or written into DOM data attributes.
+- Email, raw user ids, concrete management-key values, tokens, full URLs, and
+  secrets are not shown or recorded.
+- Next gate: membership management UI functional QA.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
   Edge deploy, Discord operation, direct Supabase write, or secret recording was
-  performed by Codex in this recording step.
+  performed by Codex in this UI implementation step.
 - No concrete user id, email, session id, full URL, token, project identifier,
   management key value, or secret is recorded.
 

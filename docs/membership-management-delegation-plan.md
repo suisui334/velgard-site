@@ -114,9 +114,9 @@ Post-apply confirmation:
   confirmed OK, with no raw `user_id` column returned.
 - Email surface, direct `community_memberships` write grants, and
   `public_profiles` membership/role/management-key exposure all confirmed OK.
-- The frontend membership management UI is still not implemented. The next
-  gates are membership management delegation functional QA and the management UI
-  implementation gate.
+- At the post-apply confirmation point, the frontend membership management UI
+  was still not implemented. The later UI implementation gate is recorded
+  below, and functional QA remains a separate gate.
 - No concrete user id, email, management key value, token, JWT, full URL,
   project identifier, or secret is recorded.
 
@@ -155,27 +155,38 @@ designed as a separate gate.
 
 ## UI Plan
 
-After 085 is applied and 086 confirms all checks:
+Implemented in the membership management UI gate:
 
-- Replace or extend the current mypage approval panel with a broader
+- The previous pending-only mypage approval panel was replaced with a broader
   membership-management panel.
-- Show the panel only to admin or approved `membership_approver` users.
-- Show display name, Discord handle if present, current status, and short
-  status notes.
+- The panel is loaded from `list_membership_review_users`; users who cannot call
+  the RPC fail closed and do not see the panel.
+- The panel is intended only for admin or approved `membership_approver` users.
+- It shows display name, optional Discord handle, current membership status,
+  review note, and timestamps needed for review.
 - Do not display email, raw user id, internal membership id, tokens, or full
   URLs.
-- Use an internal action key returned by RPC only for button calls; do not
-  render or log it.
+- The opaque action key returned as `member_key` is held only in JS memory for
+  RPC calls. It is not rendered as visible text or DOM data attributes, and no
+  concrete key value is recorded.
 - Pending rows show approve/reject actions.
 - Approved rows show reject action.
 - Rejected rows show approve action.
-- Admin-only controls can grant/revoke `membership_approver`.
+- Admin-only controls can grant/revoke `membership_approver` when the RPC marks
+  the action as allowed.
 - All status or role changes require a short confirmation dialog.
 - Errors should be short Japanese messages without SQL detail or identifiers.
+- The UI groups rows by `pending`, `approved`, and `rejected`; `revoked` and
+  `blocked` are not shown as normal management targets.
+- The cache-bust for `mypage.html` was updated for the modified CSS/JS.
+- This gate did not run SQL Editor, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+  Discord operation, direct Supabase writes, or secret changes.
+- Functional QA for admin, membership manager, normal approved user, and action
+  outcomes remains a separate gate.
 
 ## QA Plan
 
-Run only after the SQL apply and UI gate are separately approved:
+Run after the implemented UI is available on the target environment:
 
 - Admin can see the management panel.
 - Approved `membership_approver` can see the management panel.

@@ -8110,3 +8110,37 @@ Status: 085 apply succeeded; 086 SELECT-only confirmation all OK.
   step.
 - No concrete user id, email, session id, management key value, full URL, token,
   JWT, project identifier, Webhook value, or secret is recorded.
+
+## M-14F-60 membership management UI
+
+Status: membership management UI implemented; functional QA remains a separate gate.
+
+- Baseline: `eec57b1 Record membership delegation apply`.
+- Replaced the previous pending-only mypage `会員承認` panel with a broader
+  `会員管理` panel.
+- The panel uses the 085/086 delegation RPCs:
+  `list_membership_review_users`, `set_member_review_status`,
+  `grant_membership_manager`, and `revoke_membership_manager`.
+- Users who cannot call `list_membership_review_users` fail closed and do not
+  see the panel, so normal approved users should not receive the management UI.
+- The list is grouped by `pending`, `approved`, and `rejected`.
+- Pending rows expose approve/reject actions, approved rows expose reject
+  action, and rejected rows expose approve action when the RPC response allows
+  status management.
+- Admin-only membership-manager grant/revoke buttons are rendered only when the
+  RPC response allows manager-role management.
+- `revoked`, `blocked`, and other non-normal management states are filtered out
+  of the normal UI.
+- The opaque `member_key` is kept only in JS memory for RPC calls. It is not
+  rendered as visible text or DOM data attributes.
+- The UI does not show raw user ids, email, tokens, full URLs, or concrete
+  management-key values.
+- `mypage.html` cache-bust values were updated for the modified CSS and
+  mypage auth JS.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
+  Edge deploy, dry_run=false, Discord operation, direct Supabase write,
+  `console.*` addition, or `updates.json` change was performed.
+- Next gate: membership management UI functional QA covering admin visibility,
+  membership manager visibility, normal-user non-visibility, status changes,
+  manager-role grant/revoke, and negative controls for admin/manager/self
+  targets.

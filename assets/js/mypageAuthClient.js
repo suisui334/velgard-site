@@ -1996,24 +1996,34 @@
 
   function normalizeMembershipApprovalRow(row) {
     const displayName = normalizeDisplayName(row && row.display_name);
+    const status = normalizeMembershipStatus(row && row.status);
+    const memberKey = String(row && row.member_key ? row.member_key : "").trim();
     const discordHandle = String(row && row.discord_handle ? row.discord_handle : "").trim();
     return {
-      userId: String(row && row.user_id ? row.user_id : "").trim(),
+      memberKey,
       displayName: displayName && displayName !== "display_name_not_set" ? displayName : "ユーザー名未設定",
       discordHandle,
-      status: normalizeMembershipStatus(row && row.status),
+      status,
       reviewNote: String(row && row.review_note ? row.review_note : "").trim(),
       createdAt: String(row && row.created_at ? row.created_at : "").trim(),
-      updatedAt: String(row && row.updated_at ? row.updated_at : "").trim()
+      updatedAt: String(row && row.updated_at ? row.updated_at : "").trim(),
+      reviewedAt: String(row && row.reviewed_at ? row.reviewed_at : "").trim(),
+      isAdminUser: row && row.is_admin_user === true,
+      isMembershipManager: row && row.is_membership_manager === true,
+      canManageStatus: row && row.can_manage_status === true,
+      canManageManagerRole: row && row.can_manage_manager_role === true
     };
   }
 
-  async function fetchPendingCommunityMembers(client) {
-    const { data, error } = await client.rpc("get_pending_community_members", {
+  async function fetchMembershipReviewUsers(client) {
+    const { data, error } = await client.rpc("list_membership_review_users", {
+      p_status: null,
       p_limit: MEMBERSHIP_APPROVAL_LIMIT
     });
     if (error) throw error;
-    return (Array.isArray(data) ? data : []).map(normalizeMembershipApprovalRow).filter((row) => row.userId);
+    return (Array.isArray(data) ? data : [])
+      .map(normalizeMembershipApprovalRow)
+      .filter((row) => row.memberKey && ["pending", "approved", "rejected"].includes(row.status));
   }
 
   function setMembershipApprovalPanelState(panel, message, options = {}) {
@@ -2025,11 +2035,11 @@
   }
 
   function setMembershipApprovalCardBusy(card, busy) {
-    card.textarea.disabled = busy || card.selfAction;
-    card.approveButton.disabled = busy || card.selfAction;
-    card.rejectButton.disabled = busy || card.selfAction;
-    card.approveButton.textContent = busy ? "処理中" : "承認";
-    card.rejectButton.textContent = busy ? "処理中" : "却下";
+    card.textarea.disabled = busy || !card.hasActions;
+    card.buttons.forEach((action) => {
+      action.button.disabled = busy || action.disabled;
+      action.button.textContent = busy ? "処理中" : action.readyText;
+    });
   }
 
   function createMembershipApprovalMeta(labelText, valueText) {
@@ -2040,6 +2050,51 @@
     value.textContent = valueText || "未設定";
     item.append(label, value);
     return item;
+  }
+
+  function createMembershipRoleBadge(text, modifier) {
+    const badge = document.createElement("span");
+    badge.className = `mypage-membership-role-badge ${modifier}`;
+    badge.textContent = text;
+    return badge;
+  }
+
+  function createMembershipActionButton(label, className, handler) {
+    const button = document.createElement("button");
+    button.className = className;
+    button.type = "button";
+    button.textContent = label;
+    button.addEventListener("click", handler);
+    return button;
+  }
+
+  function getMembershipReviewCounts(rows) {
+    return rows.reduce(
+      (counts, row) => {
+        if (row.status === "pending") counts.pending += 1;
+        if (row.status === "approved") counts.approved += 1;
+        if (row.status === "rejected") counts.rejected += 1;
+        return counts;
+      },
+      { pending: 0, approved: 0, rejected: 0 }
+    );
+  }
+
+  function formatMembershipReviewMeta(rows) {
+    if (!rows.length) return "管理対象なし";
+    const counts = getMembershipReviewCounts(rows);
+    return `合計 ${rows.length}件 / 承認待ち ${counts.pending}件 / 承認済み ${counts.approved}件 / 未承認 ${counts.rejected}件`;
+  }
+
+  function getMembershipStatusActionLabel(status, nextStatus) {
+    if (nextStatus === "approved") return status === "rejected" ? "再承認する" : "承認する";
+    if (nextStatus === "rejected") return status === "approved" ? "却下にする" : "却下する";
+    return "変更する";
+  }
+
+  function getMembershipStatusActionMessage(row, nextStatus) {
+    const label = getMembershipStatusActionLabel(row.status, nextStatus);
+    return `${row.displayName}さんを${label.replace("する", "します")}。続けますか？`;
   }
 
   function createMembershipApprovalCard(client, panel, row) {
@@ -2053,16 +2108,24 @@
     title.textContent = row.displayName;
 
     const status = document.createElement("span");
-    status.className = "mypage-membership-badge is-pending";
+    status.className = `mypage-membership-badge is-${row.status}`;
     status.textContent = getMembershipStatusView(row.status).label;
 
-    head.append(title, status);
+    const badges = document.createElement("div");
+    badges.className = "mypage-membership-approval-badges";
+    if (row.isAdminUser) badges.append(createMembershipRoleBadge("管理者", "is-admin"));
+    if (row.isMembershipManager) badges.append(createMembershipRoleBadge("会員管理", "is-manager"));
+    badges.append(status);
+
+    head.append(title, badges);
 
     const meta = document.createElement("dl");
     meta.className = "mypage-membership-approval-meta";
     meta.append(
       createMembershipApprovalMeta("Discord ID", row.discordHandle || "未登録"),
-      createMembershipApprovalMeta("登録日時", formatApplicationUpdatedAt(row.createdAt))
+      createMembershipApprovalMeta("登録日時", formatApplicationUpdatedAt(row.createdAt)),
+      createMembershipApprovalMeta("更新日時", formatApplicationUpdatedAt(row.updatedAt)),
+      createMembershipApprovalMeta("確認日時", row.reviewedAt ? formatApplicationUpdatedAt(row.reviewedAt) : "未確認")
     );
 
     const noteLabel = document.createElement("label");
@@ -2079,45 +2142,53 @@
     const actions = document.createElement("div");
     actions.className = "mypage-membership-approval-actions";
 
-    const approveButton = document.createElement("button");
-    approveButton.className = "button primary";
-    approveButton.type = "button";
-    approveButton.textContent = "承認";
-
-    const rejectButton = document.createElement("button");
-    rejectButton.className = "button danger";
-    rejectButton.type = "button";
-    rejectButton.textContent = "却下";
-
-    const selfAction = row.userId === String(panel.session?.user?.id || "");
-    if (selfAction) {
-      approveButton.disabled = true;
-      rejectButton.disabled = true;
-      textarea.disabled = true;
-    }
-
     const cardController = {
       textarea,
-      approveButton,
-      rejectButton,
-      selfAction
+      buttons: [],
+      hasActions: false
     };
 
-    approveButton.addEventListener("click", () => {
-      handleMembershipApprovalDecision(client, panel, row, "approve", cardController);
-    });
-    rejectButton.addEventListener("click", () => {
-      handleMembershipApprovalDecision(client, panel, row, "reject", cardController);
-    });
+    const appendAction = (label, className, handler) => {
+      const button = createMembershipActionButton(label, className, handler);
+      cardController.buttons.push({ button, readyText: label, disabled: false });
+      cardController.hasActions = true;
+      actions.append(button);
+    };
 
-    actions.append(approveButton, rejectButton);
+    if (row.canManageStatus) {
+      if (row.status === "pending") {
+        appendAction("承認する", "button primary", () => {
+          handleMembershipStatusChange(client, panel, row, "approved", cardController);
+        });
+        appendAction("却下する", "button danger", () => {
+          handleMembershipStatusChange(client, panel, row, "rejected", cardController);
+        });
+      } else if (row.status === "approved") {
+        appendAction("却下にする", "button danger", () => {
+          handleMembershipStatusChange(client, panel, row, "rejected", cardController);
+        });
+      } else if (row.status === "rejected") {
+        appendAction("再承認する", "button primary", () => {
+          handleMembershipStatusChange(client, panel, row, "approved", cardController);
+        });
+      }
+    }
+
+    if (row.canManageManagerRole) {
+      const managerLabel = row.isMembershipManager ? "管理権限を外す" : "管理権限を付与";
+      appendAction(managerLabel, row.isMembershipManager ? "button danger" : "button", () => {
+        handleMembershipManagerRoleChange(client, panel, row, cardController);
+      });
+    }
+
     card.append(head, meta, noteLabel, actions);
 
-    if (selfAction) {
-      const selfNote = document.createElement("p");
-      selfNote.className = "mypage-profile-state is-warn";
-      selfNote.textContent = "自分自身の承認/却下はできません。";
-      card.append(selfNote);
+    if (!cardController.hasActions) {
+      textarea.disabled = true;
+      const disabledNote = document.createElement("p");
+      disabledNote.className = "mypage-profile-state is-warn";
+      disabledNote.textContent = "このユーザーは通常の会員管理UIでは操作できません。";
+      card.append(disabledNote);
     }
 
     return card;
@@ -2126,16 +2197,34 @@
   function renderMembershipApprovalRows(client, panel, rows, message = "") {
     panel.rows = rows;
     panel.list.replaceChildren();
-    setMypageDetailsMeta(panel.detailsPanel, rows.length ? `承認待ち ${rows.length}件` : "承認待ちなし");
+    setMypageDetailsMeta(panel.detailsPanel, formatMembershipReviewMeta(rows));
 
     if (!rows.length) {
       const empty = document.createElement("p");
       empty.className = "mypage-membership-approval-empty";
-      empty.textContent = "承認待ちユーザーはいません。";
+      empty.textContent = "管理対象ユーザーはいません。";
       panel.list.append(empty);
     } else {
-      rows.forEach((row) => {
-        panel.list.append(createMembershipApprovalCard(client, panel, row));
+      [
+        { status: "pending", title: "承認待ち" },
+        { status: "approved", title: "承認済み" },
+        { status: "rejected", title: "未承認" }
+      ].forEach((group) => {
+        const groupRows = rows.filter((row) => row.status === group.status);
+        if (!groupRows.length) return;
+
+        const section = document.createElement("section");
+        section.className = "mypage-membership-approval-group";
+
+        const heading = document.createElement("h4");
+        heading.className = "mypage-membership-approval-group-title";
+        heading.textContent = `${group.title} ${groupRows.length}件`;
+        section.append(heading);
+
+        groupRows.forEach((row) => {
+          section.append(createMembershipApprovalCard(client, panel, row));
+        });
+        panel.list.append(section);
       });
     }
 
@@ -2143,22 +2232,22 @@
   }
 
   async function reloadMembershipApprovalPanel(client, panel, message = "") {
-    setMembershipApprovalPanelState(panel, "承認待ちユーザーを読み込んでいます。");
+    setMembershipApprovalPanelState(panel, "会員一覧を読み込んでいます。");
     panel.refreshButton.disabled = true;
     try {
-      const rows = await fetchPendingCommunityMembers(client);
+      const rows = await fetchMembershipReviewUsers(client);
       renderMembershipApprovalRows(client, panel, rows, message);
     } catch {
-      setMembershipApprovalPanelState(panel, "承認待ちユーザーを読み込めませんでした。", { error: true });
+      setMembershipApprovalPanelState(panel, "会員一覧を読み込めませんでした。", { error: true });
     } finally {
       if (panel.refreshButton.isConnected) panel.refreshButton.disabled = false;
     }
   }
 
-  async function handleMembershipApprovalDecision(client, panel, row, action, card) {
-    const actionLabel = action === "approve" ? "承認" : "却下";
-    if (!row.userId || card.selfAction) {
-      setMembershipApprovalPanelState(panel, `${actionLabel}できません。`, { error: true });
+  async function handleMembershipStatusChange(client, panel, row, nextStatus, card) {
+    const actionLabel = getMembershipStatusActionLabel(row.status, nextStatus);
+    if (!row.memberKey || !row.canManageStatus) {
+      setMembershipApprovalPanelState(panel, "会員状態を変更できません。", { error: true });
       return;
     }
 
@@ -2168,35 +2257,63 @@
       return;
     }
 
-    const confirmed = window.confirm(`${row.displayName}さんを${actionLabel}します。続けますか？`);
+    const confirmed = window.confirm(getMembershipStatusActionMessage(row, nextStatus));
     if (!confirmed) return;
 
-    const rpcName = action === "approve" ? "approve_community_member" : "reject_community_member";
     setMembershipApprovalCardBusy(card, true);
-    setMembershipApprovalPanelState(panel, `${actionLabel}しています。`);
+    setMembershipApprovalPanelState(panel, "会員状態を変更しています。");
     try {
-      const { error } = await client.rpc(rpcName, {
-        p_target_user_id: row.userId,
+      const { error } = await client.rpc("set_member_review_status", {
+        p_target_member_key: row.memberKey,
+        p_new_status: nextStatus,
         p_review_note: note || null
+      });
+      if (error) throw error;
+      await reloadMembershipApprovalPanel(client, panel, `${actionLabel.replace("する", "しました")}。`);
+    } catch {
+      setMembershipApprovalPanelState(panel, "会員状態を変更できませんでした。一覧を更新してから再度お試しください。", { error: true });
+    } finally {
+      if (card.buttons.some((action) => action.button.isConnected)) {
+        setMembershipApprovalCardBusy(card, false);
+      }
+    }
+  }
+
+  async function handleMembershipManagerRoleChange(client, panel, row, card) {
+    if (!row.memberKey || !row.canManageManagerRole) {
+      setMembershipApprovalPanelState(panel, "会員管理権限を変更できません。", { error: true });
+      return;
+    }
+
+    const granting = !row.isMembershipManager;
+    const actionLabel = granting ? "会員管理権限を付与" : "会員管理権限を解除";
+    const confirmed = window.confirm(`${row.displayName}さんの${actionLabel}します。続けますか？`);
+    if (!confirmed) return;
+
+    setMembershipApprovalCardBusy(card, true);
+    setMembershipApprovalPanelState(panel, "会員管理権限を変更しています。");
+    try {
+      const { error } = await client.rpc(granting ? "grant_membership_manager" : "revoke_membership_manager", {
+        p_target_member_key: row.memberKey
       });
       if (error) throw error;
       await reloadMembershipApprovalPanel(client, panel, `${actionLabel}しました。`);
     } catch {
-      setMembershipApprovalPanelState(panel, `${actionLabel}できませんでした。一覧を更新してから再度お試しください。`, { error: true });
+      setMembershipApprovalPanelState(panel, "会員管理権限を変更できませんでした。一覧を更新してから再度お試しください。", { error: true });
     } finally {
-      if (card.approveButton.isConnected || card.rejectButton.isConnected) {
+      if (card.buttons.some((action) => action.button.isConnected)) {
         setMembershipApprovalCardBusy(card, false);
       }
     }
   }
 
   function createMembershipApprovalDetails(client, elements, session, rows) {
-    const detailsPanel = createMypageDetails("会員承認", rows.length ? `承認待ち ${rows.length}件` : "承認待ちなし", { className: "mypage-membership-approval-details" });
+    const detailsPanel = createMypageDetails("会員管理", formatMembershipReviewMeta(rows), { className: "mypage-membership-approval-details" });
     detailsPanel.details.dataset.mypageMembershipApproval = "";
 
     const note = document.createElement("p");
     note.className = "mypage-profile-note";
-    note.textContent = "pendingユーザーの承認/却下だけを行います。メールアドレスや内部IDは表示しません。";
+    note.textContent = "pending / approved / rejected の会員状態を管理します。adminのみ会員管理権限の付与・剥奪も行えます。メールアドレスや内部IDは表示しません。";
 
     const toolbar = document.createElement("div");
     toolbar.className = "mypage-membership-approval-toolbar";
@@ -2240,12 +2357,12 @@
       const activeSession = await getActiveSession(client, session);
       if (!activeSession || !elements?.content) return;
       if (elements.content.querySelector("[data-mypage-membership-approval]")) return;
-      const rows = await fetchPendingCommunityMembers(client);
+      const rows = await fetchMembershipReviewUsers(client);
       if (!elements.content.isConnected) return;
       const panel = createMembershipApprovalDetails(client, elements, activeSession, rows);
       elements.content.append(panel.detailsPanel.details);
     } catch {
-      // Fail closed: users who cannot list pending members should not see this panel.
+      // Fail closed: users who cannot list managed members should not see this panel.
     }
   }
 

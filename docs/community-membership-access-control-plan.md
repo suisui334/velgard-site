@@ -816,11 +816,34 @@ Membership management delegation apply confirmation:
   OK, and no raw `user_id` column is returned.
 - Email surface, direct `community_memberships` write grants, and
   `public_profiles` membership/role/management-key exposure are all absent.
-- The frontend membership management UI is still not implemented. The next
-  gates are membership management delegation functional QA and management UI
-  implementation.
+- At that post-apply confirmation point, the frontend membership management UI
+  was still not implemented. The later UI implementation gate is recorded below,
+  and functional QA remains a separate gate.
 - No concrete user id, email, management key value, full URL, token, JWT,
   project identifier, or secret is recorded.
+
+Membership management UI implementation:
+
+- Replaced the pending-only mypage membership approval panel with a delegated
+  membership management panel backed by the 085/086 RPCs.
+- The panel calls `list_membership_review_users` and appears only when the
+  current authenticated user can list managed members. Unauthorized users fail
+  closed and do not see the panel.
+- Rows are grouped by `pending`, `approved`, and `rejected`.
+- Pending rows can be approved or rejected, approved rows can be switched to
+  rejected, and rejected rows can be approved again when the RPC response marks
+  the action as allowed.
+- Admin-only membership-manager grant/revoke controls are shown only when the
+  RPC response marks manager-role management as allowed.
+- `revoked` and `blocked` remain outside the normal management UI.
+- The opaque `member_key` is used only inside JS memory for RPC calls and is not
+  rendered as visible text or DOM data attributes.
+- The UI does not display email, raw user id, tokens, full URLs, or concrete
+  management-key values.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Dashboard change,
+  Edge deploy, Discord operation, direct Supabase write, or secret recording was
+  performed in this UI gate.
+- Membership management UI functional QA remains the next explicit gate.
 
 ## Open Questions For Later Gates
 
