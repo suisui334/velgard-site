@@ -8487,3 +8487,31 @@ Status: inventory and phased extraction plan recorded.
   execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord operation,
   direct Supabase write, `console.*` addition, or `updates.json` change was
   performed.
+
+## M-14F-72 reusable ops config foundation
+
+Status: Phase 1-A minimal config foundation implemented.
+
+- Baseline: `1371a33 Plan reusable ops platform extraction`.
+- Added `assets/js/reusableOpsConfig.js` as the first reusable operations
+  config entry point.
+- The new config currently holds site/world name candidates, calendar button
+  labels, session type labels, session type color names, calendar display
+  classes, approved-gate label candidates, and mypage section label
+  candidates.
+- Connected calendar session type labels and calendar session type display
+  classes to the config entry point.
+- Connected the calendar basic button labels for `確認`, `今日`, `今日へ`,
+  and `今日に戻す` to the config entry point while preserving the existing
+  visible output.
+- Updated the calendar/main cache-bust path so the changed calendar renderer is
+  loaded on the calendar page.
+- Added `docs/reusable-ops-platform-phase1-config-result.md` with the
+  implemented scope, deferred scope, QA points, and next candidates.
+- Updated `docs/reusable-ops-platform-extraction-plan.md` with the Phase 1-A
+  result.
+- Did not connect mypage headings, approved gate text, session-post labels,
+  session-detail labels, notification labels, TIMELINE labels, or Discord sync
+  wording in this gate.
+- Did not change DB/RPC/RLS, auth/approved gate authority, direct table grants,
+  Edge Functions, Discord operations, folder structure, or `updates.json`.

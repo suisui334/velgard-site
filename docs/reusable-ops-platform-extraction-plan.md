@@ -598,3 +598,13 @@ Webhook secretや実チャンネル情報は設定ファイルへ置かない。
    - Discord同期本文のうち、世界観依存文言と運用基盤文言を分ける計画を作る。
 
 結論として、現時点では案AからPhase 1を始め、次に案Bの同一repo内分離へ進むのが安全。案Cの完全独立アプリ化は、設定化と同一repo内分離が進み、第二世界観の具体要件が見えてから再判断する。
+
+## Phase 1-A Result
+
+`1371a33 Plan reusable ops platform extraction` 後の最初の実装として、
+`assets/js/reusableOpsConfig.js` を追加し、calendarのセッション種別ラベル、
+calendar用表示class、基本ボタン文言の一部を設定入口から参照する形へ寄せた。
+
+今回の実装は案A寄りの最小範囲で、mypage、approved gate、session-post、
+session-detail、Discord同期、DB/RPC/RLSには触れていない。詳細は
+`docs/reusable-ops-platform-phase1-config-result.md` に記録する。

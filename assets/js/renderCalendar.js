@@ -6,6 +6,11 @@ import {
   renderMembershipGateNotice
 } from "./membershipAccessClient.js?v=20260613-unapproved-ui";
 import {
+  getCalendarButtonLabel,
+  getOpsSessionTypeCalendarClass,
+  getOpsSessionTypeLabel
+} from "./reusableOpsConfig.js?v=20260615-ops-config-foundation";
+import {
   escapeHtml,
   formatSessionApplicationDeadline,
   formatPlayerCount,
@@ -13,7 +18,6 @@ import {
   getSessionDisplayTitle,
   getSessionStatusClass,
   getSessionStatusLabel,
-  getSessionTypeLabel,
   getSessionTitle,
   getSessionTitleWithoutClosingMark,
   hasSessionClosingMark,
@@ -28,12 +32,6 @@ const CALENDAR_SELECTED_DATE_KEY = "velgard.calendar.selectedDate";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const CALENDAR_EXCLUDED_STATUSES = new Set(["draft", "canceled", "cancelled"]);
-const CALENDAR_SESSION_TYPE_CLASS = {
-  "one-shot": "calendar-session-type-one-shot",
-  campaign: "calendar-session-type-campaign",
-  special: "calendar-session-type-special",
-  other: "calendar-session-type-other"
-};
 
 function isVisibleSession(session) {
   const status = String(session?.status || "").trim();
@@ -75,8 +73,7 @@ function sessionPostHref(isoDate) {
 }
 
 function getCalendarSessionTypeClass(session) {
-  const type = String(session?.sessionType || "").trim();
-  return CALENDAR_SESSION_TYPE_CLASS[type] || CALENDAR_SESSION_TYPE_CLASS.other;
+  return getOpsSessionTypeCalendarClass(session?.sessionType);
 }
 
 function isValidIsoDate(value) {
@@ -483,7 +480,7 @@ function renderSessionCard(session) {
         </div>
         <div>
           <dt>種別</dt>
-          <dd>${escapeHtml(getSessionTypeLabel(session.sessionType))}</dd>
+          <dd>${escapeHtml(getOpsSessionTypeLabel(session.sessionType))}</dd>
         </div>
         <div>
           <dt>申請締切</dt>
@@ -539,6 +536,8 @@ function renderSelectedPanel(result, sessions, hasLoadError = false) {
 }
 
 function renderMonthCalendar(year, month, selectedIso, todayIso, config, sessionsByDate = new Map()) {
+  const todayShortLabel = getCalendarButtonLabel("todayShort", "今日");
+  const todayShortAriaLabel = getCalendarButtonLabel("todayShortAria", "今日へ");
   const firstIso = toIsoDate(year, month, 1);
   const firstWeekday = new Date(parseIsoDate(firstIso).time).getUTCDay();
   const days = realDaysInMonth(year, month);
@@ -595,7 +594,7 @@ function renderMonthCalendar(year, month, selectedIso, todayIso, config, session
         <h2 class="calendar-month-title">${year}年${month}月</h2>
         <div class="calendar-month-nav" aria-label="月表示の操作">
           <button class="button calendar-month-nav-button" type="button" data-calendar-prev aria-label="前月へ" title="前月へ">‹</button>
-          <button class="button calendar-this-month calendar-month-today-button" type="button" data-calendar-this-month aria-label="今日へ" title="今日へ">今日</button>
+          <button class="button calendar-this-month calendar-month-today-button" type="button" data-calendar-this-month aria-label="${escapeHtml(todayShortAriaLabel)}" title="${escapeHtml(todayShortAriaLabel)}">${escapeHtml(todayShortLabel)}</button>
           <button class="button calendar-month-nav-button" type="button" data-calendar-next aria-label="次月へ" title="次月へ">›</button>
         </div>
       </div>
@@ -643,6 +642,8 @@ export async function renderCalendar(root, _site, options = {}) {
   const todayResult = calculateCalendarResult(todayIso, config);
   const selectedResult = calculateCalendarResult(initialDate, config);
   const selectedSessions = sessionsForDate(sessionsByDate, initialDate);
+  const confirmButtonLabel = getCalendarButtonLabel("confirm", "確認");
+  const todayReturnLabel = getCalendarButtonLabel("todayReturn", "今日に戻す");
   let selectedIso = initialDate;
   let displayYear = initialParsed.year;
   let displayMonth = initialParsed.month;
@@ -671,8 +672,8 @@ export async function renderCalendar(root, _site, options = {}) {
             <input type="date" id="calendar-date-input" value="${escapeHtml(selectedIso)}">
           </label>
           <div class="calendar-actions">
-            <button class="button primary" type="submit">確認</button>
-            <button class="button" type="button" id="calendar-today-button">今日に戻す</button>
+            <button class="button primary" type="submit">${escapeHtml(confirmButtonLabel)}</button>
+            <button class="button" type="button" id="calendar-today-button">${escapeHtml(todayReturnLabel)}</button>
           </div>
         </form>
       </div>
