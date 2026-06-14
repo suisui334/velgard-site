@@ -1,6 +1,6 @@
 import { loadJson } from "./dataLoader.js";
 
-const REGULATION_DATA_PATH = "data/regulation.json?v=20260615-angel-spear-traits";
+const REGULATION_DATA_PATH = "data/regulation.json?v=20260615-route-a-angel-order";
 
 const STRONG_PARAGRAPHS = new Set([
   "【ルートA・B共通】",
