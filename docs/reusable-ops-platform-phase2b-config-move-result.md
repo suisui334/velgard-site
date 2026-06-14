@@ -92,6 +92,23 @@ Static checks for this gate should confirm:
 Browser visual QA remains a separate optional gate if public rendering needs to
 be checked after deployment/cache propagation.
 
+## Phase 2-C Public Check
+
+Phase 2-C checked the public delivery after the config move. The public
+calendar, mypage, session-post, and session-detail HTML all referenced the
+Phase 2-B `main.js` cache-bust. Public mypage HTML loaded
+`assets/js/core/config/reusableOpsMypageLabels.js`, and public JS referenced
+`assets/js/core/config/reusableOpsConfig.js`.
+
+Result:
+
+- `public_core_config_path_ok=true`
+- `public_old_root_config_path_present=false`
+- `public_cache_bust_fix_needed=false`
+- `public_config_bridge_preserved=true`
+
+Detailed result: `docs/reusable-ops-platform-phase2c-config-public-check.md`.
+
 ## Next Separation Candidates
 
 Low-risk next candidates:

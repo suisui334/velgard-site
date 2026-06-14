@@ -8715,3 +8715,29 @@ Status: Phase 2-B minimal config file separation implemented.
   Supabase writes, `console.*`, or `updates.json`.
 - Added `docs/reusable-ops-platform-phase2b-config-move-result.md` and updated
   the reusable ops extraction/boundary docs with the Phase 2-B result.
+
+## M-14F-80 reusable ops config move public check
+
+Status: Phase 2-C public rollout check recorded.
+
+- Baseline: `6e82bb1 Move reusable ops config files`.
+- Checked public calendar, mypage, session-post, and session-detail HTML for
+  the Phase 2-B `main.js` cache-bust.
+- Confirmed public mypage HTML loads
+  `assets/js/core/config/reusableOpsMypageLabels.js`.
+- Confirmed public JS references
+  `assets/js/core/config/reusableOpsConfig.js`.
+- Confirmed active public HTML/JS no longer contains old root-path references
+  for `assets/js/reusableOpsConfig.js` or
+  `assets/js/reusableOpsMypageLabels.js`.
+- Confirmed public markers for `REUSABLE_OPS_CONFIG` and
+  `VELGARD_REUSABLE_OPS_MYPAGE` remain present.
+- Recorded `public_core_config_path_ok=true`,
+  `public_old_root_config_path_present=false`,
+  `public_cache_bust_fix_needed=false`, and
+  `public_config_bridge_preserved=true`.
+- Added `docs/reusable-ops-platform-phase2c-config-public-check.md` and
+  updated reusable ops extraction/boundary docs.
+- Did not change implementation files, auth, permission checks, RPC/DB
+  contracts, membership management behavior, Discord sync behavior, direct
+  Supabase writes, `console.*`, or `updates.json`.

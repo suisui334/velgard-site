@@ -720,3 +720,17 @@ contracts, membership management behavior, approved-gate decisions, and
 Discord sync behavior were not changed.
 
 Detailed result: `docs/reusable-ops-platform-phase2b-config-move-result.md`.
+
+## Phase 2-C Config Public Check Result
+
+After the Phase 2-B config move, the public site was checked for the new
+`assets/js/core/config/` paths. Public calendar, mypage, session-post, and
+session-detail HTML referenced the updated `main.js` cache-bust. Public mypage
+HTML referenced `assets/js/core/config/reusableOpsMypageLabels.js`, and public
+JS referenced `assets/js/core/config/reusableOpsConfig.js`.
+
+No active old root config paths remained in public HTML/JS. The public config
+module export marker and mypage bridge marker were present, so the moved
+config files are reflected publicly. No cache-bust correction was needed.
+
+Detailed result: `docs/reusable-ops-platform-phase2c-config-public-check.md`.

@@ -355,3 +355,21 @@ future move of `main.js`, `mypageAuthClient.js`, `sessionData.js`,
 `style.css` remains a separate design and QA gate.
 
 Detailed result: `docs/reusable-ops-platform-phase2b-config-move-result.md`.
+
+## Phase 2-C Config Public Check Result
+
+Phase 2-C confirmed the Phase 2-B config move on public delivery. Public HTML
+for calendar, mypage, session-post, and session-detail uses the updated
+`main.js` cache-bust, and public mypage HTML loads the moved classic bridge
+from `assets/js/core/config/reusableOpsMypageLabels.js`.
+
+Public JS checks found no active old root-path references for
+`assets/js/reusableOpsConfig.js` or `assets/js/reusableOpsMypageLabels.js`.
+The reusable module export and `window.VELGARD_REUSABLE_OPS_MYPAGE` bridge
+markers remain present.
+
+No cache-bust fix was needed. No implementation, auth, permission, RPC, DB,
+Discord sync, CSS split, or file movement beyond the prior config move was
+performed.
+
+Detailed result: `docs/reusable-ops-platform-phase2c-config-public-check.md`.
