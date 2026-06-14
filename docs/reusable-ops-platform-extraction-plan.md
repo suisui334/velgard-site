@@ -865,3 +865,27 @@ boundary: `calendar`, `mypage`, `session-post`, `session-detail`, membership,
 application/comment flows, templates, notifications/timeline, and Discord sync
 remain ops surfaces, while `regulation` remains a world-site page with strong
 navigation links from ops flows.
+
+## Phase 2-H Session Helper Public Rollout
+
+Phase 2-H verified the public delivery surface after the Phase 2-G helper
+extraction.
+
+- Public delivery serves
+  `assets/js/core/session/sessionDisplayHelpers.js`.
+- Public `sessionDisplay.js` imports the helper module and remains the
+  compatibility facade.
+- Public `calendar.html`, `session-post.html`, `session-detail.html`, and
+  `admin-cap-announcements.html` reference `main.js` with
+  `20260615-session-helper-extract`.
+- Public `main.js` imports the affected calendar/session/admin-cap modules
+  with the same cache-bust.
+- No broken helper import path or cache-bust repair was needed.
+
+Authenticated browser operation was not tested by Codex in this gate. Keep
+role-specific calendar/session-post/session-detail checks as a separate QA
+gate.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2h-session-helper-public-check.md`

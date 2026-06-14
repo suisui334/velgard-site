@@ -8909,3 +8909,41 @@ Status: detailed regulation template policy documented.
 - No implementation change, file move, CSS change, JS change, data change, SQL
   Editor execution, DB/RPC/RLS mutation, Edge deploy, Discord operation, direct
   Supabase write, `console.*` addition, or `updates.json` change was performed.
+
+## M-14F-87 session helper public rollout check
+
+Status: Phase 2-H public delivery check completed.
+
+- Baseline: `1d8ba02 Document regulation template layout policy`.
+- Public `assets/js/core/session/sessionDisplayHelpers.js` is served
+  successfully.
+- Public `assets/js/sessionDisplay.js` imports the new helper and remains the
+  compatibility facade.
+- Public `calendar.html`, `session-post.html`, `session-detail.html`, and
+  `admin-cap-announcements.html` reference `main.js` with
+  `20260615-session-helper-extract`.
+- Public `main.js` imports affected calendar/session/admin-cap modules with
+  `20260615-session-helper-extract`.
+- No broken helper import path or required cache-bust repair was found.
+- Older `20260615-core-config-move` references remain only for unaffected
+  config/membership dependencies and were not changed.
+- `node --check` passed for the helper, facade, calendar renderer,
+  session-post renderer, session-detail renderer, and `main.js`.
+- Authenticated role-specific browser operation was not performed by Codex in
+  this gate and remains available as a separate QA gate.
+- Added
+  `docs/reusable-ops-platform-phase2h-session-helper-public-check.md`.
+
+Next candidates:
+
+1. Browser QA for calendar, session-post, and session-detail after helper
+   extraction with a safe authenticated session.
+2. Audit small HTML row renderers left in `sessionDisplay.js`.
+3. Keep Discord sync panel, session-detail management row, and
+   participation-comment panel in place until dedicated gates.
+
+No implementation change, file move, CSS change, JS change, data change, SQL
+Editor execution, DB/RPC/RLS mutation, Edge deploy, Discord operation, direct
+Supabase write, `console.*` addition, `updates.json` change, auth/permission
+logic change, RPC/DB key configuration, `management_key` display, or raw
+id/email/token/JWT display was performed.

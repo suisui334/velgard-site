@@ -507,6 +507,34 @@ Detailed regulation template policy:
 
 - `docs/regulation-template-layout-policy.md`
 
+## Phase 2-H Session Helper Public Check Result
+
+Phase 2-H checked public delivery after the Phase 2-G helper extraction.
+
+Confirmed:
+
+- `assets/js/core/session/sessionDisplayHelpers.js` is served from the public
+  site.
+- `assets/js/sessionDisplay.js` remains the public compatibility facade and
+  imports the new helper module.
+- Public calendar, session-post, session-detail, and admin cap announcement
+  entry HTML reference `main.js` with `20260615-session-helper-extract`.
+- Public `main.js` references the affected session modules with the same
+  cache-bust.
+- No broken helper import path was found.
+
+Older `20260615-core-config-move` query strings remain in active files for
+unaffected config and membership modules. They are not old session helper
+dependencies and were left unchanged.
+
+Authenticated browser operation was not tested in this gate. Keep full
+calendar/session-post/session-detail role-specific behavior as a separate QA
+gate.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2h-session-helper-public-check.md`
+
 This regulation follow-up does not alter the Phase 2 ops-core boundary.
 `renderRegulation.js`, `regulation.html`, and `data/regulation.json` remain on
 the world-site side. The reusable value is the regulation page skeleton,

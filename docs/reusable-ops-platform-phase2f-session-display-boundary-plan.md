@@ -208,3 +208,19 @@ Phase 2-G implemented the first minimal split based on this plan.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2g-session-helper-extraction-result.md`
+
+## Phase 2-H Public Rollout Follow-Up
+
+Phase 2-H verified the public delivery surface after the Phase 2-G helper
+split. The new `assets/js/core/session/sessionDisplayHelpers.js` path is
+served, and `sessionDisplay.js` publicly imports it through the compatibility
+facade.
+
+The active public entry points for calendar, session-post, session-detail, and
+admin cap announcements use the `20260615-session-helper-extract` cache-bust.
+No broken import path was found. Authenticated UI behavior remains a separate
+QA gate.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2h-session-helper-public-check.md`

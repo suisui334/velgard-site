@@ -148,3 +148,24 @@ Potential next low-risk split:
    - `renderSessionDetailContent`
 
 Do not move the whole `sessionDisplay.js` file yet.
+
+## Phase 2-H Public Rollout Follow-Up
+
+Phase 2-H checked public delivery after the helper extraction.
+
+- Public `calendar.html`, `session-post.html`, `session-detail.html`, and
+  `admin-cap-announcements.html` reference `main.js` with
+  `20260615-session-helper-extract`.
+- Public `main.js` imports the calendar, session-post, session-detail, and
+  admin cap announcement modules with the same extraction cache-bust.
+- Public `sessionDisplay.js` imports
+  `assets/js/core/session/sessionDisplayHelpers.js`.
+- The new helper file is served successfully from the public site.
+- No broken helper import path or required cache-bust repair was found.
+- Older `20260615-core-config-move` query strings remain only for unaffected
+  config/membership dependencies and are not old session helper dependencies.
+- Authenticated role-specific browser operation was not tested in this gate.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2h-session-helper-public-check.md`
