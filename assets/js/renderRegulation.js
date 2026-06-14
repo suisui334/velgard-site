@@ -1,6 +1,6 @@
 import { loadJson } from "./dataLoader.js";
 
-const REGULATION_DATA_PATH = "data/regulation.json?v=20260610-magitech-angel-rules";
+const REGULATION_DATA_PATH = "data/regulation.json?v=20260614-angel-route-rules";
 
 const TOC_ITEMS = [
   { id: "schedule", label: "開催スケジュール" },

@@ -8368,6 +8368,24 @@ Status: stale placeholder copy removed.
   Discord operation, direct Supabase write, `console.*` addition, or
   `updates.json` change was performed.
 
+## M-14F-70 update angel regulation text
+
+Status: angel regulation text replaced.
+
+- Baseline note: the stale mypage application/GM-approval future-work notice
+  had already been removed in `fb9efef`; this gate rechecked that the exact
+  stale sentence no longer appears in the repository.
+- Replaced the `魔動天使の使用制限` body under regulation common rules / `その他`
+  with the provided house-rule text covering route selection, route A/B common
+  rules, route A, and route B.
+- Kept the existing `魔動天使の使用制限` heading.
+- Other regulation items were not intentionally changed.
+- Updated regulation cache-bust references for the changed regulation data and
+  renderer path.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+  Discord operation, direct Supabase write, `console.*` addition, or
+  `updates.json` change was performed.
+
 ## M-14F-64 membership manager RPC schema-cache diagnosis
 
 Status: schema-cache/function-lookup classification added; manual reload gate
