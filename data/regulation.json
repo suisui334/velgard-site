@@ -32,8 +32,8 @@
       "maxReward": "12000G",
       "growthPerSession": "1回",
       "rankLimit": "レイピア",
-      "rewardAmount": "1000G",
-      "swordShardGuide": "4個"
+      "rewardAmount": "1000G(1500G)",
+      "swordShardGuide": "4個(20点)"
     },
     {
       "levelCap": "Lv3",
@@ -45,8 +45,8 @@
       "maxReward": "32000G",
       "growthPerSession": "1回",
       "rankLimit": "レイピア",
-      "rewardAmount": "2000G",
-      "swordShardGuide": "8個"
+      "rewardAmount": "2000G(3000G)",
+      "swordShardGuide": "8個(40点)"
     },
     {
       "levelCap": "Lv4",
@@ -58,8 +58,8 @@
       "maxReward": "62000G",
       "growthPerSession": "1回",
       "rankLimit": "グレートソード",
-      "rewardAmount": "3000G",
-      "swordShardGuide": "12個"
+      "rewardAmount": "3000G(4500G)",
+      "swordShardGuide": "12個(60点)"
     },
     {
       "levelCap": "Lv5",
@@ -71,8 +71,8 @@
       "maxReward": "104000G",
       "growthPerSession": "1回",
       "rankLimit": "グレートソード",
-      "rewardAmount": "4000G",
-      "swordShardGuide": "16個"
+      "rewardAmount": "4000G(6000G)",
+      "swordShardGuide": "16個(80点)"
     },
     {
       "levelCap": "Lv6",
@@ -84,8 +84,8 @@
       "maxReward": "154000G",
       "growthPerSession": "2回",
       "rankLimit": "フランベルジュ",
-      "rewardAmount": "5000G",
-      "swordShardGuide": "20個"
+      "rewardAmount": "5000G(7500G)",
+      "swordShardGuide": "20個(100点)"
     },
     {
       "levelCap": "Lv7",
@@ -97,8 +97,8 @@
       "maxReward": "214000G",
       "growthPerSession": "2回",
       "rankLimit": "フランベルジュ",
-      "rewardAmount": "6000G",
-      "swordShardGuide": "25個"
+      "rewardAmount": "6000G(9000G)",
+      "swordShardGuide": "25個(125点)"
     },
     {
       "levelCap": "Lv8",
@@ -110,8 +110,8 @@
       "maxReward": "284000G",
       "growthPerSession": "2回",
       "rankLimit": "センチネル",
-      "rewardAmount": "7000G",
-      "swordShardGuide": "30個"
+      "rewardAmount": "7000G(10500G)",
+      "swordShardGuide": "30個(150点)"
     },
     {
       "levelCap": "Lv9",
@@ -123,8 +123,8 @@
       "maxReward": "364000G",
       "growthPerSession": "2回",
       "rankLimit": "センチネル",
-      "rewardAmount": "8000G",
-      "swordShardGuide": "35個"
+      "rewardAmount": "8000G(12000G)",
+      "swordShardGuide": "35個(175点)"
     },
     {
       "levelCap": "Lv10",
@@ -136,8 +136,8 @@
       "maxReward": "454000G",
       "growthPerSession": "2回",
       "rankLimit": "ハイペリオン",
-      "rewardAmount": "9000G",
-      "swordShardGuide": "40個"
+      "rewardAmount": "9000G(13500G)",
+      "swordShardGuide": "40個(200点)"
     },
     {
       "levelCap": "Lv11",
@@ -149,8 +149,8 @@
       "maxReward": "534000G",
       "growthPerSession": "2回",
       "rankLimit": "ハイペリオン",
-      "rewardAmount": "10000G",
-      "swordShardGuide": "45個"
+      "rewardAmount": "10000G(15000G)",
+      "swordShardGuide": "45個(225点)"
     },
     {
       "levelCap": "Lv12",
@@ -162,8 +162,8 @@
       "maxReward": "614000G",
       "growthPerSession": "2回",
       "rankLimit": "始まりの剣",
-      "rewardAmount": "11000G",
-      "swordShardGuide": "50個"
+      "rewardAmount": "11000G(16500G)",
+      "swordShardGuide": "50個(250点)"
     },
     {
       "levelCap": "Lv13",
@@ -175,8 +175,8 @@
       "maxReward": "714000G",
       "growthPerSession": "2回",
       "rankLimit": "始まりの剣★",
-      "rewardAmount": "12000G",
-      "swordShardGuide": "55個"
+      "rewardAmount": "12000G(18000G)",
+      "swordShardGuide": "55個(275点)"
     },
     {
       "levelCap": "Lv14",
@@ -188,8 +188,8 @@
       "maxReward": "814000G",
       "growthPerSession": "2回",
       "rankLimit": "始まりの剣★2",
-      "rewardAmount": "13000G",
-      "swordShardGuide": "60個"
+      "rewardAmount": "13000G(19500G)",
+      "swordShardGuide": "60個(300点)"
     },
     {
       "levelCap": "Lv15",
@@ -201,8 +201,8 @@
       "maxReward": "914000G",
       "growthPerSession": "2回",
       "rankLimit": "始まりの剣★3",
-      "rewardAmount": "14000G",
-      "swordShardGuide": "70個"
+      "rewardAmount": "14000G(21000G)",
+      "swordShardGuide": "70個(350点)"
     }
   ],
   "termExplanations": [
