@@ -1,6 +1,12 @@
 import { loadJson } from "./dataLoader.js";
 
-const REGULATION_DATA_PATH = "data/regulation.json?v=20260615-growth-notes";
+const REGULATION_DATA_PATH = "data/regulation.json?v=20260615-angel-layout-data";
+
+const STRONG_PARAGRAPHS = new Set([
+  "【ルートA・B共通】",
+  "【ルートA】",
+  "【ルートB】"
+]);
 
 const TOC_ITEMS = [
   { id: "schedule", label: "開催スケジュール" },
@@ -47,7 +53,16 @@ function create(tagName, className, text) {
 function appendParagraphs(parent, paragraphs) {
   (Array.isArray(paragraphs) ? paragraphs : [])
     .filter(isPresent)
-    .forEach((paragraph) => parent.append(create("p", "", paragraph)));
+    .forEach((paragraph) => {
+      const text = String(paragraph);
+      const paragraphElement = create("p");
+      if (STRONG_PARAGRAPHS.has(text.trim())) {
+        paragraphElement.append(create("strong", "", text));
+      } else {
+        paragraphElement.textContent = text;
+      }
+      parent.append(paragraphElement);
+    });
 }
 
 function appendList(parent, items, { ordered = false, marker = "" } = {}) {
