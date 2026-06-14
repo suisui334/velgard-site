@@ -77,6 +77,27 @@ client sees stale calendar behavior after deployment, the first suspects are
 browser cache and public CDN propagation, because public static paths now point
 to the moved renderer.
 
+## Authenticated Browser QA Follow-Up
+
+After the public asset check, the calendar was verified in a browser with an
+approved signed-in session.
+
+| check_name | status | result_value | note |
+| --- | --- | --- | --- |
+| `approved_calendar_display` | `pass` | `visible=true` | Calendar display worked for an approved user. |
+| `calendar_month_navigation` | `pass` | `month_move_ok=true` | Month navigation worked. |
+| `calendar_today_button` | `pass` | `today_button_ok=true` | The today button worked. |
+| `calendar_session_type_labels_colors` | `pass` | `labels_and_colors_ok=true` | Session type labels and colors were preserved. |
+| `calendar_closed_and_gm_display` | `pass` | `no_breakage=true` | Closed-session mark and GM-name display did not break where applicable. |
+| `calendar_session_detail_link` | `pass` | `detail_navigation_ok=true` | Session-detail navigation worked. |
+| `calendar_bad_label_markers` | `pass` | `bad_markers=false` | No visible `undefined`, `[object Object]`, empty heading, or empty label was observed. |
+| `calendar_sensitive_values_recorded` | `pass` | `recorded=false` | Real id, JWT, email, user id, session id, and similar values were not recorded. |
+
+Conclusion:
+
+- `calendar_core_move_browser_qa=true`
+- `calendar_renderer_move_ready_for_next_boundary_audit=true`
+
 ## Inventory
 
 Moved file confirmed:
@@ -96,9 +117,7 @@ Additional cache-bust fix:
 
 Possible follow-ups:
 
-1. Browser QA with an approved account for calendar month navigation, today
-   button, session card colors, closed-session marks, GM display, and
-   session-detail links.
+1. `sessionDisplay.js` boundary audit before any physical movement.
 2. Docs-only responsibility audit for `dataLoader.js`.
 3. Continue label extraction inside `assets/js/core/config/`.
 4. CSS selector responsibility audit before any CSS split.

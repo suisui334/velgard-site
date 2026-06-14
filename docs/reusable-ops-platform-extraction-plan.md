@@ -773,3 +773,28 @@ session card color/close-mark/GM display, and session-detail click-through,
 remains a separate optional browser gate.
 
 Detailed result: `docs/reusable-ops-platform-phase2e-calendar-public-check.md`.
+
+## Phase 2-F Calendar Browser QA And Session Display Boundary
+
+After the Phase 2-E public rollout check, the moved calendar renderer was
+verified in a browser with an approved signed-in session. Calendar display,
+month movement, the today button, session type labels/colors, closed-session
+mark display, GM-name display, and session-detail navigation all passed. No
+visible `undefined`, `[object Object]`, empty heading, or empty label was
+observed, and no real id, JWT, email, user id, session id, or similar value was
+recorded.
+
+The follow-up boundary audit reviewed `assets/js/sessionDisplay.js`. The file
+is still a reusable-ops candidate, but it combines pure formatting helpers with
+session-detail management HTML, Discord sync panel HTML, and participation
+comment panel HTML. Because it is imported by calendar, session-post,
+session-detail, and admin-cap announcement rendering, it should not be moved as
+a single block yet.
+
+Decision: keep `assets/js/sessionDisplay.js` in place for now. The next safe
+step is to split or document pure session display helpers separately from
+session-detail UI block renderers before any physical move to
+`assets/js/core/session/`.
+
+Detailed result:
+`docs/reusable-ops-platform-phase2f-session-display-boundary-plan.md`.

@@ -8799,3 +8799,32 @@ Status: Phase 2-E public rollout check recorded.
   Supabase writes, `console.*`, or `updates.json`.
 - Added `docs/reusable-ops-platform-phase2e-calendar-public-check.md` and
   updated reusable ops extraction/boundary docs.
+
+## M-14F-83 calendar browser QA and sessionDisplay boundary
+
+Status: Phase 2-F browser QA result and boundary plan recorded.
+
+- Baseline: `2c3cdf1 Update regulation growth notes`.
+- Recorded the user-side approved-session calendar browser QA after the
+  `renderCalendar.js` core move.
+- Confirmed calendar display, month movement, today button, session type
+  labels/colors, closed-session mark/GM display where applicable, and
+  session-detail navigation passed.
+- Confirmed no visible `undefined`, `[object Object]`, empty heading, or empty
+  label was observed, and no real id, JWT, email, user id, session id, or
+  similar value was recorded.
+- Audited `assets/js/sessionDisplay.js` importers and responsibilities.
+- Found importers in calendar, session-post, session-detail, and admin cap
+  announcement rendering.
+- Found that `sessionDisplay.js` mixes pure session formatting helpers with
+  session-detail management row rendering, Discord sync panel rendering, and
+  participation-comment panel rendering.
+- Classified `sessionDisplay.js` as core-oriented but not ready for a direct
+  physical move. It should be split or responsibility-mapped before moving
+  pure helpers to `assets/js/core/session/`.
+- Did not move `sessionDisplay.js`, `main.js`, `sessionData.js`,
+  `renderSessionPost.js`, `renderSessionDetail.js`, `mypageAuthClient.js`,
+  `membershipAccessClient.js`, `discordSyncClient.js`, or `style.css`.
+- Did not change implementation files, auth, permission checks, RPC/DB
+  contracts, membership management behavior, Discord sync behavior, direct
+  Supabase writes, `console.*`, or `updates.json`.

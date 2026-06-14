@@ -416,3 +416,25 @@ loading, approved-gate logic, or CSS. Authenticated full-calendar browser
 operation remains a separate optional QA gate.
 
 Detailed result: `docs/reusable-ops-platform-phase2e-calendar-public-check.md`.
+
+## Phase 2-F Session Display Boundary Result
+
+After the calendar renderer move, browser QA with an approved signed-in session
+confirmed that calendar display, month movement, the today button, session type
+labels/colors, closed-session marks, GM-name display, and session-detail links
+work. No visible bad label markers were observed, and no sensitive values were
+recorded.
+
+The follow-up audit kept `assets/js/sessionDisplay.js` unmoved. It imports only
+the reusable ops config, but it is imported by calendar, session-post,
+session-detail, and admin-cap announcement rendering. It also mixes pure
+helpers with session-detail management, Discord sync panel, and
+participation-comment panel rendering.
+
+Classification: `sessionDisplay.js` is core-oriented, but should be split
+before moving. Move pure helpers first in a future gate, and leave
+session-detail UI block renderers until separate session-detail and Discord
+sync QA gates exist.
+
+Detailed result:
+`docs/reusable-ops-platform-phase2f-session-display-boundary-plan.md`.

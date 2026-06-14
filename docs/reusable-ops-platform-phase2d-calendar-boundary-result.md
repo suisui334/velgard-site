@@ -148,3 +148,16 @@ Authenticated full-calendar browser operation remains a separate optional QA
 gate.
 
 Detailed result: `docs/reusable-ops-platform-phase2e-calendar-public-check.md`.
+
+## Browser QA Follow-Up
+
+After the public rollout check, the moved calendar renderer was verified in a
+browser with an approved signed-in session. Calendar display, month movement,
+the today button, session type labels and colors, closed-session mark display,
+GM-name display, and session-detail navigation all passed. No visible
+`undefined`, `[object Object]`, empty heading, or empty label was observed.
+
+No real id, JWT, email, user id, session id, or similar value was recorded.
+
+This closes the authenticated browser QA follow-up for the calendar renderer
+move and makes the next boundary audit safe to plan.
