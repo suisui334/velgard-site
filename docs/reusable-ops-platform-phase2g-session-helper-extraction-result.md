@@ -194,3 +194,26 @@ generic session UI helper gate.
 Detailed plan:
 
 - `docs/reusable-ops-platform-phase2i-session-ui-helper-plan.md`
+
+## Phase 2-J Session Row Helper Extraction
+
+Phase 2-J extracted the first small HTML helper pair from `sessionDisplay.js`.
+
+Created:
+
+- `assets/js/core/session/sessionHtmlHelpers.js`
+
+Moved:
+
+- `renderSessionDetailRow`
+- `renderSessionDetailArrayRow`
+
+`sessionDisplay.js` remains the compatibility facade and re-exports both
+helpers. Existing external importers continue to import from
+`sessionDisplay.js`. The larger UI blocks, Discord sync panel, management row,
+application/comment UI, session-post field helpers, event handlers, RPC calls,
+and auth/permission logic were not changed.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2j-session-row-helper-result.md`

@@ -8985,3 +8985,38 @@ change, SQL Editor execution, DB/RPC/RLS mutation, Edge deploy, Discord
 operation, direct Supabase write, `console.*` addition, `updates.json` change,
 auth/permission logic change, RPC/DB key configuration, `management_key`
 display, or raw id/email/token/JWT display was performed.
+
+## M-14F-89 session detail row helper extraction
+
+Status: Phase 2-J narrow row helper extraction implemented.
+
+- Baseline: `58492d8 Plan session UI helper extraction`.
+- Created `assets/js/core/session/sessionHtmlHelpers.js`.
+- Moved only `renderSessionDetailRow` and
+  `renderSessionDetailArrayRow` from `assets/js/sessionDisplay.js`.
+- Kept `assets/js/sessionDisplay.js` as the compatibility facade and
+  re-export source for the moved helpers.
+- Updated affected session-display entry cache-busts to
+  `20260615-session-row-helper-extract` in calendar, session-post,
+  session-detail, and admin cap announcement entry paths.
+- `node --check` passed for the new helper, `sessionDisplay.js`,
+  `core/calendar/renderCalendar.js`, `renderSessionPost.js`,
+  `renderSessionDetail.js`, `renderAdminCapAnnouncements.js`, and `main.js`.
+- Did not extract `renderSessionDetailContent`, `renderSessionTags`,
+  `renderSessionSummary`, session-post field helpers, template management UI,
+  Discord sync panel, GM management block, application/comment UI, event
+  handlers, RPC calls, auth/approved/owner/admin checks, or
+  `management_key`/internal-id handling.
+- Added
+  `docs/reusable-ops-platform-phase2j-session-row-helper-result.md`.
+
+Next candidate:
+
+- Public rollout check for `assets/js/core/session/sessionHtmlHelpers.js` and
+  the `20260615-session-row-helper-extract` cache-bust chain.
+
+No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+operation, direct Supabase write, `console.*` addition, `updates.json` change,
+whole-file `sessionDisplay.js` move, `main.js` large rewrite, CSS split,
+auth/permission logic change, RPC/DB key configuration, `management_key`
+display, or raw id/email/token/JWT display was performed.

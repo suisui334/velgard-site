@@ -24,7 +24,7 @@ import {
   isClosedSession,
   renderSessionTags,
   shouldShowSessionState
-} from "../../sessionDisplay.js?v=20260615-session-helper-extract";
+} from "../../sessionDisplay.js?v=20260615-session-row-helper-extract";
 
 const CONFIG_URL = "data/calendarConfig.json?v=20260529-calendar-cap-start";
 const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";

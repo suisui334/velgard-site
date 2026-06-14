@@ -559,6 +559,28 @@ Detailed plan:
 
 - `docs/reusable-ops-platform-phase2i-session-ui-helper-plan.md`
 
+## Phase 2-J Session Row Helper Extraction
+
+Phase 2-J implemented the first narrow UI-helper split from
+`sessionDisplay.js`.
+
+- Added `assets/js/core/session/sessionHtmlHelpers.js`.
+- Moved only `renderSessionDetailRow` and
+  `renderSessionDetailArrayRow`.
+- Kept `assets/js/sessionDisplay.js` in place as the compatibility facade.
+- Updated only the affected session-display cache-bust chain to
+  `20260615-session-row-helper-extract`.
+- Did not move `sessionDisplay.js` as a whole and did not touch
+  `sessionData.js`, `renderSessionPost.js` logic, `renderSessionDetail.js`
+  logic, membership access, Discord sync, RPCs, auth/permission checks, or CSS.
+
+Next low-risk gate is a public rollout check for
+`assets/js/core/session/sessionHtmlHelpers.js`.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2j-session-row-helper-result.md`
+
 This regulation follow-up does not alter the Phase 2 ops-core boundary.
 `renderRegulation.js`, `regulation.html`, and `data/regulation.json` remain on
 the world-site side. The reusable value is the regulation page skeleton,

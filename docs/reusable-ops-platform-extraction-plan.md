@@ -928,3 +928,25 @@ gate.
 Detailed plan:
 
 - `docs/reusable-ops-platform-phase2i-session-ui-helper-plan.md`
+
+## Phase 2-J Session Row Helper Extraction
+
+Phase 2-J moved the two safest row helpers identified by Phase 2-I into the
+reusable ops core:
+
+- `assets/js/core/session/sessionHtmlHelpers.js`
+  - `renderSessionDetailRow`
+  - `renderSessionDetailArrayRow`
+
+`assets/js/sessionDisplay.js` remains the compatibility facade. It imports and
+re-exports both helpers so existing external importers can keep using
+`sessionDisplay.js`.
+
+Only affected session-display import/cache-bust paths were updated with
+`20260615-session-row-helper-extract`. Larger UI blocks, Discord sync, GM
+management, application/comment UI, auth/approved/owner/admin logic, RPC calls,
+DB/RPC/RLS contracts, and `management_key` handling were not changed.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2j-session-row-helper-result.md`

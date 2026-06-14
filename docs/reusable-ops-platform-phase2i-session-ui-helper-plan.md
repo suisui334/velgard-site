@@ -134,3 +134,20 @@ Editor execution, DB/RPC/RLS mutation, Edge deploy, Discord operation, direct
 Supabase write, `console.*` addition, `updates.json` change, auth/permission
 logic change, RPC/DB key configuration, `management_key` display, or raw
 id/email/token/JWT display was performed.
+
+## Phase 2-J Implementation Follow-Up
+
+Phase 2-J implemented the narrow first extraction recommended by this audit.
+
+- Created `assets/js/core/session/sessionHtmlHelpers.js`.
+- Moved only `renderSessionDetailRow` and
+  `renderSessionDetailArrayRow`.
+- Kept `assets/js/sessionDisplay.js` as the compatibility facade and
+  re-export source for existing importers.
+- Did not extract `renderSessionTags`, `renderSessionSummary`, field helpers,
+  Discord sync panel, management row, application/comment UI, or any
+  auth/RPC/event-adjacent helper.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2j-session-row-helper-result.md`

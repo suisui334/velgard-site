@@ -2,7 +2,7 @@ import {
   escapeHtml,
   getSessionStatusLabel,
   getSessionTypeLabel
-} from "./sessionDisplay.js?v=20260615-session-helper-extract";
+} from "./sessionDisplay.js?v=20260615-session-row-helper-extract";
 import {
   createSupabaseBrowserClient,
   getSupabaseRuntimeConfig,

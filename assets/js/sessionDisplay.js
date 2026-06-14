@@ -17,6 +17,10 @@ import {
   isClosedSession,
   shouldShowSessionState
 } from "./core/session/sessionDisplayHelpers.js?v=20260615-session-helper-extract";
+import {
+  renderSessionDetailArrayRow,
+  renderSessionDetailRow
+} from "./core/session/sessionHtmlHelpers.js?v=20260615-session-row-helper-extract";
 
 export {
   escapeHtml,
@@ -34,6 +38,8 @@ export {
   getSessionVisibilityLabel,
   hasSessionClosingMark,
   isClosedSession,
+  renderSessionDetailArrayRow,
+  renderSessionDetailRow,
   shouldShowSessionState
 };
 
@@ -120,24 +126,6 @@ export function renderSessionTags(tags) {
       ${tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
     </div>
   `;
-}
-
-export function renderSessionDetailRow(label, value, options = {}) {
-  const text = String(value ?? "").trim();
-  if (!text) return "";
-  const attrs = options.attrs ? ` ${options.attrs}` : "";
-  return `
-    <div${attrs}>
-      <dt>${escapeHtml(label)}</dt>
-      <dd>${escapeHtml(text)}</dd>
-    </div>
-  `;
-}
-
-export function renderSessionDetailArrayRow(label, values) {
-  if (!Array.isArray(values) || !values.length) return "";
-  const text = values.map((value) => String(value ?? "").trim()).filter(Boolean).join(" / ");
-  return renderSessionDetailRow(label, text);
 }
 
 function renderSessionDetailManageRow(session, options = {}) {
