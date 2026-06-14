@@ -119,3 +119,11 @@ session-post周辺:
 ## 禁止工程の扱い
 
 SQL Editor実行、SQL apply、DB/RPC/RLS変更、Edge Function deploy、Discord操作、secret変更、Supabase直接write追加、`console.*` 追加、`updates.json` 変更、ファイル大移動、フォルダ再編、独立アプリ化は行っていない。
+
+## Phase 1-E public rollout follow-up
+
+Phase 1-Eでは、Phase 1-A〜1-Dで追加した `reusableOpsConfig.js` / `reusableOpsMypageLabels.js` / session-post / session-detail / approved gate の設定参照が公開配信上で最新cache-bustとともに読まれているかを静的に確認した。
+
+結果は `public_cache_bust_ok=true`、`public_js_marker_ok=true`、`cache_bust_fix_needed=false`、`fallback_fix_needed=false`。公開HTMLは最新のsession/gate label系cache-bustを参照しており、公開JSにも `sessionPostGateHeading`、`sessionDetailGateHeading`、`discordSyncResultStatus`、`frontendRestrictionNote`、mypage label bridgeなどの期待markerが含まれていた。
+
+今回の確認は公開配信の静的確認とdocs棚卸しに限定し、認証済みUI操作、Discord同期操作、SQL Editor実行、DB/RPC/RLS変更、Edge Function deploy、direct Supabase write追加は行っていない。詳細と残りの設定化候補は `docs/reusable-ops-platform-phase1e-public-check.md` に記録する。

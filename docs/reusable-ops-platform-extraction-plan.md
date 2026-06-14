@@ -678,3 +678,15 @@ Discord同期パネル項目名、共通approved gateの既定文言である。
 依頼書保存/削除RPC、Discord同期処理、DB/RPC/RLS、`management_key`、内部ID、
 raw user_id、email、token類には触れていない。詳細は
 `docs/reusable-ops-platform-phase1d-session-label-config-result.md` に記録する。
+
+## Phase 1-E Public Rollout Check
+
+`3c30a20 Connect session labels to reusable ops config` 後の次工程として、
+Phase 1-A〜1-Dの設定参照が公開配信上で最新HTML/JSとして反映されているかを確認した。
+
+確認結果は `public_cache_bust_ok=true`、`public_js_marker_ok=true`。
+calendar / session-post / session-detail / timeline の公開HTMLはsession/gate label系cache-bustを参照し、mypageの公開HTMLも `reusableOpsMypageLabels.js` と `mypageAuthClient.js` の最新label bridge系cache-bustを参照していた。公開JSには `sessionPostGateHeading`、`sessionDetailGateHeading`、`discordSyncResultStatus`、`frontendRestrictionNote`、mypage label bridgeなどの期待markerが含まれていた。
+
+この確認では、公開配信の静的確認と設定化漏れ棚卸しだけを行った。認証済みUI操作、Discord同期操作、SQL Editor実行、DB/RPC/RLS変更、Edge Function deploy、直接Supabase write追加は行っていない。
+
+設定化漏れとして、mypageのauth/PC/template/会員管理操作メッセージ、session-post/detailの確認・エラー・空状態文言、approved gateの状態別本文、会員管理UIの操作ボタン/エラー文言、Discord同期の状態値ラベルを後続候補として整理した。詳細は `docs/reusable-ops-platform-phase1e-public-check.md` に記録する。

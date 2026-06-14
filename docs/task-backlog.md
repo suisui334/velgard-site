@@ -8628,3 +8628,33 @@ Status: Phase 1-D session/detail/gate labels connected.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge Function
   deploy, Discord operation, direct Supabase write, `console.*` addition, or
   `updates.json` change was performed.
+
+## M-14F-77 reusable ops config public rollout check
+
+Status: Phase 1-E public rollout and remaining label inventory recorded.
+
+- Baseline: `3c30a20 Connect session labels to reusable ops config`.
+- Added `docs/reusable-ops-platform-phase1e-public-check.md`.
+- Confirmed by static public asset checks that calendar, session-post,
+  session-detail, and timeline public HTML reference the latest
+  session/gate-label cache-bust.
+- Confirmed mypage public HTML references the latest
+  `reusableOpsMypageLabels.js` and `mypageAuthClient.js` label-bridge
+  cache-bust.
+- Confirmed public JS markers for `reusableOpsConfig.js`,
+  `reusableOpsMypageLabels.js`, membership approved-gate label lookup,
+  session-post labels, session-detail labels, session display labels, and
+  Discord sync panel label surfaces.
+- Recorded `public_cache_bust_ok=true`, `public_js_marker_ok=true`,
+  `cache_bust_fix_needed=false`, and `fallback_fix_needed=false`.
+- No authenticated functional QA or Discord sync operation was performed in
+  this gate; those remain separate explicit QA gates when needed.
+- Inventoried remaining hard-coded label candidates for mypage auth/profile/PC
+  and template messages, session-post/detail operation and error messages,
+  approved-gate membership-status body text, membership management operation
+  labels/errors, and Discord sync state value labels.
+- Did not change implementation files. No SQL Editor execution, SQL apply,
+  DB/RPC/RLS mutation, Edge Function deploy, Discord operation, direct
+  Supabase write, `console.*` addition, `updates.json` change, auth/permission
+  logic change, RPC/DB-key configuration, or `management_key` exposure was
+  performed.
