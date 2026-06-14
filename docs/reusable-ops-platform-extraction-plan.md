@@ -639,3 +639,24 @@ mypageの表示ラベルだけをclassic scriptから読めるbridgeとして公
 認証、approved gate判定、会員管理RPC、`management_key`、DB/RPC/RLS、
 Discord同期、操作ボタン文言、エラー文言は変更していない。詳細は
 `docs/reusable-ops-platform-phase1c-mypage-config-result.md` に記録する。
+
+## World Site Template Inventory Result
+
+`ba8c059 Connect mypage labels to reusable ops config` 後の次工程として、
+ヴェルガルド固有の世界観紹介ページ群を、将来別世界観へ流用できる
+ページ骨格・データ項目・導線設計として棚卸しした。
+
+対象は `index`、`world`、`characters`、`spots`、`spot-detail`、
+`hooks` / `scenarios`、`terms`、`regulation`、`gallery`、`campaigns`、
+`tools` 周辺である。calendar / mypage / session-post / session-detail /
+membership / template / Discord sync は引き続き運用基盤側として扱う。
+
+結論として、world、characters、spots、terms、regulation、gallery は、
+デザイン固定ではなくJSON構造と表示ブロックの骨格として流用余地が大きい。
+一方で、gallery category、regulation TOC/level cap columns、home nav、
+hooks/scenarios互換、style.css内の世界観演出は、次世界観テンプレート化時の
+整理対象として残る。
+
+詳細は `docs/world-site-template-extraction-plan.md` に記録する。今回も
+実装変更、ファイル移動、フォルダ再編、JSON schema変更、DB/RPC/RLS変更、
+SQL apply、Edge Function deploy、Discord操作は行っていない。

@@ -8566,3 +8566,34 @@ Status: Phase 1-C mypage label bridge implemented.
   management RPC calls, `management_key` handling, operation button labels,
   error messages, DB/RPC/RLS, SQL, Edge Functions, Discord operations,
   `console.*`, direct Supabase writes, or `updates.json`.
+
+## M-14F-75 world site template extraction inventory
+
+Status: world-site template extraction inventory recorded.
+
+- Baseline: `ba8c059 Connect mypage labels to reusable ops config`.
+- Added `docs/world-site-template-extraction-plan.md`.
+- Defined world-site templating as reusable page skeletons, data fields,
+  display blocks, navigation structure, category design, gallery handling, and
+  JSON management style rather than fixed visual design.
+- Inventoried `index`, `world`, `characters`, `spots`, `spot-detail`,
+  `hooks` / `scenarios`, `terms`, `regulation`, `gallery`, `campaigns`, and
+  `tools` from the world-site side.
+- Kept `calendar`, `mypage`, `session-post`, `session-detail`, membership,
+  templates, notification/TIMELINE, and Discord sync classified as reusable
+  operations platform surfaces.
+- Recorded that `world.json`, `characters.json`, `spots.json`,
+  `spotDetails.json`, `scenarios.json`, `terms.json`, `regulation.json`, and
+  `gallery.json` provide reusable skeletons when content, categories, images,
+  and visual tone are swapped per world.
+- Recorded template obstacles: hard-coded home nav items, gallery category
+  labels/order, regulation TOC and level-cap columns, hooks/scenarios
+  compatibility data, and world-specific visual styling in shared CSS.
+- Recorded operations connection points without implementing them: scenarios to
+  session-post, spots to calendar/session-detail, NPCs to scenario/session
+  references, regulation to session-post rules guidance, and gallery image
+  references across world pages.
+- No implementation change, file move, folder restructure, JSON schema change,
+  SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge Function deploy,
+  Discord operation, `console.*` addition, direct Supabase write, or
+  `updates.json` change was performed.
