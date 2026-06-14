@@ -333,3 +333,25 @@ data/
 ## Prohibited Work Confirmed
 
 This gate did not perform implementation changes, file moves, folder restructuring, CSS split, HTML structure changes, JS import/export restructuring, SQL Editor execution, DB/RPC/RLS mutation, SQL apply, Edge Function deploy, Discord operation, secret or webhook change, direct Supabase write addition, `console.*` addition, `updates.json` change, or independent app extraction.
+
+## Phase 2-B Config Move Result
+
+After this boundary plan, Phase 2-B performed the first physical separation
+only for reusable operations config files:
+
+- `assets/js/reusableOpsConfig.js` moved to
+  `assets/js/core/config/reusableOpsConfig.js`.
+- `assets/js/reusableOpsMypageLabels.js` moved to
+  `assets/js/core/config/reusableOpsMypageLabels.js`.
+
+Only import/script references and cache-bust markers were updated. The public
+module exports and the `window.VELGARD_REUSABLE_OPS_MYPAGE` bridge name remain
+unchanged. The move does not change auth, membership, RPC, DB, Discord sync,
+approved-gate decisions, owner/admin checks, or fallback labels.
+
+The high-risk files listed in section 9 are still intentionally unmoved. Any
+future move of `main.js`, `mypageAuthClient.js`, `sessionData.js`,
+`renderSessionPost.js`, `renderSessionDetail.js`, `discordSyncClient.js`, or
+`style.css` remains a separate design and QA gate.
+
+Detailed result: `docs/reusable-ops-platform-phase2b-config-move-result.md`.

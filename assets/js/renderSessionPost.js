@@ -2,7 +2,7 @@ import {
   escapeHtml,
   getSessionStatusLabel,
   getSessionTypeLabel
-} from "./sessionDisplay.js?v=20260615-session-gate-labels";
+} from "./sessionDisplay.js?v=20260615-core-config-move";
 import {
   createSupabaseBrowserClient,
   getSupabaseRuntimeConfig,
@@ -12,8 +12,8 @@ import {
   getCurrentMembershipState,
   isApprovedMembershipState,
   renderMembershipGateNotice
-} from "./membershipAccessClient.js?v=20260615-session-gate-labels";
-import { getOpsSessionLabel } from "./reusableOpsConfig.js?v=20260615-session-gate-labels";
+} from "./membershipAccessClient.js?v=20260615-core-config-move";
+import { getOpsSessionLabel } from "./core/config/reusableOpsConfig.js?v=20260615-core-config-move";
 import {
   deleteSyncedSession,
   getDiscordSyncStateModifier,

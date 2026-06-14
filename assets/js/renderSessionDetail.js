@@ -6,15 +6,15 @@ import {
   hasSessionClosingMark,
   renderSessionDiscordSyncPanel,
   renderSessionDetailContent
-} from "./sessionDisplay.js?v=20260615-session-gate-labels";
+} from "./sessionDisplay.js?v=20260615-core-config-move";
 import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260610-avatar-preview";
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js?v=20260601-session-post";
 import {
   getCurrentMembershipState,
   isApprovedMembershipState,
   renderMembershipGateNotice
-} from "./membershipAccessClient.js?v=20260615-session-gate-labels";
-import { getOpsSessionLabel } from "./reusableOpsConfig.js?v=20260615-session-gate-labels";
+} from "./membershipAccessClient.js?v=20260615-core-config-move";
+import { getOpsSessionLabel } from "./core/config/reusableOpsConfig.js?v=20260615-core-config-move";
 import {
   deleteSyncedSession,
   getDiscordSyncStateModifier,

@@ -700,3 +700,23 @@ JSは、`reusableOpsConfig.js`、`membershipAccessClient.js`、`sessionDisplay.j
 CSSは現時点では `style.css` の一括分割を避け、将来 `core.css` / `ops.css` / `world.css` / `theme-velgard.css` に分けるための責務境界だけを整理した。HTMLとdataも、運用基盤ページ、world-siteページ、混在ページ、legacy fixture/dataに分類した。
 
 詳細は `docs/reusable-ops-platform-phase2-boundary-plan.md` に記録する。今回も実装変更、ファイル移動、フォルダ再編、CSS分割、HTML構造変更、JS import/export大変更、SQL Editor実行、DB/RPC/RLS変更、SQL apply、Edge Function deploy、Discord操作は行っていない。
+
+## Phase 2-B Config File Move Result
+
+`04f1d81 Plan reusable ops file boundaries` after the next gate moved only the
+two reusable operations config files into the first `core/config` directory:
+
+- `assets/js/reusableOpsConfig.js` -> `assets/js/core/config/reusableOpsConfig.js`
+- `assets/js/reusableOpsMypageLabels.js` -> `assets/js/core/config/reusableOpsMypageLabels.js`
+
+HTML script references, direct module imports, and related module cache-bust
+markers were updated so the public site loads the new config paths. The
+visible labels and fallback behavior remain unchanged.
+
+This did not move `main.js`, `mypageAuthClient.js`, `sessionData.js`,
+`renderSessionPost.js`, `renderSessionDetail.js`, `membershipAccessClient.js`,
+`discordSyncClient.js`, or `style.css`. Auth, permission checks, RPC/DB
+contracts, membership management behavior, approved-gate decisions, and
+Discord sync behavior were not changed.
+
+Detailed result: `docs/reusable-ops-platform-phase2b-config-move-result.md`.

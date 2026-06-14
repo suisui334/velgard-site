@@ -3,7 +3,7 @@ import {
   getCurrentMembershipState,
   isApprovedMembershipState,
   renderMembershipGateNotice
-} from "./membershipAccessClient.js?v=20260615-session-gate-labels";
+} from "./membershipAccessClient.js?v=20260615-core-config-move";
 import {
   formatActivityDateTime,
   getActivitySessionLabel,

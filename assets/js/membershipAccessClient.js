@@ -1,5 +1,5 @@
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js";
-import { getMembershipGateLabel } from "./reusableOpsConfig.js?v=20260615-session-gate-labels";
+import { getMembershipGateLabel } from "./core/config/reusableOpsConfig.js?v=20260615-core-config-move";
 
 const MEMBERSHIP_STATUS_VALUES = new Set(["pending", "approved", "rejected", "revoked", "blocked"]);
 

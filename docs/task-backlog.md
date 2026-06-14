@@ -8689,3 +8689,29 @@ Status: Phase 2-A file boundary inventory recorded.
   Editor execution, DB/RPC/RLS mutation, SQL apply, Edge Function deploy,
   Discord operation, direct Supabase write, `console.*` addition, or
   `updates.json` change.
+
+## M-14F-79 reusable ops config file move
+
+Status: Phase 2-B minimal config file separation implemented.
+
+- Baseline: `04f1d81 Plan reusable ops file boundaries`.
+- Moved `assets/js/reusableOpsConfig.js` to
+  `assets/js/core/config/reusableOpsConfig.js`.
+- Moved `assets/js/reusableOpsMypageLabels.js` to
+  `assets/js/core/config/reusableOpsMypageLabels.js`.
+- Updated direct config imports in membership access, calendar, session-post,
+  session-detail, and session display modules.
+- Updated module cache-bust references in the main module graph so stale public
+  modules do not import the old root config path.
+- Updated public HTML script references, including the mypage classic-script
+  label bridge path and the shared `main.js` cache-bust.
+- Kept module exports and `window.VELGARD_REUSABLE_OPS_MYPAGE` unchanged, so
+  fallback behavior and visible labels remain the same.
+- Did not move `main.js`, `mypageAuthClient.js`, `sessionData.js`,
+  `renderSessionPost.js`, `renderSessionDetail.js`,
+  `membershipAccessClient.js`, `discordSyncClient.js`, or `style.css`.
+- Did not change auth, permission checks, RPC/DB contracts, approved-gate
+  decisions, membership management behavior, Discord sync behavior, direct
+  Supabase writes, `console.*`, or `updates.json`.
+- Added `docs/reusable-ops-platform-phase2b-config-move-result.md` and updated
+  the reusable ops extraction/boundary docs with the Phase 2-B result.

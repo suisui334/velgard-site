@@ -1,7 +1,7 @@
 import {
   getOpsSessionLabel,
   getOpsSessionTypeLabel
-} from "./reusableOpsConfig.js?v=20260615-session-gate-labels";
+} from "./core/config/reusableOpsConfig.js?v=20260615-core-config-move";
 
 const SESSION_STATUSES = {
   draft: "下書き",

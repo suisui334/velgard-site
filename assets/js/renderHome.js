@@ -11,7 +11,7 @@ import {
   getCurrentMembershipState,
   isApprovedMembershipState,
   shouldHideCommunityNav
-} from "./membershipAccessClient.js?v=20260615-session-gate-labels";
+} from "./membershipAccessClient.js?v=20260615-core-config-move";
 
 const homeNavItems = [
   { label: "WORLD", href: "world.html", text: "舞台紹介" },

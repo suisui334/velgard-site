@@ -1,5 +1,5 @@
 import { loadJson } from "./dataLoader.js";
-import { renderHome } from "./renderHome.js?v=20260615-session-gate-labels";
+import { renderHome } from "./renderHome.js?v=20260615-core-config-move";
 import { renderWorld } from "./renderWorld.js?v=20260528-responsive-ui-fix";
 import { renderCampaigns } from "./renderCampaigns.js";
 import { renderCampaignDetail } from "./renderCampaignDetail.js";
@@ -10,22 +10,22 @@ import { renderSpotDetail } from "./renderSpotDetail.js?v=20260529-ui-polish";
 import { renderCharacters } from "./renderCharacters.js?v=20260529-ui-polish";
 import { renderScenarios } from "./renderScenarios.js?v=20260529-scenario-release-base";
 import { renderScenarioDetail } from "./renderScenarioDetail.js?v=20260529-scenario-release-base";
-import { renderSessionDetail as renderSessionScheduleDetail } from "./renderSessionDetail.js?v=20260615-session-gate-labels";
-import { renderSessionPost } from "./renderSessionPost.js?v=20260615-session-gate-labels";
+import { renderSessionDetail as renderSessionScheduleDetail } from "./renderSessionDetail.js?v=20260615-core-config-move";
+import { renderSessionPost } from "./renderSessionPost.js?v=20260615-core-config-move";
 import { renderTerms } from "./renderTerms.js?v=20260526-term-anchor";
 import { renderGallery } from "./renderGallery.js?v=20260529-gallery-swipe";
 import { renderUpdates } from "./renderUpdates.js";
 import { renderTools } from "./renderTools.js?v=20260529-calendar-date-tools-history";
-import { renderCalendar } from "./renderCalendar.js?v=20260615-session-gate-labels";
-import { renderTimeline } from "./renderTimeline.js?v=20260615-session-gate-labels";
+import { renderCalendar } from "./renderCalendar.js?v=20260615-core-config-move";
+import { renderTimeline } from "./renderTimeline.js?v=20260615-core-config-move";
 import { renderMypage } from "./renderMypage.js?v=20260614-remove-stale-notice";
-import { renderAdminCapAnnouncements } from "./renderAdminCapAnnouncements.js?v=20260615-session-gate-labels";
-import { initNotificationBell, resetNotificationBell, refreshNotificationBell } from "./notificationBellClient.js?v=20260615-session-gate-labels";
+import { renderAdminCapAnnouncements } from "./renderAdminCapAnnouncements.js?v=20260615-core-config-move";
+import { initNotificationBell, resetNotificationBell, refreshNotificationBell } from "./notificationBellClient.js?v=20260615-core-config-move";
 import {
   getCurrentMembershipState,
   isApprovedMembershipStatus,
   shouldHideCommunityNav
-} from "./membershipAccessClient.js?v=20260615-session-gate-labels";
+} from "./membershipAccessClient.js?v=20260615-core-config-move";
 
 const navItems = [
   { label: "TOP", href: "index.html", key: "home", enabled: true },
