@@ -120,3 +120,17 @@ Phase 1-Cでは、通常scriptである `mypageAuthClient.js` をES module化せ
 認証、approved gate判定、会員管理RPC、`management_key` 処理、DB/RPC/RLS、
 Discord同期、操作ボタン文言、エラー文言は変更していない。詳細は
 `docs/reusable-ops-platform-phase1c-mypage-config-result.md` に記録する。
+
+## Phase 1-D follow-up
+
+Phase 1-Dでは、session-post / session-detail / approved gate 周辺の一部表示ラベルを
+`reusableOpsConfig.js` へ接続した。
+
+接続した値は、依頼書投稿フォームの見出し/主要フォームラベル/作成・保存・削除表示、
+依頼書詳細の基本情報ラベル/補足情報ラベル/GM管理ボタン表示、
+参加希望コメント見出し、Discord同期パネル項目名、共通approved gateの既定文言である。
+
+設定取得に失敗した場合は既存fallback文言を使う。認証、approved判定、owner/admin判定、
+参加申請/コメントRPC、依頼書保存/削除RPC、Discord同期処理、DB/RPC/RLSは変更していない。
+
+詳細は `docs/reusable-ops-platform-phase1d-session-label-config-result.md` に記録する。

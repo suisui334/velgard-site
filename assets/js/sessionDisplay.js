@@ -1,4 +1,7 @@
-import { getOpsSessionTypeLabel } from "./reusableOpsConfig.js?v=20260615-ops-label-config";
+import {
+  getOpsSessionLabel,
+  getOpsSessionTypeLabel
+} from "./reusableOpsConfig.js?v=20260615-session-gate-labels";
 
 const SESSION_STATUSES = {
   draft: "下書き",
@@ -56,6 +59,10 @@ export function getSessionStatusClass(status) {
 
 export function getSessionTypeLabel(sessionType) {
   return getOpsSessionTypeLabel(sessionType);
+}
+
+function getSessionLabel(key, fallback) {
+  return getOpsSessionLabel(key, fallback);
 }
 
 export function isClosedSession(session) {
@@ -145,29 +152,30 @@ function getDiscordSyncFields(session) {
 
 export function renderSessionDiscordSyncPanel(session) {
   const fields = getDiscordSyncFields(session);
+  const heading = getSessionLabel("discordSync", "Discord同期");
   return `
     <details class="session-detail-discord-sync-details">
-      <summary class="session-detail-discord-sync-summary">${escapeHtml(`Discord同期：${fields.statusLabel}`)}</summary>
+      <summary class="session-detail-discord-sync-summary">${escapeHtml(`${heading}：${fields.statusLabel}`)}</summary>
       <div class="session-detail-discord-sync-body">
         <dl class="session-detail-discord-sync-list">
           <div>
-            <dt>同期状態</dt>
+            <dt>${escapeHtml(getSessionLabel("discordSyncStatus", "同期状態"))}</dt>
             <dd>${escapeHtml(fields.statusLabel)}</dd>
           </div>
           <div>
-            <dt>最終操作</dt>
+            <dt>${escapeHtml(getSessionLabel("discordLastAction", "最終操作"))}</dt>
             <dd>${escapeHtml(fields.lastActionLabel)}</dd>
           </div>
           <div>
-            <dt>最終同期日時</dt>
+            <dt>${escapeHtml(getSessionLabel("discordSyncedAt", "最終同期日時"))}</dt>
             <dd>${escapeHtml(fields.syncedAt)}</dd>
           </div>
           <div>
-            <dt>同期エラー</dt>
+            <dt>${escapeHtml(getSessionLabel("discordSyncError", "同期エラー"))}</dt>
             <dd>${escapeHtml(fields.errorLabel)}</dd>
           </div>
           <div>
-            <dt>投稿リンク</dt>
+            <dt>${escapeHtml(getSessionLabel("discordPostLink", "投稿リンク"))}</dt>
             <dd>${escapeHtml(fields.postUrlLabel)}</dd>
           </div>
         </dl>
@@ -241,12 +249,12 @@ function renderSessionDetailManageRow(session, options = {}) {
     : "この予定は静的データ由来のため、この画面では編集できません。";
   return `
     <div class="session-detail-manage-row" data-session-detail-manage-panel data-session-source="${escapeHtml(isSupabase ? "supabase" : "static")}">
-      <dt>管理</dt>
+      <dt>${escapeHtml(getSessionLabel("management", "管理"))}</dt>
       <dd>
         <div class="session-detail-manage-buttons">
-          <button class="session-detail-manage-button session-detail-manage-edit" type="button" data-session-detail-edit disabled>編集</button>
-          <button class="session-detail-manage-button session-detail-manage-close" type="button" data-session-detail-close disabled hidden>〆にする</button>
-          <button class="session-detail-manage-button session-detail-manage-delete" type="button" data-session-detail-delete disabled title="権限確認後に有効化します">削除</button>
+          <button class="session-detail-manage-button session-detail-manage-edit" type="button" data-session-detail-edit disabled>${escapeHtml(getSessionLabel("edit", "編集"))}</button>
+          <button class="session-detail-manage-button session-detail-manage-close" type="button" data-session-detail-close disabled hidden>${escapeHtml(getSessionLabel("close", "〆にする"))}</button>
+          <button class="session-detail-manage-button session-detail-manage-delete" type="button" data-session-detail-delete disabled title="権限確認後に有効化します">${escapeHtml(getSessionLabel("delete", "削除"))}</button>
         </div>
         <p class="session-detail-manage-close-note" data-session-detail-close-note hidden></p>
         <p class="session-detail-manage-note" data-session-detail-manage-state>${escapeHtml(note)}</p>
@@ -277,7 +285,7 @@ function renderSessionApplicationPanel(session) {
   return `
     <section class="session-application-panel session-comment-application-panel is-readonly ${escapeHtml(statusClass)}" data-session-application-panel data-session-status="${escapeHtml(status || "")}" data-session-visibility="${escapeHtml(visibility || "")}" aria-labelledby="session-application-title">
       <div class="session-application-copy">
-        <h3 id="session-application-title">参加希望コメント</h3>
+        <h3 id="session-application-title">${escapeHtml(getSessionLabel("applicationComment", "参加希望コメント"))}</h3>
         <p>${escapeHtml(lead)}</p>
         <p class="session-application-note" data-session-comment-auth-note>参加希望コメントの投稿にはログインが必要です。ACCOUNTからログインしてください。</p>
       </div>
@@ -303,28 +311,28 @@ export function renderSessionDetailContent(session, options = {}) {
   const formatDate = typeof options.formatDate === "function" ? options.formatDate : (value) => value;
   const playerCount = formatPlayerCount(session, { includeMinimum: options.includeMinimumPlayers });
   const basicRows = [
-    renderSessionDetailRow("開催日", session?.date ? formatDate(session.date) : ""),
-    renderSessionDetailRow("種別", getSessionTypeLabel(session?.sessionType)),
-    renderSessionDetailRow("開催場所", formatSessionTool(session)),
-    renderSessionDetailRow("開催時刻", formatSessionTime(session)),
-    renderSessionDetailRow("申請締切", formatSessionApplicationDeadline(session)),
-    renderSessionDetailRow("レベル帯", session?.levelRange),
-    renderSessionDetailRow("募集人数", playerCount)
+    renderSessionDetailRow(getSessionLabel("sessionDate", "開催日"), session?.date ? formatDate(session.date) : ""),
+    renderSessionDetailRow(getSessionLabel("sessionType", "種別"), getSessionTypeLabel(session?.sessionType)),
+    renderSessionDetailRow(getSessionLabel("location", "開催場所"), formatSessionTool(session)),
+    renderSessionDetailRow(getSessionLabel("sessionTime", "開催時刻"), formatSessionTime(session)),
+    renderSessionDetailRow(getSessionLabel("applicationDeadline", "申請締切"), formatSessionApplicationDeadline(session)),
+    renderSessionDetailRow(getSessionLabel("levelRange", "レベル帯"), session?.levelRange),
+    renderSessionDetailRow(getSessionLabel("playerCount", "募集人数"), playerCount)
   ].join("");
   const detailBlocks = [
-    session?.detail ? `<section class="calendar-session-modal-block"><h3>詳細</h3><p>${escapeHtml(session.detail)}</p></section>` : "",
-    session?.requirements ? `<section class="calendar-session-modal-block"><h3>参加条件・注意事項</h3><p>${escapeHtml(session.requirements)}</p></section>` : ""
+    session?.detail ? `<section class="calendar-session-modal-block"><h3>${escapeHtml(getSessionLabel("detail", "詳細"))}</h3><p>${escapeHtml(session.detail)}</p></section>` : "",
+    session?.requirements ? `<section class="calendar-session-modal-block"><h3>${escapeHtml(getSessionLabel("requirements", "参加条件・注意事項"))}</h3><p>${escapeHtml(session.requirements)}</p></section>` : ""
   ].join("");
   const supplementalRows = [
-    renderSessionDetailRow("公開状態", getSessionVisibilityLabel(session?.visibility), { attrs: "data-session-detail-visibility-row" }),
-    renderSessionDetailRow("募集状態", getSessionStatusLabel(session?.status), { attrs: "data-session-detail-status-row" }),
+    renderSessionDetailRow(getSessionLabel("visibility", "公開状態"), getSessionVisibilityLabel(session?.visibility), { attrs: "data-session-detail-visibility-row" }),
+    renderSessionDetailRow(getSessionLabel("recruitingStatus", "募集状態"), getSessionStatusLabel(session?.status), { attrs: "data-session-detail-status-row" }),
     renderSessionDetailManageRow(session, options),
-    renderSessionDetailRow("更新日時", formatSessionUpdatedAt(session?.updatedAt))
+    renderSessionDetailRow(getSessionLabel("updatedAt", "更新日時"), formatSessionUpdatedAt(session?.updatedAt))
   ].join("");
   const supplementalHtml = supplementalRows
     ? `
       <section class="calendar-session-modal-supplement">
-        <h3>補足情報</h3>
+        <h3>${escapeHtml(getSessionLabel("supplementalInfo", "補足情報"))}</h3>
         <dl class="calendar-session-modal-meta calendar-session-modal-meta--supplement">
           ${supplementalRows}
         </dl>

@@ -1,5 +1,5 @@
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js";
-import { getCurrentMembershipState } from "./membershipAccessClient.js?v=20260613-unapproved-ui";
+import { getCurrentMembershipState } from "./membershipAccessClient.js?v=20260615-session-gate-labels";
 
 const NOTIFICATION_LIMIT = 8;
 const FALLBACK_TARGET = "mypage.html";

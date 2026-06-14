@@ -8597,3 +8597,34 @@ Status: world-site template extraction inventory recorded.
   SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge Function deploy,
   Discord operation, `console.*` addition, direct Supabase write, or
   `updates.json` change was performed.
+
+## M-14F-76 reusable ops session label bridge
+
+Status: Phase 1-D session/detail/gate labels connected.
+
+- Baseline: `9828279 Plan world site template extraction`.
+- Extended `assets/js/reusableOpsConfig.js` with session-post,
+  session-detail, Discord sync panel, and approved-gate display label
+  candidates.
+- Connected common approved-gate default copy in `membershipAccessClient.js`
+  to the reusable ops config with fallback labels.
+- Connected `sessionDisplay.js` detail row labels, GM management button labels,
+  participation-comment heading, and Discord sync panel labels to the reusable
+  ops config with existing Japanese fallback text.
+- Connected safe `renderSessionPost.js` display labels: page heading, form
+  labels, own/admin managed-session select label, create/save/delete button
+  labels, and session-post approved-gate copy.
+- Updated cache-bust references for session-post, session-detail, calendar, and
+  timeline surfaces that load the changed modules.
+- Did not change auth logic, approved gate decision logic, owner/admin checks,
+  membership management RPC calls, comment/application RPC calls, session
+  create/update/delete RPC calls, Discord sync behavior, DB/RPC/RLS, SQL,
+  Edge Functions, folder structure, or independent app boundaries.
+- Did not expose `management_key`, raw user id, email, token, JWT, Discord
+  message id, or full URL values.
+- Added `docs/reusable-ops-platform-phase1d-session-label-config-result.md`
+  and updated reusable ops extraction/config docs with the implemented and
+  deferred scope.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge Function
+  deploy, Discord operation, direct Supabase write, `console.*` addition, or
+  `updates.json` change was performed.

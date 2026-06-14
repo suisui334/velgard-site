@@ -2,7 +2,7 @@ import {
   escapeHtml,
   getSessionStatusLabel,
   getSessionTypeLabel
-} from "./sessionDisplay.js?v=20260615-ops-label-config";
+} from "./sessionDisplay.js?v=20260615-session-gate-labels";
 import {
   createSupabaseBrowserClient,
   getSupabaseRuntimeConfig,
@@ -12,7 +12,8 @@ import {
   getCurrentMembershipState,
   isApprovedMembershipState,
   renderMembershipGateNotice
-} from "./membershipAccessClient.js?v=20260613-unapproved-ui";
+} from "./membershipAccessClient.js?v=20260615-session-gate-labels";
+import { getOpsSessionLabel } from "./reusableOpsConfig.js?v=20260615-session-gate-labels";
 import {
   deleteSyncedSession,
   getDiscordSyncStateModifier,
@@ -178,6 +179,10 @@ const TEMPLATE_PRESET_FIELD_NAMES = new Set([
   "updated_at"
 ]);
 
+function getSessionPostLabel(key, fallback) {
+  return getOpsSessionLabel(key, fallback);
+}
+
 function renderSessionPostTemplatePanel() {
   return `
     <section class="session-post-template-panel" data-session-post-template-panel>
@@ -227,12 +232,12 @@ function renderShell(initialStartAt = "") {
   return `
     <header class="page-title">
       <div class="eyebrow">Session Post</div>
-      <h1>依頼書投稿</h1>
-      <p class="lead">ログインユーザー向けのセッション予定投稿フォームです。</p>
+      <h1>${escapeHtml(getSessionPostLabel("sessionPostTitle", "依頼書投稿"))}</h1>
+      <p class="lead">${escapeHtml(getSessionPostLabel("sessionPostLead", "ログインユーザー向けのセッション予定投稿フォームです。"))}</p>
     </header>
     <section class="section session-post-section">
       <article class="article-box session-post-auth-panel">
-        <h2>投稿権限</h2>
+        <h2>${escapeHtml(getSessionPostLabel("postPermission", "投稿権限"))}</h2>
         <p class="session-post-state" data-session-post-auth-state>確認しています。</p>
         <p class="session-post-actions">
           <a class="button" href="mypage.html">ACCOUNTへ</a>
@@ -242,37 +247,37 @@ function renderShell(initialStartAt = "") {
       <article class="article-box session-post-form-panel" data-session-post-form-panel hidden>
         <div class="session-post-form-head">
           <div class="session-post-mode-row">
-            <h2 data-session-post-mode-title>依頼書</h2>
+            <h2 data-session-post-mode-title>${escapeHtml(getSessionPostLabel("sessionPost", "依頼書"))}</h2>
           </div>
-          <p data-session-post-mode-note>初期値は非公開の下書きです。</p>
+          <p data-session-post-mode-note>${escapeHtml(getSessionPostLabel("sessionPostModeNoteNew", "初期値は非公開の下書きです。"))}</p>
         </div>
         ${renderSessionPostTemplatePanel()}
         <form class="session-post-form" data-session-post-form>
           <div class="session-post-grid">
-            ${renderTextField("タイトル", "p_title", "text", { required: true, maxlength: 120 })}
-            ${renderTextField("開始日時", "p_start_at", "datetime-local", { required: true, value: initialStartAt })}
-            ${renderTextField("終了日時", "p_end_at", "datetime-local", { required: true })}
-            ${renderTextField("申請締切", "p_application_deadline", "datetime-local")}
-            ${renderSelectField("種別", "p_session_type", [
-              ["one-shot", "単発シナリオ"],
-              ["campaign", "キャンペーン"],
-              ["special", "特殊"],
-              ["other", "その他"]
+            ${renderTextField(getSessionPostLabel("title", "タイトル"), "p_title", "text", { required: true, maxlength: 120 })}
+            ${renderTextField(getSessionPostLabel("startAt", "開始日時"), "p_start_at", "datetime-local", { required: true, value: initialStartAt })}
+            ${renderTextField(getSessionPostLabel("endAt", "終了日時"), "p_end_at", "datetime-local", { required: true })}
+            ${renderTextField(getSessionPostLabel("applicationDeadline", "申請締切"), "p_application_deadline", "datetime-local")}
+            ${renderSelectField(getSessionPostLabel("sessionType", "種別"), "p_session_type", [
+              ["one-shot", getSessionTypeLabel("one-shot")],
+              ["campaign", getSessionTypeLabel("campaign")],
+              ["special", getSessionTypeLabel("special")],
+              ["other", getSessionTypeLabel("other")]
             ], "one-shot")}
             ${renderPlayerCountFields()}
-            ${renderTextField("開催場所", "p_session_tool", "text", { maxlength: 80, placeholder: "例：Tekey / ココフォリア / Discordボイス" })}
-            ${renderSelectField("公開状態", "p_visibility", [
+            ${renderTextField(getSessionPostLabel("location", "開催場所"), "p_session_tool", "text", { maxlength: 80, placeholder: "例：Tekey / ココフォリア / Discordボイス" })}
+            ${renderSelectField(getSessionPostLabel("visibility", "公開状態"), "p_visibility", [
               ["hidden", "非公開"],
               ["private", "限定"],
               ["public", "公開"]
             ], "hidden")}
-            ${renderSelectField("募集状態", "p_status", [
+            ${renderSelectField(getSessionPostLabel("recruitingStatus", "募集状態"), "p_status", [
               ["draft", "下書き"],
               ["tentative", "仮予定"],
               ["recruiting", "募集中"]
             ], "draft")}
             <label class="session-post-field" id="my-sessions" data-session-post-manage-panel hidden>
-              <span data-session-post-manage-label>自分の依頼書</span>
+              <span data-session-post-manage-label>${escapeHtml(getSessionPostLabel("ownSessions", "自分の依頼書"))}</span>
               <select data-session-post-manage-select disabled>
                 <option value="new">読み込み中</option>
               </select>
@@ -280,22 +285,22 @@ function renderShell(initialStartAt = "") {
             </label>
             ${renderDiscordMentionField()}
             <p class="session-post-publication-note" data-session-post-publication-note aria-live="polite" hidden></p>
-            ${renderTextareaField("概要", "p_summary", 1000)}
+            ${renderTextareaField(getSessionPostLabel("summary", "概要"), "p_summary", 1000)}
           </div>
           <label class="session-post-public-confirm">
             <input type="checkbox" name="public_confirm" value="yes">
-            <span>公開状態で保存する場合に確認する</span>
+            <span>${escapeHtml(getSessionPostLabel("confirmPublicSave", "公開状態で保存する場合に確認する"))}</span>
           </label>
           <div class="session-post-submit-row">
-            <button class="button primary" type="submit" data-session-post-submit>作成する</button>
-            <button class="button primary" type="button" data-session-post-save hidden>変更を保存</button>
-            <button class="button danger" type="button" data-session-post-delete hidden>削除</button>
+            <button class="button primary" type="submit" data-session-post-submit>${escapeHtml(getSessionPostLabel("create", "作成する"))}</button>
+            <button class="button primary" type="button" data-session-post-save hidden>${escapeHtml(getSessionPostLabel("saveChanges", "変更を保存"))}</button>
+            <button class="button danger" type="button" data-session-post-delete hidden>${escapeHtml(getSessionPostLabel("delete", "削除"))}</button>
             <p class="session-post-state" data-session-post-state aria-live="polite"></p>
           </div>
         </form>
       </article>
       <article class="article-box session-post-result-panel" data-session-post-result-panel hidden>
-        <h2>作成結果</h2>
+        <h2>${escapeHtml(getSessionPostLabel("sessionPostResult", "作成結果"))}</h2>
         <dl class="session-post-result-list" data-session-post-result></dl>
       </article>
     </section>
@@ -343,7 +348,7 @@ function renderTextareaField(label, name, maxlength) {
 function renderPlayerCountFields() {
   return `
     <div class="session-post-field session-post-player-field" role="group" aria-labelledby="session-post-player-count-label">
-      <span class="session-post-player-label" id="session-post-player-count-label">募集人数</span>
+      <span class="session-post-player-label" id="session-post-player-count-label">${escapeHtml(getSessionPostLabel("playerCount", "募集人数"))}</span>
       <div class="session-post-player-inputs">
         <label>
           <span>min</span>
@@ -787,11 +792,11 @@ async function getPostingAccess(client) {
 function renderResult(target, result) {
   target.innerHTML = `
     <div>
-      <dt>作成結果</dt>
+      <dt>${escapeHtml(getSessionPostLabel("sessionPostResult", "作成結果"))}</dt>
       <dd>依頼書を作成しました</dd>
     </div>
     <div>
-      <dt>Discord同期状態</dt>
+      <dt>${escapeHtml(getSessionPostLabel("discordSyncResultStatus", "Discord同期状態"))}</dt>
       <dd>${escapeHtml(result.discord_sync_status || "未設定")}</dd>
     </div>
   `;
@@ -971,11 +976,11 @@ function setEditControls(elements, isEditing) {
   elements.submit.hidden = Boolean(isEditing);
   elements.save.hidden = !isEditing;
   elements.save.disabled = !isEditing;
-  elements.save.textContent = "変更を保存";
+  elements.save.textContent = getSessionPostLabel("saveChanges", "変更を保存");
   if (elements.deleteButton) {
     elements.deleteButton.hidden = !isEditing;
     elements.deleteButton.disabled = !isEditing;
-    elements.deleteButton.textContent = "削除";
+    elements.deleteButton.textContent = getSessionPostLabel("delete", "削除");
   }
 }
 
@@ -984,8 +989,8 @@ function enterEditMode(elements, session) {
   fillFormFromManagedSession(elements.form, session);
   elements.formPanel.classList.add("is-editing");
   elements.form.classList.add("is-editing");
-  elements.modeTitle.textContent = "依頼書";
-  elements.modeNote.textContent = "選択中の依頼書を編集中です。内容を変更したら「変更を保存」を押してください。";
+  elements.modeTitle.textContent = getSessionPostLabel("sessionPost", "依頼書");
+  elements.modeNote.textContent = getSessionPostLabel("sessionPostModeNoteEdit", "選択中の依頼書を編集中です。内容を変更したら「変更を保存」を押してください。");
   setEditControls(elements, true);
   elements.resultPanel.hidden = true;
   setState(elements.formState, "選択中の依頼書を編集中です。");
@@ -1001,8 +1006,8 @@ function enterNewMode(elements, options = {}) {
   if (options.clearForm) resetFormForNewSession(elements.form);
   elements.formPanel.classList.remove("is-editing");
   elements.form.classList.remove("is-editing");
-  elements.modeTitle.textContent = "依頼書";
-  elements.modeNote.textContent = "初期値は非公開の下書きです。";
+  elements.modeTitle.textContent = getSessionPostLabel("sessionPost", "依頼書");
+  elements.modeNote.textContent = getSessionPostLabel("sessionPostModeNoteNew", "初期値は非公開の下書きです。");
   setEditControls(elements, false);
   if (options.clearResult) elements.resultPanel.hidden = true;
   if (options.clearForm) setState(elements.formState, "");
@@ -1296,11 +1301,13 @@ async function deleteManagedSession(client, elements) {
 }
 
 function setManageSelectOptions(elements, sessions) {
-  const baseLabel = elements.access?.isAdmin ? "管理対象の依頼書" : "自分の依頼書";
+  const baseLabel = elements.access?.isAdmin
+    ? getSessionPostLabel("managedSessions", "管理対象の依頼書")
+    : getSessionPostLabel("ownSessions", "自分の依頼書");
   const countLabel = sessions.length ? `${baseLabel}（${sessions.length}件）` : baseLabel;
   elements.manageLabel.textContent = countLabel;
   elements.select.innerHTML = [
-    `<option value="new">新規依頼書を書く</option>`,
+    `<option value="new">${escapeHtml(getSessionPostLabel("newSessionPost", "新規依頼書を書く"))}</option>`,
     ...sessions.map((session, index) => renderManagedSessionOption(session, index))
   ].join("");
   elements.select.disabled = false;
@@ -1789,9 +1796,9 @@ export async function renderSessionPost(root, _site, options = {}) {
   if (!isApprovedMembershipState(membershipState)) {
     root.innerHTML = renderMembershipGateNotice(membershipState, {
       eyebrow: "Session Post",
-      title: "依頼書投稿",
-      lead: "依頼書作成・編集は承認済みメンバー向けの機能です。",
-      heading: "承認済みアカウントのみ依頼書投稿を利用できます"
+      title: getSessionPostLabel("sessionPostTitle", "依頼書投稿"),
+      lead: getSessionPostLabel("sessionPostGateLead", "依頼書作成・編集は承認済みメンバー向けの機能です。"),
+      heading: getSessionPostLabel("sessionPostGateHeading", "承認済みアカウントのみ依頼書投稿を利用できます")
     });
     return;
   }

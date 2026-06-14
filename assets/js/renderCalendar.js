@@ -4,12 +4,12 @@ import {
   getCurrentMembershipState,
   isApprovedMembershipState,
   renderMembershipGateNotice
-} from "./membershipAccessClient.js?v=20260613-unapproved-ui";
+} from "./membershipAccessClient.js?v=20260615-session-gate-labels";
 import {
   getCalendarButtonLabel,
   getOpsSessionTypeCalendarClass,
   getOpsSessionTypeLabel
-} from "./reusableOpsConfig.js?v=20260615-ops-label-config";
+} from "./reusableOpsConfig.js?v=20260615-session-gate-labels";
 import {
   escapeHtml,
   formatSessionApplicationDeadline,
@@ -24,7 +24,7 @@ import {
   isClosedSession,
   renderSessionTags,
   shouldShowSessionState
-} from "./sessionDisplay.js?v=20260615-ops-label-config";
+} from "./sessionDisplay.js?v=20260615-session-gate-labels";
 
 const CONFIG_URL = "data/calendarConfig.json?v=20260529-calendar-cap-start";
 const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";

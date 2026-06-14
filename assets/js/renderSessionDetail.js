@@ -6,14 +6,15 @@ import {
   hasSessionClosingMark,
   renderSessionDiscordSyncPanel,
   renderSessionDetailContent
-} from "./sessionDisplay.js?v=20260615-ops-label-config";
+} from "./sessionDisplay.js?v=20260615-session-gate-labels";
 import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260610-avatar-preview";
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js?v=20260601-session-post";
 import {
   getCurrentMembershipState,
   isApprovedMembershipState,
   renderMembershipGateNotice
-} from "./membershipAccessClient.js?v=20260613-unapproved-ui";
+} from "./membershipAccessClient.js?v=20260615-session-gate-labels";
+import { getOpsSessionLabel } from "./reusableOpsConfig.js?v=20260615-session-gate-labels";
 import {
   deleteSyncedSession,
   getDiscordSyncStateModifier,
@@ -43,6 +44,10 @@ const CLOSE_REMOVE_CONFIRM_MESSAGE = "〆マークを外して募集終了表示
 const CLOSE_OVERDUE_NOTE = "募集締切時刻を過ぎています。〆ボタンを押し忘れていませんか？";
 const CLOSE_SUCCESS_MESSAGE = "〆マークを更新しました。";
 const CLOSE_ERROR_MESSAGE = "〆マークの更新に失敗しました。";
+
+function getSessionDetailLabel(key, fallback) {
+  return getOpsSessionLabel(key, fallback);
+}
 
 function parseIsoDate(value) {
   const text = String(value || "").trim();
@@ -479,9 +484,9 @@ export async function renderSessionDetail(root, _site, options = {}) {
   if (!isApprovedMembershipState(membershipState)) {
     root.innerHTML = renderMembershipGateNotice(membershipState, {
       eyebrow: "Session Detail",
-      title: "セッション予定詳細",
-      lead: "依頼書詳細、参加申請、コメントは承認済みメンバー向けの機能です。",
-      heading: "承認後に依頼書詳細を確認できます"
+      title: getSessionDetailLabel("sessionDetailGateTitle", "セッション予定詳細"),
+      lead: getSessionDetailLabel("sessionDetailGateLead", "依頼書詳細、参加申請、コメントは承認済みメンバー向けの機能です。"),
+      heading: getSessionDetailLabel("sessionDetailGateHeading", "承認後に依頼書詳細を確認できます")
     });
     return;
   }

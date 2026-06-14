@@ -1,4 +1,5 @@
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js";
+import { getMembershipGateLabel } from "./reusableOpsConfig.js?v=20260615-session-gate-labels";
 
 const MEMBERSHIP_STATUS_VALUES = new Set(["pending", "approved", "rejected", "revoked", "blocked"]);
 
@@ -123,17 +124,26 @@ export async function getCurrentMembershipState(existingClient = null) {
 }
 
 export function getMembershipGateMessage(state) {
-  if (!state || !state.isAuthenticated) return STATUS_MESSAGES.anonymous;
+  if (!state || !state.isAuthenticated) {
+    return getMembershipGateLabel("loginPrompt", STATUS_MESSAGES.anonymous);
+  }
   return STATUS_MESSAGES[normalizeMembershipStatus(state.status)] || STATUS_MESSAGES.unknown;
 }
 
 export function renderMembershipGateNotice(state, options = {}) {
   const eyebrow = options.eyebrow || "Account";
-  const title = options.title || "承認済みアカウント専用";
-  const lead = options.lead || "この機能は承認済みメンバー向けです。";
-  const heading = options.heading || "承認済みアカウントのみ利用できます";
+  const title = options.title || getMembershipGateLabel("approvedOnlyTitle", "承認済みアカウント専用");
+  const lead = options.lead || getMembershipGateLabel("approvedOnlyLead", "この機能は承認済みメンバー向けです。");
+  const heading = options.heading || getMembershipGateLabel("approvedOnlyHeading", "承認済みアカウントのみ利用できます");
   const message = options.message || getMembershipGateMessage(state);
-  const accountLabel = state?.isAuthenticated ? "マイページで状態を確認する" : "ACCOUNTでログインする";
+  const accountLabel = state?.isAuthenticated
+    ? getMembershipGateLabel("accountStatusLink", "マイページで状態を確認する")
+    : getMembershipGateLabel("accountLoginLink", "ACCOUNTでログインする");
+  const restrictionNote = getMembershipGateLabel(
+    "frontendRestrictionNote",
+    "フロント表示制限は通常操作を閉じるための補助です。最終的なRPC側のapproved gateは後続工程で扱います。"
+  );
+  const topLabel = getMembershipGateLabel("topLink", "TOPへ戻る");
 
   return `
     <header class="page-title">
@@ -145,10 +155,10 @@ export function renderMembershipGateNotice(state, options = {}) {
       <article class="article-box membership-gate-notice">
         <h2>${escapeHtml(heading)}</h2>
         <p>${escapeHtml(message)}</p>
-        <p class="membership-gate-note">フロント表示制限は通常操作を閉じるための補助です。最終的なRPC側のapproved gateは後続工程で扱います。</p>
+        <p class="membership-gate-note">${escapeHtml(restrictionNote)}</p>
         <p class="actions">
           <a class="button primary" href="mypage.html">${escapeHtml(accountLabel)}</a>
-          <a class="button" href="index.html">TOPへ戻る</a>
+          <a class="button" href="index.html">${escapeHtml(topLabel)}</a>
         </p>
       </article>
     </section>

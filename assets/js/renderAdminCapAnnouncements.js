@@ -1,4 +1,4 @@
-import { escapeHtml } from "./sessionDisplay.js?v=20260615-ops-label-config";
+import { escapeHtml } from "./sessionDisplay.js?v=20260615-session-gate-labels";
 import {
   createSupabaseBrowserClient,
   getSupabaseRuntimeConfig,
