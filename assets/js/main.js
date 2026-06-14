@@ -10,16 +10,16 @@ import { renderSpotDetail } from "./renderSpotDetail.js?v=20260529-ui-polish";
 import { renderCharacters } from "./renderCharacters.js?v=20260529-ui-polish";
 import { renderScenarios } from "./renderScenarios.js?v=20260529-scenario-release-base";
 import { renderScenarioDetail } from "./renderScenarioDetail.js?v=20260529-scenario-release-base";
-import { renderSessionDetail as renderSessionScheduleDetail } from "./renderSessionDetail.js?v=20260613-unapproved-ui";
-import { renderSessionPost } from "./renderSessionPost.js?v=20260613-unapproved-ui";
+import { renderSessionDetail as renderSessionScheduleDetail } from "./renderSessionDetail.js?v=20260615-ops-label-config";
+import { renderSessionPost } from "./renderSessionPost.js?v=20260615-ops-label-config";
 import { renderTerms } from "./renderTerms.js?v=20260526-term-anchor";
 import { renderGallery } from "./renderGallery.js?v=20260529-gallery-swipe";
 import { renderUpdates } from "./renderUpdates.js";
 import { renderTools } from "./renderTools.js?v=20260529-calendar-date-tools-history";
-import { renderCalendar } from "./renderCalendar.js?v=20260615-ops-config-foundation";
+import { renderCalendar } from "./renderCalendar.js?v=20260615-ops-label-config";
 import { renderTimeline } from "./renderTimeline.js?v=20260613-unapproved-ui";
 import { renderMypage } from "./renderMypage.js?v=20260614-remove-stale-notice";
-import { renderAdminCapAnnouncements } from "./renderAdminCapAnnouncements.js?v=20260610-admin-cap-rpc-ui-fix";
+import { renderAdminCapAnnouncements } from "./renderAdminCapAnnouncements.js?v=20260615-ops-label-config";
 import { initNotificationBell, resetNotificationBell, refreshNotificationBell } from "./notificationBellClient.js?v=20260613-unapproved-ui";
 import {
   getCurrentMembershipState,

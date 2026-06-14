@@ -1,4 +1,4 @@
-import { escapeHtml } from "./sessionDisplay.js?v=20260603-delete-equivalent";
+import { escapeHtml } from "./sessionDisplay.js?v=20260615-ops-label-config";
 import {
   createSupabaseBrowserClient,
   getSupabaseRuntimeConfig,

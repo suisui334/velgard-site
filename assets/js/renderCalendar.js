@@ -9,7 +9,7 @@ import {
   getCalendarButtonLabel,
   getOpsSessionTypeCalendarClass,
   getOpsSessionTypeLabel
-} from "./reusableOpsConfig.js?v=20260615-ops-config-foundation";
+} from "./reusableOpsConfig.js?v=20260615-ops-label-config";
 import {
   escapeHtml,
   formatSessionApplicationDeadline,
@@ -24,7 +24,7 @@ import {
   isClosedSession,
   renderSessionTags,
   shouldShowSessionState
-} from "./sessionDisplay.js?v=20260607-gm-close-mark";
+} from "./sessionDisplay.js?v=20260615-ops-label-config";
 
 const CONFIG_URL = "data/calendarConfig.json?v=20260529-calendar-cap-start";
 const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";

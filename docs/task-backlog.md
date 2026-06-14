@@ -8515,3 +8515,29 @@ Status: Phase 1-A minimal config foundation implemented.
   wording in this gate.
 - Did not change DB/RPC/RLS, auth/approved gate authority, direct table grants,
   Edge Functions, Discord operations, folder structure, or `updates.json`.
+
+## M-14F-73 reusable ops label config extension
+
+Status: Phase 1-B label config candidates recorded; session type label entry
+point extended.
+
+- Baseline: `2d8f495 Add reusable ops config foundation`.
+- Added `docs/reusable-ops-platform-phase1b-label-config-plan.md`.
+- Extended `assets/js/reusableOpsConfig.js` with label candidates for mypage
+  sections, membership statuses, membership actions, approved-gate copy, and
+  session UI labels.
+- Connected `sessionDisplay.js` `getSessionTypeLabel()` to the reusable ops
+  session type config.
+- This makes session-post / session-detail / calendar session type display use
+  the same session type label entry point while preserving current labels.
+- Updated cache-bust paths for the sessionDisplay consumers that need the new
+  label entry point: calendar, session-detail, session-post, and admin cap
+  announcement rendering.
+- Did not connect `mypageAuthClient.js` to the module config in this gate,
+  because mypage is loaded as a regular script and contains auth, profile, PC,
+  schedule, template, and membership-management concerns.
+- Did not change approved membership logic, auth logic, RPC names, DB column
+  names, management keys, internal ids, direct table grants, or public profile
+  exposure.
+- Did not change DB/RPC/RLS, SQL, Edge Functions, Discord operations, folder
+  structure, `console.*`, direct Supabase writes, or `updates.json`.

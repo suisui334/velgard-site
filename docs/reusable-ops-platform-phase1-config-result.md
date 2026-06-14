@@ -91,3 +91,16 @@
 3. `mypageAuthClient.js` の主要セクション名だけを設定入口へ接続する小改修。
 4. `renderSessionPost.js` / `renderSessionDetail.js` のsession typeラベルを同じ設定へ寄せる。
 5. CSS上のcalendar色classを、将来のtheme tokenへ寄せるための棚卸し。
+
+## Phase 1-B follow-up
+
+Phase 1-Bでは、`sessionDisplay.js` の `getSessionTypeLabel()` を
+`reusableOpsConfig.js` のsession type設定へ接続した。これにより、
+calendarだけでなくsession-post / session-detail系のセッション種別表示も
+同じ設定入口を使う。
+
+また、mypage主要セクション名、会員管理ステータス/操作ラベル、
+approved gate系ラベル、session UI系ラベルを設定候補として
+`reusableOpsConfig.js` に追加した。ただし、mypage本体やapproved gate本体への
+接続は次工程へ残した。詳細は
+`docs/reusable-ops-platform-phase1b-label-config-plan.md` に記録する。

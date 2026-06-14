@@ -2,7 +2,7 @@ import {
   escapeHtml,
   getSessionStatusLabel,
   getSessionTypeLabel
-} from "./sessionDisplay.js?v=20260603-delete-equivalent";
+} from "./sessionDisplay.js?v=20260615-ops-label-config";
 import {
   createSupabaseBrowserClient,
   getSupabaseRuntimeConfig,

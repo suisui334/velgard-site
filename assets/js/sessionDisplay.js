@@ -1,3 +1,5 @@
+import { getOpsSessionTypeLabel } from "./reusableOpsConfig.js?v=20260615-ops-label-config";
+
 const SESSION_STATUSES = {
   draft: "下書き",
   tentative: "仮予定",
@@ -12,13 +14,6 @@ const SESSION_VISIBILITIES = {
   hidden: "非公開",
   private: "限定",
   public: "公開"
-};
-
-const SESSION_TYPES = {
-  "one-shot": "単発シナリオ",
-  campaign: "キャンペーン",
-  special: "特殊",
-  other: "その他"
 };
 
 const DISCORD_SYNC_STATUS_LABELS = {
@@ -60,8 +55,7 @@ export function getSessionStatusClass(status) {
 }
 
 export function getSessionTypeLabel(sessionType) {
-  const normalized = String(sessionType || "").trim();
-  return Object.prototype.hasOwnProperty.call(SESSION_TYPES, normalized) ? SESSION_TYPES[normalized] : SESSION_TYPES.other;
+  return getOpsSessionTypeLabel(sessionType);
 }
 
 export function isClosedSession(session) {
