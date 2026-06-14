@@ -623,3 +623,36 @@ world-site側としては、`renderWorld.js`、`renderCharacters.js`、`renderSp
 一方で、`index.html` / `renderHome.js` はworld heroとhome activity panelが混在し、`tools.html` / `randomTables.json` と `updates.html` / `updates.json` はworld-siteかops補助か判断が必要な混在/保留領域として残した。
 
 world-site rendererを動かす前に、`main.js` のrenderer registry / nav registryをどう分けるかを別ゲートで設計する。いきなりworld-site rendererをフォルダ移動すると、全ページのscript importとcache-bustに波及するため、Phase 2-Aでは実装変更を行っていない。
+
+## Regulation Layout Policy Follow-Up
+
+直近のレギュレーション改修で、`regulation.html` は世界観サイトテンプレート側の重要ページとして、以下の方針を採用した。
+
+- レギュレーションページは世界観紹介側に属する。
+- ただし、`session-post` や `mypage` の利用ルール確認導線と関係するため、運用基盤とも接続する重要ページとして扱う。
+- PC版では、中央寄りの狭いカード群ではなく、本文を広く使う読み物ページとして扱う。
+- 長文レギュレーションや個別裁定は、横2列カードより縦1列カードの方が読みやすい。
+- 右側メニューまたは目次メニューで、現在位置が分かる構造を推奨する。
+- スマホ版は従来通り縦積み中心でよい。
+- カードデザイン、余白、見出しの雰囲気は維持しつつ、見た目の装飾より参照性と可読性を優先する。
+
+次世界観テンプレートへ流用する場合、regulationはデザイン固定対象ではない。流用対象はページ骨格、データ構造、長文カード、表、用語説明カード、目次/サイドメニュー、現在位置active表示である。項目名、本文、表、裁定文、色、装飾、ロゴ、背景は世界観ごとに差し替える。
+
+魔動天使のような長文個別裁定が入っても崩れない構造が必要である。特に、長文カード、表データ、強調見出し、右側メニューactive表示は次世界観でも再利用価値が高い。
+
+運用基盤との境界は引き続き分ける:
+
+- `calendar` / `mypage` / `session-post` / `session-detail` / `membership` は汎用運用基盤側。
+- `regulation` は世界観紹介側。
+- ただし、利用ルール確認、依頼書投稿前の参照、マイページからの案内など、導線上は運用基盤と接続する。
+- 将来、運用基盤を独立ツール化しても、規約ページそのものは各世界観サイト側に残す可能性が高い。
+- 一方で、規約データ構造と表示コンポーネントはworld-site templateとして再利用できる。
+
+Current related status:
+
+- Phase 1: `reusableOpsConfig` 設定入口作成と主要ラベル接続済み。
+- Phase 2-B/C: config系ファイルを `assets/js/core/config/` へ移動し、公開確認済み。
+- Phase 2-D/E: calendar rendererを `assets/js/core/calendar/` へ移動し、公開確認済み。
+- Phase 2-F: `sessionDisplay.js` は丸ごと移動せず、依存調査済み。
+- Phase 2-G: `sessionDisplay.js` から純粋helperのみ `assets/js/core/session/` へ抽出済み。
+- regulation改修は独立ツール化本筋とは別だが、世界観サイトテンプレートの規約ページ方針として反映する。

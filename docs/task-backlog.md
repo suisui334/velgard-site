@@ -8854,3 +8854,26 @@ Status: Phase 2-G pure helper extraction implemented.
   `updates.json`.
 - Added `docs/reusable-ops-platform-phase2g-session-helper-extraction-result.md`
   and updated reusable ops extraction/boundary docs.
+
+## M-14F-85 regulation template layout policy documentation
+
+Status: regulation layout policy recorded in world-site and reusable-ops docs.
+
+- Baseline: `e6236c7 Extract session display helpers`.
+- Recorded the recent regulation page layout direction as a world-site template
+  concern.
+- Clarified that `regulation` belongs to the world-site side, while calendar,
+  mypage, session-post/detail, membership, comments/applications, templates,
+  notification, timeline, and Discord sync remain reusable ops surfaces.
+- Clarified that regulation still connects to ops UX through rule links,
+  session-post guidance, mypage guidance, and play operation references.
+- Documented the PC regulation layout policy: wide readable content, vertical
+  single-column cards for long rules, side/table-of-contents menu with current
+  item feedback, and mobile vertical stacking.
+- Documented that the reusable target is not fixed design, but page skeleton,
+  data/block structure, long-form cards, tables, term cards, menu structure,
+  and active-current behavior.
+- Recorded the current extraction status through Phase 2-G.
+- No implementation change, file move, CSS change, JS change, data change, SQL
+  Editor execution, DB/RPC/RLS mutation, Edge deploy, Discord operation, direct
+  Supabase write, `console.*` addition, or `updates.json` change was performed.

@@ -822,3 +822,35 @@ boundary/QA gates exist.
 
 Detailed result:
 `docs/reusable-ops-platform-phase2g-session-helper-extraction-result.md`.
+
+## Regulation Template Boundary Note
+
+The recent regulation page layout improvements are not part of the reusable
+ops platform extraction itself. They belong to the world-site template track.
+
+Boundary decision:
+
+- `calendar`, `mypage`, `session-post`, `session-detail`, membership
+  management, comments/applications, templates, notifications, timeline, and
+  Discord sync remain reusable ops platform surfaces.
+- `regulation` remains a world-site page because rules, rulings, tables, and
+  long-form text are world-specific.
+- The regulation page still connects to ops flows through user guidance:
+  session posting, mypage notices, participation expectations, and play
+  operations can link to or reference the regulation page.
+- If the ops platform is later split into an independent app, the regulation
+  page itself should probably remain in each world site, while its data
+  structure and renderer pattern can be reused as a world-site template.
+
+Template implication:
+
+- PC regulation pages should prioritize readability and referenceability over
+  decorative density.
+- Long-form rules and individual rulings should use a wide single-column card
+  layout rather than a two-column card grid.
+- A side or table-of-contents menu with active-current feedback is reusable
+  for future world sites.
+- Mobile can remain vertically stacked.
+
+This keeps the ops platform extraction focused on reusable operation flows,
+while letting regulation evolve as a reusable world-site page skeleton.

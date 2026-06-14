@@ -473,3 +473,32 @@ separate design and QA gates.
 
 Detailed result:
 `docs/reusable-ops-platform-phase2g-session-helper-extraction-result.md`.
+
+## Regulation Layout Boundary Update
+
+The recent regulation page changes are recorded as a world-site template
+concern, not an ops-core move.
+
+- `renderRegulation.js`, `regulation.html`, and `data/regulation.json` remain
+  on the world-site side of the boundary.
+- The regulation page is still important to ops UX because session posting,
+  mypage guidance, and play operations can point users to rules and rulings.
+- The page itself should not be moved into the reusable ops core during Phase
+  2.
+- Its reusable parts are page skeleton, data/block structure, long-form card
+  support, tables, term cards, side/table-of-contents menu, and active-current
+  menu behavior.
+- PC regulation layout should favor wide single-column reading with a visible
+  menu. Mobile can stay vertically stacked.
+
+Current status through this point:
+
+- Phase 1: reusable ops config entry and key label connections are in place.
+- Phase 2-B/C: config files moved to `assets/js/core/config/` and public
+  rollout checked.
+- Phase 2-D/E: calendar renderer moved to `assets/js/core/calendar/` and
+  public rollout checked.
+- Phase 2-F: `sessionDisplay.js` dependency boundary audited; full move
+  deferred.
+- Phase 2-G: pure helpers extracted to `assets/js/core/session/`, while UI
+  blocks remain in `sessionDisplay.js`.
