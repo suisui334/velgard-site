@@ -8354,6 +8354,20 @@ Status: manager-role grant UI path confirmed.
   deploy, Discord operation, direct Supabase write, `console.*` addition, or
   `updates.json` change was performed.
 
+## M-14F-69 remove stale mypage application notice
+
+Status: stale placeholder copy removed.
+
+- Baseline: `2d3d539 Record membership manager grant UI QA`.
+- Removed the outdated mypage placeholder sentence that said application
+  comments and GM approval operations were future work.
+- The application/comment flow, GM approval flow, membership management UI, and
+  mypage folding structure were not changed.
+- Updated the mypage/main cache-bust path for the changed `renderMypage.js`.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+  Discord operation, direct Supabase write, `console.*` addition, or
+  `updates.json` change was performed.
+
 ## M-14F-64 membership manager RPC schema-cache diagnosis
 
 Status: schema-cache/function-lookup classification added; manual reload gate

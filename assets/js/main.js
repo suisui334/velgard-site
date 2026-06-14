@@ -18,7 +18,7 @@ import { renderUpdates } from "./renderUpdates.js";
 import { renderTools } from "./renderTools.js?v=20260529-calendar-date-tools-history";
 import { renderCalendar } from "./renderCalendar.js?v=20260613-unapproved-ui";
 import { renderTimeline } from "./renderTimeline.js?v=20260613-unapproved-ui";
-import { renderMypage } from "./renderMypage.js?v=20260605-user-name-ui";
+import { renderMypage } from "./renderMypage.js?v=20260614-remove-stale-notice";
 import { renderAdminCapAnnouncements } from "./renderAdminCapAnnouncements.js?v=20260610-admin-cap-rpc-ui-fix";
 import { initNotificationBell, resetNotificationBell, refreshNotificationBell } from "./notificationBellClient.js?v=20260613-unapproved-ui";
 import {
