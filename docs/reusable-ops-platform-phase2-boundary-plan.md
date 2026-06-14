@@ -397,3 +397,22 @@ unchanged. A public rollout check for the moved calendar renderer is a separate
 optional follow-up after deployment/cache propagation.
 
 Detailed result: `docs/reusable-ops-platform-phase2d-calendar-boundary-result.md`.
+
+## Phase 2-E Calendar Renderer Public Check Result
+
+Phase 2-E confirmed the Phase 2-D calendar renderer move on public delivery.
+Public `calendar.html` references the `20260615-calendar-core-move` `main.js`
+cache-bust, public `main.js` imports
+`assets/js/core/calendar/renderCalendar.js`, and the moved renderer path is
+served successfully.
+
+Active public and local HTML/JS checks found no runtime reference to
+`assets/js/renderCalendar.js` or `./renderCalendar.js`. The old root renderer
+path returned 404 for the checked cache-bust. No additional cache-bust fix was
+needed.
+
+The check did not change auth, permissions, RPC, DB, Discord sync, session
+loading, approved-gate logic, or CSS. Authenticated full-calendar browser
+operation remains a separate optional QA gate.
+
+Detailed result: `docs/reusable-ops-platform-phase2e-calendar-public-check.md`.

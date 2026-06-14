@@ -130,3 +130,21 @@ CSS splitting, independent app extraction, auth/permission logic changes,
 approved-gate logic changes, owner/admin logic changes, RPC/DB-key
 configuration, `management_key` display/DOM exposure, or raw user id/email/token
 display.
+
+## Phase 2-E Public Check
+
+Phase 2-E checked the public delivery after this move. Public `calendar.html`
+uses the `20260615-calendar-core-move` `main.js` cache-bust, public `main.js`
+imports `assets/js/core/calendar/renderCalendar.js`, and the moved renderer is
+served with status 200.
+
+The checked public `main.js` no longer references the old root
+`assets/js/renderCalendar.js` path, and the old root renderer path returned
+404 for the checked cache-bust. The moved renderer's public dependency chain
+was also reachable.
+
+No additional cache-bust correction or implementation change was needed.
+Authenticated full-calendar browser operation remains a separate optional QA
+gate.
+
+Detailed result: `docs/reusable-ops-platform-phase2e-calendar-public-check.md`.

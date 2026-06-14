@@ -8768,3 +8768,34 @@ Status: Phase 2-D minimal calendar renderer move implemented.
   direct Supabase writes, `console.*`, or `updates.json`.
 - Added `docs/reusable-ops-platform-phase2d-calendar-boundary-result.md` and
   updated reusable ops extraction/boundary docs.
+
+## M-14F-82 calendar renderer core move public check
+
+Status: Phase 2-E public rollout check recorded.
+
+- Baseline: `9cbea44 Move calendar renderer into reusable core`.
+- Checked public `calendar.html` for the `20260615-calendar-core-move`
+  `main.js` cache-bust.
+- Confirmed public `main.js` imports
+  `assets/js/core/calendar/renderCalendar.js`.
+- Confirmed public `assets/js/core/calendar/renderCalendar.js` is served with
+  status 200.
+- Confirmed the old root `assets/js/renderCalendar.js` path returned 404 for
+  the checked cache-bust.
+- Confirmed active local HTML/JS has no runtime reference to
+  `assets/js/renderCalendar.js` or `./renderCalendar.js`.
+- Confirmed public dependencies used by the moved renderer are reachable:
+  `dataLoader.js`, `sessionData.js`, `membershipAccessClient.js`,
+  `sessionDisplay.js`, and `reusableOpsConfig.js`.
+- Recorded `public_calendar_renderer_new_path_ok=true`,
+  `public_calendar_renderer_old_path_present=false`,
+  `public_calendar_renderer_cache_bust_fix_needed=false`, and
+  `public_calendar_renderer_dependency_fetch_ok=true`.
+- Did not re-run authenticated full-calendar browser operation QA in this
+  gate; month movement, today button, session card colors, closed-session mark,
+  GM display, and session-detail click-through remain optional browser QA.
+- Did not change implementation files, auth, permission checks, RPC/DB
+  contracts, membership management behavior, Discord sync behavior, direct
+  Supabase writes, `console.*`, or `updates.json`.
+- Added `docs/reusable-ops-platform-phase2e-calendar-public-check.md` and
+  updated reusable ops extraction/boundary docs.

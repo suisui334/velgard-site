@@ -754,3 +754,22 @@ left in place, and auth, approved-member gate logic, session loading,
 RPC/DB contracts, and Discord sync behavior were unchanged.
 
 Detailed result: `docs/reusable-ops-platform-phase2d-calendar-boundary-result.md`.
+
+## Phase 2-E Calendar Renderer Public Check Result
+
+After the calendar renderer move, public delivery was checked for the moved
+path. Public `calendar.html` uses the `20260615-calendar-core-move` `main.js`
+cache-bust, public `main.js` imports
+`assets/js/core/calendar/renderCalendar.js`, and the moved renderer is
+available from the public site.
+
+No active runtime reference to the old `assets/js/renderCalendar.js` path was
+found in local or public HTML/JS checks. The old root renderer path returned
+404 for the checked cache-bust. No extra implementation or cache-bust fix was
+needed.
+
+Authenticated calendar operation QA, including month movement, today button,
+session card color/close-mark/GM display, and session-detail click-through,
+remains a separate optional browser gate.
+
+Detailed result: `docs/reusable-ops-platform-phase2e-calendar-public-check.md`.
