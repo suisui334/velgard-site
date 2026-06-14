@@ -1,4 +1,4 @@
-import { escapeHtml } from "./sessionDisplay.js?v=20260615-core-config-move";
+import { escapeHtml } from "./sessionDisplay.js?v=20260615-session-helper-extract";
 import {
   createSupabaseBrowserClient,
   getSupabaseRuntimeConfig,

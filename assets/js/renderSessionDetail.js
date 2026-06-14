@@ -6,7 +6,7 @@ import {
   hasSessionClosingMark,
   renderSessionDiscordSyncPanel,
   renderSessionDetailContent
-} from "./sessionDisplay.js?v=20260615-core-config-move";
+} from "./sessionDisplay.js?v=20260615-session-helper-extract";
 import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260610-avatar-preview";
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js?v=20260601-session-post";
 import {

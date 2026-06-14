@@ -438,3 +438,38 @@ sync QA gates exist.
 
 Detailed result:
 `docs/reusable-ops-platform-phase2f-session-display-boundary-plan.md`.
+
+## Phase 2-G Session Helper Extraction Result
+
+Phase 2-G implemented the first small split from `assets/js/sessionDisplay.js`
+without moving the file itself.
+
+Created:
+
+- `assets/js/core/session/sessionDisplayHelpers.js`
+
+The extracted module contains only pure display helpers: HTML escaping,
+session status/visibility/type labels, closed-session/title helpers, time and
+deadline formatting, tool fallback formatting, player-count formatting, and
+updated-at formatting. It has no DOM rendering, event binding, auth checks,
+owner/admin/approved decisions, RPC calls, Discord sync behavior, direct
+Supabase writes, or `management_key` handling.
+
+`assets/js/sessionDisplay.js` remains the compatibility facade. Existing
+importers still import from `sessionDisplay.js`, while that file imports and
+re-exports the public helper functions from the new core helper module.
+
+Affected runtime imports were cache-busted with
+`20260615-session-helper-extract` for calendar, session-post, session-detail,
+and admin cap announcement entry paths. `main.js`, `sessionData.js`,
+`renderSessionPost.js`, `renderSessionDetail.js`, `membershipAccessClient.js`,
+`discordSyncClient.js`, and `style.css` were not moved.
+
+Do not move the full `sessionDisplay.js` file yet. The next lower-risk split is
+to audit small HTML row renderers such as `renderSessionTags`,
+`renderSessionDetailRow`, and `renderSessionDetailArrayRow`. Larger UI blocks
+for Discord sync, session-detail management, and participation comments remain
+separate design and QA gates.
+
+Detailed result:
+`docs/reusable-ops-platform-phase2g-session-helper-extraction-result.md`.

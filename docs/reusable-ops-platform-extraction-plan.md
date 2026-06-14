@@ -798,3 +798,27 @@ session-detail UI block renderers before any physical move to
 
 Detailed result:
 `docs/reusable-ops-platform-phase2f-session-display-boundary-plan.md`.
+
+## Phase 2-G Session Helper Extraction
+
+Phase 2-G extracted only pure helpers from `assets/js/sessionDisplay.js` into
+`assets/js/core/session/sessionDisplayHelpers.js`.
+
+This moves the first session display utility layer toward the reusable ops
+core while keeping the high-risk UI renderer surface in place. The new helper
+module covers labels and formatting only. It does not render large UI blocks,
+bind events, call RPCs, read auth state, make permission decisions, touch
+Discord sync, or expose internal ids.
+
+`sessionDisplay.js` remains the compatibility entry point for calendar,
+session-post, session-detail, and admin cap announcement rendering. It imports
+the new helper module and re-exports the public helper functions that existing
+callers already used.
+
+The whole `sessionDisplay.js` file is still not ready for a physical move.
+Discord sync panel rendering, session-detail management rendering, and
+participation-comment panel rendering remain in place until separate
+boundary/QA gates exist.
+
+Detailed result:
+`docs/reusable-ops-platform-phase2g-session-helper-extraction-result.md`.

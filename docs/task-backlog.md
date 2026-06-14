@@ -8828,3 +8828,29 @@ Status: Phase 2-F browser QA result and boundary plan recorded.
 - Did not change implementation files, auth, permission checks, RPC/DB
   contracts, membership management behavior, Discord sync behavior, direct
   Supabase writes, `console.*`, or `updates.json`.
+
+## M-14F-84 session display helper extraction
+
+Status: Phase 2-G pure helper extraction implemented.
+
+- Baseline at task start was `9928b5f Update angel spear weapon traits`; the
+  prompt expected an earlier commit, but the working tree was clean.
+- Created `assets/js/core/session/sessionDisplayHelpers.js`.
+- Extracted only pure display helpers from `assets/js/sessionDisplay.js`:
+  escape, session status/visibility/type labels, title/closed-session helpers,
+  time/deadline/tool/player-count formatting, and updated-at formatting.
+- Kept `assets/js/sessionDisplay.js` in place as the compatibility facade for
+  calendar, session-post, session-detail, and admin cap announcement rendering.
+- Updated affected import/cache-bust paths to
+  `20260615-session-helper-extract`.
+- Left Discord sync panel rendering, session-detail management rendering,
+  participation-comment rendering, event binding, auth/permission checks, RPC
+  calls, and `management_key` handling untouched.
+- Did not move `main.js`, `sessionData.js`, `renderSessionPost.js`,
+  `renderSessionDetail.js`, `mypageAuthClient.js`, `membershipAccessClient.js`,
+  `discordSyncClient.js`, or `style.css`.
+- Did not change DB/RPC/RLS contracts, approved gate logic, owner/admin logic,
+  Discord sync behavior, direct Supabase writes, `console.*`, or
+  `updates.json`.
+- Added `docs/reusable-ops-platform-phase2g-session-helper-extraction-result.md`
+  and updated reusable ops extraction/boundary docs.

@@ -188,3 +188,23 @@ direct Supabase write addition, `console.*` addition, `updates.json` change,
 auth/permission logic change, RPC/DB-key configuration, `management_key`
 display/DOM exposure, raw user id/email/token/JWT display, file movement, CSS
 split, or independent app extraction.
+
+## Phase 2-G Follow-Up
+
+Phase 2-G implemented the first minimal split based on this plan.
+
+- Created `assets/js/core/session/sessionDisplayHelpers.js`.
+- Moved only pure helper functions: escaping, session status/visibility/type
+  labels, title/closing-mark helpers, time/deadline/tool/player-count
+  formatters, and updated-at formatting.
+- Kept `assets/js/sessionDisplay.js` in place and re-exported the existing
+  public helper API for compatibility.
+- Left Discord sync panel rendering, session-detail management row rendering,
+  participation-comment panel rendering, and `renderSessionDetailContent` in
+  `sessionDisplay.js`.
+- Did not change auth, approved gate logic, owner/admin checks, RPC/DB/RLS
+  contracts, Discord sync behavior, or `management_key` handling.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2g-session-helper-extraction-result.md`
