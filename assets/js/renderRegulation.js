@@ -163,6 +163,49 @@ function renderToc() {
   return nav;
 }
 
+function activateTocLink(links, id) {
+  links.forEach((link) => {
+    const isActive = link.getAttribute("href") === `#${id}`;
+    link.classList.toggle("toc-link-active", isActive);
+    if (isActive) {
+      link.setAttribute("aria-current", "true");
+    } else {
+      link.removeAttribute("aria-current");
+    }
+  });
+}
+
+function watchRegulationToc(layout) {
+  const links = Array.from(layout.querySelectorAll(".regulation-toc-list a[href^='#']"));
+  const sections = Array.from(layout.querySelectorAll(".regulation-section[id]"));
+  if (!links.length || !sections.length) return;
+
+  activateTocLink(links, sections[0].id);
+
+  if (!("IntersectionObserver" in window)) return;
+
+  const visibleSections = new Map();
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        visibleSections.set(entry.target.id, entry.intersectionRatio);
+      } else {
+        visibleSections.set(entry.target.id, 0);
+      }
+    });
+
+    const activeId = Array.from(visibleSections.entries())
+      .filter(([, ratio]) => ratio > 0)
+      .sort(([, firstRatio], [, secondRatio]) => secondRatio - firstRatio)[0]?.[0];
+    if (activeId) activateTocLink(links, activeId);
+  }, {
+    rootMargin: "-18% 0px -66% 0px",
+    threshold: [0.01, 0.2, 0.45]
+  });
+
+  sections.forEach((section) => observer.observe(section));
+}
+
 function renderSchedule(regulation) {
   const { section, article } = createSection("schedule", "開催スケジュール");
   const rows = Array.isArray(regulation.schedule) ? regulation.schedule : [];
@@ -309,4 +352,5 @@ export async function renderRegulation(root) {
   layout.append(main, renderToc());
   page.append(renderHero(regulation), layout);
   root.append(page);
+  watchRegulationToc(layout);
 }

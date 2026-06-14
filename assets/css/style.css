@@ -1594,7 +1594,18 @@ body[data-page="world"] .article-box > .subsection h3 {
   padding-bottom: 52px;
 }
 
+.regulation-layout {
+  width: min(1680px, calc(100% - 48px));
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 36px;
+}
+
+.regulation-main {
+  min-width: 0;
+}
+
 .regulation-page-title {
+  width: min(1680px, calc(100% - 48px));
   padding-bottom: 10px;
 }
 
@@ -1628,6 +1639,7 @@ body[data-page="world"] .article-box > .subsection h3 {
 }
 
 .regulation-toc-list a {
+  border-radius: 0 6px 6px 0;
   color: var(--iron);
   font-size: 0.95rem;
 }
@@ -1682,7 +1694,7 @@ body[data-page="world"] .article-box > .subsection h3 {
 .regulation-term-grid,
 .regulation-subsections {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 14px;
 }
 
