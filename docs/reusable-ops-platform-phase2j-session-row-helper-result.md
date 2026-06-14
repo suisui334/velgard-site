@@ -133,6 +133,8 @@ rewrite, CSS split, auth/permission logic change, RPC/DB key configuration,
 2. Consider `renderSessionTags` only after deciding whether the existing
    `calendar-session-tags` class belongs in core.
 3. Consider `renderSessionSummary` and simple detail/requirements block
-   helpers after row-helper rollout is confirmed.
+   helpers after row-helper rollout is confirmed. `renderSessionSummary` was
+   extracted in Phase 2-L; simple detail/requirements blocks remain future
+   candidates.
 4. Keep Discord sync, management, application/comment, GM history, and
    event/RPC surfaces in place until dedicated gates.

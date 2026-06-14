@@ -609,6 +609,28 @@ Detailed result:
 
 - `docs/reusable-ops-platform-phase2k-session-row-helper-public-check.md`
 
+## Phase 2-L Session Summary/Tags Helper Extraction
+
+Phase 2-L reviewed the next two small session HTML helpers after the row-helper
+rollout and implemented a minimal extraction.
+
+- Moved `renderSessionTags` into `assets/js/core/session/sessionHtmlHelpers.js`.
+- Moved `renderSessionSummary` into
+  `assets/js/core/session/sessionHtmlHelpers.js`.
+- Kept `assets/js/sessionDisplay.js` as the compatibility facade and
+  re-export source.
+- Updated only the affected session-display cache-bust chain to
+  `20260615-session-summary-tags-extract`.
+- Kept existing CSS class names, including `calendar-session-tags`, to avoid
+  visual changes.
+- Did not touch `renderSessionDetailContent`, Discord sync, GM/admin
+  management, application/comment UI, auth/permission checks, RPCs, DB/RPC/RLS,
+  membership/internal-id surfaces, or CSS.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2l-session-summary-tags-plan.md`
+
 This regulation follow-up does not alter the Phase 2 ops-core boundary.
 `renderRegulation.js`, `regulation.html`, and `data/regulation.json` remain on
 the world-site side. The reusable value is the regulation page skeleton,

@@ -19,8 +19,10 @@ import {
 } from "./core/session/sessionDisplayHelpers.js?v=20260615-session-helper-extract";
 import {
   renderSessionDetailArrayRow,
-  renderSessionDetailRow
-} from "./core/session/sessionHtmlHelpers.js?v=20260615-session-row-helper-extract";
+  renderSessionDetailRow,
+  renderSessionSummary,
+  renderSessionTags
+} from "./core/session/sessionHtmlHelpers.js?v=20260615-session-summary-tags-extract";
 
 export {
   escapeHtml,
@@ -40,6 +42,8 @@ export {
   isClosedSession,
   renderSessionDetailArrayRow,
   renderSessionDetailRow,
+  renderSessionSummary,
+  renderSessionTags,
   shouldShowSessionState
 };
 
@@ -119,15 +123,6 @@ export function renderSessionDiscordSyncPanel(session) {
   `;
 }
 
-export function renderSessionTags(tags) {
-  if (!Array.isArray(tags) || !tags.length) return "";
-  return `
-    <div class="calendar-session-tags">
-      ${tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
-    </div>
-  `;
-}
-
 function renderSessionDetailManageRow(session, options = {}) {
   if (!options.includeManageActions) return "";
   const isSupabase = session?.source === "supabase";
@@ -149,12 +144,6 @@ function renderSessionDetailManageRow(session, options = {}) {
       </dd>
     </div>
   `;
-}
-
-export function renderSessionSummary(session) {
-  return session?.summary
-    ? `<section class="calendar-session-modal-block calendar-session-modal-summary-block"><p class="calendar-session-modal-summary-text">${escapeHtml(session.summary)}</p></section>`
-    : "";
 }
 
 function renderSessionApplicationPanel(session) {

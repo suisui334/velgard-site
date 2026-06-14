@@ -9063,3 +9063,39 @@ operation, direct Supabase write, debug console logging addition,
 `updates.json` change, whole-file `sessionDisplay.js` move, `main.js` large
 rewrite, CSS split, auth/permission logic change, RPC/DB key configuration,
 `management_key` display, or raw id/email/token/JWT display was performed.
+
+## M-14F-91 session summary/tag helper extraction
+
+Status: Phase 2-L summary/tag helper extraction implemented.
+
+- Baseline: `348bd0f Check session row helper core rollout`.
+- Reviewed `renderSessionTags` and `renderSessionSummary`.
+- Classified both as small pure HTML string helpers with no event handler,
+  auth/permission, RPC, DB/RPC/RLS, Discord sync, or data-fetch dependency.
+- Moved both helpers into `assets/js/core/session/sessionHtmlHelpers.js`.
+- Kept `assets/js/sessionDisplay.js` as the compatibility facade and
+  re-export source.
+- Kept existing CSS class names such as `calendar-session-tags` and
+  `calendar-session-modal-summary-block` to preserve display output.
+- Updated the affected session-display cache-bust chain to
+  `20260615-session-summary-tags-extract`.
+- Did not touch `renderSessionDetailContent`, Discord sync panel, GM/admin
+  management block, application/comment UI, event handlers, RPC calls,
+  auth/approved/owner/admin checks, CSS, `management_key`, or internal-id
+  handling.
+- Added
+  `docs/reusable-ops-platform-phase2l-session-summary-tags-plan.md`.
+
+Next candidates:
+
+1. Public rollout check for the summary/tag helper extraction cache-bust chain.
+2. Decide whether CSS class aliases should be introduced before extracting more
+   session HTML helpers.
+3. Keep simple detail/requirements blocks as future candidates after
+   summary/tag rollout is confirmed.
+
+No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+operation, direct Supabase write, debug console logging addition,
+`updates.json` change, whole-file `sessionDisplay.js` move, `main.js` large
+rewrite, CSS split, auth/permission logic change, RPC/DB key configuration,
+`management_key` display, or raw id/email/token/JWT display was performed.

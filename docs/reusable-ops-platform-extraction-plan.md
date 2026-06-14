@@ -967,3 +967,20 @@ Phase 2-K checked public delivery after the row-helper extraction:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2k-session-row-helper-public-check.md`
+
+## Phase 2-L Session Summary/Tags Helper Extraction
+
+Phase 2-L reviewed and extracted two additional small session HTML helpers:
+
+- `renderSessionTags`
+- `renderSessionSummary`
+
+Both now live in `assets/js/core/session/sessionHtmlHelpers.js`, and
+`assets/js/sessionDisplay.js` remains the compatibility facade. Existing CSS
+class names were retained to preserve display output. Larger UI blocks, auth
+and permission logic, RPC calls, Discord sync, DB/RPC/RLS contracts, CSS, and
+internal-id handling were not changed.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2l-session-summary-tags-plan.md`

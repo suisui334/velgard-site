@@ -95,10 +95,10 @@ extraction path.
 
 1. Optional browser QA for session-detail, session-post, and calendar using a
    safe authenticated session.
-2. Consider `renderSessionTags` only after deciding whether the existing
-   `calendar-session-tags` class belongs in core.
-3. Consider `renderSessionSummary` and simple detail/requirements block helpers
-   after the row-helper rollout is stable.
+2. `renderSessionTags` and `renderSessionSummary` were extracted in Phase 2-L
+   with existing CSS class names retained for display compatibility.
+3. Consider simple detail/requirements block helpers after the summary/tag
+   rollout is stable.
 4. Keep Discord sync, management, application/comment, GM history, and
    event/RPC surfaces in place until dedicated gates.
 
