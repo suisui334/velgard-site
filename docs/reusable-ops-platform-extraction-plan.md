@@ -984,3 +984,20 @@ internal-id handling were not changed.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2l-session-summary-tags-plan.md`
+
+## Phase 2-M Session Summary/Tags Light Visual Check
+
+Phase 2-M recorded a user-side lightweight public visual check after the
+summary/tag extraction.
+
+- Result: `no_obvious_issue_observed`.
+- No clearly strange display or prominent layout breakage was observed.
+- This is not a detailed authenticated or role-specific functional QA.
+- Strict session-detail, session-post, and calendar behavior remains a separate
+  QA gate.
+- No real ids, email addresses, JWTs, tokens, session ids, or user ids were
+  recorded.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2m-session-summary-tags-visual-check.md`

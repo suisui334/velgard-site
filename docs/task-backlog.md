@@ -9064,6 +9064,30 @@ operation, direct Supabase write, debug console logging addition,
 rewrite, CSS split, auth/permission logic change, RPC/DB key configuration,
 `management_key` display, or raw id/email/token/JWT display was performed.
 
+## M-14F-92 session summary/tag light visual QA record
+
+Status: Phase 2-M lightweight visual check recorded.
+
+- Baseline: `a748283 Extract session summary tag helpers`.
+- User-side public-site check found no clearly strange display or prominent
+  layout breakage after the `renderSessionTags` /
+  `renderSessionSummary` extraction.
+- Recorded as `no_obvious_issue_observed` /
+  `light_visual_check_pass`, not as full functional QA.
+- The check was intentionally limited; strict session-detail, session-post,
+  calendar, authenticated role-specific UI, Discord sync panel, GM/admin UI,
+  and application/comment UI behavior remain separate QA gates.
+- No real ids, email addresses, JWTs, tokens, session ids, or user ids were
+  recorded.
+- Added
+  `docs/reusable-ops-platform-phase2m-session-summary-tags-visual-check.md`.
+
+No implementation change, file move, JS change, CSS change, data change, SQL
+Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+operation, direct Supabase write, debug console logging addition,
+`updates.json` change, auth/permission logic change, `management_key` display,
+or raw id/email/token/JWT display was performed.
+
 ## M-14F-91 session summary/tag helper extraction
 
 Status: Phase 2-L summary/tag helper extraction implemented.

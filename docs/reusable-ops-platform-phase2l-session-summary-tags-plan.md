@@ -79,13 +79,30 @@ Phase 2-L status: implemented.
 The two reviewed helpers were safe to extract as pure HTML helpers. Larger UI
 blocks and all auth/RPC/Discord surfaces remain out of scope.
 
+## Phase 2-M Visual Check Follow-Up
+
+After Phase 2-L, the user performed a lightweight public-site visual check.
+
+- Result: `no_obvious_issue_observed`.
+- No clearly strange display or prominent layout breakage was observed.
+- This is not a detailed role-specific authenticated QA.
+- Strict session-detail, session-post, and calendar functional checks remain
+  `limited` / separate-gate items.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2m-session-summary-tags-visual-check.md`
+
 ## Next Candidates
 
-1. Public rollout check for the `20260615-session-summary-tags-extract`
-   cache-bust chain.
-2. Decide whether CSS class aliases should be introduced before moving more
+1. Public rollout/import-path check for the
+   `20260615-session-summary-tags-extract` cache-bust chain if stricter static
+   delivery evidence is needed.
+2. Detailed authenticated browser QA for session-detail, session-post, and
+   calendar remains a separate gate.
+3. Decide whether CSS class aliases should be introduced before moving more
    session HTML helpers.
-3. Revisit simple detail/requirements block helpers only after summary/tag
+4. Revisit simple detail/requirements block helpers only after summary/tag
    rollout is confirmed.
-4. Keep Discord sync, management, application/comment, GM history, and
+5. Keep Discord sync, management, application/comment, GM history, and
    event/RPC surfaces in place until dedicated gates.
