@@ -138,3 +138,17 @@ mutation, Edge Function deploy, Discord operation, secret or webhook change,
 direct Supabase write addition, `console.*` addition, `updates.json` change,
 CSS splitting, independent app extraction, auth/permission logic changes, RPC
 or DB-key configuration, or `management_key` display/DOM exposure.
+
+## Phase 2-D Calendar Renderer Move Follow-Up
+
+After the config move and public config-path check, Phase 2-D moved only
+`assets/js/renderCalendar.js` into `assets/js/core/calendar/renderCalendar.js`.
+This was intentionally narrower than the files listed above as still unsafe to
+move first.
+
+The moved calendar renderer still imports `dataLoader.js`, `sessionData.js`,
+`membershipAccessClient.js`, `reusableOpsConfig.js`, and `sessionDisplay.js`.
+Those dependencies remain unmoved, and no calendar behavior, approved gate,
+session loading, auth, RPC, DB, or Discord sync logic was changed.
+
+Detailed result: `docs/reusable-ops-platform-phase2d-calendar-boundary-result.md`.

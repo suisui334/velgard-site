@@ -8741,3 +8741,30 @@ Status: Phase 2-C public rollout check recorded.
 - Did not change implementation files, auth, permission checks, RPC/DB
   contracts, membership management behavior, Discord sync behavior, direct
   Supabase writes, `console.*`, or `updates.json`.
+
+## M-14F-81 calendar renderer core move
+
+Status: Phase 2-D minimal calendar renderer move implemented.
+
+- Baseline: `48f7c97 Check reusable ops config move rollout`.
+- Moved `assets/js/renderCalendar.js` to
+  `assets/js/core/calendar/renderCalendar.js`.
+- Updated `assets/js/main.js` to import
+  `./core/calendar/renderCalendar.js?v=20260615-calendar-core-move`.
+- Updated all HTML entry pages that load `assets/js/main.js` to the
+  `20260615-calendar-core-move` cache-bust.
+- Updated only the moved renderer's relative imports:
+  `dataLoader.js`, `sessionData.js`, `membershipAccessClient.js`,
+  `reusableOpsConfig.js`, and `sessionDisplay.js`.
+- Confirmed `node --check` passes for `assets/js/core/calendar/renderCalendar.js`
+  and `assets/js/main.js`.
+- Confirmed active HTML/JS no longer references old runtime paths
+  `assets/js/renderCalendar.js` or `./renderCalendar.js`.
+- Did not move `main.js`, `sessionData.js`, `sessionDisplay.js`,
+  `mypageAuthClient.js`, `renderSessionPost.js`, `renderSessionDetail.js`,
+  `membershipAccessClient.js`, `discordSyncClient.js`, or `style.css`.
+- Did not change auth, approved gate decisions, owner/admin checks, session
+  loading, RPC/DB contracts, membership management behavior, Discord sync,
+  direct Supabase writes, `console.*`, or `updates.json`.
+- Added `docs/reusable-ops-platform-phase2d-calendar-boundary-result.md` and
+  updated reusable ops extraction/boundary docs.

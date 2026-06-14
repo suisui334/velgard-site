@@ -1,15 +1,15 @@
-import { loadJson } from "./dataLoader.js";
-import { loadMergedSessions } from "./sessionData.js?v=20260607-static-retire";
+import { loadJson } from "../../dataLoader.js";
+import { loadMergedSessions } from "../../sessionData.js?v=20260607-static-retire";
 import {
   getCurrentMembershipState,
   isApprovedMembershipState,
   renderMembershipGateNotice
-} from "./membershipAccessClient.js?v=20260615-core-config-move";
+} from "../../membershipAccessClient.js?v=20260615-core-config-move";
 import {
   getCalendarButtonLabel,
   getOpsSessionTypeCalendarClass,
   getOpsSessionTypeLabel
-} from "./core/config/reusableOpsConfig.js?v=20260615-core-config-move";
+} from "../config/reusableOpsConfig.js?v=20260615-core-config-move";
 import {
   escapeHtml,
   formatSessionApplicationDeadline,
@@ -24,7 +24,7 @@ import {
   isClosedSession,
   renderSessionTags,
   shouldShowSessionState
-} from "./sessionDisplay.js?v=20260615-core-config-move";
+} from "../../sessionDisplay.js?v=20260615-core-config-move";
 
 const CONFIG_URL = "data/calendarConfig.json?v=20260529-calendar-cap-start";
 const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";

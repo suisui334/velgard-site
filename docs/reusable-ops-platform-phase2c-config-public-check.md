@@ -129,3 +129,16 @@ config-unrelated file movement, CSS splitting, `main.js` movement,
 `mypageAuthClient.js` movement, `sessionData.js` movement, independent app
 extraction, auth/permission logic changes, RPC/DB-key configuration, or
 `management_key` display/DOM exposure.
+
+## Phase 2-D Calendar Renderer Move Follow-Up
+
+The next physical boundary step moved the calendar renderer to
+`assets/js/core/calendar/renderCalendar.js`. The active `main.js` import now
+points at the moved path, and HTML entry pages use the
+`20260615-calendar-core-move` `main.js` cache-bust.
+
+This Phase 2-D follow-up did not move the config files again and did not change
+the Phase 2-C conclusion that old root config paths are absent from active
+HTML/JS.
+
+Detailed result: `docs/reusable-ops-platform-phase2d-calendar-boundary-result.md`.

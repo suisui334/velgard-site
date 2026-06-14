@@ -734,3 +734,23 @@ module export marker and mypage bridge marker were present, so the moved
 config files are reflected publicly. No cache-bust correction was needed.
 
 Detailed result: `docs/reusable-ops-platform-phase2c-config-public-check.md`.
+
+## Phase 2-D Calendar Renderer Boundary Result
+
+After the config move rollout check, the calendar renderer was the first
+non-config renderer moved into the reusable ops core directory:
+
+- `assets/js/renderCalendar.js` -> `assets/js/core/calendar/renderCalendar.js`
+
+This was a narrow move because only `assets/js/main.js` imported the renderer
+at runtime, and the import changes inside the renderer were limited to
+relative-path updates. Shared `main.js` cache-bust references were updated
+across HTML entry pages.
+
+The move does not make calendar fully standalone yet. It still depends on
+`dataLoader.js`, `sessionData.js`, `membershipAccessClient.js`,
+`reusableOpsConfig.js`, and `sessionDisplay.js`. Those files were intentionally
+left in place, and auth, approved-member gate logic, session loading,
+RPC/DB contracts, and Discord sync behavior were unchanged.
+
+Detailed result: `docs/reusable-ops-platform-phase2d-calendar-boundary-result.md`.

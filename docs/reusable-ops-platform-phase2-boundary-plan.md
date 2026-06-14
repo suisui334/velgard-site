@@ -373,3 +373,27 @@ Discord sync, CSS split, or file movement beyond the prior config move was
 performed.
 
 Detailed result: `docs/reusable-ops-platform-phase2c-config-public-check.md`.
+
+## Phase 2-D Calendar Renderer Move Result
+
+Phase 2-D moved the calendar renderer from `assets/js/renderCalendar.js` to
+`assets/js/core/calendar/renderCalendar.js`.
+
+The move was accepted because the active runtime reference was limited to
+`assets/js/main.js`, the renderer already exposed a single `renderCalendar`
+entry point, and the required import updates were narrow relative-path changes.
+`main.js`, `sessionData.js`, `sessionDisplay.js`, `membershipAccessClient.js`,
+`renderSessionPost.js`, `renderSessionDetail.js`, `discordSyncClient.js`, and
+`style.css` were not moved.
+
+All HTML entry pages that load `assets/js/main.js` were updated to the
+`20260615-calendar-core-move` cache-bust so public clients do not retain the old
+module graph. Active HTML/JS has no old `assets/js/renderCalendar.js` or
+`./renderCalendar.js` runtime import left.
+
+This is still only a physical boundary step. Calendar data loading,
+approved-member gate behavior, session display helpers, and Discord sync remain
+unchanged. A public rollout check for the moved calendar renderer is a separate
+optional follow-up after deployment/cache propagation.
+
+Detailed result: `docs/reusable-ops-platform-phase2d-calendar-boundary-result.md`.
