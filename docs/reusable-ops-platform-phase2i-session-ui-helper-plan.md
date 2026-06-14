@@ -151,3 +151,21 @@ Phase 2-J implemented the narrow first extraction recommended by this audit.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2j-session-row-helper-result.md`
+
+## Phase 2-K Public Check Follow-Up
+
+Phase 2-K checked public delivery after the row helper extraction.
+
+- Public `session-detail.html`, `session-post.html`, and `calendar.html`
+  reference `main.js` with `20260615-session-row-helper-extract`.
+- Public `sessionDisplay.js` imports
+  `assets/js/core/session/sessionHtmlHelpers.js`.
+- Public `assets/js/core/session/sessionHtmlHelpers.js` is served
+  successfully and exports both row helpers.
+- No broken row-helper import path or required cache-bust repair was found.
+- Authenticated role-specific browser operation was not performed by Codex in
+  this gate and remains a separate QA gate.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2k-session-row-helper-public-check.md`

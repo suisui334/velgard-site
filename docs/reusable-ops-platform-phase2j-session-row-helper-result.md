@@ -128,7 +128,8 @@ rewrite, CSS split, auth/permission logic change, RPC/DB key configuration,
 
 ## Next Candidates
 
-1. Public rollout check for `sessionHtmlHelpers.js`.
+1. Public rollout check for `sessionHtmlHelpers.js`. Completed in Phase 2-K:
+   `docs/reusable-ops-platform-phase2k-session-row-helper-public-check.md`.
 2. Consider `renderSessionTags` only after deciding whether the existing
    `calendar-session-tags` class belongs in core.
 3. Consider `renderSessionSummary` and simple detail/requirements block

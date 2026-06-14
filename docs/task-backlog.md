@@ -9020,3 +9020,46 @@ operation, direct Supabase write, `console.*` addition, `updates.json` change,
 whole-file `sessionDisplay.js` move, `main.js` large rewrite, CSS split,
 auth/permission logic change, RPC/DB key configuration, `management_key`
 display, or raw id/email/token/JWT display was performed.
+
+## M-14F-90 session row helper public rollout check
+
+Status: Phase 2-K public delivery check completed.
+
+- Baseline: `75844b0 Extract session detail row helpers`.
+- Public `assets/js/core/session/sessionHtmlHelpers.js` is served
+  successfully.
+- Public `assets/js/sessionDisplay.js` imports the row helper module and
+  remains the compatibility facade.
+- Public `session-detail.html`, `session-post.html`, and `calendar.html`
+  reference `main.js` with `20260615-session-row-helper-extract`.
+- Public `main.js`, `renderSessionDetail.js`, `renderSessionPost.js`, and
+  `core/calendar/renderCalendar.js` follow the updated row-helper cache-bust
+  chain.
+- Public row helper exports for `renderSessionDetailRow` and
+  `renderSessionDetailArrayRow` were confirmed.
+- Existing `20260615-session-helper-extract` references remain only for the
+  unchanged `sessionDisplayHelpers.js` dependency and were left unchanged.
+- No broken row-helper import path or required cache-bust repair was found.
+- Local module smoke testing confirmed row output, array row output, empty
+  value fallback, facade output, and `renderSessionDetailContent` export
+  presence.
+- Authenticated role-specific browser operation was not performed by Codex in
+  this gate and remains available as a separate QA gate.
+- Added
+  `docs/reusable-ops-platform-phase2k-session-row-helper-public-check.md`.
+
+Next candidates:
+
+1. Optional authenticated browser QA for session-detail, session-post, and
+   calendar after the row helper extraction.
+2. Consider `renderSessionTags` only after deciding whether
+   `calendar-session-tags` belongs in core.
+3. Keep Discord sync panel, session-detail management row, application/comment
+   UI, GM history/action rendering, event handlers, RPC callers, auth checks,
+   and internal-id surfaces in place until dedicated gates.
+
+No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+operation, direct Supabase write, debug console logging addition,
+`updates.json` change, whole-file `sessionDisplay.js` move, `main.js` large
+rewrite, CSS split, auth/permission logic change, RPC/DB key configuration,
+`management_key` display, or raw id/email/token/JWT display was performed.

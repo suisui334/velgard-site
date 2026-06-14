@@ -581,6 +581,34 @@ Detailed result:
 
 - `docs/reusable-ops-platform-phase2j-session-row-helper-result.md`
 
+## Phase 2-K Session Row Helper Public Check Result
+
+Phase 2-K checked public delivery after the Phase 2-J row helper extraction.
+
+Confirmed:
+
+- `assets/js/core/session/sessionHtmlHelpers.js` is served from the public
+  site.
+- `assets/js/sessionDisplay.js` remains the compatibility facade and imports
+  the row helper module.
+- Public `session-detail.html`, `session-post.html`, and `calendar.html`
+  reference `main.js` with `20260615-session-row-helper-extract`.
+- Public `main.js`, `renderSessionDetail.js`, `renderSessionPost.js`, and
+  `core/calendar/renderCalendar.js` follow the updated row-helper cache-bust
+  chain.
+- No broken row-helper import path or required cache-bust repair was found.
+
+The older `20260615-session-helper-extract` query remains only for the
+unchanged `sessionDisplayHelpers.js` dependency and was left unchanged.
+
+Authenticated browser operation was not tested in this gate. Keep full
+session-detail/session-post/calendar role-specific behavior as a separate QA
+gate.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2k-session-row-helper-public-check.md`
+
 This regulation follow-up does not alter the Phase 2 ops-core boundary.
 `renderRegulation.js`, `regulation.html`, and `data/regulation.json` remain on
 the world-site side. The reusable value is the regulation page skeleton,

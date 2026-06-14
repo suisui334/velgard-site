@@ -950,3 +950,20 @@ DB/RPC/RLS contracts, and `management_key` handling were not changed.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2j-session-row-helper-result.md`
+
+## Phase 2-K Session Row Helper Public Check
+
+Phase 2-K checked public delivery after the row-helper extraction:
+
+- Public `assets/js/core/session/sessionHtmlHelpers.js` is served
+  successfully.
+- Public `assets/js/sessionDisplay.js` imports the row helper module and
+  remains the compatibility facade.
+- Public session-detail, session-post, and calendar entry HTML use
+  `20260615-session-row-helper-extract`.
+- No broken row-helper import path or cache-bust repair was needed.
+- Authenticated role-specific browser operation remains a separate QA gate.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2k-session-row-helper-public-check.md`
