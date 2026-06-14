@@ -169,3 +169,28 @@ Phase 2-H checked public delivery after the helper extraction.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2h-session-helper-public-check.md`
+
+## Phase 2-I UI Helper Candidate Audit
+
+Phase 2-I reviewed the UI helper surface left after the pure helper extraction.
+
+The safest next extraction candidates are small HTML string helpers:
+
+- `renderSessionDetailRow`
+- `renderSessionDetailArrayRow`
+
+Possible follow-up candidates, after class/fallback boundaries are decided:
+
+- `renderSessionTags`
+- `renderSessionSummary`
+- session-post field helpers such as `renderTextField`, `renderSelectField`,
+  and `renderTextareaField`
+
+Do not extract Discord sync panel rendering, session-detail management row,
+participation/comment UI, GM history/action rendering, template management UI,
+event handlers, RPC callers, or auth/permission-adjacent helpers under the
+generic session UI helper gate.
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2i-session-ui-helper-plan.md`

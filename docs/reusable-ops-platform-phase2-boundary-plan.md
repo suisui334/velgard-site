@@ -535,6 +535,30 @@ Detailed result:
 
 - `docs/reusable-ops-platform-phase2h-session-helper-public-check.md`
 
+## Phase 2-I Session UI Helper Candidate Audit
+
+Phase 2-I performed a docs-only audit of the small HTML/helper surface left in
+session rendering after `sessionDisplayHelpers.js` extraction.
+
+Classification summary:
+
+- A: `renderSessionDetailRow` and `renderSessionDetailArrayRow` can likely move
+  first into a future `assets/js/core/session/sessionHtmlHelpers.js`.
+- B: `renderSessionTags`, `renderSessionSummary`, calendar session badges, and
+  session-post field helpers are possible after class naming, route, and label
+  fallback boundaries are settled.
+- C: card/page renderers and template/managed-session UI are still too coupled
+  to page-level rendering.
+- D: Discord sync panel, management row, application/comment UI, GM history,
+  event handlers, RPC callers, approved gate, and membership surfaces remain
+  extraction-prohibited for this track.
+
+No implementation change or file movement was performed.
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2i-session-ui-helper-plan.md`
+
 This regulation follow-up does not alter the Phase 2 ops-core boundary.
 `renderRegulation.js`, `regulation.html`, and `data/regulation.json` remain on
 the world-site side. The reusable value is the regulation page skeleton,

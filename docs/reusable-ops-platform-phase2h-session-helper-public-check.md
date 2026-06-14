@@ -106,3 +106,20 @@ session helper extraction path.
    - `renderSessionDetailContent`
 
 Do not move the whole `sessionDisplay.js` file yet.
+
+## Phase 2-I Follow-Up
+
+Phase 2-I audited the next possible split after the public helper rollout.
+
+Result:
+
+- `renderSessionDetailRow` and `renderSessionDetailArrayRow` are the safest
+  immediate candidates for a future `sessionHtmlHelpers.js` extraction.
+- `renderSessionTags`, `renderSessionSummary`, and session-post field helpers
+  are possible after class/fallback boundaries are settled.
+- Discord sync panel, management row, application/comment UI, GM history, and
+  event/RPC-driven helpers should remain in place.
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2i-session-ui-helper-plan.md`

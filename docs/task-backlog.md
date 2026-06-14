@@ -8947,3 +8947,41 @@ Editor execution, DB/RPC/RLS mutation, Edge deploy, Discord operation, direct
 Supabase write, `console.*` addition, `updates.json` change, auth/permission
 logic change, RPC/DB key configuration, `management_key` display, or raw
 id/email/token/JWT display was performed.
+
+## M-14F-88 session UI helper extraction plan
+
+Status: Phase 2-I docs-only helper candidate audit completed.
+
+- Baseline: `835a1e4 Check session helper core rollout`.
+- Reviewed `assets/js/sessionDisplay.js`, `assets/js/renderSessionDetail.js`,
+  `assets/js/renderSessionPost.js`, `assets/js/core/session/sessionDisplayHelpers.js`,
+  `assets/js/core/calendar/renderCalendar.js`, `assets/js/main.js`, and the
+  adjacent session-detail application/comment renderer as a high-risk exclusion
+  surface.
+- Classified `renderSessionDetailRow` and `renderSessionDetailArrayRow` as the
+  safest immediate candidates for a future `sessionHtmlHelpers.js` extraction.
+- Classified `renderSessionTags`, `renderSessionSummary`, calendar session
+  badges, and session-post field helpers as possible later candidates after
+  class/fallback/route boundaries are settled.
+- Classified `renderSessionDetailContent`, session cards, page shells,
+  session-post template UI, and managed-session option rendering as still too
+  coupled to page/UI blocks.
+- Kept Discord sync panel rendering, session-detail management row,
+  application/comment UI, GM history/action rendering, membership approved
+  gate, event handlers, RPC callers, auth/permission checks, and internal-id
+  surfaces out of the generic helper extraction track.
+- Added
+  `docs/reusable-ops-platform-phase2i-session-ui-helper-plan.md`.
+
+Next candidate:
+
+- Implement a narrow extraction of `renderSessionDetailRow` and
+  `renderSessionDetailArrayRow` only, likely into
+  `assets/js/core/session/sessionHtmlHelpers.js`, with `sessionDisplay.js`
+  remaining the compatibility facade.
+
+No implementation change, file move, JS import/export change, CSS change, data
+change, SQL Editor execution, DB/RPC/RLS mutation, Edge deploy, Discord
+operation, direct Supabase write, `console.*` addition, `updates.json` change,
+auth/permission logic change, RPC/DB key configuration, `management_key`
+display, or raw id/email/token/JWT display was performed.

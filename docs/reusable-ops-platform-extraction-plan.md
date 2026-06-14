@@ -889,3 +889,42 @@ gate.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2h-session-helper-public-check.md`
+
+## Phase 2-I Session UI Helper Candidate Audit
+
+Phase 2-I reviewed the remaining session UI helper surface without changing
+code.
+
+Immediate future extraction candidates:
+
+- `renderSessionDetailRow`
+- `renderSessionDetailArrayRow`
+
+Possible later candidates:
+
+- `renderSessionTags`
+- `renderSessionSummary`
+- simple session-post form field renderers
+- calendar date-cell session badges after calendar route/class dependencies
+  are isolated
+
+Keep in place:
+
+- `renderSessionDetailContent`
+- Discord sync panel rendering
+- session-detail management row
+- participation/comment panel and comment list rendering
+- GM history/action rendering
+- session-post template management UI
+- any helper that binds events, calls RPCs, reads auth/role state, or handles
+  internal ids
+
+Recommended future module names include
+`assets/js/core/session/sessionHtmlHelpers.js`,
+`assets/js/core/session/sessionUiRows.js`, and
+`assets/js/core/session/sessionBadges.js`. No such module was created in this
+gate.
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2i-session-ui-helper-plan.md`
