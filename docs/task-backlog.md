@@ -8453,3 +8453,37 @@ SELECT-only diagnostic prepared.
 - No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
   Discord operation, direct Supabase write, `console.*` addition, or
   `updates.json` change was performed.
+
+## M-14F-71 reusable ops platform extraction planning
+
+Status: inventory and phased extraction plan recorded.
+
+- Baseline: `7ccad95 Update angel regulation text`.
+- Created `docs/reusable-ops-platform-extraction-plan.md`.
+- Classified the current site into a Velgard-specific world presentation layer
+  and reusable TRPG operations-platform candidates.
+- Reusable operations candidates include mypage, calendar, session-post,
+  session-detail, application/comment flows, membership management, templates,
+  auth/approved gate, notifications, TIMELINE, Discord sync client flow, and
+  related RPC design patterns.
+- Velgard-specific areas include world/characters/spots/gallery/terms/
+  regulation content, logo/key visual/image assets, visual tone, world-specific
+  calendar values, and house-rule text.
+- World-site templating was framed as reusable page types, data structures,
+  display blocks, navigation patterns, gallery categories, and regulation data
+  management rather than fixed visual design.
+- Compared three extraction options: light configuration inside the current
+  site, same-repo core/world separation, and future separate-app/repo
+  independence.
+- Recommendation: start with light configuration and same-repo separation;
+  defer full independent-app extraction until a second world has concrete
+  requirements and the core contracts are stable.
+- Recorded configuration candidates for site identity, navigation, calendar,
+  session labels/colors, approved-gate copy, notification/TIMELINE labels,
+  Discord sync wording, gallery categories, and world-page structures.
+- Recorded a phased roadmap from inventory, through configuration and
+  same-repo separation, toward optional independent-app extraction.
+- No implementation change, file move, folder restructure, SQL Editor
+  execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord operation,
+  direct Supabase write, `console.*` addition, or `updates.json` change was
+  performed.
