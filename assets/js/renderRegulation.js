@@ -1,6 +1,6 @@
 import { loadJson } from "./dataLoader.js";
 
-const REGULATION_DATA_PATH = "data/regulation.json?v=20260615-regulation-reward-values";
+const REGULATION_DATA_PATH = "data/regulation.json?v=20260615-fumble-exp-note";
 
 const TOC_ITEMS = [
   { id: "schedule", label: "開催スケジュール" },
