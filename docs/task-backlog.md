@@ -8658,3 +8658,34 @@ Status: Phase 1-E public rollout and remaining label inventory recorded.
   Supabase write, `console.*` addition, `updates.json` change, auth/permission
   logic change, RPC/DB-key configuration, or `management_key` exposure was
   performed.
+
+## M-14F-78 reusable ops file boundary plan
+
+Status: Phase 2-A file boundary inventory recorded.
+
+- Baseline: `10f9a66 Check reusable ops config rollout`.
+- Added `docs/reusable-ops-platform-phase2-boundary-plan.md`.
+- Classified JS files into reusable ops core candidates, ops files that still
+  contain Velgard or deployment dependencies, world-site renderers, shared
+  utility candidates, and hold/review items.
+- Recorded `main.js`, `mypageAuthClient.js`, `style.css`, `sessionData.js`,
+  `renderSessionPost.js`, `renderSessionDetail.js`,
+  `sessionDetailApplicationComments.js`, `discordSyncClient.js`,
+  `notificationBellClient.js`, and `membershipAccessClient.js` as files that
+  should not be moved first.
+- Classified HTML pages into ops pages, world-site pages, mixed entry pages,
+  and dev/prototype pages.
+- Classified `data/` JSON into ops config with world values, world-site data,
+  mixed site/theme metadata, legacy fixtures, and hold/review files.
+- Proposed a future folder shape for `assets/js/core`,
+  `assets/js/world`, `assets/js/velgard`, `assets/css/core.css`,
+  `assets/css/ops.css`, `assets/css/world.css`,
+  `assets/css/theme-velgard.css`, `data/core`, and
+  `data/world/velgard` without implementing the move.
+- Updated the reusable ops extraction plan and world-site template extraction
+  plan with the Phase 2-A boundary result.
+- Did not perform implementation changes, file moves, folder restructuring,
+  CSS splitting, HTML structure changes, JS import/export restructuring, SQL
+  Editor execution, DB/RPC/RLS mutation, SQL apply, Edge Function deploy,
+  Discord operation, direct Supabase write, `console.*` addition, or
+  `updates.json` change.

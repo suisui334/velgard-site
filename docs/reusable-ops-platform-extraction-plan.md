@@ -690,3 +690,13 @@ calendar / session-post / session-detail / timeline の公開HTMLはsession/gate
 この確認では、公開配信の静的確認と設定化漏れ棚卸しだけを行った。認証済みUI操作、Discord同期操作、SQL Editor実行、DB/RPC/RLS変更、Edge Function deploy、直接Supabase write追加は行っていない。
 
 設定化漏れとして、mypageのauth/PC/template/会員管理操作メッセージ、session-post/detailの確認・エラー・空状態文言、approved gateの状態別本文、会員管理UIの操作ボタン/エラー文言、Discord同期の状態値ラベルを後続候補として整理した。詳細は `docs/reusable-ops-platform-phase1e-public-check.md` に記録する。
+
+## Phase 2-A File Boundary Plan
+
+`10f9a66 Check reusable ops config rollout` 後の次工程として、汎用運用基盤コアとヴェルガルド固有world-siteを将来分けるためのファイル境界を棚卸しした。
+
+JSは、`reusableOpsConfig.js`、`membershipAccessClient.js`、`sessionDisplay.js`、`renderCalendar.js`、`renderTimeline.js`、通知ベルなどを運用基盤候補として整理しつつ、`main.js`、`mypageAuthClient.js`、`sessionData.js`、`renderSessionPost.js`、`renderSessionDetail.js`、`sessionDetailApplicationComments.js`、`discordSyncClient.js` は、認証・権限・RPC・Discord同期にまたがるため「すぐに動かしてはいけない」ファイルとして明記した。
+
+CSSは現時点では `style.css` の一括分割を避け、将来 `core.css` / `ops.css` / `world.css` / `theme-velgard.css` に分けるための責務境界だけを整理した。HTMLとdataも、運用基盤ページ、world-siteページ、混在ページ、legacy fixture/dataに分類した。
+
+詳細は `docs/reusable-ops-platform-phase2-boundary-plan.md` に記録する。今回も実装変更、ファイル移動、フォルダ再編、CSS分割、HTML構造変更、JS import/export大変更、SQL Editor実行、DB/RPC/RLS変更、SQL apply、Edge Function deploy、Discord操作は行っていない。

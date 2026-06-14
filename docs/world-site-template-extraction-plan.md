@@ -613,3 +613,13 @@ world-site側とops側の境界:
    - `hooks.html` / `hooks.json` を次世界観テンプレートに含めるか、scenariosへ統一するか決める。
 5. CSS responsibility audit:
    - world-site演出、ops UI、shared layoutをdocs上で分類する。
+
+## Phase 2-A boundary follow-up
+
+`10f9a66 Check reusable ops config rollout` 後のPhase 2-Aで、world-site側とops側のファイル境界を `docs/reusable-ops-platform-phase2-boundary-plan.md` に整理した。
+
+world-site側としては、`renderWorld.js`、`renderCharacters.js`、`renderSpots.js`、`renderSpotDetail.js`、`renderScenarios.js`、`renderScenarioDetail.js`、`renderTerms.js`、`renderRegulation.js`、`renderGallery.js`、campaign/episode系renderer、world / characters / spots / terms / regulation / gallery / campaigns / episodes系dataを引き続きテンプレート候補として扱う。
+
+一方で、`index.html` / `renderHome.js` はworld heroとhome activity panelが混在し、`tools.html` / `randomTables.json` と `updates.html` / `updates.json` はworld-siteかops補助か判断が必要な混在/保留領域として残した。
+
+world-site rendererを動かす前に、`main.js` のrenderer registry / nav registryをどう分けるかを別ゲートで設計する。いきなりworld-site rendererをフォルダ移動すると、全ページのscript importとcache-bustに波及するため、Phase 2-Aでは実装変更を行っていない。
