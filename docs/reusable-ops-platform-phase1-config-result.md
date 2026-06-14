@@ -104,3 +104,19 @@ approved gate系ラベル、session UI系ラベルを設定候補として
 `reusableOpsConfig.js` に追加した。ただし、mypage本体やapproved gate本体への
 接続は次工程へ残した。詳細は
 `docs/reusable-ops-platform-phase1b-label-config-plan.md` に記録する。
+
+## Phase 1-C follow-up
+
+Phase 1-Cでは、通常scriptである `mypageAuthClient.js` をES module化せず、
+`assets/js/reusableOpsMypageLabels.js` をclassic bridgeとして追加した。
+`mypage.html` はこのbridgeを `mypageAuthClient.js` より前に読み込み、
+主要mypage details見出しと短いsummaryだけを設定参照へ接続する。
+
+接続した値は、アカウント概要、プロフィール / PC情報、予定 / 申請履歴、
+テンプレート管理、会員管理、および各summary文言の一部である。bridge未読込時は
+`mypageAuthClient.js` 内の既存fallback文言を使うため、設定取得失敗でも画面は
+従来表示へ戻る。
+
+認証、approved gate判定、会員管理RPC、`management_key` 処理、DB/RPC/RLS、
+Discord同期、操作ボタン文言、エラー文言は変更していない。詳細は
+`docs/reusable-ops-platform-phase1c-mypage-config-result.md` に記録する。

@@ -48,6 +48,12 @@ export const REUSABLE_OPS_CONFIG = Object.freeze({
       templates: "テンプレート管理",
       membershipManagement: "会員管理"
     }),
+    summaries: Object.freeze({
+      loggedIn: "ログイン中",
+      characterDiscord: "PC名・Discord ID",
+      loading: "読み込み中",
+      savedTemplates: "保存済みテンプレート"
+    }),
     membershipStatuses: Object.freeze({
       pending: "承認待ち",
       approved: "承認済み",
@@ -106,6 +112,10 @@ export function getMembershipGateLabel(key, fallback = "") {
 
 export function getMypageSectionLabel(key, fallback = "") {
   return REUSABLE_OPS_CONFIG.mypage.sections[key] || fallback;
+}
+
+export function getMypageSummaryLabel(key, fallback = "") {
+  return REUSABLE_OPS_CONFIG.mypage.summaries[key] || fallback;
 }
 
 export function getMypageMembershipStatusLabel(key, fallback = "") {

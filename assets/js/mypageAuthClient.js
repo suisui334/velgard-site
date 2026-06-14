@@ -15,6 +15,25 @@
     "image/jpeg": "jpg",
     "image/webp": "webp"
   });
+
+  function getConfiguredMypageSectionLabel(key, fallback = "") {
+    const config = window.VELGARD_REUSABLE_OPS_MYPAGE;
+    if (config && typeof config.getSectionLabel === "function") {
+      const value = config.getSectionLabel(key, fallback);
+      if (typeof value === "string" && value.trim()) return value;
+    }
+    return fallback;
+  }
+
+  function getConfiguredMypageSummaryLabel(key, fallback = "") {
+    const config = window.VELGARD_REUSABLE_OPS_MYPAGE;
+    if (config && typeof config.getSummaryLabel === "function") {
+      const value = config.getSummaryLabel(key, fallback);
+      if (typeof value === "string" && value.trim()) return value;
+    }
+    return fallback;
+  }
+
   const MEMBERSHIP_STATUS_VIEWS = Object.freeze({
     pending: {
       label: "承認待ち",
@@ -2350,7 +2369,11 @@
   }
 
   function createMembershipApprovalDetails(client, elements, session, rows) {
-    const detailsPanel = createMypageDetails("会員管理", formatMembershipReviewMeta(rows), { className: "mypage-membership-approval-details" });
+    const detailsPanel = createMypageDetails(
+      getConfiguredMypageSectionLabel("membershipManagement", "会員管理"),
+      formatMembershipReviewMeta(rows),
+      { className: "mypage-membership-approval-details" }
+    );
     detailsPanel.details.dataset.mypageMembershipApproval = "";
 
     const note = document.createElement("p");
@@ -3600,7 +3623,7 @@
     head.className = "mypage-profile-panel-head";
 
     const title = document.createElement("h3");
-    title.textContent = "テンプレート管理";
+    title.textContent = getConfiguredMypageSectionLabel("templates", "テンプレート管理");
 
     const description = document.createElement("p");
     description.textContent = "呼び出し、リザルト、依頼書、申請コメントなどの個人テンプレートを管理できます。";
@@ -4130,7 +4153,10 @@
     const membershipPanel = createMembershipStatusPanel(session);
     const displayNameEditor = createDisplayNameEditor(client, elements, session);
     const discordIdEditor = createDiscordIdEditor(client, elements, session);
-    const accountDetails = createMypageDetails("アカウント概要", "ログイン中");
+    const accountDetails = createMypageDetails(
+      getConfiguredMypageSectionLabel("account", "アカウント概要"),
+      getConfiguredMypageSummaryLabel("loggedIn", "ログイン中")
+    );
 
     const actions = document.createElement("div");
     actions.className = "actions";
@@ -4176,9 +4202,18 @@
     const playerCharacterPanel = createPlayerCharacterPanel(client, elements, session);
     const templatePanel = createTemplateManagementPanel(client, elements, session);
     const applicationsPanel = createApplicationsPanel();
-    const profileDetails = createMypageDetails("プロフィール / PC情報", "PC名・Discord ID");
-    const scheduleDetails = createMypageDetails("予定 / 申請履歴", "読み込み中");
-    const templateDetails = createMypageDetails("テンプレート管理", "保存済みテンプレート");
+    const profileDetails = createMypageDetails(
+      getConfiguredMypageSectionLabel("profileAndCharacters", "プロフィール / PC情報"),
+      getConfiguredMypageSummaryLabel("characterDiscord", "PC名・Discord ID")
+    );
+    const scheduleDetails = createMypageDetails(
+      getConfiguredMypageSectionLabel("scheduleAndApplications", "予定 / 申請履歴"),
+      getConfiguredMypageSummaryLabel("loading", "読み込み中")
+    );
+    const templateDetails = createMypageDetails(
+      getConfiguredMypageSectionLabel("templates", "テンプレート管理"),
+      getConfiguredMypageSummaryLabel("savedTemplates", "保存済みテンプレート")
+    );
     applicationsPanel.summaryDetails = scheduleDetails;
 
     accountDetails.body.append(avatarEditor.container, actions);

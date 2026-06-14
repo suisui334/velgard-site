@@ -620,3 +620,22 @@ mypage、approved gate、session UI周辺のラベル候補も整理し、
 `reusableOpsConfig.js` に候補値とgetterを追加した。ただし、mypage本体は通常script
 で影響範囲が広いため、今回は実表示接続を行っていない。詳細は
 `docs/reusable-ops-platform-phase1b-label-config-plan.md` に記録する。
+
+## Phase 1-C Result
+
+`52e4ac7 Extend reusable ops label config` 後の次工程として、
+mypage向けの安全な設定参照方式を実装した。
+
+`mypageAuthClient.js` は通常scriptのまま維持し、ES module化やフォルダ再編は
+行っていない。代わりに `assets/js/reusableOpsMypageLabels.js` を追加し、
+mypageの表示ラベルだけをclassic scriptから読めるbridgeとして公開した。
+`mypage.html` はこのbridgeを `mypageAuthClient.js` より前に読み込む。
+
+接続したのは、アカウント概要、プロフィール / PC情報、予定 / 申請履歴、
+テンプレート管理、会員管理などの主要details見出しと短いsummary文言のみ。
+設定未読込時は `mypageAuthClient.js` 側のfallback文言を使うため、画面は
+従来表示へ戻る。
+
+認証、approved gate判定、会員管理RPC、`management_key`、DB/RPC/RLS、
+Discord同期、操作ボタン文言、エラー文言は変更していない。詳細は
+`docs/reusable-ops-platform-phase1c-mypage-config-result.md` に記録する。

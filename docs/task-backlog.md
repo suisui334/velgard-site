@@ -8541,3 +8541,28 @@ point extended.
   exposure.
 - Did not change DB/RPC/RLS, SQL, Edge Functions, Discord operations, folder
   structure, `console.*`, direct Supabase writes, or `updates.json`.
+
+## M-14F-74 reusable ops mypage label bridge
+
+Status: Phase 1-C mypage label bridge implemented.
+
+- Baseline: `52e4ac7 Extend reusable ops label config`.
+- Added `assets/js/reusableOpsMypageLabels.js` as a small classic-script bridge
+  for mypage display labels.
+- Kept `mypageAuthClient.js` as a regular script; no ES module conversion,
+  folder move, or independent app extraction was performed.
+- Loaded the bridge from `mypage.html` before `mypageAuthClient.js` and updated
+  the mypage auth script cache-bust.
+- Connected only safe display labels: account overview, profile / PC
+  information, schedule / application history, template management, membership
+  management, and their short summary labels.
+- Added mypage summary candidates and a getter to `assets/js/reusableOpsConfig.js`
+  so the module config also has the same label candidate shape.
+- Added `docs/reusable-ops-platform-phase1c-mypage-config-result.md` and updated
+  the reusable ops extraction/config docs with the implemented scope.
+- Fallback labels remain in `mypageAuthClient.js`, so mypage keeps the current
+  visible output if the bridge is unavailable.
+- Did not change auth, approved gate logic, membership status logic, membership
+  management RPC calls, `management_key` handling, operation button labels,
+  error messages, DB/RPC/RLS, SQL, Edge Functions, Discord operations,
+  `console.*`, direct Supabase writes, or `updates.json`.
