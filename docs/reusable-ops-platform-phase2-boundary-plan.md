@@ -502,3 +502,14 @@ Current status through this point:
   deferred.
 - Phase 2-G: pure helpers extracted to `assets/js/core/session/`, while UI
   blocks remain in `sessionDisplay.js`.
+
+Detailed regulation template policy:
+
+- `docs/regulation-template-layout-policy.md`
+
+This regulation follow-up does not alter the Phase 2 ops-core boundary.
+`renderRegulation.js`, `regulation.html`, and `data/regulation.json` remain on
+the world-site side. The reusable value is the regulation page skeleton,
+JSON-managed rule data, term cards, tables, long-form cards, table-of-contents
+menu, active current-section display, desktop wide reading layout, and mobile
+stacking behavior.

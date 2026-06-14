@@ -854,3 +854,14 @@ Template implication:
 
 This keeps the ops platform extraction focused on reusable operation flows,
 while letting regulation evolve as a reusable world-site page skeleton.
+
+Detailed regulation template policy:
+
+- `docs/regulation-template-layout-policy.md`
+
+This detail note records that the recent regulation content/layout changes are
+world-site template learnings. They do not change the reusable ops core
+boundary: `calendar`, `mypage`, `session-post`, `session-detail`, membership,
+application/comment flows, templates, notifications/timeline, and Discord sync
+remain ops surfaces, while `regulation` remains a world-site page with strong
+navigation links from ops flows.

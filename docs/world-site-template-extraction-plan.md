@@ -656,3 +656,11 @@ Current related status:
 - Phase 2-F: `sessionDisplay.js` は丸ごと移動せず、依存調査済み。
 - Phase 2-G: `sessionDisplay.js` から純粋helperのみ `assets/js/core/session/` へ抽出済み。
 - regulation改修は独立ツール化本筋とは別だが、世界観サイトテンプレートの規約ページ方針として反映する。
+
+Detailed regulation template policy:
+
+- `docs/regulation-template-layout-policy.md`
+
+This follow-up records the concrete Velgard regulation updates, the reusable
+future-world structure, the Velgard-specific content that should remain data,
+and the boundary between regulation pages and reusable ops surfaces.

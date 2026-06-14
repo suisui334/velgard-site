@@ -8877,3 +8877,35 @@ Status: regulation layout policy recorded in world-site and reusable-ops docs.
 - No implementation change, file move, CSS change, JS change, data change, SQL
   Editor execution, DB/RPC/RLS mutation, Edge deploy, Discord operation, direct
   Supabase write, `console.*` addition, or `updates.json` change was performed.
+
+## M-14F-86 regulation template policy detail
+
+Status: detailed regulation template policy documented.
+
+- Baseline: `b5782f6 Clarify angel order route A exception`.
+- Added `docs/regulation-template-layout-policy.md`.
+- Recorded recent regulation changes: GM notes for reward/Sword Shard guidance,
+  reward and Sword Shard table value updates, fumble experience card and text,
+  lower-bound growth `〈勇者の証〉` note, independent angel-rule card, bold route
+  headings, angel weapon/armor data, Route A `鎧4【天衣無縫】` exclusion, and the
+  wide single-column desktop regulation layout direction.
+- Clarified that `regulation` belongs to the world-site side while still
+  connecting strongly to `mypage`, `session-post`, and `session-detail` through
+  rule guidance.
+- Clarified reusable future-world structure: term cards, level cap tables,
+  reward/honor/growth tables, long-form house rules, individual ruling cards,
+  side/table-of-contents menu, active current-section display, mobile stacking,
+  desktop wide reading layout, and JSON-managed regulation data.
+- Clarified Velgard-specific data: concrete angel rulings, reward/Sword Shard
+  values, fumble/lower-bound growth text, abyss rulings, world-specific terms,
+  operational rules, and current visual details.
+- Recorded current ops extraction status through Phase 2-G.
+- Next candidate 1: Phase 2-G public rollout check for calendar,
+  session-post, and session-detail after `sessionDisplayHelpers.js` extraction.
+- Next candidate 2: public browser QA for the regulation desktop wide layout,
+  vertical cards, right-side active menu, and mobile stacking.
+- Next candidate 3: detailed regulation template structure docs for tables,
+  term cards, long-form rule cards, and table-of-contents behavior.
+- No implementation change, file move, CSS change, JS change, data change, SQL
+  Editor execution, DB/RPC/RLS mutation, Edge deploy, Discord operation, direct
+  Supabase write, `console.*` addition, or `updates.json` change was performed.
