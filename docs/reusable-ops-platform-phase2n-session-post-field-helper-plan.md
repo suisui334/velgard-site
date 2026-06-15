@@ -153,6 +153,28 @@ Detailed result:
 
 - `docs/reusable-ops-platform-phase2o-session-post-field-helper-result.md`
 
+## Phase 2-Q Player Count Follow-Up
+
+Phase 2-Q audited the next conditional candidates:
+
+- `renderPlayerCountFields`
+- `formatPlayerCountLabel`
+
+Decision: no implementation in this gate.
+
+`renderPlayerCountFields` is display-only, but its `p_player_min` /
+`p_player_max` control names are tied to payload generation, template field
+keys, template application, managed-session edit filling, and new-session reset
+behavior. It should move only after that contract is explicitly documented and
+covered by QA.
+
+`formatPlayerCountLabel` is a pure formatter, but its range/max/min/unset text
+should be kept or routed through `reusableOpsConfig` deliberately before moving.
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2q-session-post-player-count-helper-plan.md`
+
 ## QA Notes For A Future Gate
 
 If helper extraction is implemented later, check:

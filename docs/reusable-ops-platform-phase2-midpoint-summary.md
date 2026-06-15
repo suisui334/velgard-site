@@ -254,3 +254,31 @@ Not tested:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2p-session-post-field-helper-public-check.md`
+
+## Phase 2-Q Follow-Up: Session Post Player Count Helper Audit
+
+Phase 2-Q reviewed the next player-count candidates after the basic field
+helper rollout.
+
+Reviewed:
+
+- `renderPlayerCountFields`
+- `formatPlayerCountLabel`
+
+Decision: documentation-only. No helper was moved.
+
+Summary:
+
+- `renderPlayerCountFields` is mostly a display helper, but its
+  `p_player_min` / `p_player_max` input names are part of the session-post
+  payload, template field, template application, managed edit, and reset
+  contract.
+- `formatPlayerCountLabel` is pure string formatting, but player-count range,
+  min-only, max-only, and unset wording should be deliberately kept or
+  configured before extraction.
+- Both are classified as `B`: extractable later after fallback/config and QA
+  planning.
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2q-session-post-player-count-helper-plan.md`

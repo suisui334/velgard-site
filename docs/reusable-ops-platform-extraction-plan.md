@@ -1123,3 +1123,25 @@ sync QA remain separate explicit gates.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2p-session-post-field-helper-public-check.md`
+
+## Phase 2-Q Session Post Player Count Helper Audit
+
+Phase 2-Q reviewed `renderPlayerCountFields` and `formatPlayerCountLabel`.
+
+Decision: no extraction yet.
+
+Reason:
+
+- `renderPlayerCountFields` is display-only, but it owns the paired
+  `p_player_min` / `p_player_max` controls that are read by payload generation,
+  stored in template fields, restored by template application, filled in edit
+  mode, and cleared in new-session mode.
+- `formatPlayerCountLabel` is pure, but its wording and unset fallback should
+  be settled before moving it into a reusable helper.
+
+Both remain medium-risk/conditional candidates, not immediate low-risk
+extractions.
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2q-session-post-player-count-helper-plan.md`

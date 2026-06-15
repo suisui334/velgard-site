@@ -82,3 +82,20 @@ id/email/token/JWT display was performed.
 2. Decide whether `renderPlayerCountFields` can move after label/fallback
    policy is stable.
 3. Keep save/edit/template/Discord sync QA behind separate explicit gates.
+
+## Phase 2-Q Follow-Up
+
+Phase 2-Q completed the player-count helper audit.
+
+Result:
+
+- `renderPlayerCountFields`: `B`, possible later after documenting the
+  `p_player_min` / `p_player_max` contract and template/edit-mode QA.
+- `formatPlayerCountLabel`: `B`, possible later after player-count wording and
+  fallback policy are settled.
+
+No extraction was performed in Phase 2-Q.
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2q-session-post-player-count-helper-plan.md`

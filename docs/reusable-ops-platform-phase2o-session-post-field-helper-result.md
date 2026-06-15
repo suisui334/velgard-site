@@ -104,3 +104,20 @@ session-post QA remains outside this check.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2p-session-post-field-helper-public-check.md`
+
+## Phase 2-Q Player Count Audit Follow-Up
+
+Phase 2-Q reviewed `renderPlayerCountFields` and `formatPlayerCountLabel`.
+
+No implementation change was made.
+
+- `renderPlayerCountFields` remains in `renderSessionPost.js` because it
+  hard-codes the `p_player_min` / `p_player_max` form contract used by payload
+  generation, template application, and managed-session edit mode.
+- `formatPlayerCountLabel` remains in `renderSessionPost.js` until the
+  player-count wording and fallback policy are either kept explicitly or moved
+  through configuration.
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2q-session-post-player-count-helper-plan.md`

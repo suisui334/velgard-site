@@ -762,3 +762,30 @@ template operations, and Discord sync remain separate explicit QA gates.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2p-session-post-field-helper-public-check.md`
+
+## Phase 2-Q Session Post Player Count Helper Boundary
+
+Phase 2-Q audited the remaining player-count helpers in
+`assets/js/renderSessionPost.js`.
+
+Classification:
+
+- `renderPlayerCountFields`: `B`
+- `formatPlayerCountLabel`: `B`
+
+The helpers are not prohibited, but should not move until the following are
+settled:
+
+- `p_player_min` / `p_player_max` are documented as intentional session-post
+  form and payload keys.
+- Template field persistence/application and managed-session edit-mode filling
+  are included in QA.
+- Player-count range/max/min/unset wording is either kept exactly or moved to
+  `reusableOpsConfig` deliberately.
+
+No implementation change was made. Save/edit/template/Discord/auth/RPC
+surfaces stayed untouched.
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2q-session-post-player-count-helper-plan.md`
