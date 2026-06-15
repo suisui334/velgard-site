@@ -1454,3 +1454,30 @@ Not changed:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase3a1-config-label-minimal-result.md`
+
+## Phase 3-A2 Session Player Count Label Public Rollout
+
+Phase 3-A2 verified the public static delivery for
+`20260616-session-post-player-count-labels`.
+
+Confirmed:
+
+- `session-post.html` serves the updated main-module query
+- public `main.js` imports the updated session-post renderer
+- public `renderSessionPost.js` imports the updated form helper and reusable
+  ops config module
+- public `sessionFormHelpers.js` imports `getOpsSessionPlayerCountLabel` and
+  exports `renderPlayerCountFields`
+- public `reusableOpsConfig.js` contains `session.playerCountLabels` and
+  exports `getOpsSessionPlayerCountLabel`
+- `p_player_min` / `p_player_max` names and `min="0"` attributes remain in the
+  public helper output
+- `calendar.html` and `session-detail.html` remain served
+
+This was a static delivery check only. Authenticated role-specific operation,
+data-changing create/edit/template flows, and Discord sync remain separate QA
+gates.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase3a2-session-player-count-label-public-check.md`

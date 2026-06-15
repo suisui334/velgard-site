@@ -356,3 +356,30 @@ Still not touched:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase3a1-config-label-minimal-result.md`
+
+## Phase 3-A2 Follow-Up: Session-Post Player Count Public Rollout
+
+Phase 3-A2 checked the public static delivery after the Phase 3-A1
+player-count sublabel connection.
+
+Confirmed:
+
+- public `session-post.html` follows
+  `20260616-session-post-player-count-labels`
+- public `main.js` imports the matching session-post renderer
+- public `renderSessionPost.js` imports the matching form helper and reusable
+  ops config module
+- public `sessionFormHelpers.js` imports
+  `getOpsSessionPlayerCountLabel`
+- public `sessionFormHelpers.js` exports `renderPlayerCountFields`
+- public `reusableOpsConfig.js` contains `session.playerCountLabels` and
+  exports `getOpsSessionPlayerCountLabel`
+- public player-count input names and `min="0"` attributes are still present
+- no additional labels were configured
+
+B/C/D/E labels and prohibited DB/RPC/enum/status/role/CSS/DOM/input-name
+surfaces remain untouched.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase3a2-session-player-count-label-public-check.md`

@@ -9139,6 +9139,54 @@ operation, direct Supabase write, debug console logging addition,
 CSS class/DOM id/input name configuration, `management_key` display, or raw
 id/email/token/JWT display was performed.
 
+## M-14F-109 reusable ops session player-count label public check
+
+Status: Phase 3-A2 public static rollout check completed.
+
+- Baseline: `07856b0 Connect reusable ops session labels`.
+- Checked public static delivery for
+  `20260616-session-post-player-count-labels`.
+- Confirmed public `session-post.html`, `calendar.html`, and
+  `session-detail.html` are served.
+- Confirmed public `session-post.html` references
+  `main.js?v=20260616-session-post-player-count-labels`.
+- Confirmed public `main.js` imports
+  `renderSessionPost.js?v=20260616-session-post-player-count-labels`.
+- Confirmed public `renderSessionPost.js` imports:
+  - `sessionFormHelpers.js?v=20260616-session-post-player-count-labels`
+  - `reusableOpsConfig.js?v=20260616-session-post-player-count-labels`
+  - the existing `sessionPlayerCountHelpers.js` formatter module.
+- Confirmed public `sessionFormHelpers.js` imports
+  `getOpsSessionPlayerCountLabel` and exports `renderPlayerCountFields`.
+- Confirmed public `reusableOpsConfig.js` contains
+  `session.playerCountLabels` and exports `getOpsSessionPlayerCountLabel`.
+- Confirmed the public player-count helper keeps:
+  - fallback `min`
+  - fallback `max`
+  - `name="p_player_min"`
+  - `name="p_player_max"`
+  - `min="0"` on both inputs
+- Confirmed no `required`, `placeholder`, initial `value=`, or `max=` was
+  added to the player-count inputs.
+- No checked helper/config path returned 404.
+- Added
+  `docs/reusable-ops-platform-phase3a2-session-player-count-label-public-check.md`.
+
+Not tested:
+
+- authenticated role-specific browser operation
+- actual session-post rendering behind approved/auth state
+- data-changing session-post create/edit/template operations
+- reset/edit restore operation
+- Discord sync
+
+No implementation change, file move, JS change, CSS change, HTML change, data
+change, SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+Discord operation, direct Supabase write, debug console logging addition,
+`updates.json` change, auth/permission logic change, RPC/DB key configuration,
+CSS class/DOM id/input name configuration, `management_key` display, or raw
+id/email/token/JWT display was performed.
+
 ## M-14F-107 reusable ops phase 2 completion summary
 
 Status: Phase 2-AA completion summary recorded.

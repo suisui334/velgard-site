@@ -120,3 +120,32 @@ operation, direct Supabase write, debug console logging addition,
 `updates.json` change, auth/permission logic change, RPC/DB key configuration,
 CSS class/DOM id/input name configuration, `management_key` display, or raw
 id/email/token/JWT display was performed.
+
+## Phase 3-A2 Public Check Follow-Up
+
+Phase 3-A2 completed the public static rollout check for
+`20260616-session-post-player-count-labels`.
+
+Confirmed:
+
+- public `session-post.html` follows the updated main-module cache-bust
+- public `main.js` imports the matching `renderSessionPost.js`
+- public `renderSessionPost.js` imports the matching `sessionFormHelpers.js`
+  and reusable ops config module
+- public `sessionFormHelpers.js` imports `getOpsSessionPlayerCountLabel`
+- public `sessionFormHelpers.js` exports `renderPlayerCountFields`
+- public `reusableOpsConfig.js` contains `session.playerCountLabels`
+- public `reusableOpsConfig.js` exports `getOpsSessionPlayerCountLabel`
+- public player-count markup still includes `name="p_player_min"`,
+  `name="p_player_max"`, and `min="0"`
+- no checked helper/config path returned 404
+
+Not tested:
+
+- authenticated role-specific browser operation
+- data-changing session-post create/edit/template operations
+- Discord sync
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase3a2-session-player-count-label-public-check.md`

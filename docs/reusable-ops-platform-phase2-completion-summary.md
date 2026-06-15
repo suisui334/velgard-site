@@ -323,3 +323,25 @@ Not changed:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase3a1-config-label-minimal-result.md`
+
+## Phase 3-A2 Follow-Up
+
+Phase 3-A2 checked public static delivery for the Phase 3-A1 player-count
+sublabel config connection.
+
+Confirmed:
+
+- public `session-post.html` follows
+  `20260616-session-post-player-count-labels`
+- public `main.js`, `renderSessionPost.js`, `sessionFormHelpers.js`, and
+  `reusableOpsConfig.js` follow the expected import/export chain
+- public `sessionFormHelpers.js` still exports `renderPlayerCountFields`
+- public `reusableOpsConfig.js` contains `session.playerCountLabels` and
+  exports `getOpsSessionPlayerCountLabel`
+- public player-count inputs keep `name="p_player_min"`,
+  `name="p_player_max"`, and `min="0"`
+- no new implementation or label configuration was performed
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase3a2-session-player-count-label-public-check.md`
