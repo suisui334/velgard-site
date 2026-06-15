@@ -1,4 +1,5 @@
 import { escapeHtml } from "./sessionDisplayHelpers.js?v=20260615-session-helper-extract";
+import { getOpsSessionPlayerCountLabel } from "../config/reusableOpsConfig.js?v=20260616-session-post-player-count-labels";
 
 export function renderTextField(label, name, type, options = {}) {
   const attrs = [
@@ -44,11 +45,11 @@ export function renderPlayerCountFields(label = "募集人数") {
       <span class="session-post-player-label" id="session-post-player-count-label">${escapeHtml(label)}</span>
       <div class="session-post-player-inputs">
         <label>
-          <span>min</span>
+          <span>${escapeHtml(getOpsSessionPlayerCountLabel("min", "min"))}</span>
           <input type="number" name="p_player_min" min="0">
         </label>
         <label>
-          <span>max</span>
+          <span>${escapeHtml(getOpsSessionPlayerCountLabel("max", "max"))}</span>
           <input type="number" name="p_player_max" min="0">
         </label>
       </div>

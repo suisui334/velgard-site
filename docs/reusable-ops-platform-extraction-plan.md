@@ -1422,3 +1422,35 @@ Phase 3 should continue from this boundary rather than extending Phase 2.
 Detailed completion summary:
 
 - `docs/reusable-ops-platform-phase2-completion-summary.md`
+
+## Phase 3-A1 Low-Risk Label Continuation
+
+Phase 3-A1 implemented the first post-completion low-risk label continuation.
+
+Scope:
+
+- added `REUSABLE_OPS_CONFIG.session.playerCountLabels`
+- added `getOpsSessionPlayerCountLabel(key, fallback)`
+- connected only the session-post player-count visible sublabels:
+  - `min`
+  - `max`
+- kept the same visible output through explicit fallback strings
+- updated only the affected session-post cache-bust chain to
+  `20260616-session-post-player-count-labels`
+
+Not changed:
+
+- calendar labels
+- `mypageAuthClient.js`
+- normal-script bridge behavior
+- Discord sync labels
+- GM/admin labels
+- application/comment labels
+- membership management labels
+- status/visibility mappings
+- player-count formatter wording
+- DB/RPC/enum/status/role/CSS class/DOM id/input name surfaces
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase3a1-config-label-minimal-result.md`

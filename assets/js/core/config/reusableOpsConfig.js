@@ -136,6 +136,10 @@ export const REUSABLE_OPS_CONFIG = Object.freeze({
       create: "作成する",
       saveChanges: "変更を保存",
       sessionPostResult: "作成結果"
+    }),
+    playerCountLabels: Object.freeze({
+      min: "min",
+      max: "max"
     })
   })
 });
@@ -186,4 +190,8 @@ export function getMypageMembershipActionLabel(key, fallback = "") {
 
 export function getOpsSessionLabel(key, fallback = "") {
   return REUSABLE_OPS_CONFIG.session.labels[key] || fallback;
+}
+
+export function getOpsSessionPlayerCountLabel(key, fallback = "") {
+  return REUSABLE_OPS_CONFIG.session.playerCountLabels?.[key] || fallback;
 }

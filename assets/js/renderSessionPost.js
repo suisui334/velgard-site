@@ -8,7 +8,7 @@ import {
   renderSelectField,
   renderTextareaField,
   renderTextField
-} from "./core/session/sessionFormHelpers.js?v=20260616-player-count-field-helper";
+} from "./core/session/sessionFormHelpers.js?v=20260616-session-post-player-count-labels";
 import { formatPlayerCountLabel } from "./core/session/sessionPlayerCountHelpers.js?v=20260616-player-count-label-helper";
 import {
   createSupabaseBrowserClient,
@@ -20,7 +20,7 @@ import {
   isApprovedMembershipState,
   renderMembershipGateNotice
 } from "./membershipAccessClient.js?v=20260615-core-config-move";
-import { getOpsSessionLabel } from "./core/config/reusableOpsConfig.js?v=20260615-core-config-move";
+import { getOpsSessionLabel } from "./core/config/reusableOpsConfig.js?v=20260616-session-post-player-count-labels";
 import {
   deleteSyncedSession,
   getDiscordSyncStateModifier,

@@ -9064,6 +9064,81 @@ operation, direct Supabase write, debug console logging addition,
 rewrite, CSS split, auth/permission logic change, RPC/DB key configuration,
 `management_key` display, or raw id/email/token/JWT display was performed.
 
+## M-14F-108 reusable ops session player-count label config
+
+Status: Phase 3-A1 minimal `A` label connection implemented.
+
+- Baseline: `fa19845 Summarize reusable ops phase 2 completion`.
+- Implemented only the Phase 2-X `A` classified calendar-external player-count
+  visible sublabels.
+- Added `REUSABLE_OPS_CONFIG.session.playerCountLabels`.
+- Added `getOpsSessionPlayerCountLabel(key, fallback)`.
+- Connected:
+  - `session.playerCountLabels.min` with fallback `min`
+  - `session.playerCountLabels.max` with fallback `max`
+- Runtime usage is limited to
+  `assets/js/core/session/sessionFormHelpers.js`.
+- Updated only the affected session-post cache-bust chain to
+  `20260616-session-post-player-count-labels`.
+- Added
+  `docs/reusable-ops-platform-phase3a1-config-label-minimal-result.md`.
+
+Preserved:
+
+- visible output remains `min` / `max`
+- `name="p_player_min"`
+- `name="p_player_max"`
+- `type="number"`
+- `min="0"`
+- payload generation
+- template save/apply
+- edit restore
+- reset handling
+- Discord sync
+- auth/permission checks
+- RPC/DB behavior
+
+Not touched:
+
+- calendar labels
+- `mypageAuthClient.js`
+- normal-script bridge
+- Discord sync labels
+- GM/admin labels
+- application/comment labels
+- membership management labels
+- approved gate labels
+- Phase 2-X `B`, `C`, `D`, or `E` classified labels
+- DB/RPC/enum/status/role values
+- CSS class names
+- DOM ids
+- form input names
+- storage keys
+- URL parameter keys
+- Discord action/payload keys
+- `management_key`
+- raw user id, email, token, or JWT-related values
+
+Checks completed:
+
+- `node --check assets/js/core/config/reusableOpsConfig.js`
+- `node --check assets/js/core/session/sessionFormHelpers.js`
+- `node --check assets/js/renderSessionPost.js`
+- `node --check assets/js/main.js`
+
+Next candidate:
+
+1. Public rollout check for
+   `20260616-session-post-player-count-labels`.
+2. If stable, continue Phase 3-A only with another very small `A` classified
+   label group.
+
+No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+operation, direct Supabase write, debug console logging addition,
+`updates.json` change, auth/permission logic change, RPC/DB key configuration,
+CSS class/DOM id/input name configuration, `management_key` display, or raw
+id/email/token/JWT display was performed.
+
 ## M-14F-107 reusable ops phase 2 completion summary
 
 Status: Phase 2-AA completion summary recorded.

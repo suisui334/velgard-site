@@ -313,3 +313,46 @@ DB/RPC/enum/status/role/CSS/DOM/input-name surfaces remain untouched.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2z-calendar-safe-labels-public-check.md`
+
+## Phase 3-A1 Follow-Up: Session-Post Player Count Sublabels
+
+Phase 3-A1 continued only the low-risk `A` classification after Phase 2 was
+closed.
+
+Connected calendar-external labels:
+
+- visible player-count minimum sublabel: `min`
+- visible player-count maximum sublabel: `max`
+
+The labels now live under:
+
+- `REUSABLE_OPS_CONFIG.session.playerCountLabels`
+
+Runtime usage is limited to:
+
+- `assets/js/core/session/sessionFormHelpers.js`
+
+The implementation keeps explicit local fallbacks:
+
+- `getOpsSessionPlayerCountLabel("min", "min")`
+- `getOpsSessionPlayerCountLabel("max", "max")`
+
+Still not touched:
+
+- calendar labels beyond the Phase 2-Y set
+- `mypageAuthClient.js` and the normal-script bridge
+- session-post template/action/error labels
+- Discord sync labels
+- GM/admin labels
+- application/comment labels
+- membership management labels
+- approved gate labels
+- status/visibility enum display labels
+- player-count formatter wording
+- DB/RPC/enum/status/role values, CSS classes, DOM ids, input names, storage
+  keys, URL parameter keys, Discord payload keys, `management_key`, or raw
+  id/email/token/JWT-related values
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase3a1-config-label-minimal-result.md`

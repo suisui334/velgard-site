@@ -294,3 +294,32 @@ Discord operation, direct Supabase write, debug console logging addition,
 `updates.json` change, auth/permission logic change, RPC/DB key configuration,
 CSS class/DOM id/input name configuration, `management_key` display, or raw
 id/email/token/JWT display was performed for this completion summary.
+
+## Phase 3-A1 Follow-Up
+
+Phase 3-A1 started the low-risk continuation route after Phase 2 completion.
+
+Implemented only a second very small `A` classified label group:
+
+- `session.playerCountLabels.min`
+- `session.playerCountLabels.max`
+
+Runtime usage is limited to `assets/js/core/session/sessionFormHelpers.js`.
+The visible output remains `min` / `max`, and the previous strings are still
+local fallbacks.
+
+Not changed:
+
+- calendar labels
+- `mypageAuthClient.js` or the normal-script bridge
+- Discord sync labels
+- GM/admin controls
+- application/comment UI
+- membership management UI
+- status/visibility enum labels
+- player-count formatter wording
+- DB/RPC/enum/status/role/CSS class/DOM id/input name surfaces
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase3a1-config-label-minimal-result.md`
