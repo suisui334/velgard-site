@@ -465,3 +465,19 @@ Recorded:
 Detailed plan:
 
 - `docs/reusable-ops-platform-phase2x-config-label-gap-plan.md`
+
+## Phase 2 Completion Follow-Up
+
+The midpoint summary remains useful as the record for Phase 2-A through
+Phase 2-M. Phase 2-N through Phase 2-Z continued the same conservative
+approach, and Phase 2-AA now closes the full Phase 2 track.
+
+Current completion reference:
+
+- `docs/reusable-ops-platform-phase2-completion-summary.md`
+
+Phase 2 completion does not mean the entire reusable platform extraction is
+finished. It means the initial `core/config`, `core/calendar`, and
+`core/session` helper separation is complete, while larger page orchestrators,
+auth/RPC/DB behavior, Discord sync, CSS splitting, and authenticated
+data-changing QA remain Phase 3 or later work.

@@ -9064,6 +9064,71 @@ operation, direct Supabase write, debug console logging addition,
 rewrite, CSS split, auth/permission logic change, RPC/DB key configuration,
 `management_key` display, or raw id/email/token/JWT display was performed.
 
+## M-14F-107 reusable ops phase 2 completion summary
+
+Status: Phase 2-AA completion summary recorded.
+
+- Baseline: `462c7d5 Check reusable ops calendar labels rollout`.
+- Added `docs/reusable-ops-platform-phase2-completion-summary.md`.
+- Recorded Phase 2 completed scope:
+  - `core/config` setup and config file move.
+  - `core/calendar` renderer move.
+  - `core/session` display and HTML helper extraction.
+  - session detail row and array row helper extraction.
+  - session tags and summary helper extraction.
+  - session-post field helper extraction.
+  - player count label and field helper extraction.
+  - calendar safe labels config connection.
+  - public static rollout checks.
+- Recorded current core structure:
+  - `assets/js/core/config/`
+  - `assets/js/core/calendar/`
+  - `assets/js/core/session/`
+- Recorded facades kept in place:
+  - `assets/js/sessionDisplay.js`
+  - `assets/js/renderSessionPost.js`
+- Marked Phase 2 as complete for the initial reusable ops core separation
+  scope.
+- Organized QA status into:
+  - completed
+  - limited / `no_obvious_issue_observed`
+  - `not_tested`
+- Organized Phase 3 candidate routes:
+  - low-risk label/docs/formatter continuation.
+  - regulation/world template track.
+  - QA strengthening.
+  - medium/high-risk split preparation.
+- Updated:
+  - `docs/reusable-ops-platform-phase2-late-summary.md`
+  - `docs/reusable-ops-platform-phase2-midpoint-summary.md`
+  - `docs/reusable-ops-platform-phase2-boundary-plan.md`
+  - `docs/reusable-ops-platform-extraction-plan.md`
+
+Not changed:
+
+- implementation files
+- JS/CSS/HTML/data
+- SQL/DB/RPC/RLS
+- Edge/Discord
+- `updates.json`
+- auth/permission/RPC key/config surfaces
+- `management_key` or raw id/email/token/JWT surfaces
+
+Next candidate:
+
+1. Start Phase 3 with one of:
+   - Phase 3-A low-risk additional A-label config gates.
+   - Phase 3-B regulation/world template detail.
+   - Phase 3-C authenticated QA planning.
+   - Phase 3-D split-prep audits.
+
+No implementation change, file move, JS change, CSS change, HTML change, data
+change, SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+Discord operation, direct Supabase write, debug console logging addition,
+`updates.json` change, auth/permission logic change, RPC/DB key configuration,
+CSS class/DOM id/input name configuration, `management_key` display, or raw
+id/email/token/JWT display was performed.
+
 ## M-14F-105 reusable ops safe calendar label connection
 
 Status: Phase 2-Y minimal A-class label connection implemented.

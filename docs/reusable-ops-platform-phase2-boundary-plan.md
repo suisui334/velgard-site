@@ -1022,3 +1022,46 @@ Boundary unchanged:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2z-calendar-safe-labels-public-check.md`
+
+## Phase 2-AA Completion Boundary
+
+Phase 2-AA marks the Phase 2 file-boundary work complete for the initial
+reusable ops core separation scope.
+
+Final Phase 2 core boundary:
+
+- `assets/js/core/config/`
+  - `reusableOpsConfig.js`
+  - `reusableOpsMypageLabels.js`
+- `assets/js/core/calendar/`
+  - `renderCalendar.js`
+- `assets/js/core/session/`
+  - `sessionDisplayHelpers.js`
+  - `sessionHtmlHelpers.js`
+  - `sessionFormHelpers.js`
+  - `sessionPlayerCountHelpers.js`
+
+Still intentionally outside the core move:
+
+- `assets/js/main.js`
+- `assets/js/sessionData.js`
+- whole-file `assets/js/sessionDisplay.js`
+- whole-file `assets/js/renderSessionPost.js`
+- `assets/js/renderSessionDetail.js`
+- `assets/js/mypageAuthClient.js`
+- `assets/js/membershipAccessClient.js`
+- `assets/js/discordSyncClient.js`
+- `assets/css/style.css`
+
+Reason:
+
+- those files are close to routing, auth, membership gates, session loading,
+  payload generation, templates, event handlers, Discord sync, or broad CSS
+  surfaces
+
+Phase 3 should treat any further movement as a new plan, not as unfinished
+Phase 2 work.
+
+Detailed completion summary:
+
+- `docs/reusable-ops-platform-phase2-completion-summary.md`

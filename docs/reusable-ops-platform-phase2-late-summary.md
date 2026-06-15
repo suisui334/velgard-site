@@ -462,3 +462,26 @@ operation and data-changing behavior remain separate explicit QA gates.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2z-calendar-safe-labels-public-check.md`
+
+## Phase 2-AA Completion Summary
+
+Phase 2-AA closes the Phase 2 reusable ops core separation track as complete
+for its initial scope.
+
+Completion basis:
+
+- `core/config`, `core/calendar`, and `core/session` initial separation is in
+  place
+- safe display/config/helper extractions have been implemented and documented
+- public static rollout checks have been recorded for the moved helpers and
+  cache-bust chains
+- `sessionDisplay.js` and `renderSessionPost.js` remain compatibility and page
+  orchestration facades
+- large renderers, auth/RPC/DB behavior, Discord sync, payload generation,
+  data-changing operations, and CSS splitting were intentionally left for
+  Phase 3 or later
+- QA status is split into completed, limited, and `not_tested`
+
+Detailed completion summary:
+
+- `docs/reusable-ops-platform-phase2-completion-summary.md`

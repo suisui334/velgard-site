@@ -1384,3 +1384,41 @@ visible. It does not replace authenticated browser QA or data-changing QA.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2z-calendar-safe-labels-public-check.md`
+
+## Phase 2-AA Completion
+
+Phase 2-AA closes the initial reusable ops platform core separation stage.
+
+Completed in Phase 2:
+
+- config entry files moved under `assets/js/core/config/`
+- calendar renderer moved under `assets/js/core/calendar/`
+- pure session display helpers and small HTML helpers moved under
+  `assets/js/core/session/`
+- session-post field helpers and player-count helpers moved under
+  `assets/js/core/session/`
+- the first low-risk calendar label group was connected to
+  `reusableOpsConfig`
+- public static delivery checks were recorded for moved files and updated
+  cache-bust chains
+
+Deferred beyond Phase 2:
+
+- `main.js` split
+- `sessionData.js` move
+- whole-file `sessionDisplay.js` move
+- whole-file `renderSessionPost.js` move
+- `renderSessionDetail.js` split
+- `mypageAuthClient.js` split
+- `membershipAccessClient.js` split
+- `discordSyncClient.js` split
+- `style.css` split
+- Discord sync separation
+- DB/RPC/RLS restructuring
+- authenticated role-specific and data-changing QA
+
+Phase 3 should continue from this boundary rather than extending Phase 2.
+
+Detailed completion summary:
+
+- `docs/reusable-ops-platform-phase2-completion-summary.md`
