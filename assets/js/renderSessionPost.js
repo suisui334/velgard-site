@@ -4,6 +4,11 @@ import {
   getSessionTypeLabel
 } from "./sessionDisplay.js?v=20260615-session-summary-tags-extract";
 import {
+  renderSelectField,
+  renderTextareaField,
+  renderTextField
+} from "./core/session/sessionFormHelpers.js?v=20260615-session-post-field-helper-extract";
+import {
   createSupabaseBrowserClient,
   getSupabaseRuntimeConfig,
   hasSupabaseRuntimeConfig
@@ -304,44 +309,6 @@ function renderShell(initialStartAt = "") {
         <dl class="session-post-result-list" data-session-post-result></dl>
       </article>
     </section>
-  `;
-}
-
-function renderTextField(label, name, type, options = {}) {
-  const attrs = [
-    `type="${escapeHtml(type)}"`,
-    `name="${escapeHtml(name)}"`,
-    options.required ? "required" : "",
-    options.maxlength ? `maxlength="${Number(options.maxlength)}"` : "",
-    Number.isFinite(Number(options.min)) ? `min="${Number(options.min)}"` : "",
-    typeof options.value === "string" ? `value="${escapeHtml(options.value)}"` : "",
-    options.placeholder ? `placeholder="${escapeHtml(options.placeholder)}"` : ""
-  ].filter(Boolean).join(" ");
-  return `
-    <label class="session-post-field">
-      <span>${escapeHtml(label)}</span>
-      <input ${attrs}>
-    </label>
-  `;
-}
-
-function renderSelectField(label, name, options, selectedValue) {
-  return `
-    <label class="session-post-field">
-      <span>${escapeHtml(label)}</span>
-      <select name="${escapeHtml(name)}">
-        ${options.map(([value, text]) => `<option value="${escapeHtml(value)}"${value === selectedValue ? " selected" : ""}>${escapeHtml(text)}</option>`).join("")}
-      </select>
-    </label>
-  `;
-}
-
-function renderTextareaField(label, name, maxlength) {
-  return `
-    <label class="session-post-field session-post-field--wide">
-      <span>${escapeHtml(label)}</span>
-      <textarea name="${escapeHtml(name)}" maxlength="${Number(maxlength)}" rows="5"></textarea>
-    </label>
   `;
 }
 

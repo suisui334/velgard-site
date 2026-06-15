@@ -702,3 +702,41 @@ behavior.
 Detailed plan:
 
 - `docs/reusable-ops-platform-phase2n-session-post-field-helper-plan.md`
+
+## Phase 2-O Session Post Field Helper Extraction
+
+Phase 2-O moved only the three basic session-post field renderers into the
+core session helper area.
+
+Moved:
+
+- `renderTextField`
+- `renderSelectField`
+- `renderTextareaField`
+
+New file:
+
+- `assets/js/core/session/sessionFormHelpers.js`
+
+Updated references:
+
+- `assets/js/renderSessionPost.js` imports the new helper module.
+- `assets/js/main.js` uses the `20260615-session-post-field-helper-extract`
+  query for the session-post renderer.
+- `session-post.html` uses the same query for its main module chain.
+
+Still intentionally left in place:
+
+- `renderPlayerCountFields`
+- `formatPlayerCountLabel`
+- template panel and template preset RPCs
+- Discord mention/sync UI
+- session create/update/delete payload builders and RPC calls
+- auth/access/approved gate logic
+- event handlers
+
+The full `renderSessionPost.js` file remains a do-not-move-yet page module.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2o-session-post-field-helper-result.md`

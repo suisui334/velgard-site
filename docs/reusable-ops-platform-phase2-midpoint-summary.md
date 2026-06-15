@@ -128,7 +128,8 @@ The following files should not be moved or broadly split yet.
 
 ### Medium Risk
 
-- Session-post field helper extraction.
+- Additional session-post field/helper extraction beyond the three basic field
+  renderers.
 - Small session-detail sub-block extraction, excluding actions and role checks.
 - Regulation template structure detailing for tables, term cards, long-form
   cards, and side menu behavior.
@@ -198,3 +199,32 @@ Findings:
 Detailed plan:
 
 - `docs/reusable-ops-platform-phase2n-session-post-field-helper-plan.md`
+
+## Phase 2-O Follow-Up: Session Post Field Helper Extraction
+
+Phase 2-O implemented the narrow extraction identified in Phase 2-N.
+
+Moved to `assets/js/core/session/sessionFormHelpers.js`:
+
+- `renderTextField`
+- `renderSelectField`
+- `renderTextareaField`
+
+`assets/js/renderSessionPost.js` now imports those helpers and remains the
+session-post page orchestrator. The helper destination is session-scoped rather
+than generic form-scoped because the emitted markup still uses
+`session-post-field` class names.
+
+Not changed:
+
+- player count fields
+- template UI and template RPC behavior
+- payload builders and validation
+- create/update/delete RPC flows
+- Discord mention and Discord sync behavior
+- auth/access/approved gate logic
+- event handler registration
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2o-session-post-field-helper-result.md`

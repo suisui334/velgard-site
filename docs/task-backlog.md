@@ -9102,6 +9102,51 @@ flow change, template RPC change, Discord sync behavior change,
 auth/permission logic change, `management_key` display, or raw
 id/email/token/JWT display was performed.
 
+## M-14F-95 session-post field helper extraction
+
+Status: Phase 2-O session-post field helper extraction implemented.
+
+- Baseline: `74edd66 Plan session post field helper extraction`.
+- Added `assets/js/core/session/sessionFormHelpers.js`.
+- Extracted only:
+  - `renderTextField`
+  - `renderSelectField`
+  - `renderTextareaField`
+- Kept the helper module under `core/session` because the markup still emits
+  `session-post-field` CSS classes.
+- Updated `assets/js/renderSessionPost.js` to import the new helper module.
+- Updated the session-post delivery cache-bust chain in `assets/js/main.js`
+  and `session-post.html` to
+  `20260615-session-post-field-helper-extract`.
+- Added
+  `docs/reusable-ops-platform-phase2o-session-post-field-helper-result.md`.
+
+Not changed:
+
+- `renderPlayerCountFields`
+- `formatPlayerCountLabel`
+- session create/update/delete payload builders
+- save/edit/delete flows
+- template panel, template application, and template RPC behavior
+- Discord mention and Discord sync behavior
+- auth/access/approved gate behavior
+- event handler registration
+- DB/RPC/RLS contracts
+
+Next candidates:
+
+1. Public rollout check for the session-post field helper extraction.
+2. Decide whether `renderPlayerCountFields` can move after label/fallback
+   policy is stable.
+3. Keep template/Discord/save/edit behavior behind separate explicit gates.
+
+No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+operation, direct Supabase write, debug console logging addition,
+`updates.json` change, `renderSessionPost.js` large rewrite, post save/edit
+flow change, template RPC change, Discord sync behavior change,
+auth/permission logic change, `management_key` display, or raw
+id/email/token/JWT display was performed.
+
 ## M-14F-92 session summary/tag light visual QA record
 
 Status: Phase 2-M lightweight visual check recorded.

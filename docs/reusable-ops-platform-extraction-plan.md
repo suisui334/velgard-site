@@ -1060,3 +1060,42 @@ until small display-only helpers are split behind dedicated QA gates.
 Detailed plan:
 
 - `docs/reusable-ops-platform-phase2n-session-post-field-helper-plan.md`
+
+## Phase 2-O Session Post Field Helper Extraction
+
+Phase 2-O implemented the smallest safe part of the Phase 2-N plan.
+
+New core file:
+
+- `assets/js/core/session/sessionFormHelpers.js`
+
+Extracted helpers:
+
+- `renderTextField`
+- `renderSelectField`
+- `renderTextareaField`
+
+The helpers remain session-scoped because they output `session-post-field`
+markup. `assets/js/renderSessionPost.js` imports them and stays in place as the
+session-post renderer and behavior module.
+
+Updated delivery:
+
+- `session-post.html`
+- `assets/js/main.js`
+- `assets/js/renderSessionPost.js`
+
+Not changed:
+
+- `renderPlayerCountFields`
+- `formatPlayerCountLabel`
+- template UI and template RPCs
+- Discord mention/sync behavior
+- payload builders and validation
+- save/edit/delete flows
+- auth/access/approved gate logic
+- event handlers
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2o-session-post-field-helper-result.md`

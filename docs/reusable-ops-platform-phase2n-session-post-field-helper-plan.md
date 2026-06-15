@@ -120,6 +120,39 @@ A later implementation gate can use this sequence:
 Only after that should `renderPlayerCountFields` or `formatPlayerCountLabel` be
 considered.
 
+## Phase 2-O Implementation Follow-Up
+
+Phase 2-O implemented the first narrow extraction from this plan.
+
+Extracted:
+
+- `renderTextField`
+- `renderSelectField`
+- `renderTextareaField`
+
+Destination:
+
+- `assets/js/core/session/sessionFormHelpers.js`
+
+The destination stayed under `core/session` because the helpers still emit
+`session-post-field` CSS classes. `renderSessionPost.js` now imports these
+helpers and remains the page renderer/orchestrator.
+
+Still not extracted:
+
+- `renderPlayerCountFields`
+- `formatPlayerCountLabel`
+- template UI and template RPC behavior
+- Discord mention/sync behavior
+- payload builders
+- save/edit/delete flows
+- auth/access/approved gate checks
+- event handlers
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2o-session-post-field-helper-result.md`
+
 ## QA Notes For A Future Gate
 
 If helper extraction is implemented later, check:
