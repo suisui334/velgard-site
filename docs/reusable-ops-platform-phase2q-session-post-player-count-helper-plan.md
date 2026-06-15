@@ -133,3 +133,25 @@ If either helper is moved later, verify:
 
 Data-changing create/edit/delete and Discord sync QA remain separate explicit
 gates.
+
+## Phase 2-R Follow-Up
+
+Phase 2-R fixed the current player-count display and fallback behavior in a
+dedicated behavior spec:
+
+- `docs/reusable-ops-platform-phase2r-player-count-behavior-spec.md`
+
+No implementation change was made. The spec records the current
+`p_player_min` / `p_player_max` form-name contract, field attributes,
+template save/apply behavior, managed edit restore behavior, reset behavior,
+payload conversion, Discord sync distance, and `formatPlayerCountLabel`
+fallback matrix.
+
+Next implementation guidance:
+
+1. Move `formatPlayerCountLabel` first only if its current wording and fallback
+   output are intentionally preserved.
+2. Move `renderPlayerCountFields` only in a dedicated gate that includes
+   template, managed edit, reset, and payload checks.
+3. Keep `p_player_min` / `p_player_max`, RPC names, DB column names, and
+   permission logic out of `reusableOpsConfig`.

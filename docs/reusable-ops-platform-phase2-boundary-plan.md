@@ -789,3 +789,36 @@ surfaces stayed untouched.
 Detailed plan:
 
 - `docs/reusable-ops-platform-phase2q-session-post-player-count-helper-plan.md`
+
+## Phase 2-R Player Count Behavior Boundary
+
+Phase 2-R documented the current player-count contract before any helper move.
+
+Detailed spec:
+
+- `docs/reusable-ops-platform-phase2r-player-count-behavior-spec.md`
+
+Boundary decision:
+
+- `formatPlayerCountLabel` remains a low-to-medium risk extraction candidate
+  once its exact output wording is intentionally preserved.
+- `renderPlayerCountFields` remains session-post-specific because it emits
+  `session-post-*` classes and hard-codes payload/template field names.
+- If moved later, `renderPlayerCountFields` should go to
+  `assets/js/core/session/sessionFormHelpers.js`, not generic `core/form`.
+
+Do not move yet:
+
+- payload builders
+- template save/apply behavior
+- managed edit restore/reset behavior
+- create/update RPC flows
+- Discord sync wrappers
+
+Compatibility conditions now fixed:
+
+- input names `p_player_min` / `p_player_max`
+- numeric input type with `min="0"`
+- empty value -> payload `null`
+- non-integer value -> `invalid-player-count`
+- current player-count label fallback matrix

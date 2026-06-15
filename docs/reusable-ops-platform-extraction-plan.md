@@ -1145,3 +1145,34 @@ extractions.
 Detailed plan:
 
 - `docs/reusable-ops-platform-phase2q-session-post-player-count-helper-plan.md`
+
+## Phase 2-R Player Count Behavior Spec
+
+Phase 2-R documented the current player-count display and fallback behavior
+without changing implementation.
+
+Added:
+
+- `docs/reusable-ops-platform-phase2r-player-count-behavior-spec.md`
+
+The spec fixes the current boundary for future extraction:
+
+- `renderPlayerCountFields` owns a session-post-specific pair of numeric
+  controls named `p_player_min` and `p_player_max`
+- those names are part of payload generation, template save/apply, managed
+  edit restore, and reset behavior
+- both controls currently have `min="0"` and no required/placeholder/max/id or
+  custom input class
+- `formatPlayerCountLabel` currently distinguishes range, min-only, max-only,
+  zero, missing, raw numeric string, and invalid raw string cases
+- Discord sync does not directly depend on the renderer, but create/update
+  flows still pass player-count payload values onward
+
+Future direction:
+
+- Extract `formatPlayerCountLabel` first only if exact wording/fallback output
+  remains unchanged.
+- Extract `renderPlayerCountFields` only with a dedicated gate that checks
+  template save/apply, managed edit, reset, and payload behavior.
+- Keep payload keys, RPC names, DB column names, and permission logic out of
+  `reusableOpsConfig`.

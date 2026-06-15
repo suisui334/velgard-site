@@ -9180,6 +9180,46 @@ direct Supabase write, debug console logging addition, `updates.json` change,
 auth/permission logic change, `management_key` display, or raw
 id/email/token/JWT display was performed.
 
+## M-14F-98 session-post player count behavior spec
+
+Status: Phase 2-R player count behavior spec completed.
+
+- Baseline: `114fd2f Plan session post player count helper extraction`.
+- Added
+  `docs/reusable-ops-platform-phase2r-player-count-behavior-spec.md`.
+- Kept this gate documentation-only. No JS, CSS, data, file move, SQL,
+  DB/RPC/RLS, Discord, auth, permission, import/export, or runtime behavior
+  change was made.
+- Fixed the current `renderPlayerCountFields` contract before future
+  extraction:
+  - one grouped field with `session-post-field session-post-player-field`
+  - visible label from `getSessionPostLabel("playerCount", "募集人数")`
+  - two numeric inputs named `p_player_min` and `p_player_max`
+  - each input currently has `min="0"`
+  - no input id, custom input class, `required`, `placeholder`, `max`, or
+    initial value attribute
+- Documented the relation to payload generation, template save/apply, managed
+  edit restore, new-session reset, and Discord sync payload distance.
+- Fixed the current `formatPlayerCountLabel` fallback matrix:
+  - finite min/max -> `min〜max名`
+  - finite same min/max -> same range shape, e.g. `3〜3名`
+  - max only -> `最大N名`
+  - min only -> `最低N名`
+  - missing/non-finite/raw-string direct input -> `未設定`
+  - numeric strings from managed rows are converted before display by
+    `toNumberOrNull()`
+- Next implementation preference: extract `formatPlayerCountLabel` first only
+  if the exact output contract is preserved; move `renderPlayerCountFields`
+  later in a dedicated gate with template/edit/reset/payload QA.
+- Keep `p_player_min` / `p_player_max`, RPC names, DB column names, and
+  permission logic out of `reusableOpsConfig`.
+
+No implementation change, helper extraction, file move, JS import/export
+change, CSS change, data change, SQL Editor execution, SQL apply, DB/RPC/RLS
+mutation, Edge deploy, Discord operation, direct Supabase write, debug console
+logging addition, `updates.json` change, auth/permission logic change,
+`management_key` display, or raw id/email/token/JWT display was performed.
+
 ## M-14F-95 session-post field helper extraction
 
 Status: Phase 2-O session-post field helper extraction implemented.
