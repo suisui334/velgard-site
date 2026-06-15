@@ -616,3 +616,15 @@ Reason:
 The pilot plan keeps magic-angel rulings, reward/honor values, level-cap column
 definitions, TOC behavior, and all auth/RPC/DB/Discord concerns out of the
 first data/json implementation gate.
+
+## Phase 3-B4 Term Explanations Spec
+
+Phase 3-B4 documents the current behavior of the selected pilot target:
+
+- `docs/world-template-regulation-term-explanations-spec.md`
+
+The spec records the current data fields, card count, optional callout behavior,
+DOM/class structure, empty-data behavior, comparison checklist, and future
+implementation options. It recommends a world-site data module as the first
+implementation direction because it avoids adding another JSON fetch during the
+initial pilot.

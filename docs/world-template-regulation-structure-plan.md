@@ -414,3 +414,14 @@ The term-card pilot is preferred because it is already close to data, has a
 small repeated structure, is easy to compare visually/textually, and does not
 require TOC, active menu, CSS class, DOM id, level-cap table, reward value,
 special ruling, or ops-core changes.
+
+## Phase 3-B4 Term Explanations Behavior Freeze
+
+Phase 3-B4 freezes the current term-card behavior:
+
+- `docs/world-template-regulation-term-explanations-spec.md`
+
+The spec keeps term explanation cards on the world-site template side and
+records that future work should preserve the `term-explanations` section id,
+card order, paragraph text, optional callout behavior, current CSS classes, TOC
+active behavior, and ops-core separation.

@@ -9829,6 +9829,52 @@ operation, direct Supabase write, debug console logging addition,
 CSS class configuration, DOM id configuration, input name configuration,
 `management_key` display, or raw id/email/token/JWT display was performed.
 
+## M-14F-120 term explanations behavior spec
+
+Status: Phase 3-B4 `termExplanations` behavior freeze completed.
+
+- Baseline: `bb32890 Plan regulation data pilot`.
+- Added `docs/world-template-regulation-term-explanations-spec.md`.
+- Recorded current data source:
+  `data/regulation.json` key `termExplanations`.
+- Recorded current renderer:
+  `assets/js/renderRegulation.js` `renderTermExplanations(regulation)`.
+- Fixed current data facts:
+  - 12 cards
+  - `term` appears in 12/12 records
+  - `paragraphs` appears in 12/12 records
+  - `exampleTitle` appears in 1/12 records
+  - `exampleParagraphs` appears in 1/12 records
+  - no empty `term` values
+  - no missing or empty `paragraphs` arrays
+  - one example/callout, attached to `上限報酬`
+- Recorded current DOM/class contract:
+  `section#term-explanations`, `.regulation-term-grid`,
+  `.regulation-term-card`, and `.regulation-callout`.
+- Recorded empty/missing data behavior, TOC/anchor relationship,
+  non-dependencies, and future comparison checklist.
+- Compared future implementation approaches and recommended an initial
+  world-site data module over a separate JSON fetch for the first pilot.
+- Reconfirmed that `termExplanations` belongs to the world-site template side
+  and must not move into reusable ops core.
+
+Next candidates:
+
+1. Create a dedicated implementation gate for the term-card data-module pilot.
+2. Define a normalized text snapshot for the current `term-explanations`
+   section before implementation.
+3. Keep JSON-file migration, level-cap table migration, and magic-angel ruling
+   migration behind later separate gates.
+
+No implementation change, HTML change, CSS change, JS change, data/json
+creation, renderer creation, renderer change, regulation body edit, regulation
+visual change, `termExplanations` move, JSON file creation, fetch introduction,
+active TOC change, CSS class change, DOM id change, anchor change,
+`updates.json` change, SQL Editor execution, SQL apply, DB/RPC/RLS mutation,
+Edge deploy, Discord operation, direct Supabase write, debug console logging
+addition, auth/permission logic change, RPC/DB key configuration,
+`management_key` display, or raw id/email/token/JWT display was performed.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

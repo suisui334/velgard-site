@@ -727,3 +727,14 @@ Future implementation gates should keep the first pilot limited to term-card
 data and renderer compatibility. They should not change TOC/active behavior,
 anchors, CSS classes, DOM ids, reward values, honor values, long special
 rulings, auth, membership, RPC, DB, Discord sync, or reusable ops core.
+
+## Phase 3-B4 Term Explanation Behavior Spec
+
+Phase 3-B4 adds the current behavior spec for the selected regulation pilot:
+
+- `docs/world-template-regulation-term-explanations-spec.md`
+
+It records that `termExplanations` currently has 12 cards, is rendered by
+`renderTermExplanations(regulation)`, uses the existing term-card CSS classes,
+and has one optional example callout. It also records the comparison checklist
+and recommends a data-module pilot before a separate JSON-file migration.

@@ -257,3 +257,24 @@ candidates are:
 
 Keep reward values, honor values, long special rulings, and magic-angel data for
 later gates.
+
+## Phase 3-B4 Current Behavior Spec
+
+Phase 3-B4 freezes the current `termExplanations` data and renderer behavior
+before implementation:
+
+- `docs/world-template-regulation-term-explanations-spec.md`
+
+Key fixed facts:
+
+- current source is `data/regulation.json` key `termExplanations`
+- current renderer is `renderTermExplanations(regulation)`
+- current data has 12 cards
+- required-looking fields are `term` and `paragraphs`
+- optional callout fields are `exampleTitle` and `exampleParagraphs`
+- only one current card has a callout
+- output uses `.regulation-term-grid`, `.regulation-term-card`, and
+  `.regulation-callout`
+- section id and anchor remain `term-explanations`
+- Option A, a world-site data module, is recommended for the first
+  implementation gate over adding a new JSON fetch
