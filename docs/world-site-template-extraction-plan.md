@@ -664,3 +664,26 @@ Detailed regulation template policy:
 This follow-up records the concrete Velgard regulation updates, the reusable
 future-world structure, the Velgard-specific content that should remain data,
 and the boundary between regulation pages and reusable ops surfaces.
+
+## Phase 3-B1 Regulation Structure Detail
+
+Phase 3-B1 adds a dedicated structure plan for the regulation page:
+
+- `docs/world-template-regulation-structure-plan.md`
+
+This keeps the regulation page on the world-site template track. The reusable
+target is the structure, not Velgard's design or exact rules:
+
+- page title and lead
+- TOC / side menu with active section state
+- term explanation cards
+- level-cap, reward, honor, and growth tables
+- long house-rule cards
+- individual ruling cards
+- note/callout blocks for GM and player guidance
+
+The plan classifies reusable structure, data/JSON candidates, Velgard-specific
+content, and values that should not be generalized. It also records that
+regulation can connect to `calendar`, `session-post`, `session-detail`, and
+`mypage` through navigation or user guidance, but auth, membership, RPC, DB,
+and Discord sync behavior should remain outside the regulation template.

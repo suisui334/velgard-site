@@ -9702,6 +9702,42 @@ operation, direct Supabase write, debug console logging addition,
 `updates.json` change, auth/permission logic change, `management_key` display,
 or raw id/email/token/JWT display was performed.
 
+## M-14F-117 regulation template structure plan
+
+Status: Phase 3-B1 regulation template structure planning completed.
+
+- Baseline: `f379584 Check reusable ops session labels rollout`.
+- Added `docs/world-template-regulation-structure-plan.md`.
+- Classified regulation page parts into reusable structure, data/JSON
+  candidates, Velgard-specific content, and values that should not be
+  generalized.
+- Recorded template parts including TOC/side menu, active current-section
+  state, term cards, level-cap/reward/honor/growth tables, long house-rule
+  cards, individual ruling cards, GM/PL notes, and callouts.
+- Proposed future data structure candidates such as `regulationPage`,
+  `regulationToc`, `regulationSections`, `regulationBlocks`,
+  `regulationTables`, `termCards`, `houseRules`, `gmNotes`, and `playerNotes`.
+- Reconfirmed that `regulation` belongs to the world-site template side while
+  `calendar`, `mypage`, `session-post`, `session-detail`, membership,
+  application/comment flows, templates, and Discord sync remain reusable ops
+  platform surfaces.
+- Updated regulation/world-template/reusable-ops docs with the Phase 3-B1
+  structure-plan reference.
+
+Next candidates:
+
+1. Draft a docs-only regulation JSON schema proposal.
+2. Audit `renderRegulation.js` constants that are world data rather than
+   renderer behavior.
+3. Record public browser QA for the current regulation layout if needed.
+
+No implementation change, HTML change, CSS change, JS change, data/json
+creation, SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+Discord operation, direct Supabase write, debug console logging addition,
+`updates.json` change, auth/permission logic change, CSS class configuration,
+DOM id configuration, input name configuration, `management_key` display, or
+raw id/email/token/JWT display was performed.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

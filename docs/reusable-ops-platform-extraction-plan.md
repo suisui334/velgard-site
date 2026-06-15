@@ -1481,3 +1481,25 @@ gates.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase3a2-session-player-count-label-public-check.md`
+
+## Phase 3-B1 World Regulation Structure Plan
+
+Phase 3-B1 returned to the world-site template track and documented the
+regulation page structure as a next-world reusable template candidate.
+
+Detailed plan:
+
+- `docs/world-template-regulation-structure-plan.md`
+
+Boundary:
+
+- `calendar`, `mypage`, `session-post`, `session-detail`, membership,
+  application/comment flows, templates, and Discord sync remain reusable ops
+  platform surfaces.
+- `regulation` remains a world-site template page.
+- Regulation can provide rule guidance for ops pages, but regulation data should
+  not absorb auth, membership, RPC, DB, Discord sync, DOM id, CSS class, input
+  name, or internal-key contracts.
+
+No ops-core implementation, file move, JS/CSS/HTML/data change, SQL, RPC, DB,
+Edge, Discord, or secret operation was performed for this planning step.

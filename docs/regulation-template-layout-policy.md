@@ -117,3 +117,28 @@ Connection points:
    - Confirm desktop wide layout, single-column cards, right-side active menu, and mobile stacking on the public site.
 3. Regulation template structure detail:
    - Document the JSON structure for tables, term cards, long-form rule cards, and table-of-contents behavior for future world sites.
+
+## Phase 3-B1 Structure Detail
+
+Phase 3-B1 expands this policy into a structure-level regulation template plan:
+
+- `docs/world-template-regulation-structure-plan.md`
+
+The detailed plan treats regulation as a world-site template page, not an ops
+core page. It separates reusable page skeletons from Velgard-specific rule
+content, records future data/JSON candidates, and keeps auth, membership, RPC,
+DB, and Discord sync outside the regulation template boundary.
+
+Key additions:
+
+- reusable parts: page title, lead, TOC/side menu, active menu state, term cards,
+  tables, long-rule cards, individual ruling cards, GM/PL notes, and caution
+  blocks
+- data candidates: `regulationPage`, `regulationToc`, `regulationSections`,
+  `regulationBlocks`, `regulationTables`, `termCards`, `houseRules`,
+  `gmNotes`, and `playerNotes`
+- layout stance: wide desktop reading area, one-column long rules, side menu
+  with active state, and mobile vertical stacking
+- boundary stance: regulation data and renderer patterns can be reused by a
+  future world site, but ops-core permissions, auth, RPC, DB, Discord sync, DOM
+  ids, CSS classes, and internal keys should not be turned into regulation data
