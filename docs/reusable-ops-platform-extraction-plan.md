@@ -1099,3 +1099,27 @@ Not changed:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2o-session-post-field-helper-result.md`
+
+## Phase 2-P Session Post Field Helper Public Check
+
+Phase 2-P verified public static delivery for the session-post field helper
+extraction.
+
+Confirmed:
+
+- `session-post.html` serves the
+  `20260615-session-post-field-helper-extract` main-module chain.
+- public `main.js` imports the updated `renderSessionPost.js`.
+- public `renderSessionPost.js` imports `sessionFormHelpers.js`.
+- public `sessionFormHelpers.js` is available and exports the extracted
+  helpers.
+- public `calendar.html` and `session-detail.html` are still available.
+
+No import-path repair or cache-bust change was needed in this check.
+
+Authenticated browser behavior and data-changing session-post/template/Discord
+sync QA remain separate explicit gates.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2p-session-post-field-helper-public-check.md`

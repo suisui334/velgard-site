@@ -9102,6 +9102,47 @@ flow change, template RPC change, Discord sync behavior change,
 auth/permission logic change, `management_key` display, or raw
 id/email/token/JWT display was performed.
 
+## M-14F-96 session-post field helper public rollout check
+
+Status: Phase 2-P session-post field helper public rollout check completed.
+
+- Baseline: `00aa439 Extract session post field helpers`.
+- Added
+  `docs/reusable-ops-platform-phase2p-session-post-field-helper-public-check.md`.
+- Public static delivery returned `status=200` for:
+  - `/session-post.html`
+  - `/calendar.html`
+  - `/session-detail.html`
+  - `/assets/js/main.js?v=20260615-session-post-field-helper-extract`
+  - `/assets/js/renderSessionPost.js?v=20260615-session-post-field-helper-extract`
+  - `/assets/js/core/session/sessionFormHelpers.js?v=20260615-session-post-field-helper-extract`
+- Confirmed public `session-post.html` references the updated main-module
+  cache-bust.
+- Confirmed public `main.js` imports the updated `renderSessionPost.js`.
+- Confirmed public `renderSessionPost.js` imports the new
+  `sessionFormHelpers.js`.
+- Confirmed public helper exports `renderTextField`, `renderSelectField`, and
+  `renderTextareaField`.
+- Confirmed `renderPlayerCountFields` and `renderSessionPostTemplatePanel`
+  remain in `renderSessionPost.js`.
+- No helper 404, broken import path, or cache-bust repair was found.
+
+Not tested in this gate:
+
+- authenticated role-specific session-post UI
+- actual post create/edit/delete operations
+- template apply/save/delete operation QA
+- Discord sync operation QA
+- authenticated calendar/session-detail behavior
+
+Reason: these require authenticated sessions or data-changing operations and
+remain separate explicit gates.
+
+No implementation change, SQL Editor execution, SQL apply, DB/RPC/RLS mutation,
+Edge deploy, Discord operation, direct Supabase write, debug console logging
+addition, `updates.json` change, auth/permission logic change,
+`management_key` display, or raw id/email/token/JWT display was performed.
+
 ## M-14F-95 session-post field helper extraction
 
 Status: Phase 2-O session-post field helper extraction implemented.

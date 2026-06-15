@@ -740,3 +740,25 @@ The full `renderSessionPost.js` file remains a do-not-move-yet page module.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2o-session-post-field-helper-result.md`
+
+## Phase 2-P Session Post Field Helper Public Check
+
+Phase 2-P confirmed the public delivery chain after the Phase 2-O extraction.
+
+- `/session-post.html` returned `status=200` and references
+  `main.js?v=20260615-session-post-field-helper-extract`.
+- Public `main.js` imports
+  `renderSessionPost.js?v=20260615-session-post-field-helper-extract`.
+- Public `renderSessionPost.js` imports
+  `core/session/sessionFormHelpers.js?v=20260615-session-post-field-helper-extract`.
+- Public `sessionFormHelpers.js` returned `status=200` and exports the three
+  extracted helpers.
+- `/calendar.html` and `/session-detail.html` also returned `status=200`.
+- No broken helper path or cache-bust repair was required.
+
+Authenticated role-specific behavior, data-changing session-post operations,
+template operations, and Discord sync remain separate explicit QA gates.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2p-session-post-field-helper-public-check.md`

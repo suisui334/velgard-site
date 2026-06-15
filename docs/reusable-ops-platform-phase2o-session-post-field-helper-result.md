@@ -84,3 +84,23 @@ Static checks should cover:
 - no `undefined`, `[object Object]`, or empty labels are introduced
 
 Detailed browser or data-changing session-post QA remains a separate gate.
+
+## Phase 2-P Public Check Follow-Up
+
+Phase 2-P confirmed the public delivery chain for the extracted field helpers:
+
+- public `session-post.html` uses
+  `main.js?v=20260615-session-post-field-helper-extract`
+- public `main.js` imports
+  `renderSessionPost.js?v=20260615-session-post-field-helper-extract`
+- public `renderSessionPost.js` imports
+  `core/session/sessionFormHelpers.js?v=20260615-session-post-field-helper-extract`
+- public `sessionFormHelpers.js` is served successfully and exports the three
+  extracted helpers
+
+No broken import path or helper 404 was found. Authenticated or data-changing
+session-post QA remains outside this check.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2p-session-post-field-helper-public-check.md`

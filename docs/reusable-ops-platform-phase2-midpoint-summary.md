@@ -228,3 +228,29 @@ Not changed:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2o-session-post-field-helper-result.md`
+
+## Phase 2-P Follow-Up: Session Post Field Helper Public Check
+
+Phase 2-P checked the public delivery chain after the session-post field helper
+extraction.
+
+Confirmed:
+
+- public `session-post.html` has the
+  `20260615-session-post-field-helper-extract` main-module cache-bust
+- public `main.js` imports the updated `renderSessionPost.js`
+- public `renderSessionPost.js` imports the new `sessionFormHelpers.js`
+- public `sessionFormHelpers.js` is served and exports `renderTextField`,
+  `renderSelectField`, and `renderTextareaField`
+- public `calendar.html` and `session-detail.html` returned `status=200`
+
+Not tested:
+
+- authenticated role-specific session-post UI
+- data-changing create/edit/delete flows
+- template operation QA
+- Discord sync QA
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2p-session-post-field-helper-public-check.md`
