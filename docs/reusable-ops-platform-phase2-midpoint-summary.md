@@ -340,3 +340,26 @@ Local smoke test:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2s-player-count-label-helper-result.md`
+
+## Phase 2-T Follow-Up: Player Count Label Helper Public Check
+
+Phase 2-T confirmed the public static delivery chain after the player-count
+label helper extraction.
+
+Confirmed:
+
+- public `session-post.html`, `main.js`, `renderSessionPost.js`, and
+  `sessionPlayerCountHelpers.js` returned HTTP 200
+- public `session-post.html` uses the
+  `20260616-player-count-label-helper` main-module cache-bust
+- public `main.js` imports `renderSessionPost.js` with the same cache-bust
+- public `renderSessionPost.js` imports the new helper and does not keep the
+  old local formatter definition
+- public `renderPlayerCountFields` stays in `renderSessionPost.js`
+- public `calendar.html` and `session-detail.html` returned HTTP 200
+
+Authenticated operation and data-changing QA remain separate gates.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2t-player-count-label-helper-public-check.md`

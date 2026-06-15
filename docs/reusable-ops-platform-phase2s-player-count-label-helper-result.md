@@ -98,6 +98,32 @@ Static checks for this implementation should include:
 
 Browser/public rollout remains a separate follow-up gate.
 
+## Phase 2-T Follow-Up
+
+Phase 2-T confirmed the public delivery chain for
+`sessionPlayerCountHelpers.js`.
+
+Public static check result:
+
+- `session-post.html`: HTTP 200 and latest main-module cache-bust present
+- `assets/js/main.js`: HTTP 200 and latest `renderSessionPost.js` import
+  present
+- `assets/js/renderSessionPost.js`: HTTP 200 and latest
+  `sessionPlayerCountHelpers.js` import present
+- `assets/js/core/session/sessionPlayerCountHelpers.js`: HTTP 200 and
+  `formatPlayerCountLabel` export present
+- `calendar.html`: HTTP 200
+- `session-detail.html`: HTTP 200
+
+Still not tested:
+
+- authenticated role-specific operation
+- data-changing create/edit/delete/template/Discord flows
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2t-player-count-label-helper-public-check.md`
+
 ## Next Candidates
 
 Low-risk next step:

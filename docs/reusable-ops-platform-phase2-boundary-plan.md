@@ -846,3 +846,23 @@ contract remains acceptable or a separate label-config gate changes it.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2s-player-count-label-helper-result.md`
+
+## Phase 2-T Player Count Label Helper Public Boundary
+
+Phase 2-T confirmed that the core helper path is publicly served and imported
+by the active session-post module.
+
+Public boundary status:
+
+- `assets/js/core/session/sessionPlayerCountHelpers.js`: served
+- `assets/js/renderSessionPost.js`: imports the helper
+- `renderPlayerCountFields`: still local to `renderSessionPost.js`
+- `p_player_min` / `p_player_max`: still part of the session-post markup and
+  payload/template/edit/reset boundary
+
+This confirms the helper extraction did not require moving the player-count
+field renderer.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2t-player-count-label-helper-public-check.md`

@@ -1205,3 +1205,26 @@ Not changed:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2s-player-count-label-helper-result.md`
+
+## Phase 2-T Player Count Label Helper Public Check
+
+Phase 2-T checked public delivery after the `formatPlayerCountLabel`
+extraction.
+
+Confirmed:
+
+- new helper path returns HTTP 200
+- public helper exports `formatPlayerCountLabel`
+- public `renderSessionPost.js` imports the helper
+- public `session-post.html` and `main.js` use the latest cache-bust chain
+- `renderPlayerCountFields` remains unmoved
+- `calendar.html` and `session-detail.html` remain available
+
+Not tested:
+
+- authenticated browser operation
+- data-changing session-post/template/Discord flows
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2t-player-count-label-helper-public-check.md`

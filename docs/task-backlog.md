@@ -9270,6 +9270,55 @@ change, template behavior change, reset behavior change, Discord sync behavior
 change, auth/permission logic change, `management_key` display, or raw
 id/email/token/JWT display was performed.
 
+## M-14F-100 player count label helper public rollout
+
+Status: Phase 2-T player count label helper public rollout check completed.
+
+- Baseline: `92c718f Extract player count label helper`.
+- Added
+  `docs/reusable-ops-platform-phase2t-player-count-label-helper-public-check.md`.
+- Confirmed public static delivery:
+  - `session-post.html`: HTTP 200
+  - `assets/js/main.js`: HTTP 200
+  - `assets/js/renderSessionPost.js`: HTTP 200
+  - `assets/js/core/session/sessionPlayerCountHelpers.js`: HTTP 200
+  - `calendar.html`: HTTP 200
+  - `session-detail.html`: HTTP 200
+- Confirmed public `session-post.html` uses
+  `20260616-player-count-label-helper`.
+- Confirmed public `main.js` imports `renderSessionPost.js` with the latest
+  cache-bust.
+- Confirmed public `renderSessionPost.js` imports
+  `sessionPlayerCountHelpers.js` with the latest cache-bust.
+- Confirmed public helper exports `formatPlayerCountLabel`.
+- Confirmed public `renderSessionPost.js` no longer contains the local
+  `formatPlayerCountLabel` definition.
+- Confirmed `renderPlayerCountFields` remains unmoved in
+  `assets/js/renderSessionPost.js`.
+- Confirmed public `p_player_min` / `p_player_max` numeric inputs still include
+  `min="0"`.
+
+Not tested:
+
+- authenticated role-specific session-post UI
+- create/edit/delete operations
+- template save/apply operation QA
+- reset and managed edit browser operation QA
+- Discord sync operation QA
+
+Reason:
+
+- those checks require authenticated sessions or real data-changing operations
+  and remain separate explicit gates.
+
+No implementation change, cache-bust repair, SQL Editor execution, SQL apply,
+DB/RPC/RLS mutation, Edge deploy, Discord operation, direct Supabase write,
+debug console logging addition, `updates.json` change, `renderPlayerCountFields`
+move, `p_player_min` / `p_player_max` field change, payload generation change,
+template behavior change, reset behavior change, Discord sync behavior change,
+auth/permission logic change, `management_key` display, or raw
+id/email/token/JWT display was performed.
+
 ## M-14F-95 session-post field helper extraction
 
 Status: Phase 2-O session-post field helper extraction implemented.

@@ -256,3 +256,23 @@ Not moved:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2s-player-count-label-helper-result.md`
+
+## Phase 2-T Public Check
+
+Phase 2-T confirmed the public static delivery after the
+`formatPlayerCountLabel` extraction.
+
+Confirmed:
+
+- public `session-post.html` uses the
+  `20260616-player-count-label-helper` cache-bust
+- public `renderSessionPost.js` imports
+  `assets/js/core/session/sessionPlayerCountHelpers.js`
+- public helper exports `formatPlayerCountLabel`
+- `renderPlayerCountFields` remains in the public session-post module
+- public `p_player_min` / `p_player_max` numeric input markup still includes
+  `min="0"`
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2t-player-count-label-helper-public-check.md`

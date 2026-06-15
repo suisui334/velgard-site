@@ -178,3 +178,20 @@ Still not extracted:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2s-player-count-label-helper-result.md`
+
+## Phase 2-T Follow-Up
+
+Phase 2-T checked the public rollout after the `formatPlayerCountLabel`
+extraction.
+
+Result:
+
+- public helper path is served
+- public helper exports `formatPlayerCountLabel`
+- public `renderSessionPost.js` imports the helper
+- public `session-post.html` and `main.js` use the latest cache-bust chain
+- `renderPlayerCountFields` remains unmoved
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2t-player-count-label-helper-public-check.md`
