@@ -1001,3 +1001,24 @@ summary/tag extraction.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2m-session-summary-tags-visual-check.md`
+
+## Phase 2 Midpoint Summary
+
+The Phase 2 midpoint summary consolidates the current reusable ops core
+separation state after Phase 2-M.
+
+Key points:
+
+- Core-side files now exist under `assets/js/core/config/`,
+  `assets/js/core/calendar/`, and `assets/js/core/session/`.
+- `sessionDisplay.js` remains the compatibility facade.
+- Pure session formatters and small HTML helpers have been extracted.
+- `main.js`, `sessionData.js`, `mypageAuthClient.js`, session-post/detail
+  renderers, membership access, Discord sync, and `style.css` should not be
+  moved yet.
+- Static public checks and light visual checks are partially complete, while
+  authenticated detailed QA remains separate.
+
+Detailed summary:
+
+- `docs/reusable-ops-platform-phase2-midpoint-summary.md`

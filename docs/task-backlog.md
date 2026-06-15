@@ -9088,6 +9088,41 @@ operation, direct Supabase write, debug console logging addition,
 `updates.json` change, auth/permission logic change, `management_key` display,
 or raw id/email/token/JWT display was performed.
 
+## M-14F-93 reusable ops phase 2 midpoint summary
+
+Status: Phase 2 midpoint summary completed.
+
+- Baseline: `a5066ba Record session summary tag visual QA`.
+- Added `docs/reusable-ops-platform-phase2-midpoint-summary.md`.
+- Summarized Phase 1 configuration foundation and Phase 2 physical separation
+  progress.
+- Listed core-side files now under `assets/js/core/config/`,
+  `assets/js/core/calendar/`, and `assets/js/core/session/`.
+- Listed extracted pure session helpers and small HTML helpers.
+- Recorded that `assets/js/sessionDisplay.js` remains the compatibility
+  facade.
+- Documented files that should not be moved yet:
+  `main.js`, `sessionData.js`, whole-file `sessionDisplay.js`,
+  `mypageAuthClient.js`, `renderSessionPost.js`, `renderSessionDetail.js`,
+  `membershipAccessClient.js`, `discordSyncClient.js`, and `style.css`.
+- Organized next candidates into low, medium, and high risk.
+- Separated static delivery checks, light visual checks, authenticated browser
+  QA, and data-changing QA.
+
+Next candidates:
+
+1. Static public rollout check for
+   `20260615-session-summary-tags-extract`.
+2. Detailed authenticated browser QA for session-detail, session-post, and
+   calendar if safe sessions are available.
+3. Further helper extraction only for tiny pure helpers after public checks.
+
+No implementation change, file move, JS change, CSS change, data change, SQL
+Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+operation, direct Supabase write, debug console logging addition,
+`updates.json` change, auth/permission logic change, `management_key` display,
+or raw id/email/token/JWT display was performed.
+
 ## M-14F-91 session summary/tag helper extraction
 
 Status: Phase 2-L summary/tag helper extraction implemented.

@@ -650,6 +650,26 @@ Detailed result:
 
 - `docs/reusable-ops-platform-phase2m-session-summary-tags-visual-check.md`
 
+## Phase 2 Midpoint Summary
+
+Phase 2 midpoint status has been consolidated in a dedicated summary document.
+
+The current boundary is:
+
+- moved/added core files: config bridge, calendar renderer, pure session
+  display helpers, and small session HTML helpers
+- retained facade: `assets/js/sessionDisplay.js`
+- do-not-move-yet files: `main.js`, `sessionData.js`, `mypageAuthClient.js`,
+  `renderSessionPost.js`, `renderSessionDetail.js`,
+  `membershipAccessClient.js`, `discordSyncClient.js`, and `style.css`
+- completed checks: config move, calendar move, pure helper rollout, row helper
+  rollout, and lightweight summary/tag visual check
+- remaining QA: authenticated role-specific and data-changing operations
+
+Detailed summary:
+
+- `docs/reusable-ops-platform-phase2-midpoint-summary.md`
+
 This regulation follow-up does not alter the Phase 2 ops-core boundary.
 `renderRegulation.js`, `regulation.html`, and `data/regulation.json` remain on
 the world-site side. The reusable value is the regulation page skeleton,
