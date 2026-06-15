@@ -1286,3 +1286,24 @@ sync QA remain separate explicit gates.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2v-player-count-field-helper-public-check.md`
+
+## Phase 2-W Reusable Ops Late Summary
+
+Phase 2-W added a documentation-only summary for the late Phase 2 reusable ops
+separation work.
+
+It consolidates:
+
+- session-post helper audit outcomes
+- basic field helper extraction and public rollout
+- player-count behavior specification
+- `formatPlayerCountLabel` extraction and public rollout
+- `renderPlayerCountFields` extraction and public rollout
+- current `assets/js/core/` structure
+- files still too risky for whole-file movement
+- QA status split into completed, limited, and separate-gate scopes
+- next candidates by risk level
+
+Detailed summary:
+
+- `docs/reusable-ops-platform-phase2-late-summary.md`

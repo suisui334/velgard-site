@@ -422,3 +422,27 @@ Not tested:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2v-player-count-field-helper-public-check.md`
+
+## Phase 2-W Late Summary
+
+Phase 2-W added a documentation-only late summary for the session-post helper
+extraction track after the midpoint summary.
+
+Covered range:
+
+- Phase 2-N session-post helper audit
+- Phase 2-O/P basic field helper extraction and public rollout
+- Phase 2-Q/R player-count boundary audit and behavior spec
+- Phase 2-S/T `formatPlayerCountLabel` extraction and public rollout
+- Phase 2-U/V `renderPlayerCountFields` extraction and public rollout
+
+The summary also refreshes:
+
+- current `assets/js/core/` structure
+- files that should not move yet
+- completed, limited, and not-tested QA scopes
+- next candidates by risk
+
+Detailed summary:
+
+- `docs/reusable-ops-platform-phase2-late-summary.md`

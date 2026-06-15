@@ -9319,6 +9319,59 @@ template behavior change, reset behavior change, Discord sync behavior change,
 auth/permission logic change, `management_key` display, or raw
 id/email/token/JWT display was performed.
 
+## M-14F-103 reusable ops phase 2 late summary
+
+Status: Phase 2-W late summary completed.
+
+- Baseline: `34a7674 Check player count field helper rollout`.
+- Added `docs/reusable-ops-platform-phase2-late-summary.md`.
+- Summarized the Phase 2-N through Phase 2-V session-post helper extraction
+  track.
+- Recorded Phase 2-N helper audit outcomes:
+  - immediate candidates: `renderTextField`, `renderSelectField`,
+    `renderTextareaField`
+  - conditional candidates: `renderPlayerCountFields`,
+    `formatPlayerCountLabel`
+  - excluded surfaces: save/edit, template RPC, Discord sync, auth/approved
+    gate, payload generation, and event handlers
+- Recorded Phase 2-O/P extraction and public rollout of:
+  - `renderTextField`
+  - `renderSelectField`
+  - `renderTextareaField`
+- Recorded Phase 2-Q/R player-count behavior specification and why
+  `renderPlayerCountFields` required a dedicated gate.
+- Recorded Phase 2-S/T extraction and public rollout of
+  `formatPlayerCountLabel`.
+- Recorded Phase 2-U/V extraction and public rollout of
+  `renderPlayerCountFields`.
+- Summarized current core paths:
+  - `assets/js/core/config/`
+  - `assets/js/core/calendar/`
+  - `assets/js/core/session/`
+- Reconfirmed files that should not move broadly yet:
+  - `assets/js/main.js`
+  - `assets/js/sessionData.js`
+  - whole-file `assets/js/sessionDisplay.js`
+  - whole-file `assets/js/renderSessionPost.js`
+  - `assets/js/renderSessionDetail.js`
+  - `assets/js/mypageAuthClient.js`
+  - `assets/js/membershipAccessClient.js`
+  - `assets/js/discordSyncClient.js`
+  - `assets/css/style.css`
+- Separated completed static/public checks, limited visual checks, and
+  not-tested/data-changing QA gates.
+- Organized next candidates into low, medium, and high risk.
+- Updated:
+  - `docs/reusable-ops-platform-phase2-midpoint-summary.md`
+  - `docs/reusable-ops-platform-phase2-boundary-plan.md`
+  - `docs/reusable-ops-platform-extraction-plan.md`
+
+No implementation change, file move, JS change, CSS change, data change, SQL
+Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+operation, direct Supabase write, debug console logging addition,
+`updates.json` change, auth/permission logic change, `management_key` display,
+or raw id/email/token/JWT display was performed.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

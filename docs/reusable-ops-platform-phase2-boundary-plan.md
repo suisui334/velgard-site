@@ -916,3 +916,24 @@ edit restore, reset, Discord, auth, permission, RPC, or DB behavior.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2v-player-count-field-helper-public-check.md`
+
+## Phase 2-W Late Boundary Summary
+
+Phase 2-W created a documentation-only late summary for the Phase 2 session-post
+helper extraction track.
+
+Boundary status after Phase 2-V:
+
+- `assets/js/core/session/sessionFormHelpers.js` now contains the basic
+  session-post field helpers and `renderPlayerCountFields`.
+- `assets/js/core/session/sessionPlayerCountHelpers.js` contains
+  `formatPlayerCountLabel`.
+- `assets/js/renderSessionPost.js` still owns page orchestration, validation,
+  templates, payload generation, event handlers, Discord-adjacent behavior,
+  auth/access flow, and RPC calls.
+- authenticated role-specific operation and data-changing QA remain separate
+  gates.
+
+Detailed summary:
+
+- `docs/reusable-ops-platform-phase2-late-summary.md`
