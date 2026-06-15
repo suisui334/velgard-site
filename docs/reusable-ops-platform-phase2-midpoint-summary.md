@@ -363,3 +363,29 @@ Authenticated operation and data-changing QA remain separate gates.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2t-player-count-label-helper-public-check.md`
+
+## Phase 2-U Follow-Up: Player Count Field Helper Extraction
+
+Phase 2-U extracted only `renderPlayerCountFields` into:
+
+- `assets/js/core/session/sessionFormHelpers.js`
+
+`assets/js/renderSessionPost.js` remains the session-post orchestrator and now
+passes the same configured label into the helper. The session-post cache-bust
+chain was updated to `20260616-player-count-field-helper`.
+
+Preserved:
+
+- `p_player_min` / `p_player_max` names and attributes
+- Phase 2-R player-count field HTML contract
+- payload generation, template save/apply, managed edit restore, reset,
+  Discord sync, auth, permission, RPC, and DB behavior
+
+Local checks:
+
+- player-count field snapshot: ok
+- module import / import-cycle smoke: ok
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2u-player-count-field-helper-result.md`

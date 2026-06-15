@@ -195,3 +195,25 @@ Result:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2t-player-count-label-helper-public-check.md`
+
+## Phase 2-U Follow-Up
+
+Phase 2-U implemented the dedicated field renderer extraction:
+
+- extracted only `renderPlayerCountFields`
+- moved it into `assets/js/core/session/sessionFormHelpers.js`
+- updated `assets/js/renderSessionPost.js` to pass
+  `getSessionPostLabel("playerCount", "募集人数")`
+- updated the session-post delivery cache-bust chain to
+  `20260616-player-count-field-helper`
+
+The Phase 2-R DOM contract was preserved by a local snapshot check.
+
+Still not changed:
+
+- `p_player_min` / `p_player_max` contract
+- payload/template/edit/reset/Discord/auth/RPC behavior
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2u-player-count-field-helper-result.md`

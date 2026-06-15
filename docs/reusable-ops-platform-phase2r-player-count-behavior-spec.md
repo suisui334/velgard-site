@@ -276,3 +276,27 @@ Confirmed:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2t-player-count-label-helper-public-check.md`
+
+## Phase 2-U Follow-Up
+
+Phase 2-U extracted only `renderPlayerCountFields` to:
+
+- `assets/js/core/session/sessionFormHelpers.js`
+
+The renderer now receives the same label value from `assets/js/renderSessionPost.js`:
+
+- `getSessionPostLabel("playerCount", "募集人数")`
+
+The Phase 2-R field contract was preserved by a local snapshot check.
+
+Confirmed unchanged:
+
+- `p_player_min` / `p_player_max` names and attributes
+- no `id`, custom input class, `required`, `placeholder`, `max`, or initial
+  value attribute added
+- payload, template, edit restore, reset, Discord sync, auth, permission, RPC,
+  and DB behavior
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2u-player-count-field-helper-result.md`

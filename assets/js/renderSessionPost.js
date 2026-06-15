@@ -4,10 +4,11 @@ import {
   getSessionTypeLabel
 } from "./sessionDisplay.js?v=20260615-session-summary-tags-extract";
 import {
+  renderPlayerCountFields,
   renderSelectField,
   renderTextareaField,
   renderTextField
-} from "./core/session/sessionFormHelpers.js?v=20260615-session-post-field-helper-extract";
+} from "./core/session/sessionFormHelpers.js?v=20260616-player-count-field-helper";
 import { formatPlayerCountLabel } from "./core/session/sessionPlayerCountHelpers.js?v=20260616-player-count-label-helper";
 import {
   createSupabaseBrowserClient,
@@ -270,7 +271,7 @@ function renderShell(initialStartAt = "") {
               ["special", getSessionTypeLabel("special")],
               ["other", getSessionTypeLabel("other")]
             ], "one-shot")}
-            ${renderPlayerCountFields()}
+            ${renderPlayerCountFields(getSessionPostLabel("playerCount", "募集人数"))}
             ${renderTextField(getSessionPostLabel("location", "開催場所"), "p_session_tool", "text", { maxlength: 80, placeholder: "例：Tekey / ココフォリア / Discordボイス" })}
             ${renderSelectField(getSessionPostLabel("visibility", "公開状態"), "p_visibility", [
               ["hidden", "非公開"],
@@ -310,24 +311,6 @@ function renderShell(initialStartAt = "") {
         <dl class="session-post-result-list" data-session-post-result></dl>
       </article>
     </section>
-  `;
-}
-
-function renderPlayerCountFields() {
-  return `
-    <div class="session-post-field session-post-player-field" role="group" aria-labelledby="session-post-player-count-label">
-      <span class="session-post-player-label" id="session-post-player-count-label">${escapeHtml(getSessionPostLabel("playerCount", "募集人数"))}</span>
-      <div class="session-post-player-inputs">
-        <label>
-          <span>min</span>
-          <input type="number" name="p_player_min" min="0">
-        </label>
-        <label>
-          <span>max</span>
-          <input type="number" name="p_player_max" min="0">
-        </label>
-      </div>
-    </div>
   `;
 }
 

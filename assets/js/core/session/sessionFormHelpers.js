@@ -37,3 +37,21 @@ export function renderTextareaField(label, name, maxlength) {
     </label>
   `;
 }
+
+export function renderPlayerCountFields(label = "募集人数") {
+  return `
+    <div class="session-post-field session-post-player-field" role="group" aria-labelledby="session-post-player-count-label">
+      <span class="session-post-player-label" id="session-post-player-count-label">${escapeHtml(label)}</span>
+      <div class="session-post-player-inputs">
+        <label>
+          <span>min</span>
+          <input type="number" name="p_player_min" min="0">
+        </label>
+        <label>
+          <span>max</span>
+          <input type="number" name="p_player_max" min="0">
+        </label>
+      </div>
+    </div>
+  `;
+}

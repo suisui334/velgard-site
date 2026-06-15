@@ -1228,3 +1228,32 @@ Not tested:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2t-player-count-label-helper-public-check.md`
+
+## Phase 2-U Player Count Field Helper Extraction
+
+Phase 2-U extracted only `renderPlayerCountFields` into:
+
+- `assets/js/core/session/sessionFormHelpers.js`
+
+Updated:
+
+- `assets/js/renderSessionPost.js` imports the helper and passes the same
+  configured player-count label
+- `assets/js/main.js` and `session-post.html` use the
+  `20260616-player-count-field-helper` cache-bust chain
+
+The Phase 2-R field contract was preserved by a local snapshot check.
+
+Not changed:
+
+- `p_player_min` / `p_player_max` names or attributes
+- payload builders
+- template save/apply
+- managed-session edit restore
+- reset behavior
+- Discord sync
+- auth/permission/RPC/DB behavior
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2u-player-count-field-helper-result.md`

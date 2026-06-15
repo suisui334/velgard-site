@@ -866,3 +866,27 @@ field renderer.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2t-player-count-label-helper-public-check.md`
+
+## Phase 2-U Player Count Field Helper Boundary
+
+Phase 2-U moved only the player-count field renderer:
+
+- from local `assets/js/renderSessionPost.js`
+- to `assets/js/core/session/sessionFormHelpers.js`
+
+Boundary preserved:
+
+- `renderSessionPost.js` still owns the session-post page orchestration
+- the label is still resolved through
+  `getSessionPostLabel("playerCount", "募集人数")`
+- `p_player_min` / `p_player_max` remain session-post payload/template/edit
+  field names
+- payload, template, edit restore, reset, Discord, auth, permission, RPC, and
+  DB behavior are unchanged
+
+The helper belongs in `core/session` rather than generic `core/form` because
+it emits session-post classes and form field names.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2u-player-count-field-helper-result.md`
