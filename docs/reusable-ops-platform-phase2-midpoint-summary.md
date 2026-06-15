@@ -389,3 +389,36 @@ Local checks:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2u-player-count-field-helper-result.md`
+
+## Phase 2-V Follow-Up: Player Count Field Helper Public Check
+
+Phase 2-V checked the public delivery chain after the
+`renderPlayerCountFields` extraction.
+
+Confirmed:
+
+- public `session-post.html` has the
+  `20260616-player-count-field-helper` main-module cache-bust
+- public `main.js` imports the matching `renderSessionPost.js`
+- public `renderSessionPost.js` imports `renderPlayerCountFields` from
+  `assets/js/core/session/sessionFormHelpers.js`
+- public `sessionFormHelpers.js` is served and exports
+  `renderPlayerCountFields`
+- public `sessionPlayerCountHelpers.js` is served and exports
+  `formatPlayerCountLabel`
+- public `calendar.html` and `session-detail.html` are still served
+- the public player-count block keeps `p_player_min`, `p_player_max`, and
+  `min="0"` without adding required/placeholder/value/max attributes
+
+Not tested:
+
+- authenticated role-specific session-post operation
+- template save/apply
+- managed edit restore
+- reset operation
+- data-changing create/edit/delete
+- Discord sync
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2v-player-count-field-helper-public-check.md`

@@ -1257,3 +1257,32 @@ Not changed:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2u-player-count-field-helper-result.md`
+
+## Phase 2-V Player Count Field Helper Public Check
+
+Phase 2-V checked public static delivery after the
+`renderPlayerCountFields` extraction.
+
+Confirmed:
+
+- public `session-post.html` serves the
+  `20260616-player-count-field-helper` main-module chain
+- public `main.js` imports the updated `renderSessionPost.js`
+- public `renderSessionPost.js` imports `renderPlayerCountFields` from
+  `sessionFormHelpers.js`
+- public `renderSessionPost.js` continues to import
+  `formatPlayerCountLabel` from `sessionPlayerCountHelpers.js`
+- public `sessionFormHelpers.js` is available and exports
+  `renderPlayerCountFields`
+- public `calendar.html` and `session-detail.html` are still available
+- the player-count block keeps `name="p_player_min"`,
+  `name="p_player_max"`, and `min="0"`
+
+No import-path repair or cache-bust change was needed in this check.
+
+Authenticated browser behavior and data-changing session-post/template/Discord
+sync QA remain separate explicit gates.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2v-player-count-field-helper-public-check.md`

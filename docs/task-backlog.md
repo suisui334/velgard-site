@@ -9319,6 +9319,56 @@ template behavior change, reset behavior change, Discord sync behavior change,
 auth/permission logic change, `management_key` display, or raw
 id/email/token/JWT display was performed.
 
+## M-14F-102 player count field helper public check
+
+Status: Phase 2-V player count field helper public rollout check completed.
+
+- Baseline: `2055184 Extract player count field helper`.
+- Checked public static delivery after `renderPlayerCountFields` moved to
+  `assets/js/core/session/sessionFormHelpers.js`.
+- Confirmed public `session-post.html` has the
+  `20260616-player-count-field-helper` cache-bust.
+- Confirmed public `main.js` imports the matching `renderSessionPost.js`.
+- Confirmed public `renderSessionPost.js` imports `renderPlayerCountFields`
+  from `sessionFormHelpers.js`.
+- Confirmed public `renderSessionPost.js` still imports
+  `formatPlayerCountLabel` from `sessionPlayerCountHelpers.js`.
+- Confirmed public `sessionFormHelpers.js` is served and exports
+  `renderPlayerCountFields`.
+- Confirmed public `sessionPlayerCountHelpers.js` is served and exports
+  `formatPlayerCountLabel`.
+- Confirmed public `calendar.html` and `session-detail.html` are served.
+- Confirmed the public player-count block keeps:
+  - `name="p_player_min"`
+  - `name="p_player_max"`
+  - `min="0"`
+- Confirmed the public player-count block did not gain `required`,
+  `placeholder`, `value=`, or `max=`.
+- Added
+  `docs/reusable-ops-platform-phase2v-player-count-field-helper-public-check.md`.
+
+Not tested in this gate:
+
+- authenticated role-specific session-post operation
+- actual form operation after login
+- template save/apply
+- managed edit restore
+- reset operation
+- data-changing create/edit/delete
+- Discord sync
+
+Reason:
+
+- those checks require authenticated sessions or real data-changing operations
+  and remain separate explicit gates.
+
+No implementation change, SQL Editor execution, SQL apply, DB/RPC/RLS
+mutation, Edge deploy, Discord operation, direct Supabase write, debug console
+logging addition, `updates.json` change, `p_player_min` / `p_player_max`
+field change, payload generation change, template behavior change, reset
+behavior change, Discord sync behavior change, auth/permission logic change,
+`management_key` display, or raw id/email/token/JWT display was performed.
+
 ## M-14F-101 player count field helper extraction
 
 Status: Phase 2-U player count field helper extraction implemented.

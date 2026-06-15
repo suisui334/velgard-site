@@ -300,3 +300,36 @@ Confirmed unchanged:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2u-player-count-field-helper-result.md`
+
+## Phase 2-V Public Check
+
+Phase 2-V confirmed the public static delivery chain after
+`renderPlayerCountFields` moved to:
+
+- `assets/js/core/session/sessionFormHelpers.js`
+
+Confirmed:
+
+- public `session-post.html` uses the
+  `20260616-player-count-field-helper` cache-bust
+- public `renderSessionPost.js` imports the player-count field renderer from
+  the core session form helper module
+- public `sessionFormHelpers.js` exports `renderPlayerCountFields`
+- public `sessionPlayerCountHelpers.js` still exports `formatPlayerCountLabel`
+- the player-count block keeps `name="p_player_min"`,
+  `name="p_player_max"`, and `min="0"`
+- the player-count block did not gain `required`, `placeholder`, `value=`, or
+  `max=`
+
+Not tested:
+
+- authenticated operation
+- template save/apply
+- managed edit restore
+- reset operation
+- data-changing create/edit/delete
+- Discord sync
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2v-player-count-field-helper-public-check.md`

@@ -103,12 +103,39 @@ Static checks for this implementation should include:
 
 Browser/public rollout remains a separate follow-up gate.
 
+## Phase 2-V Public Check
+
+Phase 2-V confirmed the public static delivery chain after this extraction.
+
+Confirmed:
+
+- public `session-post.html` uses the
+  `20260616-player-count-field-helper` cache-bust
+- public `main.js` imports the matching `renderSessionPost.js`
+- public `renderSessionPost.js` imports `renderPlayerCountFields` from
+  `assets/js/core/session/sessionFormHelpers.js`
+- public `renderSessionPost.js` imports `formatPlayerCountLabel` from
+  `assets/js/core/session/sessionPlayerCountHelpers.js`
+- public `sessionFormHelpers.js` is served and exports
+  `renderPlayerCountFields`
+- public `sessionPlayerCountHelpers.js` is served and exports
+  `formatPlayerCountLabel`
+- `p_player_min` / `p_player_max` still render with `type="number"` and
+  `min="0"`
+- the player-count block did not gain `required`, `placeholder`, `value=`, or
+  `max=`
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2v-player-count-field-helper-public-check.md`
+
 ## Next Candidates
 
 Low-risk next step:
 
-- public rollout check for the updated `sessionFormHelpers.js` cache-bust and
-  session-post player-count field rendering path
+- user-side lightweight browser visual check for the updated
+  `sessionFormHelpers.js` cache-bust and session-post player-count field
+  rendering path
 
 Conditional later step:
 

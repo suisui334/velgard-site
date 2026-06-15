@@ -78,12 +78,16 @@ This phase did not change:
 
 ## Next Candidates
 
-Low-risk next step:
+Follow-up completed:
 
-- optional lightweight browser visual check for session-post after the public
-  helper rollout
+- Phase 2-U extracted `renderPlayerCountFields`.
+- Phase 2-V checked the public delivery chain after that extraction.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2v-player-count-field-helper-public-check.md`
 
 Conditional later step:
 
-- plan `renderPlayerCountFields` extraction only with template, managed edit,
-  reset, and payload QA included
+- authenticated session-post UI check, including template apply, managed edit,
+  reset, and payload behavior, as a separate explicit gate

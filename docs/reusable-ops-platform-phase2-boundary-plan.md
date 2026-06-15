@@ -890,3 +890,29 @@ it emits session-post classes and form field names.
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2u-player-count-field-helper-result.md`
+
+## Phase 2-V Player Count Field Helper Public Boundary
+
+Phase 2-V confirmed that the Phase 2-U player-count field helper extraction is
+publicly served and imported by the active session-post module.
+
+Public boundary status:
+
+- `assets/js/core/session/sessionFormHelpers.js`: served
+- `renderPlayerCountFields`: exported by `sessionFormHelpers.js`
+- `assets/js/renderSessionPost.js`: imports `renderPlayerCountFields` from
+  the core helper module
+- `assets/js/core/session/sessionPlayerCountHelpers.js`: still served and
+  still exports `formatPlayerCountLabel`
+- `session-post.html`: uses the
+  `20260616-player-count-field-helper` cache-bust
+- `assets/js/main.js`: imports the matching session-post module
+- `p_player_min` / `p_player_max`: still render as number inputs with
+  `min="0"` and no new required/placeholder/value/max attributes
+
+This confirms the renderer move did not require changing payload, template,
+edit restore, reset, Discord, auth, permission, RPC, or DB behavior.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2v-player-count-field-helper-public-check.md`
