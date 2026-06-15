@@ -440,3 +440,25 @@ Not touched:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2y-config-label-minimal-result.md`
+
+## Phase 2-Z Calendar Safe Label Rollout Check
+
+Phase 2-Z checked public static delivery after the Phase 2-Y calendar label
+connection.
+
+Confirmed:
+
+- public `calendar.html` references `main.js?v=20260616-calendar-safe-labels`
+- public `main.js` imports the matching calendar renderer
+- public `core/calendar/renderCalendar.js` imports `getCalendarLabel`
+- public `renderCalendar.js` imports the matching `reusableOpsConfig.js`
+- public `core/config/reusableOpsConfig.js` contains `calendar.labels`
+- public `reusableOpsConfig.js` exports `getCalendarLabel`
+- public `session-post.html` and `session-detail.html` are still served
+
+No implementation or cache-bust repair was needed. Authenticated browser
+operation and data-changing behavior remain separate explicit QA gates.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2z-calendar-safe-labels-public-check.md`

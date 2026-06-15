@@ -1362,3 +1362,25 @@ Not implemented:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2y-config-label-minimal-result.md`
+
+## Phase 2-Z Calendar Label Public Rollout
+
+Phase 2-Z verified the public static delivery for
+`20260616-calendar-safe-labels`.
+
+Confirmed:
+
+- `calendar.html` serves the updated main-module query
+- public `main.js` imports the updated calendar renderer
+- public `renderCalendar.js` imports `getCalendarLabel`
+- public `renderCalendar.js` imports the updated reusable ops config module
+- public `reusableOpsConfig.js` contains `calendar.labels`
+- public `reusableOpsConfig.js` exports `getCalendarLabel`
+- `session-post.html` and `session-detail.html` remain served
+
+This check confirms the Phase 2-Y calendar-label connection is publicly
+visible. It does not replace authenticated browser QA or data-changing QA.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2z-calendar-safe-labels-public-check.md`

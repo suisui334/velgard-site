@@ -135,3 +135,31 @@ operation, direct Supabase write, debug console logging addition,
 `updates.json` change, auth/permission logic change, RPC/DB key configuration,
 CSS class/DOM id/input name configuration, `management_key` display, or raw
 id/email/token/JWT display was performed.
+
+## Phase 2-Z Public Check Follow-Up
+
+Phase 2-Z completed the public static rollout check for
+`20260616-calendar-safe-labels`.
+
+Confirmed:
+
+- public `calendar.html` uses `main.js?v=20260616-calendar-safe-labels`
+- public `main.js` imports
+  `core/calendar/renderCalendar.js?v=20260616-calendar-safe-labels`
+- public `renderCalendar.js` imports `getCalendarLabel`
+- public `renderCalendar.js` imports
+  `reusableOpsConfig.js?v=20260616-calendar-safe-labels`
+- public `reusableOpsConfig.js` contains `calendar.labels`
+- public `reusableOpsConfig.js` exports `getCalendarLabel`
+- public `session-post.html` and `session-detail.html` are still served
+
+Not tested:
+
+- authenticated browser operation
+- role-specific behavior
+- data-changing session operations
+- Discord sync
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2z-calendar-safe-labels-public-check.md`

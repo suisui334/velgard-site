@@ -9118,6 +9118,52 @@ operation, direct Supabase write, debug console logging addition,
 CSS class/DOM id/input name configuration, `management_key` display, or raw
 id/email/token/JWT display was performed.
 
+## M-14F-106 reusable ops calendar label public rollout
+
+Status: Phase 2-Z calendar safe labels public rollout check completed.
+
+- Baseline: `db0da00 Connect reusable ops safe labels`.
+- Added
+  `docs/reusable-ops-platform-phase2z-calendar-safe-labels-public-check.md`.
+- Checked public static delivery for the `20260616-calendar-safe-labels`
+  chain.
+- Confirmed public static responses:
+  - `calendar.html`: HTTP 200
+  - `session-post.html`: HTTP 200
+  - `session-detail.html`: HTTP 200
+  - `assets/js/main.js`: HTTP 200
+  - `assets/js/core/calendar/renderCalendar.js`: HTTP 200
+  - `assets/js/core/config/reusableOpsConfig.js`: HTTP 200
+- Confirmed public `calendar.html` references
+  `main.js?v=20260616-calendar-safe-labels`.
+- Confirmed public `main.js` imports
+  `core/calendar/renderCalendar.js?v=20260616-calendar-safe-labels`.
+- Confirmed public `renderCalendar.js` imports `getCalendarLabel`.
+- Confirmed public `renderCalendar.js` imports
+  `reusableOpsConfig.js?v=20260616-calendar-safe-labels`.
+- Confirmed public `reusableOpsConfig.js` contains `calendar.labels`.
+- Confirmed public `reusableOpsConfig.js` exports `getCalendarLabel`.
+- Confirmed the active public `main.js` no longer uses the previous calendar
+  renderer query.
+
+Not tested:
+
+- authenticated calendar browser operation
+- role-specific behavior
+- real data-changing flows
+- Discord sync
+
+Reason:
+
+- those checks require authenticated sessions or operations outside this
+  static public rollout gate.
+
+No implementation change, cache-bust repair, SQL Editor execution, SQL apply,
+DB/RPC/RLS mutation, Edge deploy, Discord operation, direct Supabase write,
+debug console logging addition, `updates.json` change, auth/permission logic
+change, RPC/DB key configuration, CSS class/DOM id/input name configuration,
+`management_key` display, or raw id/email/token/JWT display was performed.
+
 ## M-14F-94 session-post field helper extraction plan
 
 Status: Phase 2-N session-post field/helper extraction audit completed.

@@ -995,3 +995,30 @@ The following boundaries remain unchanged:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase2y-config-label-minimal-result.md`
+
+## Phase 2-Z Calendar Label Public Boundary
+
+Phase 2-Z confirmed the public static boundary for the Phase 2-Y calendar
+label config connection.
+
+Public chain confirmed:
+
+- `calendar.html`
+- `assets/js/main.js?v=20260616-calendar-safe-labels`
+- `assets/js/core/calendar/renderCalendar.js?v=20260616-calendar-safe-labels`
+- `assets/js/core/config/reusableOpsConfig.js?v=20260616-calendar-safe-labels`
+
+The public config contains `calendar.labels` and exports `getCalendarLabel`.
+The public calendar renderer imports `getCalendarLabel`. No broken import path
+or missing config path was found in the static check.
+
+Boundary unchanged:
+
+- no B/C/D/E label movement
+- no normal-script mypage bridge expansion
+- no auth, role, RPC, DB, Discord, payload, CSS, DOM id, input-name,
+  `management_key`, or raw id/email/token/JWT surface changes
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2z-calendar-safe-labels-public-check.md`
