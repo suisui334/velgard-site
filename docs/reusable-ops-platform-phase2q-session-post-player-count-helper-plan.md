@@ -155,3 +155,26 @@ Next implementation guidance:
    template, managed edit, reset, and payload checks.
 3. Keep `p_player_min` / `p_player_max`, RPC names, DB column names, and
    permission logic out of `reusableOpsConfig`.
+
+## Phase 2-S Follow-Up
+
+Phase 2-S implemented the first narrow move from this plan:
+
+- extracted only `formatPlayerCountLabel`
+- added `assets/js/core/session/sessionPlayerCountHelpers.js`
+- updated `assets/js/renderSessionPost.js` to import the helper
+- updated the session-post delivery cache-bust chain to
+  `20260616-player-count-label-helper`
+
+The Phase 2-R fallback matrix was preserved by a local 13-case smoke test.
+
+Still not extracted:
+
+- `renderPlayerCountFields`
+- player-count form markup
+- `p_player_min` / `p_player_max` field contract
+- payload/template/edit/reset/Discord/auth/RPC behavior
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2s-player-count-label-helper-result.md`

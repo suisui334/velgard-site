@@ -8,6 +8,7 @@ import {
   renderTextareaField,
   renderTextField
 } from "./core/session/sessionFormHelpers.js?v=20260615-session-post-field-helper-extract";
+import { formatPlayerCountLabel } from "./core/session/sessionPlayerCountHelpers.js?v=20260616-player-count-label-helper";
 import {
   createSupabaseBrowserClient,
   getSupabaseRuntimeConfig,
@@ -767,15 +768,6 @@ function renderResult(target, result) {
       <dd>${escapeHtml(result.discord_sync_status || "未設定")}</dd>
     </div>
   `;
-}
-
-function formatPlayerCountLabel(playerMin, playerMax) {
-  const min = Number.isFinite(playerMin) ? playerMin : null;
-  const max = Number.isFinite(playerMax) ? playerMax : null;
-  if (min !== null && max !== null) return `${min}〜${max}名`;
-  if (max !== null) return `最大${max}名`;
-  if (min !== null) return `最低${min}名`;
-  return "未設定";
 }
 
 function toNumberOrNull(value) {

@@ -9220,6 +9220,56 @@ mutation, Edge deploy, Discord operation, direct Supabase write, debug console
 logging addition, `updates.json` change, auth/permission logic change,
 `management_key` display, or raw id/email/token/JWT display was performed.
 
+## M-14F-99 player count label helper extraction
+
+Status: Phase 2-S player count label helper extraction implemented.
+
+- Baseline: `7d59612 Document player count field behavior`.
+- Added `assets/js/core/session/sessionPlayerCountHelpers.js`.
+- Extracted only `formatPlayerCountLabel`.
+- Updated `assets/js/renderSessionPost.js` to import the new helper.
+- Updated the session-post cache-bust chain in `assets/js/main.js` and
+  `session-post.html` to `20260616-player-count-label-helper`.
+- Added
+  `docs/reusable-ops-platform-phase2s-player-count-label-helper-result.md`.
+- Preserved the Phase 2-R output matrix:
+  - min/max range
+  - same-value range
+  - min-only
+  - max-only
+  - missing / `null` / `undefined` / empty string
+  - zero values
+  - direct numeric strings
+  - direct invalid strings
+- Local smoke test passed: `player count label smoke ok: 13`.
+
+Not changed:
+
+- `renderPlayerCountFields`
+- `p_player_min` / `p_player_max` names, ids, classes, or attributes
+- payload generation
+- template save/apply behavior
+- managed-session edit restore
+- reset behavior
+- Discord sync behavior
+- create/update/delete RPC flows
+- auth, approved, owner, admin, or posting access logic
+- event handler registration
+- DB/RPC/RLS contracts
+
+Next candidate:
+
+1. Public rollout check for `sessionPlayerCountHelpers.js`.
+2. Keep any future `renderPlayerCountFields` extraction behind a dedicated
+   template/edit/reset/payload QA gate.
+
+No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+operation, direct Supabase write, debug console logging addition,
+`updates.json` change, `renderPlayerCountFields` move, payload generation
+change, template behavior change, reset behavior change, Discord sync behavior
+change, auth/permission logic change, `management_key` display, or raw
+id/email/token/JWT display was performed.
+
 ## M-14F-95 session-post field helper extraction
 
 Status: Phase 2-O session-post field helper extraction implemented.

@@ -822,3 +822,27 @@ Compatibility conditions now fixed:
 - empty value -> payload `null`
 - non-integer value -> `invalid-player-count`
 - current player-count label fallback matrix
+
+## Phase 2-S Player Count Label Helper Boundary
+
+Phase 2-S moved only the display formatter:
+
+- from local `assets/js/renderSessionPost.js`
+- to `assets/js/core/session/sessionPlayerCountHelpers.js`
+
+Boundary preserved:
+
+- `renderPlayerCountFields` stays in `assets/js/renderSessionPost.js`
+- `p_player_min` / `p_player_max` remain session-post payload/template field
+  names
+- player-count form markup and attributes are unchanged
+- template, managed edit, reset, payload, Discord, auth, permission, RPC, and
+  DB behavior are unchanged
+
+The new helper is a core/session display helper, not a generic form helper.
+It can be reused later by session-detail/calendar only if the exact wording
+contract remains acceptable or a separate label-config gate changes it.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2s-player-count-label-helper-result.md`

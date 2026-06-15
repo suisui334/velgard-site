@@ -314,3 +314,29 @@ Decision:
 
 No JS, CSS, data, file move, SQL, DB/RPC/RLS, Discord, auth, permission, or
 runtime behavior change was made.
+
+## Phase 2-S Follow-Up: Player Count Label Helper Extraction
+
+Phase 2-S extracted only `formatPlayerCountLabel` into:
+
+- `assets/js/core/session/sessionPlayerCountHelpers.js`
+
+`assets/js/renderSessionPost.js` remains the session-post orchestrator and now
+imports the helper. The session-post cache-bust chain was updated to
+`20260616-player-count-label-helper`.
+
+Preserved:
+
+- Phase 2-R player-count fallback matrix
+- `renderPlayerCountFields` in place
+- `p_player_min` / `p_player_max` markup and field-name contract
+- payload generation, template save/apply, managed edit restore, reset,
+  Discord sync, auth, permission, RPC, and DB behavior
+
+Local smoke test:
+
+- 13 cases passed
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2s-player-count-label-helper-result.md`

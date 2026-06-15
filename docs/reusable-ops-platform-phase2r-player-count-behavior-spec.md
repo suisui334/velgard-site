@@ -234,3 +234,25 @@ Future extraction must preserve:
 
 Data-changing create/edit/delete QA, template operation QA, and Discord sync QA
 remain separate explicit gates.
+
+## Phase 2-S Follow-Up
+
+Phase 2-S extracted only `formatPlayerCountLabel` to:
+
+- `assets/js/core/session/sessionPlayerCountHelpers.js`
+
+The Phase 2-R fallback matrix was preserved. A local smoke test covered 13
+cases, including range, same-value range, min-only, max-only, missing,
+`null`, `undefined`, empty string, zero, direct numeric strings, and direct
+invalid strings.
+
+Not moved:
+
+- `renderPlayerCountFields`
+- `p_player_min` / `p_player_max` markup or attributes
+- payload, template, edit restore, reset, Discord sync, auth, permission, RPC,
+  or DB behavior
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2s-player-count-label-helper-result.md`

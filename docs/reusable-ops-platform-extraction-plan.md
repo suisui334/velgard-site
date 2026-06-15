@@ -1176,3 +1176,32 @@ Future direction:
   template save/apply, managed edit, reset, and payload behavior.
 - Keep payload keys, RPC names, DB column names, and permission logic out of
   `reusableOpsConfig`.
+
+## Phase 2-S Player Count Label Helper Extraction
+
+Phase 2-S extracted only `formatPlayerCountLabel` into:
+
+- `assets/js/core/session/sessionPlayerCountHelpers.js`
+
+Updated:
+
+- `assets/js/renderSessionPost.js` imports the new helper
+- `assets/js/main.js` and `session-post.html` use the
+  `20260616-player-count-label-helper` cache-bust chain
+
+The Phase 2-R fallback matrix was preserved by a 13-case local smoke test.
+
+Not changed:
+
+- `renderPlayerCountFields`
+- player-count input names or attributes
+- payload builders
+- template save/apply
+- managed-session edit restore
+- reset behavior
+- Discord sync
+- auth/permission/RPC/DB behavior
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2s-player-count-label-helper-result.md`
