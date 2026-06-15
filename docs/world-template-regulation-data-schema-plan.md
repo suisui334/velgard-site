@@ -1,0 +1,592 @@
+# World Template Regulation Data Schema Plan
+
+Phase 3-B2 documents a future data/json structure for regulation pages. This is
+a planning document only. It does not create JSON files, change production
+data, edit the renderer, change HTML/CSS/JS, or touch ops-core behavior.
+
+## Background
+
+Phase 3-B1 defined the regulation page as a reusable world-site template
+candidate. This document narrows that into a data-schema planning layer: what
+could become structured world data, what should remain renderer/layout behavior,
+and what must stay Velgard-specific.
+
+The current Velgard regulation page is already mostly data-driven through
+`data/regulation.json`, while some structure still lives in
+`assets/js/renderRegulation.js`.
+
+Current file responsibilities:
+
+- `regulation.html`: static page shell, page identity, and script/style loading.
+- `assets/js/renderRegulation.js`: data loading, DOM rendering, table rendering,
+  TOC rendering, active TOC behavior, and block rendering.
+- `assets/css/style.css`: regulation page layout, cards, tables, TOC, desktop
+  wide layout, and mobile stacking.
+- `data/regulation.json`: page copy, schedule, level caps, term cards, adopted
+  rulebook list, and section blocks.
+
+## Current Structure Inventory
+
+Current regulation page elements:
+
+- page title
+- intro lead
+- table of contents / side menu
+- term explanation cards
+- schedule table
+- level-cap table
+- reward and excess reward section
+- compensation section
+- adopted rulebook list
+- common rules
+- growth-related term cards and table values
+- fumble experience rule
+- lower-bound growth rule
+- long house-rule sections
+- individual ruling sections
+- GM-facing notes
+- player-facing notes
+- cautions and callouts
+- world-specific race/rule rulings
+- future update-history or latest-change links, if added later
+
+Current renderer-owned structure:
+
+- TOC item ids and labels
+- level-cap column definitions
+- strong paragraph label list
+- table wrapper behavior
+- active TOC behavior
+- section ordering around `schedule`, `level-caps`, `term-explanations`,
+  selected data sections, adopted rulebooks, and remaining sections
+- CSS class names and DOM shape
+
+## Data/JSON Suitability
+
+### A. Very Good Data/JSON Candidates
+
+These are already close to structured data and should be the first future
+schema targets:
+
+- page title, subtitle, page label, and lead
+- schedule rows
+- level-cap rows
+- reward table values
+- honor / Sword Shard guide values
+- term explanation cards
+- short note cards
+- callout cards
+- individual ruling cards with stable titles and body blocks
+- adopted rulebook list
+- TOC labels and order, after a renderer boundary review
+
+Reason: these are primarily content. They do not need to know DOM ids, CSS
+classes, event handlers, auth state, RPC names, or ops-core state.
+
+### B. Data/JSON Candidates That Need Body-Structure Design
+
+These can become data, but should not be rushed without a clear block schema:
+
+- long house rules
+- growth rules
+- fumble experience rules
+- lower-bound growth rules
+- special multi-paragraph rulings
+- magic-angel style rulings with subsections and equipment data
+- nested subsection groups
+- long notes that need heading hierarchy
+- rule text that mixes paragraphs, lists, and tables
+
+Reason: raw paragraphs are easy to store, but future worlds need readable
+structure. The schema should distinguish headings, paragraphs, lists, callouts,
+tables, and detail blocks rather than relying on string matching.
+
+### C. Better Left In HTML/Renderer/CSS For Now
+
+These are behavior or layout concerns and may stay in renderer/CSS until a
+dedicated implementation gate:
+
+- desktop wide layout
+- mobile stacked layout
+- active side-menu behavior
+- IntersectionObserver setup
+- anchor scrolling behavior
+- DOM structure for the side menu
+- CSS class assignment
+- table wrapper behavior
+- section render order logic
+- fallback behavior when regulation status is not public
+
+Reason: these are rendering mechanics. They can be made configurable later, but
+turning them into data too early would make the schema brittle.
+
+### D. Should Not Become Data Defaults
+
+Do not turn these into reusable schema defaults:
+
+- DOM ids as a public data contract
+- CSS class names as content data
+- JavaScript hook names
+- active-control internal keys
+- exact Velgard values as next-world defaults
+- auth/membership/RPC/DB/Discord behavior
+- storage keys, URL parameters, or ops payload keys
+- raw ids, tokens, email addresses, user ids, session ids, or management keys
+
+## Candidate Schema Objects
+
+The following names are planning labels, not implementation commitments.
+
+### `regulationPage`
+
+Role: page-level identity and introduction.
+
+Possible fields:
+
+- `id`
+- `pageLabel`
+- `title`
+- `subtitle`
+- `summary`
+- `lead`
+- `updatedAt`
+- `versionLabel`
+- `introBlocks`
+
+Velgard-specific values: title copy, lead copy, dates, and summary text.
+
+Reusable: field shape and role.
+
+Keep in HTML/renderer: document metadata, script loading, style loading, and
+site shell wiring.
+
+Notes: page metadata can be data-driven later, but production HTML meta tags
+need a separate SEO/OGP review before moving.
+
+### `regulationNav`
+
+Role: TOC / side-menu labels and order.
+
+Possible fields:
+
+- `id`
+- `label`
+- `anchor`
+- `targetSectionId`
+- `order`
+- `group`
+- `isPrimary`
+
+Velgard-specific values: labels and section choices.
+
+Reusable: side-menu structure and active-section pattern.
+
+Keep in HTML/renderer: active tracking behavior and DOM/CSS implementation.
+
+Notes: anchors should be stable within a world, but should not be treated as
+ops-core contracts.
+
+### `regulationSections`
+
+Role: top-level content sections rendered as cards or article blocks.
+
+Possible fields:
+
+- `id`
+- `title`
+- `tocLabel`
+- `sectionType`
+- `summary`
+- `blocks`
+- `tags`
+- `audience`
+
+Velgard-specific values: titles, body, rule categories, and exact text.
+
+Reusable: section/block relationship and category concept.
+
+Keep in HTML/renderer: card DOM shape, active menu behavior, and CSS classes.
+
+Notes: current `sections` in `data/regulation.json` are already close to this.
+
+### `regulationCards`
+
+Role: reusable card units for terms, cautions, notes, and short rulings.
+
+Possible fields:
+
+- `id`
+- `title`
+- `summary`
+- `body`
+- `paragraphs`
+- `notes`
+- `tags`
+- `audience`
+- `relatedSectionIds`
+
+Velgard-specific values: card titles and bodies.
+
+Reusable: card shape and relationships.
+
+Keep in HTML/renderer: visual decoration, card grid/stack behavior, and card
+CSS classes.
+
+Notes: this may be a generalized layer over current `termExplanations` and
+short callouts.
+
+### `regulationTables`
+
+Role: shared structure for level caps, rewards, honor, growth, schedules, and
+other tabular rules.
+
+Possible fields:
+
+- `id`
+- `title`
+- `description`
+- `columns`
+- `rows`
+- `notes`
+- `footnotes`
+- `caption`
+
+Velgard-specific values: rows, labels, and numeric values.
+
+Reusable: `columns`/`rows` shape, table notes, and footnotes.
+
+Keep in HTML/renderer: table DOM, scroll wrapper, and responsive behavior.
+
+Notes: current level-cap columns are still renderer-owned; moving them to data
+should be a separate low-risk gate.
+
+### `levelCaps`
+
+Role: level-by-level cap and progression data.
+
+Possible fields:
+
+- `level`
+- `label`
+- `fixedExperience`
+- `minGrowth`
+- `minReward`
+- `minHonor`
+- `maxGrowth`
+- `maxReward`
+- `growthPerSession`
+- `rankLimit`
+- `rewardAmount`
+- `honorGuide`
+- `notes`
+
+Velgard-specific values: all current numeric values and rank labels.
+
+Reusable: level-row concept and table shape.
+
+Keep in HTML/renderer: column visibility, table layout, and responsive styling.
+
+Notes: a future world might not use the same columns. Columns should be data or
+config before trying to reuse this table across worlds.
+
+### `rewardRules`
+
+Role: reward, excess reward, compensation, and GM reward notes.
+
+Possible fields:
+
+- `id`
+- `title`
+- `rewardTableRef`
+- `paragraphs`
+- `examples`
+- `gmNotes`
+- `playerNotes`
+- `blocks`
+
+Velgard-specific values: formulas, values, examples, and operation text.
+
+Reusable: reward rule grouping and example/callout structure.
+
+Keep in HTML/renderer: example card layout and table rendering.
+
+Notes: formulas should remain text until a separate rules-engine decision is
+made. Do not encode them as executable logic in the template.
+
+### `growthRules`
+
+Role: growth, fumble experience, lower-bound growth, and related progression
+rules.
+
+Possible fields:
+
+- `id`
+- `title`
+- `ruleType`
+- `paragraphs`
+- `tableRefs`
+- `gmNotes`
+- `playerNotes`
+- `restrictions`
+
+Velgard-specific values: current fumble experience and lower-bound growth
+operation.
+
+Reusable: grouping by rule type and note/audience structure.
+
+Keep in HTML/renderer: heading hierarchy and section card rendering.
+
+Notes: keep rules as content. Do not connect these to session-post validation
+or character-sheet automation without a separate gate.
+
+### `houseRules`
+
+Role: general house rules that can contain paragraphs, lists, callouts, and
+tables.
+
+Possible fields:
+
+- `id`
+- `title`
+- `category`
+- `blocks`
+- `audience`
+- `tags`
+- `relatedTerms`
+
+Velgard-specific values: all body text and categories tied to the current
+world.
+
+Reusable: block-based long-rule structure.
+
+Keep in HTML/renderer: block DOM, list styling, and heading presentation.
+
+Notes: long house rules are safe to store as data once block structure is
+stable.
+
+### `specialRulings`
+
+Role: complex individual rulings such as magic-angel style multi-section rules.
+
+Possible fields:
+
+- `id`
+- `title`
+- `category`
+- `summary`
+- `blocks`
+- `subsections`
+- `tables`
+- `equipmentData`
+- `notes`
+- `sourceRefs`
+
+Velgard-specific values: the concrete ruling, equipment data, source names,
+and exception text.
+
+Reusable: ability to host a long special ruling with internal headings and
+tables.
+
+Keep in HTML/renderer: strong-heading rendering and long-section readability.
+
+Notes: this should be migrated last. It has the highest risk of unreadable
+output if paragraph/table structure is not designed carefully.
+
+### `gmNotes`
+
+Role: notes aimed at GMs.
+
+Possible fields:
+
+- `id`
+- `title`
+- `text`
+- `blocks`
+- `relatedSectionId`
+- `visibility`
+- `priority`
+
+Velgard-specific values: note content and operational conventions.
+
+Reusable: audience-targeted note structure.
+
+Keep in HTML/renderer: visual note style and positioning.
+
+Notes: `visibility` here means content organization only. It must not become an
+auth or membership control.
+
+### `playerNotes`
+
+Role: notes aimed at players.
+
+Possible fields:
+
+- `id`
+- `title`
+- `text`
+- `blocks`
+- `relatedSectionId`
+- `priority`
+
+Velgard-specific values: note content and player instructions.
+
+Reusable: audience-targeted note structure.
+
+Keep in HTML/renderer: note style.
+
+Notes: player notes can link from ops pages, but they should not carry ops
+permissions.
+
+## Pseudo Structure Example
+
+This is illustrative only and should not be added as a production file yet.
+
+```json
+{
+  "regulationPage": {
+    "id": "velgard-regulation",
+    "pageLabel": "REGULATION",
+    "title": "Regulation",
+    "summary": "World-specific campaign rules",
+    "introBlocks": []
+  },
+  "regulationNav": [
+    {
+      "id": "level-caps",
+      "label": "Level Caps",
+      "anchor": "level-caps",
+      "order": 20
+    }
+  ],
+  "regulationSections": [
+    {
+      "id": "sample-rule",
+      "title": "Sample Rule",
+      "sectionType": "houseRule",
+      "blocks": [
+        {
+          "type": "paragraphs",
+          "paragraphs": ["Rule text"]
+        },
+        {
+          "type": "table",
+          "columns": [
+            { "key": "level", "label": "Level" },
+            { "key": "value", "label": "Value" }
+          ],
+          "rows": [
+            { "level": "1", "value": "Example" }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Generic Structure Versus Velgard Content
+
+### Generic Structure
+
+- tables
+- cards
+- notes
+- long-form rulings
+- TOC / side menu
+- anchors
+- section categories
+- PC/mobile layout policy
+- block types for paragraphs, lists, details, callouts, subsections, and tables
+
+### Velgard-Specific Content
+
+- magic-angel rulings
+- reward amounts
+- Sword Shard / honor-point values
+- fumble experience operation
+- lower-bound growth operation
+- race-specific and house-rule text
+- current GM/PL notes
+- current adopted rulebook list
+- current dates and campaign progression values
+
+## Implementation Steps For A Future Gate
+
+### Step 1: Freeze The Schema In Docs
+
+Do not touch the current HTML, CSS, JS, or data. Decide field names, block
+types, table shapes, and TOC relationships in docs first.
+
+Completion: schema proposal is reviewable without any production change.
+
+### Step 2: Choose A Small Table Candidate
+
+Pick one low-risk table or card group, such as a schedule table or one short
+term-card set. Avoid the magic-angel long ruling and other complex sections.
+
+Completion: one exact pilot target and fallback plan are defined.
+
+### Step 3: Build A Small Renderer Comparison
+
+Create a separate implementation gate to render the selected data and compare
+it with the current output. Keep current public behavior as the baseline.
+
+Completion: output equivalence can be checked before replacing production
+rendering.
+
+### Step 4: Move Low-Risk Cards
+
+After table rendering is stable, move short cards or callouts into the new
+shape. Keep fallbacks and public rollout checks.
+
+Completion: cards render the same visible content from the new shape.
+
+### Step 5: Move Long And Special Rulings Last
+
+Only after block, heading, table, and callout handling is stable should long
+house rules and special rulings move.
+
+Completion: long sections remain readable on desktop and mobile, with no loss
+of headings, lists, notes, or tables.
+
+## Reusable Ops Core Boundary
+
+Regulation data/json belongs to the world-site template side.
+
+Allowed connection:
+
+- `calendar`, `session-post`, `session-detail`, and `mypage` may link to
+  regulation pages.
+- ops pages may reference regulation as user guidance.
+
+Not allowed in regulation schema:
+
+- auth state
+- membership status
+- RPC names or arguments
+- DB table/column contracts
+- Discord sync actions or payload keys
+- storage keys
+- input names
+- DOM ids
+- CSS class names as content data
+- internal keys such as management keys
+- raw ids, user ids, email addresses, tokens, or JWTs
+
+Regulation structure changes must not break reusable ops core. Future
+regulation schema work should remain behind world-site implementation gates and
+public display QA.
+
+## Next Candidates
+
+1. Draft a renderer-constant audit for `renderRegulation.js`:
+   - TOC item labels and order
+   - level-cap column definitions
+   - strong paragraph labels
+2. Choose one low-risk data pilot:
+   - schedule table
+   - term explanation cards
+   - adopted rulebook list
+3. Define visible-output comparison criteria before any implementation.
+4. Keep magic-angel and other long special rulings as final migration
+   candidates.

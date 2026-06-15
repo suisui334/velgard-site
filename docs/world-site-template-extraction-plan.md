@@ -687,3 +687,26 @@ content, and values that should not be generalized. It also records that
 regulation can connect to `calendar`, `session-post`, `session-detail`, and
 `mypage` through navigation or user guidance, but auth, membership, RPC, DB,
 and Discord sync behavior should remain outside the regulation template.
+
+## Phase 3-B2 Regulation Data Schema Detail
+
+Phase 3-B2 adds a docs-only data/json schema plan:
+
+- `docs/world-template-regulation-data-schema-plan.md`
+
+This plan inventories current regulation elements and separates them into:
+
+- very good data/json candidates, such as tables, term cards, short notes, and
+  individual ruling cards
+- data/json candidates that need body-structure design, such as long house
+  rules, growth rules, fumble/lower-bound growth rules, and complex special
+  rulings
+- renderer/layout concerns that should remain outside the schema for now, such
+  as active TOC behavior, anchors, DOM structure, section ordering, and CSS
+  classes
+- values that should not become data defaults, such as DOM ids, CSS class names,
+  JavaScript hook names, ops payload keys, auth/membership/RPC/DB/Discord
+  behavior, and exact Velgard numeric values
+
+The next safe world-template candidate is a docs-only renderer-constant audit
+for `renderRegulation.js` before any data/json implementation.

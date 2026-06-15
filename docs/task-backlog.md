@@ -9738,6 +9738,50 @@ Discord operation, direct Supabase write, debug console logging addition,
 DOM id configuration, input name configuration, `management_key` display, or
 raw id/email/token/JWT display was performed.
 
+## M-14F-118 regulation data schema plan
+
+Status: Phase 3-B2 regulation data/json schema planning completed.
+
+- Baseline: `1911d58 Plan regulation template structure`.
+- Added `docs/world-template-regulation-data-schema-plan.md`.
+- Inventoried current regulation elements: page title, lead, TOC/side menu,
+  term cards, schedule, level caps, reward/honor/growth tables, long rules,
+  special rulings, GM/PL notes, cautions, and future update-history links.
+- Classified data/json suitability:
+  - very suitable: page metadata, short cards, tables, term cards, callouts,
+    adopted rulebook lists, and individual ruling cards
+  - possible after body-structure design: long house rules, growth rules,
+    fumble/lower-bound growth rules, and complex special rulings
+  - better left in renderer/CSS for now: active TOC behavior, anchor behavior,
+    DOM structure, table wrappers, section ordering, and fallback behavior
+  - not reusable defaults: DOM ids, CSS classes, JS hooks, ops keys, exact
+    Velgard values, auth/membership/RPC/DB/Discord behavior, and internal keys
+- Proposed candidate schema objects:
+  `regulationPage`, `regulationNav`, `regulationSections`,
+  `regulationCards`, `regulationTables`, `levelCaps`, `rewardRules`,
+  `growthRules`, `houseRules`, `specialRulings`, `gmNotes`, and
+  `playerNotes`.
+- Documented a future implementation sequence: docs schema freeze, small table
+  pilot, renderer comparison, low-risk cards, and long/special rulings last.
+- Reconfirmed that regulation data/json remains on the world-site template side
+  and must not be mixed into reusable ops core.
+
+Next candidates:
+
+1. Audit `renderRegulation.js` constants that are world data rather than
+   renderer behavior.
+2. Choose a low-risk pilot such as schedule table, term cards, or adopted
+   rulebook list.
+3. Define output comparison criteria before any renderer/data implementation.
+
+No implementation change, HTML change, CSS change, JS change, data/json file
+creation, regulation body edit, renderer creation, SQL Editor execution, SQL
+apply, DB/RPC/RLS mutation, Edge deploy, Discord operation, direct Supabase
+write, debug console logging addition, `updates.json` change, auth/permission
+logic change, RPC/DB key configuration, CSS class configuration, DOM id
+configuration, input name configuration, `management_key` display, or raw
+id/email/token/JWT display was performed.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

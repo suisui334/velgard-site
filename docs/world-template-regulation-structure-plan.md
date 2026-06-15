@@ -378,3 +378,24 @@ Completion: a second-world sample can render from the documented structure.
    already done.
 4. Review world-site config boundaries for `terms`, `gallery`, and
    `characters` after regulation structure is stable.
+
+## Phase 3-B2 Data Schema Detail
+
+Phase 3-B2 expands the data/json planning layer:
+
+- `docs/world-template-regulation-data-schema-plan.md`
+
+The schema plan keeps implementation unchanged and records:
+
+- current regulation page element inventory
+- data/json suitability groups
+- candidate data objects such as `regulationPage`, `regulationNav`,
+  `regulationSections`, `regulationCards`, `regulationTables`, `levelCaps`,
+  `rewardRules`, `growthRules`, `houseRules`, `specialRulings`, `gmNotes`, and
+  `playerNotes`
+- generic structure versus Velgard-specific content
+- staged implementation order that starts with docs, then small tables, then
+  low-risk cards, and leaves long/special rulings for last
+- the boundary that regulation data remains world-site template data and should
+  not absorb auth, membership, RPC, DB, Discord, DOM id, CSS class, input name,
+  or internal-key contracts

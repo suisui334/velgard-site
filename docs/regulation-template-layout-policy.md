@@ -142,3 +142,24 @@ Key additions:
 - boundary stance: regulation data and renderer patterns can be reused by a
   future world site, but ops-core permissions, auth, RPC, DB, Discord sync, DOM
   ids, CSS classes, and internal keys should not be turned into regulation data
+
+## Phase 3-B2 Data Schema Detail
+
+Phase 3-B2 adds the data/json structure detail for this policy:
+
+- `docs/world-template-regulation-data-schema-plan.md`
+
+The schema plan keeps the layout policy intact and does not change production
+files. It treats the following as data candidates:
+
+- page metadata and intro text
+- TOC labels/order after a renderer-boundary review
+- term cards
+- schedule, level-cap, reward, honor, and growth tables
+- short note/callout cards
+- block-based house rules
+- special rulings, with long/complex sections migrated last
+
+The plan keeps desktop/mobile layout, active TOC behavior, anchor behavior,
+DOM/CSS details, and renderer mechanics outside the first data schema. It also
+reconfirms that exact Velgard values are world data, not reusable defaults.
