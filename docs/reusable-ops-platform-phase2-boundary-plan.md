@@ -937,3 +937,24 @@ Boundary status after Phase 2-V:
 Detailed summary:
 
 - `docs/reusable-ops-platform-phase2-late-summary.md`
+
+## Phase 2-X Config Label Boundary Audit
+
+Phase 2-X reviewed unconnected reusable-ops display labels and classified
+which labels can move toward config later.
+
+Boundary decision:
+
+- display-only labels can move gradually with local fallbacks
+- enum/status display labels need behavior specs before moving
+- `mypageAuthClient.js` should continue using a small normal-script bridge
+  rather than converting the page to modules in this track
+- auth, RPC, membership manager, Discord sync, payload, template, and
+  data-changing prompt labels remain outside immediate config work
+- DB/RPC keys, enum stored values, CSS classes, DOM ids, input names, role
+  keys, `management_key`, and raw id/email/token/JWT-related values are
+  prohibited config surfaces
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2x-config-label-gap-plan.md`

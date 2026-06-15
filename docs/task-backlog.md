@@ -9319,6 +9319,48 @@ template behavior change, reset behavior change, Discord sync behavior change,
 auth/permission logic change, `management_key` display, or raw
 id/email/token/JWT display was performed.
 
+## M-14F-104 reusable ops config label gap audit
+
+Status: Phase 2-X config label gap audit completed.
+
+- Baseline: `ad6531a Summarize reusable ops phase 2 late progress`.
+- Added
+  `docs/reusable-ops-platform-phase2x-config-label-gap-plan.md`.
+- Reviewed current `reusableOpsConfig` and `reusableOpsMypageLabels` coverage.
+- Confirmed connected areas:
+  - calendar session type labels/classes
+  - selected calendar buttons
+  - membership approved-gate labels
+  - selected mypage section and summary labels
+  - selected session-post/detail/session-display labels
+- Classified unconnected label candidates:
+  - `A`: small display-only navigation/calendar labels
+  - `B`: status/visibility/player-count and metadata labels needing fallback
+    specs
+  - `C`: membership management, auth, template, Discord, session-post
+    save/delete, and session-detail owner/admin UI-block labels
+  - `D`: prohibited config surfaces such as DB/RPC keys, enum stored values,
+    CSS classes, DOM ids, input names, role keys, `management_key`, and raw
+    id/email/token/JWT-related values
+  - `E`: boundary-unclear world-site metadata, Laxia/Velgard calendar terms,
+    template examples, and Discord panel labels
+- Documented the normal-script/module-script boundary:
+  - module scripts can import `reusableOpsConfig.js`
+  - `mypageAuthClient.js` remains normal-script and should continue through a
+    small `window.VELGARD_REUSABLE_OPS_MYPAGE` bridge for low-risk labels
+- Updated:
+  - `docs/reusable-ops-platform-phase2-late-summary.md`
+  - `docs/reusable-ops-platform-phase2-midpoint-summary.md`
+  - `docs/reusable-ops-platform-phase2-boundary-plan.md`
+  - `docs/reusable-ops-platform-extraction-plan.md`
+
+No implementation change, JS change, CSS change, HTML change, data change,
+file move, SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+Discord operation, direct Supabase write, debug console logging addition,
+`updates.json` change, auth/permission logic change, RPC/DB key configuration,
+CSS class/DOM id/input name configuration, `management_key` display, or raw
+id/email/token/JWT display was performed.
+
 ## M-14F-103 reusable ops phase 2 late summary
 
 Status: Phase 2-W late summary completed.

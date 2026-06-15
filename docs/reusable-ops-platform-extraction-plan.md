@@ -1307,3 +1307,28 @@ It consolidates:
 Detailed summary:
 
 - `docs/reusable-ops-platform-phase2-late-summary.md`
+
+## Phase 2-X Reusable Ops Config Label Gap Audit
+
+Phase 2-X performed a documentation-only audit of display labels that remain
+hard-coded around the reusable ops surface.
+
+Summary:
+
+- `reusableOpsConfig` already covers session type labels/classes, selected
+  calendar labels, membership gate labels, mypage section/summary labels, and
+  selected session-post/detail labels
+- `reusableOpsMypageLabels` remains the normal-script bridge for mypage
+- immediate future config candidates are small navigation labels and low-risk
+  calendar display labels
+- status/visibility/player-count wording needs fallback specs before config
+  movement
+- membership management, auth, template RPC, Discord sync, and data-changing
+  prompts remain separate gates
+- DB/RPC identifiers, enum stored values, CSS classes, DOM ids, input names,
+  role keys, `management_key`, and raw id/email/token/JWT-related values remain
+  prohibited config surfaces
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2x-config-label-gap-plan.md`

@@ -374,3 +374,26 @@ Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
 operation, direct Supabase write, debug console logging addition,
 `updates.json` change, auth/permission logic change, `management_key` display,
 or raw id/email/token/JWT display was performed for this summary.
+
+## Phase 2-X Follow-Up: Config Label Gap Audit
+
+Phase 2-X completed the low-risk documentation-only audit for unconnected
+`reusableOpsConfig` label candidates.
+
+Outcome:
+
+- identified immediately configurable labels such as small navigation labels
+  and low-risk calendar panel labels
+- marked session status/visibility and player-count wording as configurable
+  only after fallback/behavior specs
+- kept membership management, auth, template RPC, Discord, session-post
+  save/delete, and session-detail owner/admin messages out of immediate config
+  work because they are UI-block or side-effect adjacent
+- reaffirmed that DB columns, RPC names, enum stored values, DOM ids, CSS
+  classes, input names, role keys, Discord payload keys, `management_key`, and
+  raw id/email/token/JWT surfaces must not move into config
+- clarified the normal-script bridge boundary for `mypageAuthClient.js`
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2x-config-label-gap-plan.md`

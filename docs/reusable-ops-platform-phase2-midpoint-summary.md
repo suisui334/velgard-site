@@ -446,3 +446,22 @@ The summary also refreshes:
 Detailed summary:
 
 - `docs/reusable-ops-platform-phase2-late-summary.md`
+
+## Phase 2-X Follow-Up: Reusable Ops Config Label Gap Audit
+
+Phase 2-X audited remaining hard-coded display labels around the reusable ops
+surface without changing implementation.
+
+Recorded:
+
+- current `reusableOpsConfig` and `reusableOpsMypageLabels` coverage
+- labels already connected to config
+- A/B/C/D/E classification for unconnected label candidates
+- normal-script vs module-script config access boundary
+- values that must not be configured, such as DB/RPC keys, enum stored values,
+  DOM ids, CSS classes, input names, role keys, `management_key`, and raw
+  id/email/token/JWT-related values
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2x-config-label-gap-plan.md`
