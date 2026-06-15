@@ -249,3 +249,44 @@ Discord operation, direct Supabase write, debug console logging addition,
 `updates.json` change, auth/permission logic change, RPC/DB key
 configuration, `management_key` display, or raw id/email/token/JWT display was
 performed.
+
+## Phase 2-Y Follow-Up: Minimal A-Class Label Connection
+
+Phase 2-Y implemented the first narrow follow-up from the `A` classification.
+
+Connected only low-risk calendar labels:
+
+- selected-day session-count aria prefix
+- selected-day detail link label
+- selected-day load-error empty message
+- selected-day empty message
+- selected-day sessions panel heading
+- selected-day `time` meta label
+- selected-day `GM` meta label
+
+The labels now live under:
+
+- `REUSABLE_OPS_CONFIG.calendar.labels`
+
+Runtime usage was limited to:
+
+- `assets/js/core/calendar/renderCalendar.js`
+
+The implementation kept local fallback strings at every call site and updated
+only the affected calendar cache-bust chain to `20260616-calendar-safe-labels`.
+
+Still not touched:
+
+- `mypageAuthClient.js` and the normal-script bridge
+- session-post/detail labels
+- membership management labels
+- Discord sync labels
+- status/visibility labels
+- player-count wording
+- DB/RPC/enum/status/role values, CSS classes, DOM ids, input names, storage
+  keys, URL parameter keys, Discord payload keys, `management_key`, or raw
+  id/email/token/JWT-related values
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2y-config-label-minimal-result.md`

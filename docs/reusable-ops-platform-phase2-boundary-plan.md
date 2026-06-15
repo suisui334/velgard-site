@@ -958,3 +958,40 @@ Boundary decision:
 Detailed plan:
 
 - `docs/reusable-ops-platform-phase2x-config-label-gap-plan.md`
+
+## Phase 2-Y Calendar Label Config Boundary
+
+Phase 2-Y performed a narrow implementation from the Phase 2-X `A` label
+classification.
+
+Boundary update:
+
+- `assets/js/core/config/reusableOpsConfig.js` now includes
+  `calendar.labels`.
+- `assets/js/core/calendar/renderCalendar.js` uses those labels for selected
+  low-risk calendar display text only.
+- `assets/js/main.js` and `calendar.html` were cache-busted with
+  `20260616-calendar-safe-labels`.
+
+Connected labels:
+
+- selected-day session-count aria prefix
+- selected-day detail link
+- selected-day load-error empty state
+- selected-day empty state
+- selected-day sessions panel heading
+- selected-day `time` and `GM` meta labels
+
+The following boundaries remain unchanged:
+
+- `mypageAuthClient.js` remains a normal-script client.
+- `reusableOpsMypageLabels.js` remains the mypage bridge.
+- session-post, session-detail, membership management, Discord sync, and
+  status/visibility/player-count labels remain separate gates.
+- DB/RPC keys, enum stored values, CSS classes, DOM ids, input names, role
+  keys, `management_key`, and raw id/email/token/JWT-related values remain
+  prohibited config surfaces.
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2y-config-label-minimal-result.md`

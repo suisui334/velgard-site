@@ -1332,3 +1332,33 @@ Summary:
 Detailed plan:
 
 - `docs/reusable-ops-platform-phase2x-config-label-gap-plan.md`
+
+## Phase 2-Y Minimal Calendar Label Connection
+
+Phase 2-Y connected only the safest calendar labels from the Phase 2-X
+`A` classification.
+
+Implemented:
+
+- added `REUSABLE_OPS_CONFIG.calendar.labels`
+- added `getCalendarLabel(key, fallback)`
+- connected seven selected-day calendar labels in
+  `assets/js/core/calendar/renderCalendar.js`
+- updated the affected calendar cache-bust chain to
+  `20260616-calendar-safe-labels`
+
+This moves a small piece of reusable calendar display copy toward config while
+keeping behavior stable.
+
+Not implemented:
+
+- no `mypageAuthClient.js` bridge expansion
+- no session-post/detail label changes
+- no membership management, auth, Discord, payload, template, or data-changing
+  prompt label changes
+- no status/visibility/player-count label movement
+- no DB/RPC/enum/status/role/CSS/DOM/input-name configuration
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2y-config-label-minimal-result.md`

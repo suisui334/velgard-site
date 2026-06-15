@@ -7,9 +7,10 @@ import {
 } from "../../membershipAccessClient.js?v=20260615-core-config-move";
 import {
   getCalendarButtonLabel,
+  getCalendarLabel,
   getOpsSessionTypeCalendarClass,
   getOpsSessionTypeLabel
-} from "../config/reusableOpsConfig.js?v=20260615-core-config-move";
+} from "../config/reusableOpsConfig.js?v=20260616-calendar-safe-labels";
 import {
   escapeHtml,
   formatSessionApplicationDeadline,
@@ -438,8 +439,9 @@ function renderResultCard(title, result) {
 
 function renderSessionBadges(sessions) {
   if (!sessions.length) return "";
+  const countAriaPrefix = getCalendarLabel("sessionCountAriaPrefix", "この日の予定");
   return `
-    <span class="calendar-session-badges" aria-label="この日の予定 ${sessions.length}件">
+    <span class="calendar-session-badges" aria-label="${escapeHtml(`${countAriaPrefix} ${sessions.length}件`)}">
       <span class="calendar-session-count" aria-hidden="true">${sessions.length}件</span>
       ${sessions.map((session) => {
         const closed = isClosedSession(session) || hasSessionClosingMark(session);
@@ -462,7 +464,7 @@ function renderSessionBadges(sessions) {
 
 function renderSessionCard(session) {
   const detailButton = session.id
-    ? `<a class="button small calendar-session-detail-button" href="${escapeHtml(sessionDetailHref(session))}">詳細を見る</a>`
+    ? `<a class="button small calendar-session-detail-button" href="${escapeHtml(sessionDetailHref(session))}">${escapeHtml(getCalendarLabel("detailLink", "詳細を見る"))}</a>`
     : "";
   const actionsHtml = detailButton
     ? `<div class="calendar-session-actions">${detailButton}</div>`
@@ -475,7 +477,7 @@ function renderSessionCard(session) {
       </div>
       <dl class="calendar-session-meta">
         <div>
-          <dt>時刻</dt>
+          <dt>${escapeHtml(getCalendarLabel("time", "時刻"))}</dt>
           <dd>${escapeHtml(formatSessionTime(session))}</dd>
         </div>
         <div>
@@ -487,7 +489,7 @@ function renderSessionCard(session) {
           <dd>${escapeHtml(formatSessionApplicationDeadline(session))}</dd>
         </div>
         <div>
-          <dt>GM</dt>
+          <dt>${escapeHtml(getCalendarLabel("gm", "GM"))}</dt>
           <dd>${escapeHtml(session.gmName || "未設定")}</dd>
         </div>
         <div>
@@ -509,17 +511,17 @@ function renderSessionCard(session) {
 function renderSessionsPanel(isoDate, sessions, hasLoadError = false) {
   const bodyHtml = (() => {
     if (hasLoadError) {
-      return `<p class="calendar-session-empty">予定データを読み込めませんでした。カレンダー本体はそのまま利用できます。</p>`;
+      return `<p class="calendar-session-empty">${escapeHtml(getCalendarLabel("sessionsLoadError", "予定データを読み込めませんでした。カレンダー本体はそのまま利用できます。"))}</p>`;
     }
     if (!sessions.length) {
-      return `<p class="calendar-session-empty">この日のセッション予定はまだありません。</p>`;
+      return `<p class="calendar-session-empty">${escapeHtml(getCalendarLabel("sessionsEmpty", "この日のセッション予定はまだありません。"))}</p>`;
     }
     return `<div class="calendar-session-list">${sessions.map(renderSessionCard).join("")}</div>`;
   })();
   return `
     <article class="article-box calendar-sessions-panel">
       <div class="calendar-sessions-head">
-        <h2>選択日のセッション予定</h2>
+        <h2>${escapeHtml(getCalendarLabel("selectedSessionsTitle", "選択日のセッション予定"))}</h2>
         <span class="tag">${escapeHtml(hasLoadError ? "読み込み失敗" : `${sessions.length}件`)}</span>
       </div>
       <p class="calendar-sessions-date">${escapeHtml(formatRealDate(isoDate))}</p>

@@ -10,6 +10,15 @@ export const REUSABLE_OPS_CONFIG = Object.freeze({
       todayShortAria: "今日へ",
       todayReturn: "今日に戻す"
     }),
+    labels: Object.freeze({
+      sessionCountAriaPrefix: "この日の予定",
+      detailLink: "詳細を見る",
+      sessionsLoadError: "予定データを読み込めませんでした。カレンダー本体はそのまま利用できます。",
+      sessionsEmpty: "この日のセッション予定はまだありません。",
+      selectedSessionsTitle: "選択日のセッション予定",
+      time: "時刻",
+      gm: "GM"
+    }),
     sessionTypes: Object.freeze({
       "one-shot": Object.freeze({
         label: "単発シナリオ",
@@ -149,6 +158,10 @@ export function getOpsSessionTypeCalendarClass(sessionType) {
 
 export function getCalendarButtonLabel(key, fallback = "") {
   return REUSABLE_OPS_CONFIG.calendar.buttons[key] || fallback;
+}
+
+export function getCalendarLabel(key, fallback = "") {
+  return REUSABLE_OPS_CONFIG.calendar.labels?.[key] || fallback;
 }
 
 export function getMembershipGateLabel(key, fallback = "") {

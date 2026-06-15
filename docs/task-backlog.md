@@ -9064,6 +9064,60 @@ operation, direct Supabase write, debug console logging addition,
 rewrite, CSS split, auth/permission logic change, RPC/DB key configuration,
 `management_key` display, or raw id/email/token/JWT display was performed.
 
+## M-14F-105 reusable ops safe calendar label connection
+
+Status: Phase 2-Y minimal A-class label connection implemented.
+
+- Baseline: `f8bceaa Plan reusable ops config label gaps`.
+- Added `calendar.labels` to `assets/js/core/config/reusableOpsConfig.js`.
+- Added `getCalendarLabel(key, fallback)`.
+- Connected only the following Phase 2-X `A` calendar labels in
+  `assets/js/core/calendar/renderCalendar.js`:
+  - selected-day session-count aria prefix
+  - selected-day detail link label
+  - selected-day load-error empty message
+  - selected-day empty message
+  - selected-day sessions panel heading
+  - selected-day `time` meta label
+  - selected-day `GM` meta label
+- Updated only the affected calendar cache-bust chain:
+  - `assets/js/core/calendar/renderCalendar.js`
+  - `assets/js/main.js`
+  - `calendar.html`
+- Added
+  `docs/reusable-ops-platform-phase2y-config-label-minimal-result.md`.
+
+Checks completed:
+
+- `node --check assets/js/core/config/reusableOpsConfig.js`
+- `node --check assets/js/core/calendar/renderCalendar.js`
+- `node --check assets/js/main.js`
+- local module import smoke for config and calendar renderer
+
+Not changed:
+
+- `mypageAuthClient.js` and the normal-script bridge
+- session-post/detail labels
+- membership management labels
+- approved-gate behavior
+- Discord sync labels
+- status/visibility labels
+- player-count wording
+- DB/RPC keys, enum stored values, CSS classes, DOM ids, input names, role
+  keys, `management_key`, or raw id/email/token/JWT-related values
+
+Next candidate:
+
+1. Public rollout check for `20260616-calendar-safe-labels`.
+2. Keep remaining A candidates in separate small gates.
+3. Keep B/C/D/E labels untouched until their own fallback/spec gates exist.
+
+No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+operation, direct Supabase write, debug console logging addition,
+`updates.json` change, auth/permission logic change, RPC/DB key configuration,
+CSS class/DOM id/input name configuration, `management_key` display, or raw
+id/email/token/JWT display was performed.
+
 ## M-14F-94 session-post field helper extraction plan
 
 Status: Phase 2-N session-post field/helper extraction audit completed.

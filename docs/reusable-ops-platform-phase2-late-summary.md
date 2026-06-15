@@ -397,3 +397,46 @@ Outcome:
 Detailed plan:
 
 - `docs/reusable-ops-platform-phase2x-config-label-gap-plan.md`
+
+## Phase 2-Y Follow-Up: Minimal Safe Label Connection
+
+Phase 2-Y connected a very small subset of the Phase 2-X `A` classified labels.
+
+Connected:
+
+- `REUSABLE_OPS_CONFIG.calendar.labels.sessionCountAriaPrefix`
+- `REUSABLE_OPS_CONFIG.calendar.labels.detailLink`
+- `REUSABLE_OPS_CONFIG.calendar.labels.sessionsLoadError`
+- `REUSABLE_OPS_CONFIG.calendar.labels.sessionsEmpty`
+- `REUSABLE_OPS_CONFIG.calendar.labels.selectedSessionsTitle`
+- `REUSABLE_OPS_CONFIG.calendar.labels.time`
+- `REUSABLE_OPS_CONFIG.calendar.labels.gm`
+
+Runtime usage:
+
+- `assets/js/core/calendar/renderCalendar.js`
+
+Cache-bust:
+
+- `20260616-calendar-safe-labels`
+
+Preserved:
+
+- explicit fallback strings at every call site
+- displayed calendar text
+- auth, role, RPC, DB, Discord, payload, CSS class, DOM id, input name, and
+  `management_key` boundaries
+- the normal-script mypage bridge boundary
+
+Not touched:
+
+- `mypageAuthClient.js`
+- session-post/detail labels
+- membership management labels
+- status/visibility labels
+- player-count wording
+- Discord sync labels
+
+Detailed result:
+
+- `docs/reusable-ops-platform-phase2y-config-label-minimal-result.md`
