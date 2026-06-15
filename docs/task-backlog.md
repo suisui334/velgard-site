@@ -9875,6 +9875,50 @@ Edge deploy, Discord operation, direct Supabase write, debug console logging
 addition, auth/permission logic change, RPC/DB key configuration,
 `management_key` display, or raw id/email/token/JWT display was performed.
 
+## M-14F-121 term explanations data module pilot
+
+Status: Phase 3-B5 `termExplanations` data module pilot implemented.
+
+- Baseline: `f5c03ee Document term explanations behavior`.
+- Created `assets/js/world/regulation/termExplanationsData.js`.
+- Exported `termExplanations`.
+- Removed only the `termExplanations` key from `data/regulation.json`.
+- Updated `assets/js/renderRegulation.js` to import the data module and attach
+  it to the loaded regulation object before calling the existing renderer flow.
+- Kept `renderTermExplanations(regulation)` as the renderer contract; no DOM
+  shape, CSS class, section id, anchor, or active TOC behavior was changed.
+- Updated the regulation cache-bust chain to
+  `20260616-regulation-term-data-module`.
+- Added
+  `docs/world-template-regulation-term-explanations-data-module-result.md`.
+
+Smoke / snapshot result:
+
+- data module import: ok
+- `termExplanations.length === 12`: ok
+- module data equals the previous HEAD `data/regulation.json`
+  `termExplanations`: ok
+- title list matches previous data: ok
+- callout count remains 1, on card index 7: ok
+- `data/regulation.json` parse: ok
+
+Next candidates:
+
+1. Public rollout check for
+   `20260616-regulation-term-data-module`.
+2. Decide whether the next world-site data pilot should remain a data module or
+   start a separate JSON/fetch gate.
+3. Keep level-cap table migration, standalone JSON migration, and magic-angel
+   ruling migration behind later separate gates.
+
+No JSON file creation, fetch introduction, new renderer creation,
+`renderTermExplanations` rewrite, CSS class change, DOM id change, anchor
+change, active TOC change, regulation body meaning change, `updates.json`
+change, SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+Discord operation, direct Supabase write, debug console logging addition,
+auth/permission logic change, reusable ops core change, `management_key`
+display, or raw id/email/token/JWT display was performed.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

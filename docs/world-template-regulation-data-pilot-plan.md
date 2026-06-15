@@ -42,6 +42,11 @@ Current source:
 - `data/regulation.json`
 - `termExplanations`
 
+After Phase 3-B5, production term-card data is owned by:
+
+- `assets/js/world/regulation/termExplanationsData.js`
+- export `termExplanations`
+
 Current renderer:
 
 - `assets/js/renderRegulation.js`
@@ -278,3 +283,24 @@ Key fixed facts:
 - section id and anchor remain `term-explanations`
 - Option A, a world-site data module, is recommended for the first
   implementation gate over adding a new JSON fetch
+
+## Phase 3-B5 Data Module Pilot Result
+
+Phase 3-B5 implements the selected pilot:
+
+- `docs/world-template-regulation-term-explanations-data-module-result.md`
+
+Implementation summary:
+
+- created `assets/js/world/regulation/termExplanationsData.js`
+- exported `termExplanations`
+- removed the `termExplanations` key from `data/regulation.json`
+- imported the data module in `assets/js/renderRegulation.js`
+- preserved the existing `renderTermExplanations(regulation)` renderer contract
+- updated only the regulation cache-bust chain to
+  `20260616-regulation-term-data-module`
+- did not introduce JSON/fetch loading
+
+The first pilot is now ready for a separate public rollout check. Longer
+regulation sections, level-cap tables, reward/honor values, and magic-angel
+rulings remain outside this pilot.

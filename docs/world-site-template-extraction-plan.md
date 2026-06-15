@@ -738,3 +738,15 @@ It records that `termExplanations` currently has 12 cards, is rendered by
 `renderTermExplanations(regulation)`, uses the existing term-card CSS classes,
 and has one optional example callout. It also records the comparison checklist
 and recommends a data-module pilot before a separate JSON-file migration.
+
+## Phase 3-B5 Regulation Term Data Module Pilot
+
+Phase 3-B5 applies the first world-site data split:
+
+- `assets/js/world/regulation/termExplanationsData.js`
+- `docs/world-template-regulation-term-explanations-data-module-result.md`
+
+The pilot moves only `termExplanations` out of `data/regulation.json`. It keeps
+the regulation renderer, CSS classes, section anchor, active side menu, and
+reusable ops core unchanged. This is a world-site template step, not a reusable
+ops platform split.

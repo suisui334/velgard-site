@@ -7,10 +7,15 @@ DB/RPC/RLS, Discord sync, or reusable ops core code.
 
 ## Source
 
-Current data source:
+B4 baseline data source before the pilot:
 
 - `data/regulation.json`
 - key: `termExplanations`
+
+Current production data source after Phase 3-B5:
+
+- `assets/js/world/regulation/termExplanationsData.js`
+- export: `termExplanations`
 
 Current renderer:
 
@@ -71,7 +76,8 @@ The current data has:
 
 ## Current Display Order
 
-Current card order is the array order in `data/regulation.json`:
+Current card order is the exported array order. The order below matches the
+Phase 3-B4 baseline from `data/regulation.json` and the Phase 3-B5 data module:
 
 1. `レベルキャップ`
 2. `固定経験点`
@@ -333,3 +339,22 @@ Not allowed:
    `term-explanations` section.
 3. Keep JSON-file migration, level-cap table migration, and magic-angel ruling
    migration behind later separate gates.
+
+## Phase 3-B5 Data Module Implementation
+
+Phase 3-B5 implements the first pilot as a world-site data module:
+
+- `docs/world-template-regulation-term-explanations-data-module-result.md`
+- `assets/js/world/regulation/termExplanationsData.js`
+
+Result:
+
+- `termExplanations` was moved out of `data/regulation.json`
+- `renderRegulation.js` imports the module and attaches it to the loaded
+  regulation object
+- `renderTermExplanations(regulation)` still receives
+  `regulation.termExplanations`
+- the renderer DOM contract documented above is unchanged
+- local smoke confirmed 12 cards, previous-data equality, and the same single
+  callout on card index 7
+- JSON/fetch migration remains out of scope

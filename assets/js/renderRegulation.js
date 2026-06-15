@@ -1,6 +1,7 @@
 import { loadJson } from "./dataLoader.js";
+import { termExplanations } from "./world/regulation/termExplanationsData.js";
 
-const REGULATION_DATA_PATH = "data/regulation.json?v=20260615-route-a-angel-order";
+const REGULATION_DATA_PATH = "data/regulation.json?v=20260616-regulation-term-data-module";
 
 const STRONG_PARAGRAPHS = new Set([
   "【ルートA・B共通】",
@@ -318,7 +319,10 @@ function renderDataSection(sectionData) {
 }
 
 export async function renderRegulation(root) {
-  const regulation = await loadJson(REGULATION_DATA_PATH);
+  const regulation = {
+    ...await loadJson(REGULATION_DATA_PATH),
+    termExplanations
+  };
   root.replaceChildren();
 
   if (regulation.status !== "public") {

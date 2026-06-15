@@ -628,3 +628,16 @@ DOM/class structure, empty-data behavior, comparison checklist, and future
 implementation options. It recommends a world-site data module as the first
 implementation direction because it avoids adding another JSON fetch during the
 initial pilot.
+
+## Phase 3-B5 Term Explanations Data Module
+
+Phase 3-B5 creates the first production data-module split:
+
+- `assets/js/world/regulation/termExplanationsData.js`
+- `docs/world-template-regulation-term-explanations-data-module-result.md`
+
+This confirms that small regulation card data can move to a world-site module
+without changing the renderer shape, CSS classes, section anchor, active TOC
+logic, or reusable ops core. It is still not a general JSON schema migration:
+standalone JSON files, fetch fallback design, table schema work, and long-rule
+migration remain later gates.
