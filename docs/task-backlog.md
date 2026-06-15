@@ -9064,6 +9064,44 @@ operation, direct Supabase write, debug console logging addition,
 rewrite, CSS split, auth/permission logic change, RPC/DB key configuration,
 `management_key` display, or raw id/email/token/JWT display was performed.
 
+## M-14F-94 session-post field helper extraction plan
+
+Status: Phase 2-N session-post field/helper extraction audit completed.
+
+- Baseline: `fc42e5d Summarize reusable ops phase 2 progress`.
+- Added
+  `docs/reusable-ops-platform-phase2n-session-post-field-helper-plan.md`.
+- Reviewed `assets/js/renderSessionPost.js` for small form helper extraction
+  candidates.
+- Kept this gate documentation-only. No JS, CSS, data, SQL, DB/RPC/RLS,
+  Discord, auth, permission, or runtime behavior change was made.
+- Classified `renderTextField`, `renderSelectField`, and
+  `renderTextareaField` as the safest future extraction candidates.
+- Classified `getSessionPostLabel`, `renderPlayerCountFields`,
+  `formatPlayerCountLabel`, managed-session option display, and template
+  example display as conditional later candidates.
+- Kept template management UI, Discord mention UI, save/delete/create flows,
+  payload builders, validation, RPC calls, Discord sync calls, auth/access
+  checks, approved gate behavior, and event handler registration out of scope.
+- Recorded that `renderSessionPost.js` should remain the page orchestrator
+  until smaller display-only helpers are split behind dedicated QA gates.
+
+Next candidates:
+
+1. If implementation is requested, extract only `renderTextField`,
+   `renderSelectField`, and `renderTextareaField` into a small core helper
+   module.
+2. Run a session-post static display check after any field helper extraction.
+3. Keep data-changing create/update/delete, template, and Discord sync QA as
+   separate explicit gates.
+
+No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+operation, direct Supabase write, debug console logging addition,
+`updates.json` change, `renderSessionPost.js` large rewrite, post save/edit
+flow change, template RPC change, Discord sync behavior change,
+auth/permission logic change, `management_key` display, or raw
+id/email/token/JWT display was performed.
+
 ## M-14F-92 session summary/tag light visual QA record
 
 Status: Phase 2-M lightweight visual check recorded.

@@ -676,3 +676,29 @@ the world-site side. The reusable value is the regulation page skeleton,
 JSON-managed rule data, term cards, tables, long-form cards, table-of-contents
 menu, active current-section display, desktop wide reading layout, and mobile
 stacking behavior.
+
+## Phase 2-N Session Post Field Helper Boundary
+
+Phase 2-N audited `assets/js/renderSessionPost.js` for form-field helper
+extraction, but did not implement a move.
+
+Boundary result:
+
+- A/B candidates: `renderTextField`, `renderSelectField`, `renderTextareaField`.
+- B/C candidates: `getSessionPostLabel`, `renderPlayerCountFields`,
+  `formatPlayerCountLabel`, `renderManagedSessionOption`,
+  `renderSessionPostTemplateExamples`.
+- C/D or prohibited surfaces: `renderSessionPostTemplatePanel`, `renderShell`,
+  `renderDiscordMentionField`, `renderResult`, payload builders, template RPC
+  helpers, create/update/delete flows, Discord sync calls, auth/access checks,
+  and event handlers.
+
+The next safe implementation, if needed, should extract only the three basic
+field renderers into `assets/js/core/session/sessionFormHelpers.js` or
+`assets/js/core/form/formFieldHelpers.js`. It should not alter save/edit,
+template, Discord, auth, approved gate, RPC, DB/RPC/RLS, or internal-id
+behavior.
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2n-session-post-field-helper-plan.md`

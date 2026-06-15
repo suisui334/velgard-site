@@ -173,3 +173,28 @@ Phase 2 midpoint status: healthy but intentionally conservative.
 The project now has a visible reusable operations core directory and several
 small session helpers extracted, while high-risk auth/RPC/Discord/UI-block
 surfaces remain stable in their original files.
+
+## Phase 2-N Follow-Up: Session Post Field Helper Audit
+
+Phase 2-N reviewed `assets/js/renderSessionPost.js` for small form helper
+extraction candidates.
+
+Result: documentation-only. No helper was moved in this gate.
+
+Findings:
+
+- `renderTextField`, `renderSelectField`, and `renderTextareaField` are the
+  safest future extraction candidates.
+- `renderPlayerCountFields`, `formatPlayerCountLabel`, and managed-session
+  option rendering need more label/fallback or ownership decisions before
+  moving.
+- Template UI, Discord mention UI, result rendering, payload builders,
+  validation, RPC calls, save/delete flows, auth/access checks, and event
+  registration remain out of scope for core helper extraction.
+- `renderSessionPost.js` should remain the page orchestrator for now because it
+  still combines form rendering, templates, persistence, Discord sync, and
+  access flow.
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2n-session-post-field-helper-plan.md`

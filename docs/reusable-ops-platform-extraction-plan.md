@@ -1022,3 +1022,41 @@ Key points:
 Detailed summary:
 
 - `docs/reusable-ops-platform-phase2-midpoint-summary.md`
+
+## Phase 2-N Session Post Field Helper Audit
+
+The next audit reviewed `assets/js/renderSessionPost.js` for possible
+session-post field/helper extraction.
+
+Decision: no implementation in this gate.
+
+Reusable candidates:
+
+- `renderTextField`
+- `renderSelectField`
+- `renderTextareaField`
+
+Conditional later candidates:
+
+- `getSessionPostLabel`
+- `renderPlayerCountFields`
+- `formatPlayerCountLabel`
+- managed-session option display
+- template example display
+
+Do not move yet:
+
+- session-post page shell
+- template management panel and template RPCs
+- Discord mention field and Discord sync result surfaces
+- payload builders and validation
+- create/update/delete RPC flows
+- auth/access/approved gate logic
+- event handler registration
+
+`renderSessionPost.js` remains a mixed page module and should stay in place
+until small display-only helpers are split behind dedicated QA gates.
+
+Detailed plan:
+
+- `docs/reusable-ops-platform-phase2n-session-post-field-helper-plan.md`
