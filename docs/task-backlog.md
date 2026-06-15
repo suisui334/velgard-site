@@ -9782,6 +9782,53 @@ logic change, RPC/DB key configuration, CSS class configuration, DOM id
 configuration, input name configuration, `management_key` display, or raw
 id/email/token/JWT display was performed.
 
+## M-14F-119 regulation data pilot selection
+
+Status: Phase 3-B3 regulation data/json pilot selection completed.
+
+- Baseline: `2c64771 Plan regulation data schema`.
+- Added `docs/world-template-regulation-data-pilot-plan.md`.
+- Evaluated pilot candidates:
+  - term explanation cards
+  - short note cards
+  - fumble experience card
+  - lower-bound growth card
+  - level-cap table
+  - reward amount table
+  - Sword Shard / honor guide table
+  - individual ruling cards
+  - magic-angel ruling card
+  - TOC / active menu behavior
+  - DOM ids, CSS classes, and JS hooks
+- Selected term explanation cards as the first future implementation pilot.
+- Recorded current source/renderer/CSS touchpoints:
+  `data/regulation.json` `termExplanations`,
+  `renderTermExplanations(regulation)`, `.regulation-term-grid`,
+  `.regulation-term-card`, and `.regulation-callout`.
+- Documented the expected data shape, renderer responsibilities, cache-bust
+  candidates, QA checks, rollback plan, and out-of-scope boundaries for the
+  future pilot gate.
+- Explicitly deferred long house rules, magic-angel ruling migration,
+  level-cap column migration, reward/honor value changes, TOC/active behavior,
+  CSS class changes, DOM id changes, anchor changes, `updates.json` changes,
+  and ops-core/auth/RPC/DB/Discord changes.
+
+Next candidates:
+
+1. If implementation is approved later, create a dedicated term-card pilot gate.
+2. Before implementation, define text/screenshot comparison criteria for
+   `term-explanations`.
+3. Keep level-cap table and magic-angel ruling work behind later separate
+   gates.
+
+No implementation change, HTML change, CSS change, JS change, data/json
+creation, renderer creation, regulation body edit, regulation visual change,
+SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+operation, direct Supabase write, debug console logging addition,
+`updates.json` change, auth/permission logic change, RPC/DB key configuration,
+CSS class configuration, DOM id configuration, input name configuration,
+`management_key` display, or raw id/email/token/JWT display was performed.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

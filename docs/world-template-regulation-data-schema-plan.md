@@ -590,3 +590,29 @@ public display QA.
 3. Define visible-output comparison criteria before any implementation.
 4. Keep magic-angel and other long special rulings as final migration
    candidates.
+
+## Phase 3-B3 First Pilot Selection
+
+Phase 3-B3 selects the first candidate for a future data/json implementation
+gate:
+
+- `docs/world-template-regulation-data-pilot-plan.md`
+
+Selected pilot:
+
+- term explanation cards
+
+Reason:
+
+- the current `termExplanations` data is already an array of repeated card
+  records
+- the renderer is isolated in `renderTermExplanations(regulation)`
+- output can be compared by card count, order, headings, paragraphs, and
+  optional example callouts
+- it avoids long special rulings, level-cap column migration, reward value
+  changes, TOC/active behavior, CSS class changes, DOM id changes, and ops-core
+  behavior
+
+The pilot plan keeps magic-angel rulings, reward/honor values, level-cap column
+definitions, TOC behavior, and all auth/RPC/DB/Discord concerns out of the
+first data/json implementation gate.

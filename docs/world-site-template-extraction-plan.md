@@ -710,3 +710,20 @@ This plan inventories current regulation elements and separates them into:
 
 The next safe world-template candidate is a docs-only renderer-constant audit
 for `renderRegulation.js` before any data/json implementation.
+
+## Phase 3-B3 Regulation Data Pilot Selection
+
+Phase 3-B3 adds the first data/json pilot selection:
+
+- `docs/world-template-regulation-data-pilot-plan.md`
+
+The selected first pilot is the regulation term explanation card group. It is
+safer than the level-cap/reward/honor tables because the card data is already a
+simple repeated structure and does not require moving table column definitions.
+It is safer than magic-angel and other long special rulings because it avoids
+deep paragraph/list/table nesting.
+
+Future implementation gates should keep the first pilot limited to term-card
+data and renderer compatibility. They should not change TOC/active behavior,
+anchors, CSS classes, DOM ids, reward values, honor values, long special
+rulings, auth, membership, RPC, DB, Discord sync, or reusable ops core.

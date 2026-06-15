@@ -399,3 +399,18 @@ The schema plan keeps implementation unchanged and records:
 - the boundary that regulation data remains world-site template data and should
   not absorb auth, membership, RPC, DB, Discord, DOM id, CSS class, input name,
   or internal-key contracts
+
+## Phase 3-B3 First Data Pilot Selection
+
+Phase 3-B3 chooses the safest first pilot before implementation:
+
+- `docs/world-template-regulation-data-pilot-plan.md`
+
+Selected pilot:
+
+- term explanation cards
+
+The term-card pilot is preferred because it is already close to data, has a
+small repeated structure, is easy to compare visually/textually, and does not
+require TOC, active menu, CSS class, DOM id, level-cap table, reward value,
+special ruling, or ops-core changes.
