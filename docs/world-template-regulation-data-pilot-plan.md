@@ -304,3 +304,18 @@ Implementation summary:
 The first pilot is now ready for a separate public rollout check. Longer
 regulation sections, level-cap tables, reward/honor values, and magic-angel
 rulings remain outside this pilot.
+
+## Phase 3-B6 Public Rollout Check
+
+Phase 3-B6 completes the public check for the selected pilot:
+
+- `docs/world-template-regulation-term-explanations-data-module-public-check.md`
+
+The public cache-bust chain, public data module, and public
+`data/regulation.json` state were confirmed. The public page renders 12 term
+cards and the same single callout on card index 7 even though
+`data/regulation.json` no longer contains the `termExplanations` key.
+
+This makes the first data-module pilot complete from implementation through
+public rollout. It does not approve broader regulation JSON/fetch migration;
+that remains a separate later gate.

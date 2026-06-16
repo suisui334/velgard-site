@@ -9919,6 +9919,52 @@ Discord operation, direct Supabase write, debug console logging addition,
 auth/permission logic change, reusable ops core change, `management_key`
 display, or raw id/email/token/JWT display was performed.
 
+## M-14F-122 term explanations data module public check
+
+Status: Phase 3-B6 public rollout check completed.
+
+- Baseline: `f7aa94a Extract regulation term explanations data`.
+- Added
+  `docs/world-template-regulation-term-explanations-data-module-public-check.md`.
+- Updated the Phase 3-B regulation tracking docs to mark the public rollout
+  check complete.
+- Public `regulation.html`: HTTP 200 and references
+  `assets/js/main.js?v=20260616-regulation-term-data-module`.
+- Public `main.js`: HTTP 200 and imports
+  `renderRegulation.js?v=20260616-regulation-term-data-module`.
+- Public `renderRegulation.js`: HTTP 200, imports
+  `./world/regulation/termExplanationsData.js`, keeps
+  `renderTermExplanations(regulation)`, and uses
+  `data/regulation.json?v=20260616-regulation-term-data-module`.
+- Public `termExplanationsData.js`: HTTP 200 and exports
+  `termExplanations`.
+- Public `data/regulation.json`: HTTP 200, parse OK, and the
+  `termExplanations` key is absent.
+- Public module data has 12 cards, 0 empty terms, 0 empty paragraph arrays,
+  and 1 callout on card index 7.
+- Public browser DOM has 12 `.regulation-term-card` entries, one
+  `.regulation-callout` on card index 7, matching headings/paragraphs/callout
+  content against the public module, no `undefined`, no `[object Object]`, no
+  empty headings, and no empty cards.
+- Public `.regulation-toc-list a[href="#term-explanations"]` exists. Initial
+  active TOC state had one active link.
+- Cache-mixing risks from B5 were not observed: no old renderer with new JSON,
+  no old HTML cache-bust, and no missing term data module.
+
+Limited / not tested:
+
+- Full desktop/mobile visual inspection is `limited`.
+- Scroll-through active TOC behavior is `limited`.
+- Non-regulation pages are `not_tested`; this gate made docs-only changes.
+- Authenticated role-specific behavior, data-changing workflows, Discord sync,
+  DB/RPC/RLS, and Edge Functions are `not_tested` and out of scope.
+
+No implementation change, JSON data change, CSS change, `updates.json` change,
+SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+operation, Webhook/secret/token change, direct Supabase write addition,
+auth/permission logic change, RPC/DB key configuration, `management_key`
+display, or raw user id/email/token/JWT display was performed.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

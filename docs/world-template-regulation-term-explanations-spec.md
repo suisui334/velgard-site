@@ -358,3 +358,30 @@ Result:
 - local smoke confirmed 12 cards, previous-data equality, and the same single
   callout on card index 7
 - JSON/fetch migration remains out of scope
+
+## Phase 3-B6 Public Rollout Check
+
+Phase 3-B6 confirms the public B5 rollout:
+
+- `docs/world-template-regulation-term-explanations-data-module-public-check.md`
+
+Current production facts after public check:
+
+- public `regulation.html` uses the
+  `20260616-regulation-term-data-module` cache-bust
+- public `renderRegulation.js` imports
+  `./world/regulation/termExplanationsData.js`
+- public `termExplanationsData.js` returns HTTP 200 and exports
+  `termExplanations`
+- public `data/regulation.json` returns HTTP 200 and no longer has the
+  `termExplanations` key
+- public DOM renders 12 `.regulation-term-card` entries
+- the single `.regulation-callout` remains on card index 7
+- public DOM headings, paragraphs, and callout content match the public data
+  module
+- section id, TOC link, and term-card classes remain unchanged in the checked
+  DOM
+
+Future changes should treat the public data module plus the existing
+`renderTermExplanations(regulation)` contract as the current baseline unless a
+separate gate explicitly changes it.

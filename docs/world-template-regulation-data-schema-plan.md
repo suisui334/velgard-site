@@ -641,3 +641,21 @@ without changing the renderer shape, CSS classes, section anchor, active TOC
 logic, or reusable ops core. It is still not a general JSON schema migration:
 standalone JSON files, fetch fallback design, table schema work, and long-rule
 migration remain later gates.
+
+## Phase 3-B6 Term Explanations Public Rollout
+
+Phase 3-B6 confirms the first production data-module split on public delivery:
+
+- `docs/world-template-regulation-term-explanations-data-module-public-check.md`
+
+Confirmed public facts:
+
+- the B5 cache-bust chain is live on `regulation.html` and `main.js`
+- `renderRegulation.js` imports the term data module
+- `termExplanationsData.js` is available publicly
+- `data/regulation.json` no longer carries `termExplanations`
+- the public DOM still renders 12 term cards and one callout on card index 7
+
+This supports the schema-plan assumption that small repeated card groups can be
+split first while table schema, long-body schema, and JSON/fetch behavior remain
+behind later gates.

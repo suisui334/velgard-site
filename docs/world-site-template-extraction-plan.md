@@ -750,3 +750,19 @@ The pilot moves only `termExplanations` out of `data/regulation.json`. It keeps
 the regulation renderer, CSS classes, section anchor, active side menu, and
 reusable ops core unchanged. This is a world-site template step, not a reusable
 ops platform split.
+
+## Phase 3-B6 Regulation Term Data Public Rollout
+
+Phase 3-B6 verifies the B5 split on public delivery:
+
+- `docs/world-template-regulation-term-explanations-data-module-public-check.md`
+
+The public site serves the new cache-bust chain, the public regulation renderer
+imports the world-site term data module, the module is HTTP 200, and public
+`data/regulation.json` no longer owns `termExplanations`. The browser DOM check
+still found 12 term cards, one callout on card index 7, the existing term-card
+classes, and the `#term-explanations` TOC link.
+
+This completes the first small world-site data-module rollout check. The next
+world-site template extraction steps should stay scoped to similarly small
+data groups unless a separate JSON/fetch migration gate is opened.

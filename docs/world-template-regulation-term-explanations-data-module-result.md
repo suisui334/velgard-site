@@ -139,10 +139,38 @@ Authenticated or data-changing QA is not required for this world-site data
 module split because it does not touch auth, membership, RPC, DB, or Discord
 sync.
 
+## Phase 3-B6 Public Rollout Check
+
+Phase 3-B6 completed the public rollout check:
+
+- `docs/world-template-regulation-term-explanations-data-module-public-check.md`
+
+Public result:
+
+- `regulation.html`: HTTP 200
+- `regulation.html` cache-bust:
+  `20260616-regulation-term-data-module`
+- `assets/js/main.js`: HTTP 200 and imports
+  `renderRegulation.js?v=20260616-regulation-term-data-module`
+- `assets/js/renderRegulation.js`: HTTP 200 and imports
+  `./world/regulation/termExplanationsData.js`
+- `assets/js/world/regulation/termExplanationsData.js`: HTTP 200 and exports
+  `termExplanations`
+- `data/regulation.json`: HTTP 200, parse OK, and no `termExplanations` key
+- public DOM term cards: 12
+- public DOM callout count: 1
+- public DOM callout card index: 7
+- public DOM headings, paragraphs, and callout content matched the public data
+  module
+- no checked public 404, module-load failure, or regulation-data fetch failure
+  was found
+
+Visual QA remains limited to DOM-level browser verification for this gate. Full
+desktop/mobile visual review and scroll-through active TOC QA remain separate
+checks.
+
 ## Next Candidates
 
-1. Public rollout check for
-   `20260616-regulation-term-data-module`.
-2. If rollout is clean, decide whether to keep the module pattern for a second
+1. Decide whether to keep the module pattern for a second
    short card group.
-3. Keep standalone JSON-file migration as a separate later gate.
+2. Keep standalone JSON-file migration as a separate later gate.
