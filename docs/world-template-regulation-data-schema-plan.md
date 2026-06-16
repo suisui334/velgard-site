@@ -686,3 +686,25 @@ next pilot.
 
 Long house rules, magic-angel rulings, complex growth rules, and standalone
 reward/honor table schemas remain later candidates.
+
+## Phase 3-B8 Level-Cap Current Behavior Spec
+
+Phase 3-B8 freezes the current behavior of the selected second data-module
+candidate:
+
+- `docs/world-template-regulation-level-caps-spec.md`
+
+Schema-plan impact:
+
+- `levelCaps` remains a world-site template data candidate.
+- The current production row data is 14 rows by 11 string fields.
+- `LEVEL_CAP_COLUMNS` remains renderer-owned for the next gate.
+- `renderTable()` remains renderer/layout behavior, not content data.
+- Regulation `levelCaps` must remain separate from calendar-side
+  `data/calendarConfig.json` level-cap date ranges.
+- No reusable ops core, auth, membership, DB/RPC/RLS, Edge Function, or Discord
+  behavior is part of this schema candidate.
+
+The next implementation gate may use a world-site data module for the row array,
+but standalone JSON/fetch migration and table-column schema migration remain
+separate later decisions.

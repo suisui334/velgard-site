@@ -351,3 +351,19 @@ Scope for the future implementation gate:
 Before implementation, create a behavior/spec gate for current `levelCaps`
 row count, row keys, cell values, table classes, section id, TOC link, and
 public QA expectations.
+
+## Phase 3-B8 Level-Cap Behavior Spec
+
+Phase 3-B8 completes the pre-implementation behavior/spec gate for the selected
+next candidate:
+
+- `docs/world-template-regulation-level-caps-spec.md`
+
+The spec fixes the current `levelCaps` data source, 14-row order, 11-field row
+shape, `LEVEL_CAP_COLUMNS` mapping, `renderTable()` call path, table classes,
+section id, TOC anchor, and future comparison checklist.
+
+The next implementation gate should still move only the `levelCaps` row data.
+It should not move `LEVEL_CAP_COLUMNS`, change `renderTable()`, split reward,
+honor, or Sword Shard columns, alter anchors or active TOC behavior, or connect
+regulation data to reusable ops core.

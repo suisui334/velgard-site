@@ -788,3 +788,16 @@ Next selected candidate:
 The future implementation should move only the `levelCaps` row array. It should
 not move `LEVEL_CAP_COLUMNS`, split reward/honor/Sword Shard columns, change
 table CSS/DOM, or alter anchors and active TOC behavior.
+
+## Phase 3-B8 Regulation Level-Cap Behavior Spec
+
+Phase 3-B8 adds the current behavior spec for the selected level-cap row-data
+candidate:
+
+- `docs/world-template-regulation-level-caps-spec.md`
+
+The spec confirms that regulation `levelCaps` is world-site template content,
+not reusable ops core. It also records that the next implementation should move
+only the row array, keep `LEVEL_CAP_COLUMNS` and `renderTable()` renderer-owned,
+avoid JSON/fetch migration, and avoid coupling with calendar-side level-cap
+date ranges.

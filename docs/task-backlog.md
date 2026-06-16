@@ -10009,6 +10009,61 @@ debug console logging addition, auth/permission logic change, RPC/DB key
 configuration, `management_key` display, or raw user id/email/token/JWT display
 was performed.
 
+## M-14F-124 regulation level caps behavior spec
+
+Status: Phase 3-B8 `levelCaps` current behavior spec completed.
+
+- Baseline: `878950c Summarize regulation data pilot`.
+- Added `docs/world-template-regulation-level-caps-spec.md`.
+- Updated the Phase 3-B regulation tracking docs with the level-cap behavior
+  spec result.
+- Fixed current `levelCaps` behavior before implementation:
+  - source: `data/regulation.json` key `levelCaps`
+  - row count: 14
+  - display order: `Lv2` through `Lv15`
+  - row shape: 11 non-empty string fields
+  - no current `startDate`, `endDate`, `notes`, or optional row field
+  - `LEVEL_CAP_COLUMNS` has 11 renderer-owned columns
+  - `renderLevelCaps(regulation)` calls
+    `renderTable(rows, LEVEL_CAP_COLUMNS)`
+  - section id remains `level-caps`
+  - TOC anchor remains `#level-caps`
+  - table classes remain `.regulation-table-wrap` and `.regulation-table`
+- Confirmed `renderTable()` is shared with the schedule table and regulation
+  block tables, so the next implementation must not change the shared renderer.
+- Reconfirmed the reusable ops boundary:
+  - regulation `levelCaps` belongs to the world-site template side
+  - do not merge it with calendar-side `data/calendarConfig.json` level-cap
+    date ranges
+  - do not connect it to auth, membership, Discord sync, DB, RPC, or RLS
+
+Recommended next implementation:
+
+- Create `assets/js/world/regulation/levelCapsData.js`.
+- Export `levelCaps`.
+- Import it in `assets/js/renderRegulation.js` and attach it at the existing
+  `renderRegulation(root)` merge point.
+- Keep `LEVEL_CAP_COLUMNS`, `renderTable()`, CSS classes, DOM ids, anchors,
+  active TOC behavior, regulation text meaning, reward/honor/Sword Shard table
+  splitting, and JSON/fetch migration out of the first implementation gate.
+
+Limited / not tested in this docs-only gate:
+
+- Rendered DOM comparison: `not_tested`.
+- Desktop/mobile visual review: `not_tested`.
+- Active TOC scroll-through behavior: `not_tested`.
+- Non-regulation pages: `not_tested`.
+- Authenticated role-specific behavior, data-changing workflows, Discord sync,
+  DB/RPC/RLS, and Edge Functions remain `not_tested` and out of scope.
+
+No implementation change, HTML change, CSS change, JS change, JSON/data change,
+data module creation, renderer change, regulation copy change, `updates.json`
+change, SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+Discord operation, Webhook/secret/token change, direct Supabase write addition,
+debug console logging addition, auth/permission logic change, RPC/DB key
+configuration, `management_key` display, or raw user id/email/token/JWT display
+was performed.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

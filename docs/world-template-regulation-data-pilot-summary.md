@@ -405,3 +405,38 @@ Proceed to a future Phase 3-B8 planning/spec gate for:
 Do not implement it directly from this B7 summary. The next gate should first
 freeze the current `levelCaps` row behavior and comparison checklist, similar
 to the Phase 3-B4 term-card behavior spec.
+
+## Phase 3-B8 Level-Cap Behavior Spec
+
+Phase 3-B8 freezes the current `levelCaps` row-data behavior before any
+implementation:
+
+- `docs/world-template-regulation-level-caps-spec.md`
+
+Fixed facts:
+
+- current source is `data/regulation.json` key `levelCaps`
+- current row count is 14
+- current display order is `Lv2` through `Lv15`
+- current row shape is 11 non-empty string fields
+- current `LEVEL_CAP_COLUMNS` count is 11
+- `renderLevelCaps(regulation)` still calls
+  `renderTable(rows, LEVEL_CAP_COLUMNS)`
+- section id remains `level-caps`
+- TOC anchor remains `#level-caps`
+- table classes remain `.regulation-table-wrap` and `.regulation-table`
+
+The recommended next implementation remains narrow:
+
+- move only the `levelCaps` row array to
+  `assets/js/world/regulation/levelCapsData.js`
+- export `levelCaps`
+- keep `LEVEL_CAP_COLUMNS` and `renderTable()` in
+  `assets/js/renderRegulation.js`
+- do not merge regulation level caps with calendar-side
+  `data/calendarConfig.json` level-cap date ranges
+- do not introduce standalone JSON/fetch loading
+
+Phase 3-B8 is docs-only and does not include implementation, HTML, CSS,
+JavaScript, JSON/data, renderer, regulation copy, `updates.json`, or reusable
+ops core changes.
