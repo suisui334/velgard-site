@@ -708,3 +708,23 @@ Schema-plan impact:
 The next implementation gate may use a world-site data module for the row array,
 but standalone JSON/fetch migration and table-column schema migration remain
 separate later decisions.
+
+## Phase 3-B9 Level-Cap Data Module
+
+Phase 3-B9 moves the selected row array to a world-site data module:
+
+- `docs/world-template-regulation-level-caps-data-module-result.md`
+
+Schema-plan impact:
+
+- `levelCaps` row data is now owned by
+  `assets/js/world/regulation/levelCapsData.js`
+- `data/regulation.json` no longer owns the `levelCaps` key
+- the first table-shaped data-module split kept the existing row shape exactly
+- table column definitions remain renderer-owned
+- table renderer behavior remains renderer/layout behavior
+- calendar-side `data/calendarConfig.json` level-cap date ranges remain
+  separate
+
+This supports one more small data-module step, but it still does not approve a
+general standalone JSON/fetch migration or long-body schema migration.

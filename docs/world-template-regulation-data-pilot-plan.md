@@ -367,3 +367,24 @@ The next implementation gate should still move only the `levelCaps` row data.
 It should not move `LEVEL_CAP_COLUMNS`, change `renderTable()`, split reward,
 honor, or Sword Shard columns, alter anchors or active TOC behavior, or connect
 regulation data to reusable ops core.
+
+## Phase 3-B9 Level-Cap Data Module Implementation
+
+Phase 3-B9 completes that implementation gate:
+
+- `docs/world-template-regulation-level-caps-data-module-result.md`
+
+Result:
+
+- `levelCaps` row data moved to
+  `assets/js/world/regulation/levelCapsData.js`
+- export name is `levelCaps`
+- `data/regulation.json` no longer contains the `levelCaps` key
+- `renderRegulation(root)` attaches imported `levelCaps` to the existing
+  regulation object
+- `renderLevelCaps(regulation)`, `renderTable()`, and `LEVEL_CAP_COLUMNS`
+  remain in their existing roles
+- JSON/fetch migration was not introduced
+
+The next gate should be a public rollout check before broadening the regulation
+data-module pattern to any other table or long rule content.

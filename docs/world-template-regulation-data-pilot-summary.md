@@ -440,3 +440,35 @@ The recommended next implementation remains narrow:
 Phase 3-B8 is docs-only and does not include implementation, HTML, CSS,
 JavaScript, JSON/data, renderer, regulation copy, `updates.json`, or reusable
 ops core changes.
+
+## Phase 3-B9 Level-Cap Data Module
+
+Phase 3-B9 implements the selected second pilot:
+
+- `docs/world-template-regulation-level-caps-data-module-result.md`
+
+Implementation summary:
+
+- created `assets/js/world/regulation/levelCapsData.js`
+- exported `levelCaps`
+- moved the 14 `levelCaps` rows unchanged
+- removed only the `levelCaps` key from `data/regulation.json`
+- imported `levelCaps` in `assets/js/renderRegulation.js`
+- kept `renderLevelCaps(regulation)` and `renderTable()` behavior unchanged
+- kept `LEVEL_CAP_COLUMNS` in `assets/js/renderRegulation.js`
+- updated the regulation cache-bust chain to
+  `20260617-regulation-level-caps-data-module`
+
+Confirmed by smoke/snapshot checks:
+
+- data module import OK
+- row count remains 14
+- order remains `Lv2` through `Lv15`
+- row shape remains 11 non-empty string fields
+- module data exactly matches the old `HEAD:data/regulation.json`
+  `levelCaps`
+- current `data/regulation.json` parses and has no `levelCaps` key
+- `LEVEL_CAP_COLUMNS`, `renderTable()`, `data/calendarConfig.json`, and
+  `assets/css/style.css` were unchanged
+
+Public delivery and browser DOM checks remain for a later rollout-check gate.

@@ -10064,6 +10064,83 @@ debug console logging addition, auth/permission logic change, RPC/DB key
 configuration, `management_key` display, or raw user id/email/token/JWT display
 was performed.
 
+## M-14F-125 regulation level caps data module pilot
+
+Status: Phase 3-B9 `levelCaps` data module pilot implemented.
+
+- Baseline: `7fd9721 Document regulation level caps behavior`.
+- Added `assets/js/world/regulation/levelCapsData.js`.
+- Exported `levelCaps`.
+- Removed only the `levelCaps` key from `data/regulation.json`.
+- Imported `levelCaps` in `assets/js/renderRegulation.js`.
+- Attached imported `levelCaps` at the existing `renderRegulation(root)` merge
+  point.
+- Updated the regulation cache-bust chain to
+  `20260617-regulation-level-caps-data-module`.
+- Added
+  `docs/world-template-regulation-level-caps-data-module-result.md`.
+- Updated the Phase 3-B regulation tracking docs with the implementation
+  result.
+
+Preserved:
+
+- `levelCaps` row count remains 14.
+- Display order remains `Lv2` through `Lv15`.
+- Row shape remains 11 non-empty string fields.
+- Data module rows exactly match old `HEAD:data/regulation.json` `levelCaps`.
+- `renderLevelCaps(regulation)` still reads `regulation.levelCaps`.
+- `renderTable()` is unchanged.
+- `LEVEL_CAP_COLUMNS` is unchanged and remains in `renderRegulation.js`.
+- `#level-caps`, `#level-caps` TOC anchor, `.regulation-table-wrap`, and
+  `.regulation-table` remain unchanged.
+- `data/calendarConfig.json` was not changed or integrated with regulation
+  `levelCaps`.
+- `assets/css/style.css` was not changed.
+
+Smoke / snapshot checks:
+
+- `node --check assets/js/renderRegulation.js`: OK.
+- `node --check assets/js/main.js`: OK.
+- `node --check assets/js/world/regulation/levelCapsData.js`: OK.
+- `data/regulation.json` parse: OK.
+- `data/regulation.json` has `levelCaps` key: false.
+- data module import smoke: OK.
+- exported `levelCaps.length`: 14.
+- first row: `Lv2`.
+- last row: `Lv15`.
+- all rows have the same 11 fields: OK.
+- all values are non-empty strings: OK.
+- exact match with old `HEAD:data/regulation.json` `levelCaps`: OK.
+- `LEVEL_CAP_COLUMNS` diff: none.
+- `renderTable()` diff: none.
+- `data/calendarConfig.json` diff: none.
+- `assets/css/style.css` diff: none.
+
+Limited / not tested in this implementation gate:
+
+- Browser DOM rendering: `not_tested`.
+- Desktop/mobile visual review: `not_tested`.
+- Active TOC scroll-through behavior: `not_tested`.
+- Public GitHub Pages delivery: `not_tested`.
+- Non-regulation pages: `not_tested`.
+- Authenticated role-specific behavior, data-changing workflows, Discord sync,
+  DB/RPC/RLS, and Edge Functions remain `not_tested` and out of scope.
+
+No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+operation, Webhook/secret/token change, direct Supabase write addition, debug
+console logging addition, `updates.json` change, auth/permission logic change,
+RPC/DB key configuration, CSS class name change, DOM id change, anchor change,
+input name change, `management_key` display, or raw user id/email/token/JWT
+display was performed.
+
+Next:
+
+1. Run a public rollout check for the level-cap data module.
+2. Confirm public `levelCapsData.js` is HTTP 200 and exports `levelCaps`.
+3. Confirm public `data/regulation.json` has no `levelCaps` key.
+4. Confirm the public level-cap table still renders 14 rows with unchanged
+   headers and cell text.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

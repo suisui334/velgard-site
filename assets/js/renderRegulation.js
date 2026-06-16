@@ -1,7 +1,8 @@
 import { loadJson } from "./dataLoader.js";
+import { levelCaps } from "./world/regulation/levelCapsData.js";
 import { termExplanations } from "./world/regulation/termExplanationsData.js";
 
-const REGULATION_DATA_PATH = "data/regulation.json?v=20260616-regulation-term-data-module";
+const REGULATION_DATA_PATH = "data/regulation.json?v=20260617-regulation-level-caps-data-module";
 
 const STRONG_PARAGRAPHS = new Set([
   "【ルートA・B共通】",
@@ -321,6 +322,7 @@ function renderDataSection(sectionData) {
 export async function renderRegulation(root) {
   const regulation = {
     ...await loadJson(REGULATION_DATA_PATH),
+    levelCaps,
     termExplanations
   };
   root.replaceChildren();

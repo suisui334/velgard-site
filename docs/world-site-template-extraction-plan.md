@@ -801,3 +801,19 @@ not reusable ops core. It also records that the next implementation should move
 only the row array, keep `LEVEL_CAP_COLUMNS` and `renderTable()` renderer-owned,
 avoid JSON/fetch migration, and avoid coupling with calendar-side level-cap
 date ranges.
+
+## Phase 3-B9 Regulation Level-Cap Data Module
+
+Phase 3-B9 applies the second small world-site data-module split:
+
+- `assets/js/world/regulation/levelCapsData.js`
+- `docs/world-template-regulation-level-caps-data-module-result.md`
+
+The implementation moves only the `levelCaps` row array, removes the matching
+key from `data/regulation.json`, and attaches the imported rows at the existing
+`renderRegulation(root)` merge point. It keeps `LEVEL_CAP_COLUMNS`,
+`renderTable()`, table CSS classes, anchors, active TOC behavior, calendar-side
+level-cap ranges, and reusable ops core unchanged.
+
+Public delivery should be checked in a separate rollout gate before choosing
+another regulation data-module candidate.

@@ -11,9 +11,16 @@ Baseline:
 
 - `878950c Summarize regulation data pilot`
 
+Production state after Phase 3-B9:
+
+- source file: `assets/js/world/regulation/levelCapsData.js`
+- export: `levelCaps`
+- `data/regulation.json` no longer carries the `levelCaps` key
+- renderer connection remains through `regulation.levelCaps`
+
 ## Current Data Contract
 
-Current definition:
+Phase 3-B8 baseline definition before the move:
 
 - file: `data/regulation.json`
 - top-level key: `levelCaps`
@@ -331,3 +338,37 @@ Limited or not tested:
 
 These are acceptable here because the gate freezes current behavior in docs and
 does not change production assets.
+
+## Phase 3-B9 Data Module Implementation
+
+Phase 3-B9 implements the row-data move described by this spec:
+
+- `docs/world-template-regulation-level-caps-data-module-result.md`
+
+Implementation result:
+
+- created `assets/js/world/regulation/levelCapsData.js`
+- exported `levelCaps`
+- removed only the `levelCaps` key from `data/regulation.json`
+- imported `levelCaps` in `assets/js/renderRegulation.js`
+- attached imported `levelCaps` at the existing `renderRegulation(root)` merge
+  point
+- kept `renderLevelCaps(regulation)` reading `regulation.levelCaps`
+- updated the regulation cache-bust chain to
+  `20260617-regulation-level-caps-data-module`
+
+Verified in the implementation gate:
+
+- `levelCaps.length === 14`
+- first row is `Lv2`
+- last row is `Lv15`
+- all rows have the same 11 fields
+- all values are non-empty strings
+- new data module exactly matches old `HEAD:data/regulation.json`
+  `levelCaps`
+- current `data/regulation.json` parses and has no `levelCaps` key
+- `LEVEL_CAP_COLUMNS` and `renderTable()` were unchanged
+- `data/calendarConfig.json` was unchanged
+- `assets/css/style.css` was unchanged
+
+Public delivery and browser DOM rendering remain for a separate rollout check.

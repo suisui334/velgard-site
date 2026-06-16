@@ -4,7 +4,7 @@ import { renderWorld } from "./renderWorld.js?v=20260528-responsive-ui-fix";
 import { renderCampaigns } from "./renderCampaigns.js";
 import { renderCampaignDetail } from "./renderCampaignDetail.js";
 import { renderEpisodeDetail } from "./renderEpisodeDetail.js";
-import { renderRegulation } from "./renderRegulation.js?v=20260616-regulation-term-data-module";
+import { renderRegulation } from "./renderRegulation.js?v=20260617-regulation-level-caps-data-module";
 import { renderSpots } from "./renderSpots.js";
 import { renderSpotDetail } from "./renderSpotDetail.js?v=20260529-ui-polish";
 import { renderCharacters } from "./renderCharacters.js?v=20260529-ui-polish";
