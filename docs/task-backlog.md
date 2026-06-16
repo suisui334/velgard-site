@@ -10319,6 +10319,79 @@ Next:
    standalone JSON/fetch migration, and reusable ops core integration behind
    separate gates.
 
+## M-14F-128 regulation reward callout behavior spec
+
+Status: Phase 3-B12 `reward` callout current behavior spec completed.
+
+- Baseline: `6050b06 Summarize regulation level caps pilot`.
+- Added `docs/world-template-regulation-reward-callout-spec.md`.
+- Updated the Phase 3-B regulation tracking docs with the reward callout
+  behavior/spec result.
+
+Fixed current data behavior:
+
+- source: `data/regulation.json`
+- section id: `reward`
+- section title: `報酬・超過報酬`
+- current reward section block count: 2
+- callout block index: 1
+- callout block type: `callout`
+- callout title: `超過報酬の例`
+- callout fields: `type`, `title`, `paragraphs`
+- `paragraphs` is an array of 4 plain strings
+- no HTML string, markdown interpretation, missing field, or empty paragraph is
+  present in the current block
+
+Fixed current renderer behavior:
+
+- callout is rendered by `renderBlock(block)` in
+  `assets/js/renderRegulation.js`
+- `reward` section path is `renderRegulation(root)` ->
+  `renderDataSection(sections.get("reward"))` -> `renderBlock(block)`
+- callout output uses `.regulation-callout`
+- callout itself has no DOM id
+- parent section id remains `reward`
+- TOC anchor remains `#reward`
+- active TOC observes `.regulation-section[id]`
+- no callout event handler, auth, membership, RPC, DB/RPC/RLS, Edge Function,
+  or Discord sync path is involved
+
+Recommended future implementation, not performed in this gate:
+
+- create `assets/js/world/regulation/rewardCalloutBlocksData.js`
+- export `rewardCalloutBlocks`
+- move only the selected reward callout block
+- keep reward section metadata and reward paragraphs in `data/regulation.json`
+- keep the callout at the same block position
+- keep `renderBlock()`, `renderDataSection()`, CSS classes, section id
+  `reward`, anchors, active TOC behavior, `termExplanationsData.js`, and
+  `levelCapsData.js` unchanged
+- do not introduce JSON/fetch loading
+
+Limited / not tested in this docs-only gate:
+
+- Rendered DOM comparison: `not_tested`.
+- Desktop/mobile visual review: `not_tested`.
+- Active TOC scroll-through behavior: `not_tested`.
+- Non-regulation pages: `not_tested`.
+- Authenticated role-specific behavior, data-changing workflows, Discord sync,
+  DB/RPC/RLS, and Edge Functions remain `not_tested` and out of scope.
+
+No implementation change, HTML change, CSS change, JS change, JSON/data change,
+data module creation, renderer change, regulation copy change, `updates.json`
+change, SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+Discord operation, Webhook/secret/token change, direct Supabase write addition,
+debug console logging addition, auth/permission logic change, RPC/DB key
+configuration, `management_key` display, or raw user id/email/token/JWT display
+was performed.
+
+Next:
+
+1. If approved, implement only the selected reward callout block data module.
+2. Keep whole reward-section moves, all-callout registries, reward table work,
+   long rules, magic-angel rulings, renderer rewrites, JSON/fetch migration,
+   and reusable ops core integration behind separate gates.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

@@ -857,3 +857,16 @@ The next gate should freeze the current callout behavior and output before any
 implementation. It should not move the whole reward section, split
 reward/honor/Sword Shard table values, change `renderBlock()`, change
 `renderTable()`, or touch reusable ops core.
+
+## Phase 3-B12 Regulation Reward Callout Behavior Spec
+
+Phase 3-B12 adds the current behavior spec for the selected short-note
+candidate:
+
+- `docs/world-template-regulation-reward-callout-spec.md`
+
+The spec confirms that the target is one nested `reward` section callout block
+with title `超過報酬の例`, 4 plain-string paragraphs, and the existing
+`renderBlock(block)` callout renderer path. It keeps the reward section,
+reward paragraphs, CSS classes, anchors, active TOC behavior, and reusable ops
+core out of the next implementation scope.

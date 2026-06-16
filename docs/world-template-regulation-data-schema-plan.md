@@ -773,3 +773,24 @@ Selected next schema candidate:
 This candidate tests a third shape: a small block nested under `sections`.
 The next gate must keep the target narrow and avoid a general block registry,
 long-rule schema, table-column schema, or standalone JSON/fetch migration.
+
+## Phase 3-B12 Reward Callout Current Behavior Spec
+
+Phase 3-B12 freezes the current behavior of the selected nested-block
+candidate:
+
+- `docs/world-template-regulation-reward-callout-spec.md`
+
+Schema-plan impact:
+
+- short note/callout data remains a world-site template candidate
+- the first target is a single `reward` section block, not the whole section
+- the current shape is `{ type, title, paragraphs }`
+- `renderBlock(block)` remains renderer-owned
+- `renderDataSection(sectionData)` remains renderer-owned
+- section ids, anchors, CSS classes, and active TOC behavior remain outside
+  content data
+
+The future implementation may use a world-site data module for this one block,
+but general block registries, long-rule schemas, and standalone JSON/fetch
+migration remain separate later decisions.

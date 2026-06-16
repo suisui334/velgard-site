@@ -405,3 +405,36 @@ Proceed to a future behavior/spec gate for:
 Do not implement it directly from this B11 summary. The next gate should first
 freeze the current callout behavior, output, comparison checklist, and exact
 merge approach.
+
+## Phase 3-B12 Reward Callout Behavior Spec
+
+Phase 3-B12 freezes the current behavior of the selected short-note target:
+
+- `docs/world-template-regulation-reward-callout-spec.md`
+
+Fixed facts:
+
+- current source is `data/regulation.json`
+- current section id is `reward`
+- current block type is `callout`
+- current block index in the reward section is 1
+- current title is `超過報酬の例`
+- current body is a `paragraphs` array with 4 strings
+- current block fields are `type`, `title`, and `paragraphs`
+- current renderer is the shared `renderBlock(block)` branch for
+  `type === "callout"`
+- output class remains `.regulation-callout`
+- parent section anchor remains `#reward`
+
+Recommended future implementation remains narrow:
+
+- move only this one reward callout block to
+  `assets/js/world/regulation/rewardCalloutBlocksData.js`
+- export `rewardCalloutBlocks`
+- keep the reward section paragraphs in `data/regulation.json`
+- keep `renderBlock()` and `renderDataSection()` unchanged
+- do not introduce JSON/fetch loading
+
+Phase 3-B12 is docs-only and does not include implementation, HTML, CSS,
+JavaScript, JSON/data, renderer, regulation copy, `updates.json`, or reusable
+ops core changes.

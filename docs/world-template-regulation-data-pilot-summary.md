@@ -537,3 +537,23 @@ Selected next candidate:
 The next gate should be a behavior/spec freeze for that callout block before
 any implementation. It should not move the whole reward section, change
 `renderBlock()`, or introduce a generic block registry.
+
+## Phase 3-B12 Reward Callout Behavior Spec
+
+Phase 3-B12 completes the pre-implementation spec gate for the selected short
+note:
+
+- `docs/world-template-regulation-reward-callout-spec.md`
+
+Fixed scope:
+
+- target is only the `reward` section `type: "callout"` block
+- current title is `超過報酬の例`
+- current body is 4 plain string paragraphs
+- current renderer is `renderBlock(block)`
+- current CSS class is `.regulation-callout`
+- parent section id and anchor remain `reward` / `#reward`
+
+The next implementation gate should move only this block's data. It should not
+move the whole reward section, reward paragraphs, `renderBlock()`, CSS classes,
+anchors, `termExplanationsData.js`, `levelCapsData.js`, or reusable ops core.

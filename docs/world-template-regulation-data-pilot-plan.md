@@ -428,3 +428,18 @@ Selected next target:
 
 The next gate should freeze this callout block's current behavior before
 implementation.
+
+## Phase 3-B12 Reward Callout Behavior Spec
+
+Phase 3-B12 freezes the selected callout block behavior:
+
+- `docs/world-template-regulation-reward-callout-spec.md`
+
+The spec records the current `reward` section block order, the
+`type: "callout"` block shape, the `超過報酬の例` title, 4 plain-string body
+paragraphs, and the `renderBlock(block)` callout branch.
+
+The next implementation gate should move only that block's data into a
+world-site module. It should not change `renderBlock()`, `renderDataSection()`,
+reward paragraphs, section id `reward`, anchors, CSS classes, or active TOC
+behavior.
