@@ -372,3 +372,27 @@ Verified in the implementation gate:
 - `assets/css/style.css` was unchanged
 
 Public delivery and browser DOM rendering remain for a separate rollout check.
+
+## Phase 3-B10 Public Rollout Check
+
+Phase 3-B10 verifies the public rollout:
+
+- `docs/world-template-regulation-level-caps-data-module-public-check.md`
+
+Confirmed publicly:
+
+- `levelCapsData.js` is HTTP 200 and exports `levelCaps`
+- `renderRegulation.js` imports `levelCapsData.js`
+- `data/regulation.json` is HTTP 200, parses, and has no `levelCaps` key
+- cache-bust chain uses `20260617-regulation-level-caps-data-module`
+- `levelCaps` remains 14 rows
+- first row remains `Lv2`
+- last row remains `Lv15`
+- all rows keep the expected 11 fields
+- `renderLevelCaps(regulation)` still reaches
+  `renderTable(rows, LEVEL_CAP_COLUMNS)`
+- `#level-caps`, `.regulation-table-wrap`, and `.regulation-table` remain
+  present in the checked public renderer/CSS path
+
+Full browser visual review and scroll-through active TOC behavior remain
+limited or not tested.

@@ -10141,6 +10141,92 @@ Next:
 4. Confirm the public level-cap table still renders 14 rows with unchanged
    headers and cell text.
 
+## M-14F-126 regulation level caps data module public check
+
+Status: Phase 3-B10 `levelCaps` data module public rollout check completed.
+
+- Baseline: `8d10447 Extract regulation level caps data`.
+- Added
+  `docs/world-template-regulation-level-caps-data-module-public-check.md`.
+- Updated the Phase 3-B regulation tracking docs with the public check result.
+
+Public static delivery confirmed:
+
+- Public `regulation.html`: HTTP 200.
+- Public `main.js`: HTTP 200.
+- Public `renderRegulation.js`: HTTP 200.
+- Public `levelCapsData.js`: HTTP 200 and exports `levelCaps`.
+- Public `termExplanationsData.js`: HTTP 200.
+- Public `data/regulation.json`: HTTP 200 and parse OK.
+- Public `dataLoader.js`: HTTP 200.
+- HTML-referenced regulation CSS: HTTP 200.
+- Checked public 404 count: 0.
+
+Cache-bust / ownership confirmed:
+
+- Public `regulation.html` references
+  `20260617-regulation-level-caps-data-module`.
+- Public `main.js` imports the matching `renderRegulation.js` query.
+- Public `renderRegulation.js` loads the matching `data/regulation.json` query.
+- Public `renderRegulation.js` imports `levelCapsData.js`.
+- Public `data/regulation.json` has no `levelCaps` key.
+- Cache-mixing risks were not observed:
+  - new JSON plus old renderer: not observed
+  - old HTML plus new renderer: not observed
+  - new renderer plus missing data module: not observed
+
+Level-cap table data path confirmed:
+
+- Public `levelCaps` row count: 14.
+- First row: `Lv2`.
+- Last row: `Lv15`.
+- Expected field count per row: 11.
+- Public display-equivalent cell count: 154.
+- All checked cell values are non-empty strings.
+- No checked `undefined`, `[object Object]`, or empty rows.
+- Public renderer keeps `renderLevelCaps(regulation)` before
+  `renderTermExplanations(regulation)`.
+- Public renderer still imports `termExplanationsData.js`.
+
+Preserved contracts confirmed through public/local equivalence and static
+checks:
+
+- Public `renderRegulation.js` matched local `HEAD` after line-ending
+  normalization.
+- Public `levelCapsData.js` matched local `HEAD` after line-ending
+  normalization.
+- Public `data/regulation.json` matched local `HEAD` after line-ending
+  normalization.
+- `LEVEL_CAP_COLUMNS` and `renderTable()` remain the same public renderer path.
+- `#level-caps`, `#level-caps` TOC id, `.regulation-table-wrap`, and
+  `.regulation-table` remain present in the checked public renderer/CSS path.
+- `data/calendarConfig.json` was not changed or integrated with regulation
+  `levelCaps`.
+
+Limited / not tested in this public rollout check:
+
+- Full browser DOM inspection: `limited`.
+- Desktop/mobile visual review: `not_tested`.
+- Scroll-through active TOC behavior: `limited`.
+- Non-regulation pages: `not_tested`.
+- Authenticated role-specific behavior, data-changing workflows, Discord sync,
+  DB/RPC/RLS, and Edge Functions remain `not_tested` and out of scope.
+
+No implementation change, HTML change, CSS change, JS change, JSON/data change,
+renderer change, regulation copy change, `updates.json` change, SQL Editor
+execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord operation,
+Webhook/secret/token change, direct Supabase write addition, debug console
+logging addition, auth/permission logic change, RPC/DB key configuration,
+`management_key` display, or raw user id/email/token/JWT display was performed.
+
+Next:
+
+1. Summarize the second data-module pilot and decide whether to stop after two
+   pilots or choose another small regulation data candidate.
+2. Keep `LEVEL_CAP_COLUMNS`, `renderTable()`, reward/honor/Sword Shard
+   splitting, long rules, magic-angel rulings, standalone JSON/fetch migration,
+   and reusable ops core integration behind separate gates.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

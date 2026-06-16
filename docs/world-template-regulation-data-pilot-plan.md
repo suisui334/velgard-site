@@ -388,3 +388,18 @@ Result:
 
 The next gate should be a public rollout check before broadening the regulation
 data-module pattern to any other table or long rule content.
+
+## Phase 3-B10 Level-Cap Public Rollout Check
+
+Phase 3-B10 completes the public rollout check for the `levelCaps` data-module
+implementation:
+
+- `docs/world-template-regulation-level-caps-data-module-public-check.md`
+
+The checked public chain serves the new cache-bust, the public renderer imports
+`levelCapsData.js`, the module is HTTP 200 and exports `levelCaps`, and public
+`data/regulation.json` no longer carries the `levelCaps` key.
+
+The static display-equivalent check confirmed 14 rows, `Lv2` through `Lv15`
+order, 11 expected fields, and no checked `undefined`, `[object Object]`, or
+empty rows. Browser visual QA remains a separate limited/not-tested area.

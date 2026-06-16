@@ -728,3 +728,22 @@ Schema-plan impact:
 
 This supports one more small data-module step, but it still does not approve a
 general standalone JSON/fetch migration or long-body schema migration.
+
+## Phase 3-B10 Level-Cap Public Rollout
+
+Phase 3-B10 confirms the public static delivery of the `levelCaps` data module:
+
+- `docs/world-template-regulation-level-caps-data-module-public-check.md`
+
+Schema-plan impact:
+
+- the second small data-module split is publicly available
+- public `levelCapsData.js` exports the row array
+- public `data/regulation.json` no longer carries `levelCaps`
+- the public renderer still owns columns and table rendering
+- the table-shaped pilot remains separate from calendar-side level-cap date
+  ranges
+
+The rollout supports the data-module approach for small, isolated world-site
+data, but standalone JSON/fetch migration, table-column schema migration, and
+long-body schema migration remain later decisions.

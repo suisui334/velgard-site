@@ -175,3 +175,28 @@ The rollout check should verify:
 - public `data/regulation.json`: HTTP 200 and no `levelCaps` key
 - public level-cap table renders 14 rows with unchanged headers and cell text
 - no broken import path, checked 404, fetch failure, or module-load failure
+
+## Phase 3-B10 Public Rollout Check
+
+Phase 3-B10 verifies the public delivery of this implementation:
+
+- `docs/world-template-regulation-level-caps-data-module-public-check.md`
+
+Confirmed publicly:
+
+- `regulation.html`: HTTP 200
+- `main.js`: HTTP 200
+- `renderRegulation.js`: HTTP 200
+- `levelCapsData.js`: HTTP 200 and exports `levelCaps`
+- `data/regulation.json`: HTTP 200, parse OK, and no `levelCaps` key
+- cache-bust chain uses `20260617-regulation-level-caps-data-module`
+- public `renderRegulation.js` imports `levelCapsData.js`
+- public `renderRegulation.js` keeps the
+  `renderLevelCaps(regulation)` to `renderTable(rows, LEVEL_CAP_COLUMNS)` path
+- public data module keeps 14 rows, first `Lv2`, last `Lv15`, 11 fields, and
+  non-empty string values
+- checked public 404 count: 0
+- checked cache-mixing risks: not observed
+
+Full browser visual review, desktop/mobile review, scroll-through active TOC,
+and non-regulation page QA remain limited or not tested in this rollout check.

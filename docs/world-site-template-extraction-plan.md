@@ -817,3 +817,20 @@ level-cap ranges, and reusable ops core unchanged.
 
 Public delivery should be checked in a separate rollout gate before choosing
 another regulation data-module candidate.
+
+## Phase 3-B10 Regulation Level-Cap Public Rollout
+
+Phase 3-B10 verifies the public rollout of the level-cap data module:
+
+- `docs/world-template-regulation-level-caps-data-module-public-check.md`
+
+The public site serves the new cache-bust chain, the public regulation renderer
+imports the world-site level-cap data module, the module is HTTP 200, and
+public `data/regulation.json` no longer owns `levelCaps`. The static
+display-equivalent check still found 14 level-cap rows from `Lv2` through
+`Lv15`, 11 expected fields, non-empty cell values, and the existing table
+classes and anchors in the checked public renderer/CSS path.
+
+This completes public static delivery verification for the second world-site
+data-module pilot. Browser visual QA and active TOC scroll-through QA remain
+limited/not tested.

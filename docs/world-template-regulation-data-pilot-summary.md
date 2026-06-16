@@ -472,3 +472,34 @@ Confirmed by smoke/snapshot checks:
   `assets/css/style.css` were unchanged
 
 Public delivery and browser DOM checks remain for a later rollout-check gate.
+
+## Phase 3-B10 Level-Cap Public Rollout Check
+
+Phase 3-B10 confirms the public delivery of the second data-module pilot:
+
+- `docs/world-template-regulation-level-caps-data-module-public-check.md`
+
+Public checks passed for the static delivery path:
+
+- `regulation.html`: HTTP 200
+- `main.js`: HTTP 200
+- `renderRegulation.js`: HTTP 200
+- `levelCapsData.js`: HTTP 200 and exports `levelCaps`
+- `data/regulation.json`: HTTP 200, parse OK, and no `levelCaps` key
+- cache-bust chain:
+  `20260617-regulation-level-caps-data-module`
+- checked broken path / 404 count: 0
+- checked cache-mixing risk: not observed
+
+Display-equivalent checks passed:
+
+- level-cap rows: 14
+- order: `Lv2` through `Lv15`
+- row shape: 11 expected fields
+- cell values: non-empty strings
+- no `undefined`, `[object Object]`, or empty rows in the checked data path
+- public renderer keeps `renderLevelCaps(regulation)` before
+  `renderTermExplanations(regulation)`
+
+Browser visual review, desktop/mobile review, scroll-through active TOC, and
+non-regulation page QA remain limited or not tested.
