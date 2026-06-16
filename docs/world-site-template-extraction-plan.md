@@ -766,3 +766,25 @@ classes, and the `#term-explanations` TOC link.
 This completes the first small world-site data-module rollout check. The next
 world-site template extraction steps should stay scoped to similarly small
 data groups unless a separate JSON/fetch migration gate is opened.
+
+## Phase 3-B7 Regulation Data Pilot Summary
+
+Phase 3-B7 summarizes the first regulation data-module pilot and selects the
+next candidate:
+
+- `docs/world-template-regulation-data-pilot-summary.md`
+
+The result keeps regulation on the world-site template track:
+
+- term-card data can live in a world-site data module
+- public rollout must check the full HTML/main/renderer/data/module chain
+- ops-core behavior remains outside regulation data
+- standalone JSON/fetch migration remains a later gate
+
+Next selected candidate:
+
+- level-cap table row data
+
+The future implementation should move only the `levelCaps` row array. It should
+not move `LEVEL_CAP_COLUMNS`, split reward/honor/Sword Shard columns, change
+table CSS/DOM, or alter anchors and active TOC behavior.

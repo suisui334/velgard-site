@@ -659,3 +659,30 @@ Confirmed public facts:
 This supports the schema-plan assumption that small repeated card groups can be
 split first while table schema, long-body schema, and JSON/fetch behavior remain
 behind later gates.
+
+## Phase 3-B7 Pilot Summary And Level-Cap Row Candidate
+
+Phase 3-B7 records the first pilot summary and next-candidate decision:
+
+- `docs/world-template-regulation-data-pilot-summary.md`
+
+The first data-module pilot supports the schema-plan approach, but also adds
+two constraints:
+
+- when a top-level key is removed from `data/regulation.json`, public
+  cache-mixing checks are mandatory
+- data modules are useful for another small pilot, but they are still not the
+  final standalone JSON/editing model
+
+Selected next schema candidate:
+
+- `levelCaps` row data only
+
+This is a table-shaped candidate, but the next gate must not move table column
+definitions yet. `LEVEL_CAP_COLUMNS` remains renderer-owned until a separate
+renderer-constant audit decides otherwise. Reward, honor, Sword Shard, growth,
+and rank-limit values also remain cells in the same level-cap row shape for the
+next pilot.
+
+Long house rules, magic-angel rulings, complex growth rules, and standalone
+reward/honor table schemas remain later candidates.

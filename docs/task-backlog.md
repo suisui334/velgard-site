@@ -9965,6 +9965,50 @@ operation, Webhook/secret/token change, direct Supabase write addition,
 auth/permission logic change, RPC/DB key configuration, `management_key`
 display, or raw user id/email/token/JWT display was performed.
 
+## M-14F-123 regulation data pilot summary
+
+Status: Phase 3-B7 `termExplanations` data-module pilot summary completed.
+
+- Baseline: `03c3229 Check regulation term data rollout`.
+- Added `docs/world-template-regulation-data-pilot-summary.md`.
+- Updated the Phase 3-B regulation tracking docs with the pilot summary and
+  next-candidate decision.
+- Summarized the B5/B6 pilot:
+  - moved `termExplanations` to
+    `assets/js/world/regulation/termExplanationsData.js`
+  - removed only the `termExplanations` key from `data/regulation.json`
+  - kept `renderTermExplanations(regulation)` as the renderer contract
+  - preserved 12 cards, order, one callout on card index 7, CSS classes,
+    section id, anchor, and active TOC behavior
+  - confirmed public HTTP 200 delivery and public DOM rendering in B6
+- Evaluated the data-module method:
+  - useful because it avoids a second fetch and keeps GitHub Pages delivery
+    simple
+  - cache-mixing checks are mandatory when removing a key from
+    `data/regulation.json`
+  - standalone JSON/fetch migration remains a separate later gate
+- Re-evaluated next candidates and selected level-cap table row data as the
+  next candidate.
+- Scoped the future candidate to moving only `levelCaps` rows. `LEVEL_CAP_COLUMNS`,
+  `renderTable()`, reward/honor/Sword Shard splitting, table CSS/DOM, anchors,
+  active TOC behavior, and value changes remain out of scope.
+
+Limited / not tested carried forward:
+
+- Full desktop/mobile visual inspection remains `limited`.
+- Scroll-through active TOC behavior remains `limited`.
+- Non-regulation pages remain `not_tested`.
+- Authenticated role-specific behavior, data-changing workflows, Discord sync,
+  DB/RPC/RLS, and Edge Functions remain `not_tested` and out of scope.
+
+No implementation change, HTML change, CSS change, JS change, JSON/data change,
+data module creation, renderer change, regulation copy change, `updates.json`
+change, SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+Discord operation, Webhook/secret/token change, direct Supabase write addition,
+debug console logging addition, auth/permission logic change, RPC/DB key
+configuration, `management_key` display, or raw user id/email/token/JWT display
+was performed.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

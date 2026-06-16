@@ -146,3 +146,20 @@ No unsafe gate was performed:
 3. Keep level-cap table migration, reward/honor values, long house rules,
    magic-angel ruling data, and standalone JSON migration behind separate
    later gates.
+
+## Phase 3-B7 Follow-Up
+
+Phase 3-B7 summarized the B5/B6 pilot and selected the next candidate:
+
+- `docs/world-template-regulation-data-pilot-summary.md`
+
+Decision:
+
+- keep the data-module approach for one more small pilot
+- select level-cap table row data as the next candidate
+- move only the `levelCaps` row array in a future gate
+- keep `LEVEL_CAP_COLUMNS`, `renderTable()`, DOM ids, CSS classes, anchors, and
+  active TOC behavior unchanged
+- do not split reward, honor, or Sword Shard values into separate tables yet
+
+The B7 gate is docs-only and does not implement the selected candidate.

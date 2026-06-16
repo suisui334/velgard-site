@@ -319,3 +319,35 @@ cards and the same single callout on card index 7 even though
 This makes the first data-module pilot complete from implementation through
 public rollout. It does not approve broader regulation JSON/fetch migration;
 that remains a separate later gate.
+
+## Phase 3-B7 Pilot Summary And Next Candidate
+
+Phase 3-B7 summarizes the first data-module pilot and selects the next
+candidate:
+
+- `docs/world-template-regulation-data-pilot-summary.md`
+
+Summary:
+
+- `termExplanations` data-module extraction is complete through public rollout
+- the data-module method is approved for one more small pilot
+- cache-mixing checks must remain mandatory when removing a key from
+  `data/regulation.json`
+- standalone JSON/fetch migration remains out of scope
+
+Selected next candidate:
+
+- level-cap table row data
+
+Scope for the future implementation gate:
+
+- move only the `levelCaps` array from `data/regulation.json` to a world-site
+  data module
+- keep `LEVEL_CAP_COLUMNS` in `renderRegulation.js`
+- keep `renderLevelCaps(regulation)` and `renderTable()` behavior unchanged
+- do not split reward, honor, Sword Shard, growth, or rank-limit columns into
+  separate schemas yet
+
+Before implementation, create a behavior/spec gate for current `levelCaps`
+row count, row keys, cell values, table classes, section id, TOC link, and
+public QA expectations.
