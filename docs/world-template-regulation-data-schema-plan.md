@@ -747,3 +747,29 @@ Schema-plan impact:
 The rollout supports the data-module approach for small, isolated world-site
 data, but standalone JSON/fetch migration, table-column schema migration, and
 long-body schema migration remain later decisions.
+
+## Phase 3-B11 Two-Pilot Summary And Next Schema Candidate
+
+Phase 3-B11 summarizes the first two data-module pilots:
+
+- `docs/world-template-regulation-level-caps-data-pilot-summary.md`
+
+Schema-plan impact:
+
+- card-shaped data and table-row data have both passed implementation and
+  public static delivery checks
+- `data/regulation.json` now excludes `termExplanations` and `levelCaps`
+- `termExplanationsData.js` and `levelCapsData.js` are world-site template data
+  modules
+- renderer-owned column definitions and shared renderers remain outside data
+  modules
+- cache-mixing checks remain mandatory when a JSON key or block is removed
+
+Selected next schema candidate:
+
+- short note card data
+- concrete first target: the `reward` section `type: "callout"` block
+
+This candidate tests a third shape: a small block nested under `sections`.
+The next gate must keep the target narrow and avoid a general block registry,
+long-rule schema, table-column schema, or standalone JSON/fetch migration.

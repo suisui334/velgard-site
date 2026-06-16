@@ -834,3 +834,26 @@ classes and anchors in the checked public renderer/CSS path.
 This completes public static delivery verification for the second world-site
 data-module pilot. Browser visual QA and active TOC scroll-through QA remain
 limited/not tested.
+
+## Phase 3-B11 Regulation Data Pilot Summary
+
+Phase 3-B11 summarizes the second pilot and chooses the next candidate:
+
+- `docs/world-template-regulation-level-caps-data-pilot-summary.md`
+
+The updated extraction path is:
+
+- `termExplanations` proved repeated card data
+- `levelCaps` proved table-shaped row data
+- the next target should test one small nested block without changing shared
+  renderers
+
+Selected next candidate:
+
+- short note card
+- first concrete target: `reward` section `type: "callout"` block
+
+The next gate should freeze the current callout behavior and output before any
+implementation. It should not move the whole reward section, split
+reward/honor/Sword Shard table values, change `renderBlock()`, change
+`renderTable()`, or touch reusable ops core.

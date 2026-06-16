@@ -10227,6 +10227,98 @@ Next:
    splitting, long rules, magic-angel rulings, standalone JSON/fetch migration,
    and reusable ops core integration behind separate gates.
 
+## M-14F-127 regulation level caps data pilot summary
+
+Status: Phase 3-B11 `levelCaps` data-module pilot summary completed.
+
+- Baseline: `628a8c2 Check regulation level caps rollout`.
+- Added
+  `docs/world-template-regulation-level-caps-data-pilot-summary.md`.
+- Updated the Phase 3-B regulation tracking docs with the two-pilot evaluation
+  and next-candidate decision.
+
+Summarized the second pilot:
+
+- moved `levelCaps` row data to
+  `assets/js/world/regulation/levelCapsData.js`
+- exported `levelCaps`
+- removed only the `levelCaps` key from `data/regulation.json`
+- kept `renderLevelCaps(regulation)` reading `regulation.levelCaps`
+- kept `renderTable(rows, LEVEL_CAP_COLUMNS)` as the call path
+- kept `LEVEL_CAP_COLUMNS` unchanged in `renderRegulation.js`
+- preserved 14 rows, `Lv2` through `Lv15` order, 11 fields, and 154
+  cell-equivalent values
+- confirmed public HTTP 200 delivery and public static display-equivalent
+  checks in Phase 3-B10
+- kept `data/calendarConfig.json` level-cap ranges separate
+
+Updated data-module evaluation:
+
+- the pattern now worked for both repeated card data and table-shaped row data
+- no extra fetch or new async branch was introduced
+- GitHub Pages public verification remained straightforward
+- cache-mixing checks remain mandatory whenever JSON ownership is removed
+- column definitions and shared renderers should stay behind separate gates
+- standalone JSON/fetch migration remains out of scope
+
+Candidate re-evaluation:
+
+- Reward amount and honor/Sword Shard table splits are not next candidates
+  because those values are already cells inside `levelCapsData.js`.
+- Fumble experience and lower-bound growth are not standalone candidates because
+  they already belong to the moved `termExplanations` module.
+- Magic-angel rulings, long house rules, and growth rules overall remain too
+  broad for the next small pilot.
+- Short note cards are the next best candidate because the current production
+  data has one simple `reward` section `type: "callout"` block.
+
+Selected next candidate:
+
+- short note card
+- first concrete target: `data/regulation.json` `reward` section callout block
+- current title: `超過報酬の例`
+- current block shape: `type`, `title`, `paragraphs`
+- current renderer: `renderBlock(block)` `type === "callout"` branch
+
+Future implementation direction, not performed in this gate:
+
+- expected module:
+  `assets/js/world/regulation/rewardCalloutBlocksData.js`
+- expected export: `rewardCalloutBlocks`
+- remove only the selected callout block from `data/regulation.json`
+- import the data module in `renderRegulation.js`
+- inject the imported block at the existing `renderRegulation(root)` merge
+  point
+- keep `renderBlock()`, `renderDataSection()`, CSS classes, section id
+  `reward`, anchors, active TOC, `levelCapsData.js`, and
+  `termExplanationsData.js` unchanged
+
+Limited / not tested carried forward:
+
+- Full browser DOM inspection remains `limited`.
+- Desktop/mobile visual review remains `not_tested`.
+- Scroll-through active TOC behavior remains `limited`.
+- Non-regulation pages remain `not_tested`.
+- Authenticated role-specific behavior, data-changing workflows, Discord sync,
+  DB/RPC/RLS, and Edge Functions remain `not_tested` and out of scope.
+
+No implementation change, HTML change, CSS change, JS change, JSON/data change,
+data module creation, renderer change, regulation copy change, `updates.json`
+change, SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+Discord operation, Webhook/secret/token change, direct Supabase write addition,
+debug console logging addition, auth/permission logic change, RPC/DB key
+configuration, `management_key` display, or raw user id/email/token/JWT display
+was performed.
+
+Next:
+
+1. Run a docs-only behavior/spec freeze for the selected short note card.
+2. Do not implement the callout move directly from the B11 summary.
+3. Keep whole-section moves, global callout registries, long rules,
+   magic-angel rulings, table-column extraction, `renderTable()` changes,
+   standalone JSON/fetch migration, and reusable ops core integration behind
+   separate gates.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

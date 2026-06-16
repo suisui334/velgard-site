@@ -503,3 +503,37 @@ Display-equivalent checks passed:
 
 Browser visual review, desktop/mobile review, scroll-through active TOC, and
 non-regulation page QA remain limited or not tested.
+
+## Phase 3-B11 Level-Cap Pilot Summary And Next Candidate
+
+Phase 3-B11 summarizes the second data-module pilot and selects the next
+candidate:
+
+- `docs/world-template-regulation-level-caps-data-pilot-summary.md`
+
+Summary:
+
+- `termExplanations` proved the data-module pattern for repeated card data
+- `levelCaps` proved the data-module pattern for table-shaped row data
+- both pilots avoided an extra fetch and kept GitHub Pages delivery simple
+- both pilots required explicit cache-mixing checks after removing a key from
+  `data/regulation.json`
+- renderer behavior, DOM ids, anchors, CSS classes, and active TOC behavior
+  remained stable
+
+Updated constraints:
+
+- column definitions remain separate gates
+- shared renderers remain separate gates
+- reward amount and honor/Sword Shard values should not be split out of
+  `levelCapsData.js`
+- standalone JSON/fetch migration remains out of scope
+
+Selected next candidate:
+
+- short note card
+- first concrete target: the `reward` section `type: "callout"` block
+
+The next gate should be a behavior/spec freeze for that callout block before
+any implementation. It should not move the whole reward section, change
+`renderBlock()`, or introduce a generic block registry.

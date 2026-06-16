@@ -403,3 +403,28 @@ The checked public chain serves the new cache-bust, the public renderer imports
 The static display-equivalent check confirmed 14 rows, `Lv2` through `Lv15`
 order, 11 expected fields, and no checked `undefined`, `[object Object]`, or
 empty rows. Browser visual QA remains a separate limited/not-tested area.
+
+## Phase 3-B11 Level-Cap Pilot Summary
+
+Phase 3-B11 summarizes the completed second pilot and chooses the next small
+candidate:
+
+- `docs/world-template-regulation-level-caps-data-pilot-summary.md`
+
+Decision:
+
+- continue to use data modules only for small, isolated content groups
+- do not split reward amount or honor/Sword Shard values out of
+  `levelCapsData.js`
+- do not move `LEVEL_CAP_COLUMNS`, `renderTable()`, or shared renderer behavior
+  as part of the next pilot
+- choose the short note card pattern next
+
+Selected next target:
+
+- `data/regulation.json` `sections[].id === "reward"`
+- current `type: "callout"` block
+- current title: `超過報酬の例`
+
+The next gate should freeze this callout block's current behavior before
+implementation.

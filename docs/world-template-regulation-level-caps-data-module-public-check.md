@@ -203,3 +203,21 @@ Keep out of scope until a separate gate:
 - long rule or magic-angel data migration
 - standalone JSON/fetch migration
 - reusable ops core integration
+
+## Phase 3-B11 Follow-Up
+
+Phase 3-B11 summarizes the `levelCaps` pilot and selects the next candidate:
+
+- `docs/world-template-regulation-level-caps-data-pilot-summary.md`
+
+Decision:
+
+- the data-module approach is approved for one more small, isolated
+  world-site content group
+- reward amount and honor/Sword Shard "tables" should not be split now because
+  those values already live in `levelCapsData.js`
+- the next candidate is the short note card represented by the `reward`
+  section `type: "callout"` block
+- the future first target is the current `超過報酬の例` callout block
+- a separate behavior/spec gate should freeze that callout before
+  implementation
