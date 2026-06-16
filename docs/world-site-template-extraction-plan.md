@@ -870,3 +870,27 @@ with title `超過報酬の例`, 4 plain-string paragraphs, and the existing
 `renderBlock(block)` callout renderer path. It keeps the reward section,
 reward paragraphs, CSS classes, anchors, active TOC behavior, and reusable ops
 core out of the next implementation scope.
+
+## Phase 3-B13 Regulation Reward Callout Data Module
+
+Phase 3-B13 applies the selected nested-block data-module split:
+
+- `assets/js/world/regulation/rewardCalloutBlocksData.js`
+- `docs/world-template-regulation-reward-callout-data-module-result.md`
+
+The implementation moves only the selected `reward` section callout block,
+exports it as `rewardCalloutBlocks`, removes that block from
+`data/regulation.json`, and inserts it back into the loaded reward section for
+rendering.
+
+This keeps the world-site template extraction path narrow:
+
+- the whole `reward` section remains in `data/regulation.json`
+- reward paragraphs remain in `data/regulation.json`
+- `renderBlock()` and `renderDataSection()` are unchanged
+- CSS classes, DOM ids, anchors, and active TOC behavior are unchanged
+- no JSON/fetch migration or generic block registry is introduced
+- reusable ops core remains unaffected
+
+The next world-site gate should verify public rollout and cache-bust behavior
+for the new module before selecting another regulation data target.

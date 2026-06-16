@@ -794,3 +794,24 @@ Schema-plan impact:
 The future implementation may use a world-site data module for this one block,
 but general block registries, long-rule schemas, and standalone JSON/fetch
 migration remain separate later decisions.
+
+## Phase 3-B13 Reward Callout Data Module
+
+Phase 3-B13 implements the selected nested-block data-module split:
+
+- `docs/world-template-regulation-reward-callout-data-module-result.md`
+
+Schema-plan impact:
+
+- short note/callout data can move as a single world-site data module
+- `rewardCalloutBlocksData.js` owns the selected callout block
+- `data/regulation.json` keeps the parent `reward` section and reward
+  paragraph block
+- `renderBlock(block)` and `renderDataSection(sectionData)` remain
+  renderer-owned
+- the implementation does not introduce a general block registry
+- the implementation does not approve standalone JSON/fetch migration
+- long-rule schemas, all-callout extraction, and renderer/schema separation
+  remain later gates
+
+Public static delivery still needs a separate rollout-check gate.

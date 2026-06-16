@@ -557,3 +557,33 @@ Fixed scope:
 The next implementation gate should move only this block's data. It should not
 move the whole reward section, reward paragraphs, `renderBlock()`, CSS classes,
 anchors, `termExplanationsData.js`, `levelCapsData.js`, or reusable ops core.
+
+## Phase 3-B13 Reward Callout Data Module
+
+Phase 3-B13 implements the third small data-module pilot:
+
+- `docs/world-template-regulation-reward-callout-data-module-result.md`
+
+Summary:
+
+- `assets/js/world/regulation/rewardCalloutBlocksData.js` owns the selected
+  reward callout block
+- export name is `rewardCalloutBlocks`
+- `data/regulation.json` keeps the `reward` section and reward paragraph block
+- `data/regulation.json` no longer contains the selected reward callout block
+- `renderRegulation(root)` inserts the imported callout block at the existing
+  reward block index for rendering
+- `renderBlock()` and `renderDataSection()` remain renderer-owned and unchanged
+- JSON/fetch migration remains out of scope
+
+Confirmed local checks:
+
+- module import OK
+- block count: 1
+- type/title/4 paragraphs match the old JSON block exactly
+- current `data/regulation.json` parse OK
+- current reward section exists without the moved callout block
+
+Next gate:
+
+- public rollout check for the reward callout data module and cache-bust chain

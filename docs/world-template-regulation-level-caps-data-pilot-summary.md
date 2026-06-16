@@ -438,3 +438,36 @@ Recommended future implementation remains narrow:
 Phase 3-B12 is docs-only and does not include implementation, HTML, CSS,
 JavaScript, JSON/data, renderer, regulation copy, `updates.json`, or reusable
 ops core changes.
+
+## Phase 3-B13 Reward Callout Data Module
+
+Phase 3-B13 implements the selected short-note data-module split:
+
+- `docs/world-template-regulation-reward-callout-data-module-result.md`
+
+Implementation summary:
+
+- created `assets/js/world/regulation/rewardCalloutBlocksData.js`
+- exported `rewardCalloutBlocks`
+- moved only the selected `reward` section `type: "callout"` block
+- removed only that callout block from `data/regulation.json`
+- kept the `reward` section and reward paragraph block in
+  `data/regulation.json`
+- inserted the imported callout block back at reward block index 1 for
+  rendering
+- kept `renderBlock()` and `renderDataSection()` unchanged
+- kept CSS classes, DOM ids, anchors, active TOC behavior,
+  `termExplanationsData.js`, and `levelCapsData.js` unchanged
+
+Confirmed by smoke/snapshot checks:
+
+- data module import OK
+- moved block count remains 1
+- block type remains `callout`
+- title remains `超過報酬の例`
+- paragraph count remains 4
+- module block exactly matches the old `HEAD:data/regulation.json` target block
+- current `data/regulation.json` parses and keeps the `reward` section without
+  the moved callout block
+
+Public delivery and browser DOM checks remain for a later rollout-check gate.

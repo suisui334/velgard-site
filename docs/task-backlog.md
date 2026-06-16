@@ -10392,6 +10392,69 @@ Next:
    long rules, magic-angel rulings, renderer rewrites, JSON/fetch migration,
    and reusable ops core integration behind separate gates.
 
+## M-14F-129 regulation reward callout data module
+
+Status: Phase 3-B13 `reward` callout data module implemented.
+
+- Baseline: `490c697 Document regulation reward callout behavior`.
+- Added `assets/js/world/regulation/rewardCalloutBlocksData.js`.
+- Exported `rewardCalloutBlocks`.
+- Removed only the selected `reward` section `type: "callout"` block from
+  `data/regulation.json`.
+- Kept the `reward` section and reward paragraph block in
+  `data/regulation.json`.
+- Imported `rewardCalloutBlocks` in `assets/js/renderRegulation.js`.
+- Inserted the imported callout block back at reward block index 1 for
+  rendering.
+- Updated the regulation cache-bust chain to
+  `20260617-regulation-reward-callout-data-module`.
+- Added
+  `docs/world-template-regulation-reward-callout-data-module-result.md`.
+
+Confirmed by smoke/snapshot checks:
+
+- `node --check assets/js/renderRegulation.js`: OK.
+- `node --check assets/js/main.js`: OK.
+- `node --check assets/js/world/regulation/rewardCalloutBlocksData.js`: OK.
+- `data/regulation.json` parse: OK.
+- `rewardCalloutBlocks.length`: 1.
+- block type: `callout`.
+- title: `超過報酬の例`.
+- paragraph count: 4.
+- paragraph values: non-empty plain strings.
+- exact match with old `HEAD:data/regulation.json` target block: OK.
+- current `data/regulation.json` keeps the `reward` section and has no reward
+  callout block.
+
+Not changed:
+
+- whole `reward` section move.
+- reward paragraph block.
+- reward amount data.
+- `renderBlock()` callout branch.
+- `renderDataSection()`.
+- `renderTable()`.
+- `LEVEL_CAP_COLUMNS`.
+- CSS class names.
+- DOM ids.
+- anchors.
+- active TOC behavior.
+- `termExplanationsData.js`.
+- `levelCapsData.js`.
+- `updates.json`.
+- calendar, session-post, session-detail, mypage, membership, Discord sync,
+  auth, DB/RPC/RLS, Edge Functions, or secrets.
+
+Next steps:
+
+1. Public rollout check for the reward callout data module.
+2. Confirm public `rewardCalloutBlocksData.js` is HTTP 200 and exports
+   `rewardCalloutBlocks`.
+3. Confirm public `data/regulation.json` has the `reward` section without the
+   moved callout block.
+4. Confirm public reward section output still shows the reward paragraphs first
+   and the `超過報酬の例` callout second.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

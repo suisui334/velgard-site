@@ -443,3 +443,25 @@ The next implementation gate should move only that block's data into a
 world-site module. It should not change `renderBlock()`, `renderDataSection()`,
 reward paragraphs, section id `reward`, anchors, CSS classes, or active TOC
 behavior.
+
+## Phase 3-B13 Reward Callout Data Module Implementation
+
+Phase 3-B13 completes the selected implementation gate:
+
+- `docs/world-template-regulation-reward-callout-data-module-result.md`
+
+Result:
+
+- `assets/js/world/regulation/rewardCalloutBlocksData.js` was added
+- export name is `rewardCalloutBlocks`
+- only the `reward` section `type: "callout"` block was removed from
+  `data/regulation.json`
+- the `reward` section itself and its paragraph block remain in
+  `data/regulation.json`
+- `renderRegulation(root)` inserts the imported callout block back into the
+  reward section before rendering
+- `renderBlock()` and `renderDataSection()` remain unchanged
+- JSON/fetch migration was not introduced
+
+The next gate should be a public rollout check before choosing any additional
+nested block or long-rule data-module target.

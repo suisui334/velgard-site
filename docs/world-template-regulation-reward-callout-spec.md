@@ -309,3 +309,29 @@ Limited or not tested:
 
 These are acceptable here because the gate freezes current behavior in docs and
 does not change production assets.
+
+## Phase 3-B13 Implementation Result
+
+Phase 3-B13 implements the narrow data-module move described by this spec:
+
+- result doc:
+  `docs/world-template-regulation-reward-callout-data-module-result.md`
+- data module:
+  `assets/js/world/regulation/rewardCalloutBlocksData.js`
+- export:
+  `rewardCalloutBlocks`
+- removed JSON source:
+  the selected `reward` section `type: "callout"` block only
+
+The implementation keeps the current behavior contract:
+
+- `reward` section remains in `data/regulation.json`
+- reward paragraph block remains in `data/regulation.json`
+- imported callout data is inserted back at reward block index 1 for rendering
+- `renderBlock()` is unchanged
+- `renderDataSection()` is unchanged
+- `.regulation-callout`, parent section id `reward`, and `#reward` anchor are
+  unchanged
+- JSON/fetch loading was not introduced
+
+Public rollout remains a separate follow-up check.
