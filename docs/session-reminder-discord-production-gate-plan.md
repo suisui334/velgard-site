@@ -515,6 +515,20 @@ Scope:
 - Stop on first failure.
 - Record only counts/status and redacted references.
 
+Gate 11 preflight result:
+
+- `docs/session-reminder-limited-production-send-result.md`
+- stopped before production send because `dry_run:true` returned `count=0`
+  instead of exactly one `gm_confirmed` candidate
+- shortage item present: `false`
+- message preview contained `@everyone`: `false`
+- raw Discord ID pattern in response: not observed
+- `session_reminder_logs` count before/after: `0` / `0`
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was not enabled
+- production `dry_run:false` with dispatch token was not called
+- no Discord send, claim/finalize success path, DB write, Edge deploy, SQL
+  apply, cron setup, or UI change was performed
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:

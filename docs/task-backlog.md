@@ -10546,6 +10546,59 @@ Next candidate gate:
 - Gate 11: limited production send test, preferably with a single
   `gm_confirmed` candidate before any shortage `@everyone` test.
 
+## Gate 11 session reminder limited production send preflight
+
+Status: stopped before production send.
+
+- Baseline: `0f0db78 Check session reminder secrets runtime disabled`.
+- Added `docs/session-reminder-limited-production-send-result.md`.
+- Updated:
+  - `docs/session-reminder-secret-runtime-check-result.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+- Logs count before:
+  - `0`
+- Preflight `dry_run:true`:
+  - HTTP `200`
+  - `ok:true`
+  - `count:0`
+  - `items` present
+  - shortage item present: `false`
+  - message preview contained `@everyone`: `false`
+  - raw Discord ID pattern in response: not observed
+  - `production_enabled:false`
+  - `db_write:false`
+  - `discord_send:false`
+- Stop reason:
+  - Gate 11 required exactly one `gm_confirmed` candidate, but preflight count
+    was `0`
+- Logs count after:
+  - `0`
+
+Not performed:
+
+- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
+- dispatch token reset
+- production `dry_run:false` invocation with token
+- Discord send
+- Discord dry-run send
+- `@everyone` send
+- shortage send
+- claim/finalize success path
+- `session_reminder_logs` write
+- Edge deploy
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS mutation
+- cron setup
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+
+Next candidate gate:
+
+- Gate 11 retry after a due `gm_confirmed` candidate is prepared and
+  `dry_run:true` returns exactly one safe `gm_confirmed` item.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

@@ -113,3 +113,30 @@ Gate 11 should explicitly decide whether to enable real send for a single safe
 candidate, preferably a `gm_confirmed` reminder first because it does not use
 `@everyone`. It must confirm expected target count before send and record only
 sanitized status/counts.
+
+## Gate 11 Preflight Follow-up
+
+Gate 11 attempted the required dry-run preflight for a one-item `gm_confirmed`
+production send test and stopped before production send.
+
+Result doc:
+
+- `docs/session-reminder-limited-production-send-result.md`
+
+Sanitized result:
+
+- logs count before/after: `0` / `0`
+- `dry_run:true`: HTTP `200`, `ok:true`, `count:0`
+- shortage item present: `false`
+- message preview contained `@everyone`: `false`
+- raw Discord ID pattern in response: not observed
+- `production_enabled:false`
+- `db_write:false`
+- `discord_send:false`
+
+Stop reason:
+
+- preflight required exactly one `gm_confirmed` candidate, but count was `0`
+
+No real send flag was enabled, no production `dry_run:false` with token was
+called, no Discord send occurred, and no reminder log rows were created.
