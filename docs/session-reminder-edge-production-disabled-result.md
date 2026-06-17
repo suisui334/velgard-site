@@ -140,13 +140,35 @@ rows. No reminder settings were changed.
 
 Recommended next gate:
 
-- Gate 8: decide and prepare the Discord destination/secret boundary without
-  enabling real sends, or split further into secret-planning and secret-setting
-  gates if needed.
+- Gate 8: decide and document the Discord destination/secret boundary without
+  setting secrets or enabling real sends.
 
 Before any production send, keep `SESSION_REMINDER_REAL_SEND_ENABLED` disabled
 until the send destination, dispatch token boundary, `@everyone` approval, and
 target count are all confirmed in a separate gate.
+
+## Gate 8 Planning Follow-up
+
+Gate 8 completed the docs-only destination/secret boundary decision:
+
+- `docs/session-reminder-discord-secret-boundary-plan.md`
+
+Recorded direction:
+
+- use the existing Discord notification channel for both reminder types in the
+  first production version
+- use dedicated reminder env names rather than reusing session-post sync envs
+  directly
+- keep `DISCORD_SESSION_REMINDER_WEBHOOK_URL`,
+  `SESSION_REMINDER_DISPATCH_TOKEN`, and
+  `SESSION_REMINDER_REAL_SEND_ENABLED` as the env boundary
+- keep real send disabled until a later send gate
+- reserve `@everyone` for shortage reminders only
+- send GM reminders to the same channel with GM user mention when a valid GM ID
+  exists
+
+Gate 8 did not set or change secrets, deploy Edge Functions, invoke runtime,
+send Discord, write DB, run SQL, configure cron, or change UI.
 
 ## Safety Notes
 

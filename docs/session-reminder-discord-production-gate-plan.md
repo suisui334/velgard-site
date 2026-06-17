@@ -203,13 +203,15 @@ Implementation recommendation after Gate 6.1:
 - Fall back to GM display-name-only, no-mention delivery if the GM id is missing or invalid.
 - Do not expose the actual id in runtime responses, docs, or final reports.
 
-Open destination options:
+Gate 8 destination decision:
 
-- Same existing notification channel for both reminder types.
-- Dedicated reminder channel for both reminder types.
-- Separate GM-only channel later.
-- Server-side GM mention later after profile ownership, privacy, mention format, and visibility rules are approved.
-- SQL/RPC contract update for server-side GM mention, now required before the Edge code can safely implement the new GM mention policy.
+- Use the existing Discord notification channel for both reminder types in the
+  first production version.
+- Use a dedicated session-reminder Webhook/env boundary even if it points to the
+  existing notification channel.
+- Keep a separate GM-only channel or Discord DM route as a later extension.
+- GM user mention is now supported through the service-role reminder RPC result
+  field `gm_discord_user_id`.
 - Gate 6.2 draft: `docs/sql-drafts/session-reminder-gm-discord-id-draft.sql`.
 - Gate 6.3 apply candidate:
   `docs/sql-drafts/session-reminder-gm-discord-id-apply-candidate.sql`.
@@ -407,28 +409,75 @@ Gate 7 result:
 - raw Discord IDs, Webhook URLs, provider message IDs, project refs, and real
   session URLs were not recorded
 
-### Gate 8: Secret / Destination Setup Planning Or Setting
+### Gate 8: Secret / Destination Boundary Planning
 
 Scope:
 
-- Decide whether to use dedicated reminder env names or reuse the session sync env.
-- If setting secrets is approved, set only the chosen reminder Webhook/dispatch envs.
+- Decide reminder destination policy.
+- Decide dedicated reminder env/secret boundary.
+- Do not set or change secrets.
+- Do not deploy.
+- Do not invoke runtime.
+- Do not send Discord.
+- Do not enable real send.
+
+Gate 8 result:
+
+- `docs/session-reminder-discord-secret-boundary-plan.md`
+- shortage reminders use the existing Discord notification channel for the
+  first production version
+- shortage reminders use a dedicated reminder Webhook/env boundary:
+  `DISCORD_SESSION_REMINDER_WEBHOOK_URL`
+- shortage remains the only reminder type allowed to use `@everyone`
+- GM reminders use the same notification channel for the first production
+  version
+- GM reminders use GM user mention when a valid `gm_discord_user_id` exists
+- GM reminders use `allowed_mentions.parse=[]` and
+  `allowed_mentions.users=[GM_ID]`
+- GM reminders never use `@everyone`
+- `SESSION_REMINDER_DISPATCH_TOKEN` gates production dispatch calls
+- `SESSION_REMINDER_REAL_SEND_ENABLED` must remain disabled until a later send
+  gate
+- no secret/Webhook setting, Edge deploy, runtime invocation, Discord send, DB
+  write, SQL apply, cron setup, or UI change was performed
+
+### Gate 9: Secret Setting Only, Real Send Disabled
+
+Scope:
+
+- Set or confirm `DISCORD_SESSION_REMINDER_WEBHOOK_URL`.
+- Set or confirm `SESSION_REMINDER_DISPATCH_TOKEN`.
+- Keep `SESSION_REMINDER_REAL_SEND_ENABLED` disabled.
+- Do not send Discord.
+- Do not call claim/finalize.
+- Do not write DB.
 - Do not record secret values.
-- Do not enable real send unless explicitly included in the gate.
-- Run dry-run/disabled checks after secret setup.
 
-### Gate 9: Limited Production Send Test
+### Gate 10: Deploy / Runtime Secret Presence Check, Production Still Rejected
 
 Scope:
 
+- Deploy only `dispatch-session-reminders` if needed for runtime confirmation.
+- Confirm `dry_run:true` still works.
+- Confirm `dry_run:false` still rejects while real send is disabled.
+- Confirm secret presence alone does not enable production.
+- Confirm no Discord send.
+- Confirm `session_reminder_logs` does not grow.
+
+### Gate 11: Limited Production Send Test
+
+Scope:
+
+- Explicitly enable real send for the test gate only.
 - Use a safe target and expected count of `1`.
-- Prefer `gm_confirmed` or a no-`@everyone` test if available.
-- If shortage must be tested, require explicit `@everyone` approval even for one item.
+- Prefer `gm_confirmed` first because it does not use `@everyone`.
+- If shortage must be tested, require explicit `@everyone` approval even for
+  one item.
 - Use claim/finalize.
 - Stop on first failure.
 - Record only counts/status and redacted references.
 
-### Gate 10: Shortage `@everyone` Production Operation
+### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:
 
@@ -472,9 +521,13 @@ If production reminder sending misbehaves:
 
 ## Limited / Open
 
-- Actual reminder destination channel: `not_decided`
-- Dedicated reminder Webhook/env vs existing session sync Webhook/env: `open`
-- GM reminder exact wording: `open`
-- GM individual mention / DM: future gate
-- Retry behavior for failed shortage `@everyone`: future gate
-- Nonzero runtime candidate preview: `limited`, Gate 4.5 returned `0`
+- Exact reminder Webhook secret value: `not_recorded`, to be set/confirmed in a
+  later secret gate.
+- `SESSION_REMINDER_REAL_SEND_ENABLED`: remains disabled until a later send
+  gate.
+- GM reminder exact wording: mostly implemented, but final production wording
+  can still be checked before first send.
+- GM Discord DM route: future gate.
+- Retry behavior for failed shortage `@everyone`: future gate.
+- Nonzero runtime candidate preview: `limited`, latest runtime checks returned
+  `0`.

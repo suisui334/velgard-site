@@ -10060,6 +10060,11 @@ Status: production-send design documented only.
   - Gate 8: secret/destination setup planning or approved setting.
   - Gate 9: limited production send test.
   - Gate 10: final shortage `@everyone` production operation.
+- Gate 8 later refined the remaining split:
+  - Gate 9: secret setting only, real send disabled.
+  - Gate 10: deploy/runtime secret-presence check, production still rejected.
+  - Gate 11: limited production send test.
+  - Gate 12: final shortage `@everyone` production operation.
 - Did not send Discord messages, run Discord dry-run sends, change Webhook or
   secret settings, deploy Edge Functions, implement production send code, call
   claim/finalize RPCs, write `session_reminder_logs`, run SQL Editor, apply
@@ -10375,6 +10380,62 @@ Next candidate gate:
 
 - Decide and prepare the Discord destination/secret boundary without enabling
   real sends, or split further into secret-planning and secret-setting gates.
+
+## Gate 8 session reminder Discord secret boundary plan
+
+Status: docs-only destination and secret boundary planning completed.
+
+- Baseline: `66d9467 Check session reminder production disabled runtime`.
+- Added `docs/session-reminder-discord-secret-boundary-plan.md`.
+- Updated:
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/session-reminder-edge-production-disabled-result.md`
+  - `docs/session-reminder-discord-notification-plan.md`
+  - `docs/task-backlog.md`
+- Destination decision:
+  - shortage reminders use the existing Discord notification channel for the
+    first production version
+  - GM reminders use the same notification channel for the first production
+    version
+  - dedicated session-reminder env names are used even if the Webhook points to
+    the existing channel
+- Mention policy:
+  - shortage is the only reminder type that can use `@everyone`
+  - shortage payload uses `allowed_mentions.parse=["everyone"]`
+  - GM reminder uses `<@id>` only when a valid `gm_discord_user_id` exists
+  - GM reminder uses `allowed_mentions.parse=[]` and
+    `allowed_mentions.users=[GM_ID]`
+  - GM reminder never uses `@everyone`
+- Env boundary:
+  - `DISCORD_SESSION_REMINDER_WEBHOOK_URL`
+  - `SESSION_REMINDER_DISPATCH_TOKEN`
+  - `SESSION_REMINDER_REAL_SEND_ENABLED`
+  - actual secret/Webhook/token values were not recorded
+  - real send remains disabled until a later gate
+- Next gates:
+  - Gate 9: set/confirm reminder Webhook and dispatch token only, real send
+    disabled
+  - Gate 10: deploy/runtime secret-presence check while production still
+    rejects
+  - Gate 11: limited production send test
+  - Gate 12: shortage `@everyone` production operation
+
+Not performed:
+
+- secret/Webhook setting or change
+- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
+- Edge deploy
+- runtime invocation
+- Discord send
+- Discord dry-run send
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS mutation
+- claim/finalize runtime execution
+- `session_reminder_logs` write
+- cron setup
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
 
 ## M-14F-108 reusable ops session player-count label config
 

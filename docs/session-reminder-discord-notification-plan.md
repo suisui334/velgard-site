@@ -697,6 +697,14 @@ Next gate split:
 - Gate 9: limited production send test.
 - Gate 10: final shortage `@everyone` production operation.
 
+Gate 8 later refined this split so secret setting and runtime
+secret-presence checks are separate gates before any production send:
+
+- Gate 9: secret setting only, real send disabled.
+- Gate 10: deploy/runtime secret-presence check, production still rejected.
+- Gate 11: limited production send test.
+- Gate 12: final shortage `@everyone` production operation.
+
 Gate 5 did not perform Discord send, Discord dry-run send, Webhook/secret change, Edge deploy, production implementation, claim/finalize call, DB write, SQL apply, UI change, or `updates.json` change.
 
 ## Gate 6 Production Code Result
@@ -958,18 +966,65 @@ Next Gate recorded from Gate 7:
 - Decide and prepare Discord destination/secret handling without enabling real
   send, or split into separate secret-planning and secret-setting gates.
 
+## Gate 8 Discord Secret Boundary Plan
+
+Gate 8 documented the destination and env/secret boundary only.
+
+Result doc:
+
+- `docs/session-reminder-discord-secret-boundary-plan.md`
+
+Decisions:
+
+- shortage reminders use the existing Discord notification channel for the
+  first production version
+- shortage reminders use a dedicated reminder Webhook/env boundary:
+  `DISCORD_SESSION_REMINDER_WEBHOOK_URL`
+- shortage is the only reminder type allowed to use `@everyone`
+- GM reminders use the same notification channel for the first production
+  version
+- GM reminders use GM user mention when a valid `gm_discord_user_id` exists
+- GM reminders use `allowed_mentions.parse=[]` and
+  `allowed_mentions.users=[GM_ID]`
+- GM reminders do not use `@everyone`
+- production dispatch is gated by `SESSION_REMINDER_DISPATCH_TOKEN`
+- real send remains gated by `SESSION_REMINDER_REAL_SEND_ENABLED`
+
+Still not performed:
+
+- secret/Webhook setting or change
+- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
+- Edge deploy
+- runtime invocation
+- Discord send
+- Discord dry-run send
+- SQL apply
+- DB/RPC/RLS mutation
+- claim/finalize runtime execution
+- cron setup
+- UI/HTML/CSS/browser JS change
+- `updates.json` change
+
+Next Gates recorded from Gate 8:
+
+- Gate 9: set/confirm reminder Webhook and dispatch token only, with real send
+  still disabled
+- Gate 10: deploy/runtime secret-presence check while production still rejects
+- Gate 11: limited production send test
+- Gate 12: shortage `@everyone` production operation
+
 ## Open Questions
 
 1. Should `waitlisted` stay excluded from the first threshold decision?
 2. Should shortage reminders be skipped after `application_deadline` has passed?
 3. Should sessions with status `full` stay eligible for GM reminder?
-4. What is the approved destination for GM reminders?
-5. Which SQL/RPC field should carry the validated GM Discord user id for GM mention?
+4. Should the first production send test use a GM reminder candidate before any
+   shortage `@everyone` test?
+5. Should the reminder Webhook remain pointed at the existing notification
+   channel after initial production, or move to a dedicated channel later?
 6. If a session start time or reminder offset changes after a reminder was already sent, should a second send be allowed?
-7. Which channel key should receive shortage reminders?
-8. Which channel key should receive GM reminders?
-9. Should failed sends retry automatically, and if so how many times?
-10. Should reminder settings be editable only by the GM, or also by managers/admins?
+7. Should failed sends retry automatically, and if so how many times?
+8. Should reminder settings be editable only by the GM, or also by managers/admins?
 
 ## Implementation Gates
 
