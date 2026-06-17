@@ -1,10 +1,11 @@
 import { loadJson } from "./dataLoader.js";
 import { generalSkillNoteSubsections } from "./world/regulation/generalSkillNoteSubsectionsData.js";
 import { levelCaps } from "./world/regulation/levelCapsData.js";
+import { originalGeneralSkillBonusSubsections } from "./world/regulation/originalGeneralSkillBonusSubsectionsData.js";
 import { rewardCalloutBlocks } from "./world/regulation/rewardCalloutBlocksData.js";
 import { termExplanations } from "./world/regulation/termExplanationsData.js";
 
-const REGULATION_DATA_PATH = "data/regulation.json?v=20260617-regulation-general-skill-note-data-module";
+const REGULATION_DATA_PATH = "data/regulation.json?v=20260617-regulation-original-general-skill-bonus-data-module";
 
 const STRONG_PARAGRAPHS = new Set([
   "【ルートA・B共通】",
@@ -370,8 +371,36 @@ function withGeneralSkillNoteSubsections(sectionData) {
   };
 }
 
+function isMovedOriginalGeneralSkillBonusSubsection(item) {
+  return originalGeneralSkillBonusSubsections.some((bonusItem) => (
+    item?.title === bonusItem.title
+  ));
+}
+
+function withOriginalGeneralSkillBonusSubsections(sectionData) {
+  if (!sectionData || sectionData.id !== "original-general-skills") return sectionData;
+  const blocks = (Array.isArray(sectionData.blocks) ? sectionData.blocks : []).map((block, blockIndex) => {
+    if (blockIndex !== 2 || block?.type !== "subsections") return block;
+    const items = (Array.isArray(block.items) ? block.items : []).filter((item) => (
+      !isMovedOriginalGeneralSkillBonusSubsection(item)
+    ));
+    return {
+      ...block,
+      items: [
+        ...items.slice(0, 2),
+        ...originalGeneralSkillBonusSubsections,
+        ...items.slice(2)
+      ]
+    };
+  });
+  return {
+    ...sectionData,
+    blocks
+  };
+}
+
 function withRegulationDataModules(sectionData) {
-  return withGeneralSkillNoteSubsections(withRewardCalloutBlocks(sectionData));
+  return withOriginalGeneralSkillBonusSubsections(withGeneralSkillNoteSubsections(withRewardCalloutBlocks(sectionData)));
 }
 
 export async function renderRegulation(root) {
