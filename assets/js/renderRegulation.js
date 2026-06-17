@@ -1,9 +1,10 @@
 import { loadJson } from "./dataLoader.js";
+import { generalSkillNoteSubsections } from "./world/regulation/generalSkillNoteSubsectionsData.js";
 import { levelCaps } from "./world/regulation/levelCapsData.js";
 import { rewardCalloutBlocks } from "./world/regulation/rewardCalloutBlocksData.js";
 import { termExplanations } from "./world/regulation/termExplanationsData.js";
 
-const REGULATION_DATA_PATH = "data/regulation.json?v=20260617-regulation-reward-callout-data-module";
+const REGULATION_DATA_PATH = "data/regulation.json?v=20260617-regulation-general-skill-note-data-module";
 
 const STRONG_PARAGRAPHS = new Set([
   "【ルートA・B共通】",
@@ -341,6 +342,38 @@ function withRewardCalloutBlocks(sectionData) {
   };
 }
 
+function isMovedGeneralSkillNoteSubsection(item) {
+  return generalSkillNoteSubsections.some((noteItem) => (
+    item?.title === noteItem.title
+  ));
+}
+
+function withGeneralSkillNoteSubsections(sectionData) {
+  if (!sectionData || sectionData.id !== "general-skills") return sectionData;
+  const blocks = (Array.isArray(sectionData.blocks) ? sectionData.blocks : []).map((block) => {
+    if (block?.type !== "subsections") return block;
+    const items = (Array.isArray(block.items) ? block.items : []).filter((item) => (
+      !isMovedGeneralSkillNoteSubsection(item)
+    ));
+    return {
+      ...block,
+      items: [
+        ...items.slice(0, 7),
+        ...generalSkillNoteSubsections,
+        ...items.slice(7)
+      ]
+    };
+  });
+  return {
+    ...sectionData,
+    blocks
+  };
+}
+
+function withRegulationDataModules(sectionData) {
+  return withGeneralSkillNoteSubsections(withRewardCalloutBlocks(sectionData));
+}
+
 export async function renderRegulation(root) {
   const regulation = {
     ...await loadJson(REGULATION_DATA_PATH),
@@ -357,7 +390,7 @@ export async function renderRegulation(root) {
   const page = create("div", "regulation-page");
   const layout = create("div", "article-layout regulation-layout");
   const main = create("article", "article regulation-main");
-  const sections = new Map((Array.isArray(regulation.sections) ? regulation.sections : []).map((section) => [section.id, withRewardCalloutBlocks(section)]));
+  const sections = new Map((Array.isArray(regulation.sections) ? regulation.sections : []).map((section) => [section.id, withRegulationDataModules(section)]));
 
   main.append(
     renderSchedule(regulation),
