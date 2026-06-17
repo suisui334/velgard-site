@@ -645,6 +645,32 @@ Next-world adoption impact:
 - recommends the next docs-only candidate:
   pre-auth / pre-DB / pre-Discord checklist
 
+## Phase 3-C8 Pre-Ops Connection Checklist Follow-Up
+
+Phase 3-C8 completes that recommended docs-only candidate:
+
+- `docs/world-template-pre-ops-connection-checklist.md`
+
+Next-world adoption impact:
+
+- defines five adoption stages:
+  - static world-template
+  - ops core static connection
+  - auth connection preparation
+  - DB/RPC/RLS connection preparation
+  - Discord / Edge Function connection preparation
+- records public-only checks that must pass before operational surfaces are
+  enabled
+- keeps SQL Editor execution, SQL apply, RLS changes, RPC additions/changes,
+  Edge deploy, secret/Webhook setup, Discord production operations, membership
+  permission changes, and data-changing QA as independent gates
+- records rollback/recovery rules for auth, DB/RPC/RLS, Edge, and Discord
+  failures without exposing secret values or raw user data
+- clarifies ownership boundaries between world-template pages, reusable ops
+  core pages, and external/secret systems
+- recommends the next docs-only candidate:
+  ops core static connection dry-run checklist
+
 ## Limited And Not Tested
 
 This guide is docs-only and does not add new runtime QA.

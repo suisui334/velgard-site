@@ -1551,3 +1551,25 @@ Reusable-ops impact:
 - the next-world page adoption path does not change `assets/js/core/`,
   `main.js`, `style.css`, session orchestrators, mypage auth client, Discord
   sync client, DB/RPC/RLS, or `updates.json`
+
+## Phase 3-C8 Pre-Ops Connection Checklist
+
+Phase 3-C8 adds the checklist for stopping before live operational connection:
+
+- `docs/world-template-pre-ops-connection-checklist.md`
+
+Reusable-ops impact:
+
+- separates static world-template launch from ops core static review, auth
+  preparation, DB/RPC/RLS preparation, and Discord/Edge preparation
+- classifies `calendar`, `session-post`, `session-detail`, `mypage`,
+  `timeline`, membership, approved gate, session helpers, Discord sync client,
+  and auth-adjacent clients as reusable ops or ops-adjacent surfaces
+- records that SQL Editor execution, SQL apply, RLS changes, RPC
+  additions/changes, Edge deploy, secret/Webhook setup, Discord production
+  operations, membership permission changes, and data-changing QA remain
+  independent gates
+- keeps project-specific values, raw user data, Discord ids, Webhooks, tokens,
+  and actual management keys out of docs
+- recommends a future docs-only ops core static connection dry-run checklist
+  before any auth, DB/RPC/RLS, Edge, Discord, or write workflow gate

@@ -9579,6 +9579,76 @@ Status: completed.
   RPC/DB key configuration, CSS class/DOM id/anchor change,
   `management_key` display, or raw id/email/token/JWT display was performed.
 
+## Phase 3-C8 pre-auth / pre-DB / pre-Discord checklist
+
+Status: completed.
+
+- Baseline: `d191828 Plan campaigns episodes template structures`.
+- Added
+  `docs/world-template-pre-ops-connection-checklist.md`.
+- Updated:
+  - `docs/world-template-next-world-adoption-guide.md`
+  - `docs/world-template-page-adoption-checklist.md`
+  - `docs/reusable-ops-platform-extraction-plan.md`
+  - `docs/reusable-ops-platform-phase2-completion-summary.md`
+  - `docs/task-backlog.md`
+- Documented five next-world adoption stages:
+  - Stage 1: static world-template with public data only
+  - Stage 2: ops core static connection review without DB/RPC/RLS or Discord
+    production sync
+  - Stage 3: auth connection preparation
+  - Stage 4: DB/RPC/RLS connection preparation
+  - Stage 5: Discord / Edge Function connection preparation
+- Documented pre-auth checklist:
+  classify public/login/approved-gated pages, decide unauthenticated and
+  unapproved displays, decide profile-safe fields, defer membership/role
+  matrix QA, and keep raw user ids, emails, JWTs, tokens, and actual
+  `management_key` values out of UI, DOM, logs, and docs.
+- Documented pre-DB / pre-RPC / pre-RLS checklist:
+  classify static versus DB-backed features, keep session create/edit/delete,
+  applications, comments, membership approval, timeline, and notifications as
+  separate workflows, separate SELECT-only checks from write checks, keep SQL
+  Editor execution, SQL apply, RLS changes, and RPC changes as independent
+  gates, and avoid casual direct Supabase client write methods.
+- Documented pre-Discord / pre-Edge checklist:
+  decide whether Discord sync is needed, separate dry run from production
+  operation, keep production post/edit/delete as separate gates, avoid
+  recording Webhook URLs, tokens, channel ids, message ids, Discord URLs, or
+  full payload previews, and define duplicate-post, retry, and rollback
+  policy.
+- Documented public-only checklist before ops:
+  HTTP 200, broken import / 404, broken image, visible `undefined` /
+  `[object Object]`, zero/few-record tolerance, GM-secret review, personal
+  information review, Velgard-specific content/image removal, and honest
+  `limited` / `not_tested` status recording.
+- Documented independent gate list:
+  SQL Editor execution, SQL apply, RLS changes, RPC additions/changes, Edge
+  deploy, secret/Webhook setup, Discord production post/edit/delete,
+  membership/manager permission changes, real session write QA, application
+  and comment write QA, cleanup apply, bulk data changes, and production
+  notification/timeline generation QA.
+- Documented rollback/recovery:
+  verify static world-template first, record rollback per DB/RPC/RLS unit,
+  minimize Discord operation targets, record only status for secrets, avoid
+  repeated production retries, do not hide ops failures by changing
+  world-template data, and re-check public delivery after rollback.
+- Documented ownership boundaries:
+  world-template pages and public lore/data/images; reusable ops pages and
+  helpers; external/secret systems such as Supabase project configuration,
+  Webhooks, tokens, Edge secrets, Discord values, user ids, emails, JWTs, and
+  actual management keys.
+- Recommended next docs-only candidate:
+  ops core static connection dry-run checklist.
+- This was docs-only: no implementation, HTML, CSS, JS, data/json, image file,
+  sample data, renderer, auth connection, DB connection, RPC/RLS change, SQL
+  execution/apply, Edge deploy, Discord operation, secret/Webhook change, or
+  `updates.json` change was performed.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+  operation, secret/Webhook change, direct Supabase write, debug console
+  logging addition, auth/permission logic change, membership logic change,
+  RPC/DB key configuration, CSS class/DOM id/anchor change,
+  `management_key` display, or raw id/email/token/JWT display was performed.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

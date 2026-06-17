@@ -1449,6 +1449,30 @@ Recommended next docs-only candidate after C7:
 
 - pre-auth / pre-DB / pre-Discord checklist.
 
+## Phase 3-C8 Pre-Ops Connection Checklist Follow-Up
+
+Phase 3-C8 completes the recommended pre-ops connection checklist:
+
+- `docs/world-template-pre-ops-connection-checklist.md`
+
+Page-adoption impact:
+
+- page adoption now has an explicit stop line between public world-template
+  launch and operational connection
+- world-template pages should pass public-only checks before calendar,
+  session-post, session-detail, mypage, timeline, or admin surfaces are enabled
+- ops pages can be reviewed in a static/dry state before auth, DB/RPC/RLS,
+  Edge, or Discord gates
+- auth-required and approved-gated pages must be classified before connection
+- SQL, RPC/RLS, Edge deploy, Discord production operations, membership
+  permission changes, and data-changing QA remain independent gates
+- secret values, raw user data, Discord ids, Webhooks, tokens, and actual
+  management keys stay out of docs and public data
+
+Recommended next docs-only candidate after C8:
+
+- ops core static connection dry-run checklist.
+
 ## Limited And Not Tested
 
 This checklist is docs-only and does not add runtime QA.

@@ -345,3 +345,28 @@ Confirmed:
 Detailed result:
 
 - `docs/reusable-ops-platform-phase3a2-session-player-count-label-public-check.md`
+
+## Phase 3-C8 Follow-Up
+
+Phase 3-C8 records the pre-ops connection checklist for future next-world
+setup:
+
+- `docs/world-template-pre-ops-connection-checklist.md`
+
+Relevance to Phase 2 completion:
+
+- the Phase 2 core files remain reusable candidates, but they are not a full
+  operations app by themselves
+- calendar, session-post, session-detail, mypage, timeline, membership,
+  approved gate, Discord sync, and auth-adjacent clients still require
+  explicit setup and QA gates before use in a next world
+- auth connection, DB/RPC/RLS connection, Edge Function deploy, Discord
+  production operations, and data-changing QA are still outside the completed
+  Phase 2 scope
+- before enabling those surfaces, use the pre-ops checklist to keep public
+  world-template checks, static ops review, auth preparation, DB/RPC/RLS
+  preparation, and Discord/Edge preparation separate
+
+Recommended next docs-only candidate:
+
+- ops core static connection dry-run checklist.
