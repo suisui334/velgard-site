@@ -721,6 +721,29 @@ Next gate:
   fresh target-count check, destination confirmation, and explicit `@everyone`
   approval before any shortage production operation.
 
+Gate 12A manual GM reminder success summary:
+
+- summary doc: `docs/session-reminder-gm-confirmed-send-success-summary.md`
+- Gate 11I `gm_confirmed` one-item production send succeeded
+- `claimed_count:1`
+- `sent_count:1`
+- `failed_count:0`
+- `skipped_count:0`
+- `session_reminder_logs` count: `0` -> `1`
+- no `@everyone` send
+- no shortage reminder send
+- no multiple-item send
+- real send was disabled again immediately after the send
+- operation mode: manual dispatcher execution, not cron automation
+- duplicate prevention: the same session and same reminder type should not be
+  re-sent by the normal claim path while the log row exists
+- no Discord ID, Webhook URL, dispatch token, provider message id, session id,
+  session URL, or full message body was recorded
+
+Gate 12A itself was docs-only and did not send Discord, enable real send, call
+`dry_run:false`, execute claim/finalize, write DB rows, apply SQL, deploy Edge
+Functions, configure cron, change UI, change secrets, or change `updates.json`.
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:

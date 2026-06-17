@@ -516,3 +516,33 @@ Next gate:
 - Gate 12 planning or a separate shortage `@everyone` approval gate. Do not
   enable shortage production sending without a fresh target-count check and
   explicit `@everyone` approval.
+
+## Gate 12A Manual GM Reminder Success Summary
+
+Summary doc:
+
+- `docs/session-reminder-gm-confirmed-send-success-summary.md`
+
+Gate 12A records the Gate 11I success as a manual-dispatch milestone:
+
+- `gm_confirmed` one-item production send succeeded
+- `claimed_count:1`
+- `sent_count:1`
+- `failed_count:0`
+- `skipped_count:0`
+- `session_reminder_logs` count: `0` -> `1`
+- no `@everyone` send
+- no shortage reminder send
+- no multiple-item send
+- real send was disabled again immediately after the send
+- this was manual dispatcher execution, not cron automation
+
+Duplicate prevention note:
+
+- the same session and same `gm_confirmed` reminder type should not be re-sent
+  by the normal claim path because a log row now exists for that
+  `(session_id, reminder_type)` pair
+
+Gate 12A did not send Discord, enable real send, call `dry_run:false`, execute
+claim/finalize, write DB rows, apply SQL, deploy Edge Functions, configure
+cron, change UI, change secrets, or change `updates.json`.

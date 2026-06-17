@@ -11158,6 +11158,77 @@ Next candidate gate:
   fresh target-count check, destination confirmation, and explicit `@everyone`
   approval before any shortage production operation.
 
+## Gate 12A session reminder GM confirmed send success summary
+
+Status: GM confirmed reminder send success recorded; manual-dispatch stage
+closed.
+
+- Baseline: `0e637ab Record GM confirmed production retry after claim fix`.
+- Added:
+  - `docs/session-reminder-gm-confirmed-send-success-summary.md`
+- Updated:
+  - `docs/session-reminder-limited-production-send-result.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+
+Success record from Gate 11I:
+
+- reminder type: `gm_confirmed`
+- `claimed_count:1`
+- `sent_count:1`
+- `failed_count:0`
+- `skipped_count:0`
+- `session_reminder_logs` count: `0` -> `1`
+- no `@everyone` send
+- no shortage reminder send
+- no multiple-item send
+- no retry after success
+- real send was disabled again immediately after the send
+- this was manual dispatcher execution, not cron automation
+
+Duplicate prevention:
+
+- the same session and same reminder type should not be re-sent by the normal
+  claim path while the `(session_id, reminder_type)` log row exists
+
+Not recorded:
+
+- Webhook URL
+- dispatch token value
+- raw Discord ID
+- Discord message id
+- session id
+- session URL
+- message body
+
+Gate 12A not performed:
+
+- Discord send
+- Discord dry-run send
+- `@everyone` send
+- shortage send
+- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
+- production `dry_run:false`
+- claim/finalize runtime execution
+- DB write
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS structure change
+- Edge deploy
+- cron setup
+- UI / HTML / CSS / browser JS change
+- secret/Webhook setting or change
+- `updates.json` change
+
+Next candidate gates:
+
+1. Gate 12B: shortage `@everyone` production-operation planning only.
+2. Gate 12C: scheduler/cron design for session reminders, docs-only first.
+3. Gate 12D: reset/retry policy for reminder logs, SQL draft only.
+
+Do not enable shortage sending without a fresh target-count check, destination
+confirmation, and explicit `@everyone` approval.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
