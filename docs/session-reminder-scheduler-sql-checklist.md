@@ -1,6 +1,7 @@
 # Session Reminder Scheduler SQL Checklist
 
-Status: Gate 12D Vault preparation documented. SQL not applied.
+Status: Gate 12F pre-apply Vault check stopped before SQL apply. Scheduler SQL
+not applied.
 
 ## Scope
 
@@ -33,6 +34,33 @@ existing pattern. The payload key remains `limit` because
 Result doc:
 
 - `docs/session-reminder-scheduler-vault-secret-result.md`
+- `docs/session-reminder-scheduler-apply-result.md`
+
+## Gate 12F Pre-Apply Stop Result
+
+Gate 12F reviewed the scheduler draft and ran SELECT-only Vault presence
+checks before applying any scheduler SQL.
+
+Result:
+
+- existing admin scheduled-post Vault comparison: `3/3`
+- session reminder required Vault secrets: `0/3`
+- missing or empty names:
+  - `SESSION_REMINDER_DISPATCH_TOKEN`
+  - `SESSION_REMINDER_FUNCTION_URL`
+  - `SESSION_REMINDER_INVOKE_JWT`
+
+Because required Vault secrets were missing, Gate 12F stopped before SQL apply
+and before cron creation.
+
+Post-stop SELECT-only checks:
+
+- `dispatch-session-reminders-every-minute` cron job count: `0`
+- `session_reminder_logs` count: `1`
+
+No secret values, Function URL, JWT, dispatch token, Webhook URL, project ref,
+Discord ID, session id, message id, response body, or request headers were
+recorded.
 
 ## Gate 12D Vault Prep Result
 
@@ -321,8 +349,8 @@ where jobname = 'dispatch-session-reminders-every-minute';
 
 Recommended next gate:
 
-- Gate 12F: apply the scheduler SQL under explicit approval while real send
-  remains disabled.
+- Gate 12F.1: set or confirm the three required scheduler Vault secrets without
+  recording values.
 
-If required Vault secrets are missing, stop before cron creation and record the
-missing secret names only.
+After the Vault secret setup succeeds, retry scheduler SQL apply under explicit
+approval while real send remains disabled.

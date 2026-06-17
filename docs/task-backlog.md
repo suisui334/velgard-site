@@ -11563,6 +11563,76 @@ Next candidate gates:
 5. Gate 12J: shortage `@everyone` final approval and bounded production
    operation.
 
+## Gate 12F session reminder scheduler apply precheck stop
+
+Status: scheduler SQL apply stopped before cron creation because required
+session reminder Vault secrets were missing.
+
+- Baseline: `9172224 Align session reminder scheduler with existing scheduled posts`.
+- Added:
+  - `docs/session-reminder-scheduler-apply-result.md`
+- Updated:
+  - `docs/session-reminder-scheduler-sql-checklist.md`
+  - `docs/session-reminder-scheduler-operation-plan.md`
+  - `docs/task-backlog.md`
+
+Reviewed:
+
+- `docs/sql-drafts/session-reminder-scheduler-draft.sql`
+- expected cron job: `dispatch-session-reminders-every-minute`
+- expected schedule: every minute
+- expected payload: `dry_run:false`, `limit:1`
+- expected Vault secret names:
+  - `SESSION_REMINDER_FUNCTION_URL`
+  - `SESSION_REMINDER_INVOKE_JWT`
+  - `SESSION_REMINDER_DISPATCH_TOKEN`
+
+Pre-apply SELECT-only result:
+
+- existing admin scheduled-post Vault comparison: `3/3`
+- session reminder required Vault secrets: `0/3`
+- missing or empty names:
+  - `SESSION_REMINDER_DISPATCH_TOKEN`
+  - `SESSION_REMINDER_FUNCTION_URL`
+  - `SESSION_REMINDER_INVOKE_JWT`
+
+Stop result:
+
+- scheduler SQL apply: not run
+- cron job creation: not run
+- `dispatch-session-reminders-every-minute` cron job count after stop: `0`
+- `session_reminder_logs` count after stop: `1`
+- no secret values were recorded
+
+Gate 12F not performed:
+
+- SQL apply
+- cron creation
+- Edge deploy
+- runtime invocation
+- production `dry_run:false`
+- claim/finalize runtime execution
+- DB/RPC/RLS structure change
+- Discord send
+- `@everyone` send
+- shortage send
+- real-send enablement
+- secret value readout or value recording
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+
+Next candidate gates:
+
+1. Gate 12F.1: set or confirm the three required scheduler Vault secrets,
+   recording only secret names and status, never values.
+2. Gate 12F retry: apply scheduler SQL under explicit approval while real send
+   remains disabled.
+3. Gate 12G: scheduler runtime production-disabled confirmation.
+4. Gate 12H: GM automatic scheduler send test with bounded target count.
+5. Gate 12I: shortage `@everyone` production planning only.
+6. Gate 12J: shortage `@everyone` final approval and bounded production
+   operation.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

@@ -364,6 +364,28 @@ Session reminder difference:
 Gate 12E required no functional SQL change. The draft/checklist comments were
 updated to make the alignment explicit.
 
+## Gate 12F Apply Attempt
+
+Gate 12F reviewed the scheduler draft and performed SELECT-only pre-apply
+checks, but stopped before scheduler SQL apply:
+
+- result doc: `docs/session-reminder-scheduler-apply-result.md`
+- admin scheduled-post Vault comparison: `3/3`
+- session reminder required Vault secrets: `0/3`
+- missing or empty names:
+  - `SESSION_REMINDER_DISPATCH_TOKEN`
+  - `SESSION_REMINDER_FUNCTION_URL`
+  - `SESSION_REMINDER_INVOKE_JWT`
+- cron job `dispatch-session-reminders-every-minute` count after stop: `0`
+- `session_reminder_logs` count after stop: `1`
+
+No scheduler SQL was applied and no cron job was created.
+
+Next gate recommendation:
+
+- Gate 12F.1: set or confirm the three required scheduler Vault secrets without
+  recording values, then retry scheduler SQL apply under explicit approval.
+
 ## Not Performed
 
 - Discord send
@@ -374,7 +396,6 @@ updated to make the alignment explicit.
 - production `dry_run:false`
 - claim/finalize runtime execution
 - DB write
-- SQL Editor execution
 - SQL apply
 - DB/RPC/RLS structure change
 - Edge deploy
