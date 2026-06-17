@@ -795,6 +795,28 @@ Gate 12C itself was docs-only and did not run SQL, create cron, invoke runtime,
 enable real send, send Discord, write DB rows, deploy Edge Functions, change
 secrets, or change `updates.json`.
 
+Gate 12E existing scheduler comparison:
+
+- comparison doc:
+  `docs/session-reminder-existing-scheduler-comparison.md`
+- existing admin scheduled posts use `pg_cron` + `pg_net`
+- existing admin scheduled posts run every minute
+- existing admin scheduled posts read Function URL, invoke JWT, and dispatch
+  token through Vault secret names
+- existing admin scheduled posts use `x-dispatch-token`, an Edge-side
+  real-send flag, service-role claim/finalize RPCs, and a one-item limiter
+- session reminder scheduler draft already matches that mechanism
+- the only payload key difference is intentional:
+  - admin dispatcher: `batch_limit`
+  - session reminder dispatcher: `limit`
+- every minute remains the preferred cadence; five minutes is fallback only
+- session reminder failed/skipped retry remains a future reset/retry SQL gate,
+  unlike admin scheduled posts which can reschedule retryable failures
+
+Gate 12E did not run SQL, create cron, invoke runtime, enable real send, send
+Discord, write DB rows, deploy Edge Functions, change secrets, or change
+`updates.json`.
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:

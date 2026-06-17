@@ -12,7 +12,7 @@ It is SELECT-only except for the separately approved apply draft:
 - apply draft: `docs/sql-drafts/session-reminder-scheduler-draft.sql`
 - cron job name: `dispatch-session-reminders-every-minute`
 - expected cadence: every 1 minute
-- lower-noise alternative: every 5 minutes
+- lower-noise alternative: every 5 minutes, fallback only
 - expected Function: `dispatch-session-reminders`
 - expected payload: `dry_run:false`, `limit:1`
 
@@ -22,6 +22,13 @@ change `updates.json`.
 
 Gate 12D documented the Vault boundary and setup procedure, but did not query
 or change Vault secret values.
+
+Gate 12E compared this scheduler with the existing admin scheduled post
+mechanism. The every-minute cadence, `pg_cron` + `pg_net` caller, Vault secret
+boundary, dispatch-token header, and one-item limiter are aligned with the
+existing pattern. The payload key remains `limit` because
+`dispatch-session-reminders` expects `limit`; the admin dispatcher uses
+`batch_limit`.
 
 Result doc:
 
@@ -151,7 +158,7 @@ checks as (
     'cron_schedule',
     case when js.has_expected_schedule then 'ok' else 'review' end,
     coalesce((select schedule from target_job limit 1), ''),
-    'initial schedule should be every 1 minute; 5 minutes is the documented alternative'
+    'initial schedule should be every 1 minute to match existing scheduled posts; 5 minutes is fallback only'
   from job_summary js
 
   union all
@@ -314,7 +321,7 @@ where jobname = 'dispatch-session-reminders-every-minute';
 
 Recommended next gate:
 
-- Gate 12E: apply the scheduler SQL under explicit approval while real send
+- Gate 12F: apply the scheduler SQL under explicit approval while real send
   remains disabled.
 
 If required Vault secrets are missing, stop before cron creation and record the

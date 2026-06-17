@@ -32,9 +32,13 @@
 --   SESSION_REMINDER_DISPATCH_TOKEN.
 --
 -- Cron policy:
--- - Initial schedule: every 1 minute.
+-- - Initial schedule: every 1 minute, aligned with the existing
+--   dispatch-admin-cap-announcements scheduled-post cron.
 -- - Lower-noise alternative: every 5 minutes using */5 * * * *.
+-- - The 5-minute option is fallback only; every minute is preferred for
+--   parity with existing scheduled posts.
 -- - Safety limiter: payload uses dry_run=false and limit=1.
+-- - The admin dispatcher uses batch_limit=1; this dispatcher expects limit=1.
 -- - Shortage @everyone production operation remains a later independent gate.
 --
 -- Rollback / stop plan, for a later explicit rollback gate only:

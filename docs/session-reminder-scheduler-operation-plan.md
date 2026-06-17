@@ -96,8 +96,8 @@ Cadence recommendation:
 - every minute is the preferred cadence
 - reason: reminder windows are tied to 30/60 minute and 1/2/3 hour offsets,
   and the dispatcher/claim log already prevents duplicates
-- alternative: every 5 minutes if operational noise is a concern, accepting up
-  to roughly 5 minutes of scheduling delay
+- fallback only: every 5 minutes if operational noise becomes a concern,
+  accepting up to roughly 5 minutes of scheduling delay
 
 Cron payload:
 
@@ -232,11 +232,13 @@ Recommended gate split:
 
 1. Gate 12C: scheduler SQL draft and post-apply SELECT-only checklist.
 2. Gate 12D: scheduler Vault secret preparation and boundary confirmation.
-3. Gate 12E: scheduler SQL apply under explicit approval, production disabled.
-4. Gate 12F: scheduler runtime production-disabled confirmation.
-5. Gate 12G: GM automatic scheduler send test with bounded target count.
-6. Gate 12H: shortage `@everyone` production planning only.
-7. Gate 12I: shortage `@everyone` final approval and bounded production
+3. Gate 12E: compare with the existing scheduled-post scheduler and align the
+   draft before apply.
+4. Gate 12F: scheduler SQL apply under explicit approval, production disabled.
+5. Gate 12G: scheduler runtime production-disabled confirmation.
+6. Gate 12H: GM automatic scheduler send test with bounded target count.
+7. Gate 12I: shortage `@everyone` production planning only.
+8. Gate 12J: shortage `@everyone` final approval and bounded production
    operation.
 
 Keep shortage `@everyone` as the final, independent approval gate.
@@ -254,7 +256,7 @@ Draft design:
 - scheduler mechanism: Supabase `pg_cron` + `pg_net`
 - target Function: `dispatch-session-reminders`
 - initial schedule: every minute (`* * * * *`)
-- lower-noise alternative: every 5 minutes (`*/5 * * * *`)
+- lower-noise fallback only: every 5 minutes (`*/5 * * * *`)
 - payload: `dry_run:false`, `limit:1`
 - dispatch token header: `x-dispatch-token`
 - Function URL, invoke JWT, and dispatch token are read from Supabase Vault
@@ -309,9 +311,58 @@ change `updates.json`.
 
 Next gate recommendation:
 
-- Gate 12E: scheduler SQL apply under explicit approval while real send
+- Gate 12F: scheduler SQL apply under explicit approval while real send
   remains disabled. If required Vault secrets are missing, stop before cron
   creation and record missing secret names only.
+
+## Gate 12E Existing Scheduler Comparison
+
+Gate 12E compared the session reminder scheduler with the existing admin
+scheduled post mechanism:
+
+- `docs/session-reminder-existing-scheduler-comparison.md`
+
+Existing admin scheduled posts use:
+
+- Supabase `pg_cron`
+- Supabase `pg_net`
+- every-minute cron (`* * * * *`)
+- Vault secret references for Function URL, invoke JWT, and dispatch token
+- `x-dispatch-token`
+- Edge-side real-send flag
+- service-role claim/finalize RPCs
+- one-item limiter (`batch_limit:1`)
+
+Session reminder scheduler alignment:
+
+- uses the same `pg_cron` + `pg_net` mechanism
+- keeps every minute as the primary cadence
+- keeps 5 minutes as fallback only
+- uses reminder-specific Vault secret names
+- uses `x-dispatch-token`
+- uses Edge-side real-send flag
+- uses service-role claim/finalize RPCs
+- uses one-item limiter (`limit:1`)
+
+Why one-minute posting works in the existing system:
+
+- cron runs once per minute
+- due rows are claimed only after their scheduled timestamp
+- DB-side claim moves work into a locked/claimed state
+- finalize writes the result
+- a post scheduled one minute in the future is picked up by the first cron tick
+  after it becomes due
+
+Session reminder difference:
+
+- admin scheduled posts support retryable failures through announcement status,
+  `attempt_count`, and `next_attempt_at`
+- session reminders intentionally keep failed/skipped retry behind a future
+  reset/retry SQL gate and use `session_reminder_logs` for duplicate
+  prevention
+
+Gate 12E required no functional SQL change. The draft/checklist comments were
+updated to make the alignment explicit.
 
 ## Not Performed
 
