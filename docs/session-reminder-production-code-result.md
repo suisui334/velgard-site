@@ -142,3 +142,37 @@ Follow-up:
 - Gate 6.2 should draft a SQL/RPC update that adds a safe GM Discord user id field to the reminder preview/claim result.
 - After that update, Edge code can add `<@id>` for `gm_confirmed`, `allowed_mentions.parse=[]`, and `allowed_mentions.users=[id]`.
 - Dry-run previews and docs must mask the mention as `<@GM>` or equivalent and never record the actual Discord id.
+
+## Gate 6.5 GM Mention Implementation
+
+Status: source updated, not deployed.
+
+Prerequisite:
+
+- Gate 6.4 SQL apply was completed by the user after correcting the original
+  `union` syntax failure.
+- `gm_discord_user_id` is now present in both preview and claim RPC return
+  definitions.
+
+Updated in `supabase/functions/dispatch-session-reminders/index.ts`:
+
+- `PreviewReminderRow` now accepts `gm_discord_user_id`.
+- the value is normalized defensively with `^[0-9]{17,20}$`
+- dry-run previews use a masked `<@GM>` mention only when a valid GM ID exists
+- dry-run response exposes `gm_mention_available`, not the raw ID
+- production `gm_confirmed` content uses `<@id>` only when the ID is valid
+- production GM payload uses `allowed_mentions.parse=[]` and
+  `allowed_mentions.users=[id]`
+- production result exposes `gm_mention_used`, not the raw ID
+- shortage still uses `@everyone` and `allowed_mentions.parse=["everyone"]`
+- `flags: 4` remains in the Discord payload
+
+Not performed:
+
+- Edge Function deploy
+- runtime invocation
+- Discord send
+- Discord dry-run send
+- Webhook/secret setting or change
+- claim/finalize runtime execution
+- `session_reminder_logs` write

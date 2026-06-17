@@ -860,6 +860,65 @@ Next Gate recorded from Gate 6.3:
 
 - Gate 6.4: SQL apply independent approval and SELECT-only confirmation.
 
+## Gate 6.4 GM Discord ID SQL Apply Result
+
+Gate 6.4 was executed by the user in SQL Editor. Codex did not execute SQL.
+
+Result doc:
+
+- `docs/session-reminder-gm-discord-id-apply-result.md`
+
+Summary:
+
+- The first apply candidate failed near `union`.
+- The user ran `rollback` and confirmed the existing RPCs were retained.
+- A corrected no-UNION SQL version was applied successfully.
+- `preview_due_session_reminders` now returns `gm_discord_user_id`.
+- `claim_due_session_reminders` now returns `gm_discord_user_id`.
+- both RPCs remain `security definer`.
+- service-role execute remains available.
+- anon/authenticated execute remains false.
+- `session_reminder_logs_count=0`.
+- preview body, claim, and finalize were not executed.
+- no real Discord ID was recorded.
+
+The apply candidate file was corrected to match the successful no-UNION shape.
+
+## Gate 6.5 GM Mention Source Implementation
+
+Gate 6.5 updated the Edge Function source only.
+
+Updated:
+
+- `supabase/functions/dispatch-session-reminders/index.ts`
+- `docs/session-reminder-production-code-result.md`
+
+Implementation:
+
+- accepts `gm_discord_user_id` from the service-role preview/claim RPC result
+- validates it with `^[0-9]{17,20}$`
+- `gm_confirmed` production content uses `<@id>` only when valid
+- `gm_confirmed` allowed mentions are limited to `parse=[]` and the one GM user
+  id
+- missing/invalid ID falls back to no mention
+- dry-run message preview masks the mention as `<@GM>`
+- dry-run/production responses expose booleans, not raw Discord IDs
+- shortage remains the only reminder type with `@everyone`
+
+Still not performed:
+
+- Edge deploy
+- runtime invocation
+- Discord send
+- Discord dry-run send
+- DB write
+- Webhook/secret change
+
+Next Gate recorded from Gate 6.5:
+
+- Deploy the updated dispatcher and confirm dry-run / production-disabled
+  behavior in a separate approved gate.
+
 ## Open Questions
 
 1. Should `waitlisted` stay excluded from the first threshold decision?

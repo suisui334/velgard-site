@@ -167,6 +167,28 @@ Gate 6.3 follow-up:
 - Browser roles remain revoked; execute remains service-role-only.
 - SQL apply is still not performed.
 
+Gate 6.4 follow-up:
+
+- The first apply attempt failed near `union`, was rolled back, and left the
+  prior RPCs intact.
+- A corrected no-UNION version was applied successfully by the user.
+- `gm_discord_user_id` is now present in both preview and claim return
+  definitions.
+- service-role-only execution remains in place and anon/authenticated execute
+  remains false.
+- `session_reminder_logs_count=0`; preview, claim, and finalize were not run.
+- No real Discord ID was recorded.
+
+Gate 6.5 follow-up:
+
+- `dispatch-session-reminders` source now implements GM-only Discord user
+  mention support.
+- The source validates `gm_discord_user_id` again with `^[0-9]{17,20}$`.
+- Dry-run previews mask the mention as `<@GM>`.
+- Runtime responses expose only `gm_mention_available` /
+  `gm_mention_used`, not the raw ID.
+- Edge deploy and runtime invocation are still not performed.
+
 Implementation recommendation:
 
 - Use the same reminder Webhook env as shortage unless a separate GM reminder channel is explicitly chosen.
@@ -250,6 +272,8 @@ Gate 6.1 payload update:
 - Gate 6.2 created a draft to add that return field, but production Edge code must wait until the SQL apply gate is completed.
 - Gate 6.3 created the reviewed apply candidate, but production Edge code must
   still wait until the SQL apply gate is completed.
+- Gate 6.4 completed the SQL apply, and Gate 6.5 updated source only. Deploy
+  and runtime verification remain later gates.
 
 ## Production Flow
 

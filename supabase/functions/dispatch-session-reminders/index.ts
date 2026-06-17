@@ -41,6 +41,7 @@ interface PreviewReminderRow {
   count_for_minimum: number | null;
   shortage_count: number | null;
   gm_display_name: string | null;
+  gm_discord_user_id: string | null;
   reminder_offset_minutes: number | null;
   target_channel_key: string | null;
   session_public_id: string | null;
@@ -85,6 +86,7 @@ interface ReminderPreviewItem {
   session_url: string;
   scheduled_for: string | null;
   message_preview: string;
+  gm_mention_available: boolean;
   discord_delivery_preview: {
     would_send: false;
     suppress_embeds: true;
@@ -99,6 +101,7 @@ interface ProductionReminderResult {
   status: DeliveryStatus;
   title: string;
   error_summary: string | null;
+  gm_mention_used: boolean;
   discord_message_reference: "received" | "not_sent";
 }
 
@@ -107,6 +110,7 @@ interface DiscordWebhookPayload {
   flags: number;
   allowed_mentions: {
     parse: Array<"everyone">;
+    users?: string[];
   };
 }
 
@@ -165,6 +169,7 @@ const SESSION_REMINDER_REAL_SEND_ENABLED_ENV = "SESSION_REMINDER_REAL_SEND_ENABL
 const SESSION_REMINDER_DISPATCH_TOKEN_ENV = "SESSION_REMINDER_DISPATCH_TOKEN";
 const DISCORD_SESSION_REMINDER_WEBHOOK_URL_ENV = "DISCORD_SESSION_REMINDER_WEBHOOK_URL";
 const DISPATCH_TOKEN_HEADER = "x-dispatch-token";
+const MASKED_GM_MENTION = "<@GM>";
 
 const CORS_HEADERS = {
   "access-control-allow-headers": "authorization, content-type, x-client-info, apikey, x-dispatch-token",
@@ -270,6 +275,7 @@ async function handleProductionDispatch(
       status: finalizeResult.ok ? finalizeStatus : "finalize_failed",
       title: row.title || "タイトル未設定",
       error_summary: finalizeResult.ok ? errorSummary : "db_finalize_failed",
+      gm_mention_used: shouldUseGmMention(row),
       discord_message_reference: sendResult.ok ? "received" : "not_sent"
     });
   }
@@ -467,6 +473,7 @@ function normalizePreviewReminderRow(row: PreviewReminderRow): PreviewReminderRo
     count_for_minimum: normalizeNullableInteger(row?.count_for_minimum),
     shortage_count: normalizeNullableInteger(row?.shortage_count),
     gm_display_name: normalizeText(row?.gm_display_name, 80) || "GM",
+    gm_discord_user_id: normalizeDiscordUserId(row?.gm_discord_user_id),
     reminder_offset_minutes: normalizeNullableInteger(row?.reminder_offset_minutes),
     target_channel_key: normalizeNullableText(row?.target_channel_key, 80),
     session_public_id: normalizeText(row?.session_public_id, 120) || normalizeText(row?.session_id, 120),
@@ -492,7 +499,7 @@ function isSupportedClaimedReminderRow(row: ClaimedReminderRow): row is Supporte
 
 function buildReminderPreviewItem(row: SupportedPreviewReminderRow, publicSiteBaseUrl: string): ReminderPreviewItem {
   const sessionUrl = buildSessionDetailUrl(row.session_public_id || row.session_id, publicSiteBaseUrl);
-  const messagePreview = buildReminderMessage(row, sessionUrl);
+  const messagePreview = buildReminderMessage(row, sessionUrl, { maskGmMention: true });
 
   return {
     reminder_type: row.reminder_type,
@@ -511,6 +518,7 @@ function buildReminderPreviewItem(row: SupportedPreviewReminderRow, publicSiteBa
     session_url: sessionUrl,
     scheduled_for: row.scheduled_for,
     message_preview: messagePreview,
+    gm_mention_available: shouldUseGmMention(row),
     discord_delivery_preview: {
       would_send: false,
       suppress_embeds: true,
@@ -581,14 +589,21 @@ function buildDiscordWebhookPayload(
   return {
     content: truncateDiscordContent(buildReminderMessage(row, sessionUrl)),
     flags: DISCORD_SUPPRESS_EMBEDS_FLAG,
-    allowed_mentions: {
-      parse: getAllowedMentionParse(row.reminder_type)
-    }
+    allowed_mentions: buildAllowedMentions(row)
   };
 }
 
 function getAllowedMentionParse(reminderType: ReminderType): Array<"everyone"> {
   return reminderType === "shortage" ? ["everyone"] : [];
+}
+
+function buildAllowedMentions(row: SupportedPreviewReminderRow): DiscordWebhookPayload["allowed_mentions"] {
+  if (row.reminder_type === "shortage") {
+    return { parse: ["everyone"] };
+  }
+
+  const gmDiscordUserId = getGmDiscordUserId(row);
+  return gmDiscordUserId ? { parse: [], users: [gmDiscordUserId] } : { parse: [] };
 }
 
 async function readDiscordMessageId(response: Response): Promise<string | null> {
@@ -602,10 +617,14 @@ async function readDiscordMessageId(response: Response): Promise<string | null> 
   }
 }
 
-function buildReminderMessage(row: SupportedPreviewReminderRow, sessionUrl: string): string {
+function buildReminderMessage(
+  row: SupportedPreviewReminderRow,
+  sessionUrl: string,
+  options: { maskGmMention?: boolean } = {}
+): string {
   return row.reminder_type === "shortage"
     ? buildShortageMessagePreview(row, sessionUrl)
-    : buildGmConfirmedMessagePreview(row, sessionUrl);
+    : buildGmConfirmedMessage(row, sessionUrl, options);
 }
 
 function buildShortageMessagePreview(row: PreviewReminderRow, sessionUrl: string): string {
@@ -619,15 +638,22 @@ function buildShortageMessagePreview(row: PreviewReminderRow, sessionUrl: string
   ].join("\n");
 }
 
-function buildGmConfirmedMessagePreview(row: PreviewReminderRow, sessionUrl: string): string {
+function buildGmConfirmedMessage(
+  row: SupportedPreviewReminderRow,
+  sessionUrl: string,
+  options: { maskGmMention?: boolean } = {}
+): string {
   const title = row.title || "タイトル未設定";
   const startTime = formatStartTimeForJapaneseMessage(row.start_at);
   const gmName = row.gm_display_name || "GM";
-  return [
-    `${gmName}さんへ`,
+  const gmDiscordUserId = getGmDiscordUserId(row);
+  const mentionLine = gmDiscordUserId ? (options.maskGmMention ? MASKED_GM_MENTION : `<@${gmDiscordUserId}>`) : null;
+  const lines = [
     `■依頼書【${title}】［${sessionUrl}］`,
-    `本日${startTime}より開催予定です。最低人数を満たしています。GMは開催準備をご確認ください。`
-  ].join("\n");
+    `本日${startTime}より開催予定です。最低人数を満たしているため、開催予定のリマインドです。`,
+    `GM【${gmName}】さんは、開始準備・会場案内・参加者状況の確認をお願いいたします。`
+  ];
+  return mentionLine ? [mentionLine, ...lines].join("\n") : lines.join("\n");
 }
 
 function formatStartTimeForJapaneseMessage(value: unknown): string {
@@ -685,6 +711,24 @@ function truncateDiscordContent(value: string): string {
 
 function isDiscordSnowflakeLike(value: string): boolean {
   return /^\d{10,30}$/.test(value);
+}
+
+function isDiscordUserId(value: string): boolean {
+  return /^\d{17,20}$/.test(value);
+}
+
+function normalizeDiscordUserId(value: unknown): string | null {
+  const text = normalizeText(value, 40);
+  return isDiscordUserId(text) ? text : null;
+}
+
+function getGmDiscordUserId(row: Pick<PreviewReminderRow, "reminder_type" | "gm_discord_user_id">): string | null {
+  if (row.reminder_type !== "gm_confirmed") return null;
+  return normalizeDiscordUserId(row.gm_discord_user_id);
+}
+
+function shouldUseGmMention(row: Pick<PreviewReminderRow, "reminder_type" | "gm_discord_user_id">): boolean {
+  return Boolean(getGmDiscordUserId(row));
 }
 
 function normalizeErrorSummary(value: unknown): string {

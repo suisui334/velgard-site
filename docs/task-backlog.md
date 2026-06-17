@@ -10252,6 +10252,81 @@ Status: apply candidate prepared, not applied.
   - Gate 6.4: SQL apply independent approval and SELECT-only confirmation.
   - Gate 6.5: Edge Function GM mention implementation, no deploy.
 
+## Gate 6.4 session reminder GM Discord ID SQL apply result
+
+Status: SQL apply completed by user, result recorded by Codex.
+
+- Baseline before apply result recording: `114c9f2 Prepare GM Discord ID RPC apply candidate`.
+- Added:
+  - `docs/session-reminder-gm-discord-id-apply-result.md`
+- Updated:
+  - `docs/sql-drafts/session-reminder-gm-discord-id-apply-candidate.sql`
+  - `docs/session-reminder-gm-discord-id-sql-checklist.md`
+  - `docs/session-reminder-gm-discord-id-result.md`
+  - `docs/session-reminder-gm-mention-result.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/session-reminder-discord-notification-plan.md`
+  - `docs/task-backlog.md`
+- User-side first apply attempt:
+  - failed with `syntax error at or near "union"`
+  - user ran `rollback`
+  - rollback-state checks confirmed existing preview/claim RPCs remained present
+    and service-role-only
+  - `session_reminder_logs_count=0`
+- User-side corrected apply:
+  - applied a no-UNION version successfully
+  - `preview_due_session_reminders` return definition now includes
+    `gm_discord_user_id`
+  - `claim_due_session_reminders` return definition now includes
+    `gm_discord_user_id`
+  - both RPCs remain `security definer`
+  - service-role execute remains true
+  - anon/authenticated execute remains false
+  - `session_reminder_logs_count=0`
+- Preview body, claim, and finalize were not executed.
+- No real Discord ID, Webhook URL, channel id, message id, token, JWT,
+  `management_key`, raw user id, email, real session URL, or full message
+  preview was recorded.
+- Codex did not run SQL Editor, apply SQL, mutate DB/RPC/RLS, deploy Edge
+  Function, invoke runtime, send Discord, run Discord dry-run sends, execute
+  claim/finalize at runtime, write `session_reminder_logs`, change
+  Webhook/secrets, or modify `updates.json`.
+
+## Gate 6.5 session reminder GM mention dispatcher source
+
+Status: Edge Function source updated, not deployed.
+
+- Updated:
+  - `supabase/functions/dispatch-session-reminders/index.ts`
+  - `docs/session-reminder-production-code-result.md`
+  - `docs/session-reminder-gm-discord-id-result.md`
+  - `docs/session-reminder-gm-mention-result.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/session-reminder-discord-notification-plan.md`
+  - `docs/task-backlog.md`
+- Dispatcher implementation:
+  - accepts `gm_discord_user_id` from service-role preview/claim RPC rows
+  - validates it defensively with `^[0-9]{17,20}$`
+  - uses `<@id>` only for `gm_confirmed` production content when the ID is
+    valid
+  - masks dry-run preview mentions as `<@GM>`
+  - exposes `gm_mention_available` / `gm_mention_used` booleans instead of raw
+    Discord IDs
+  - uses `allowed_mentions.parse=[]` plus `allowed_mentions.users=[id]` for
+    GM confirmed only when the ID is valid
+  - keeps missing/invalid GM ID fallback as no mention
+  - keeps shortage as the only `@everyone` reminder type with
+    `allowed_mentions.parse=["everyone"]`
+  - keeps `flags: 4`
+- Did not deploy Edge Function, invoke runtime, send Discord, run Discord
+  dry-run sends, change Webhook/secrets, execute claim/finalize at runtime,
+  write `session_reminder_logs`, run SQL Editor, apply SQL, mutate DB/RPC/RLS,
+  change UI/HTML/CSS/browser JS, add `console.*`, add direct Supabase write
+  helpers, or modify `updates.json`.
+- Next candidate gate:
+  - deploy the updated dispatcher and confirm `dry_run:true` plus
+    production-disabled `dry_run:false` behavior in a separate approved gate.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

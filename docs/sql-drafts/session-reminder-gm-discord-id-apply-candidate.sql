@@ -8,6 +8,8 @@
 -- - Source the value from the session GM profile contact only.
 -- - Return null unless the stored value is a Discord snowflake-like numeric id.
 -- - Do not expose this value through public/browser RPCs.
+-- - Gate 6.4 applied a corrected no-UNION version manually after the first
+--   UNION-based candidate failed and was rolled back.
 --
 -- Safety:
 -- - This draft does not change tables, RLS policies, browser grants, Edge Functions, or Webhook secrets.
@@ -95,10 +97,15 @@ begin
       and s.player_min is not null
       and s.player_min > 0
   ),
+  candidate_types(reminder_type) as (
+    values
+      ('shortage'::text),
+      ('gm_confirmed'::text)
+  ),
   candidates as (
     select
       b.id as session_id,
-      'shortage'::text as reminder_type,
+      ct.reminder_type,
       b.title,
       b.start_at,
       b.player_min as min_players,
@@ -106,51 +113,50 @@ begin
       b.accepted_count,
       b.waitlisted_count,
       (b.pending_count + b.accepted_count)::integer as count_for_minimum,
-      greatest(b.player_min - (b.pending_count + b.accepted_count), 0)::integer as shortage_count,
+      case
+        when ct.reminder_type = 'shortage'
+          then greatest(b.player_min - (b.pending_count + b.accepted_count), 0)::integer
+        else 0::integer
+      end as shortage_count,
       b.gm_display_name,
-      null::text as gm_discord_user_id,
-      (b.shortage_reminder_hours_before * 60)::integer as reminder_offset_minutes,
+      case
+        when ct.reminder_type = 'gm_confirmed' then b.gm_discord_user_id
+        else null::text
+      end as gm_discord_user_id,
+      case
+        when ct.reminder_type = 'shortage'
+          then (b.shortage_reminder_hours_before * 60)::integer
+        else b.gm_reminder_minutes_before::integer
+      end as reminder_offset_minutes,
       'session_reminder'::text as target_channel_key,
       b.id as session_public_id,
       b.start_at as scheduled_for
     from base_sessions as b
-    where b.shortage_reminder_enabled = true
-      and b.shortage_reminder_hours_before in (1, 2, 3)
-      and b.status in ('tentative', 'recruiting')
-      and b.start_at > p_now
-      and (b.start_at - make_interval(mins => b.shortage_reminder_hours_before * 60)) <= p_now
+    cross join candidate_types as ct
+    where b.start_at > p_now
       and (
-        b.application_deadline is null
-        or b.application_deadline > p_now
+        (
+          ct.reminder_type = 'shortage'
+          and b.shortage_reminder_enabled = true
+          and b.shortage_reminder_hours_before in (1, 2, 3)
+          and b.status in ('tentative', 'recruiting')
+          and (b.start_at - make_interval(mins => b.shortage_reminder_hours_before * 60)) <= p_now
+          and (
+            b.application_deadline is null
+            or b.application_deadline > p_now
+          )
+          and (b.pending_count + b.accepted_count) < b.player_min
+        )
+        or
+        (
+          ct.reminder_type = 'gm_confirmed'
+          and b.gm_reminder_enabled = true
+          and b.gm_reminder_minutes_before in (30, 60)
+          and b.status in ('tentative', 'recruiting', 'full')
+          and (b.start_at - make_interval(mins => b.gm_reminder_minutes_before)) <= p_now
+          and (b.pending_count + b.accepted_count) >= b.player_min
+        )
       )
-      and (b.pending_count + b.accepted_count) < b.player_min
-
-    union all
-
-    select
-      b.id as session_id,
-      'gm_confirmed'::text as reminder_type,
-      b.title,
-      b.start_at,
-      b.player_min as min_players,
-      b.pending_count,
-      b.accepted_count,
-      b.waitlisted_count,
-      (b.pending_count + b.accepted_count)::integer as count_for_minimum,
-      0::integer as shortage_count,
-      b.gm_display_name,
-      b.gm_discord_user_id,
-      b.gm_reminder_minutes_before::integer as reminder_offset_minutes,
-      'session_reminder'::text as target_channel_key,
-      b.id as session_public_id,
-      b.start_at as scheduled_for
-    from base_sessions as b
-    where b.gm_reminder_enabled = true
-      and b.gm_reminder_minutes_before in (30, 60)
-      and b.status in ('tentative', 'recruiting', 'full')
-      and b.start_at > p_now
-      and (b.start_at - make_interval(mins => b.gm_reminder_minutes_before)) <= p_now
-      and (b.pending_count + b.accepted_count) >= b.player_min
   )
   select
     c.session_id,

@@ -206,3 +206,38 @@ Still not performed:
 Next gate:
 
 - Gate 6.4: SQL apply independent approval and SELECT-only confirmation.
+
+## Gate 6.4 / 6.5 Follow-up Result
+
+Gate 6.4 apply result:
+
+- First SQL attempt failed near `union`.
+- The user rolled back and confirmed the old RPCs were retained.
+- A corrected no-UNION SQL version was applied successfully by the user.
+- `gm_discord_user_id` is now present in both reminder preview/claim RPC return
+  definitions.
+- Both RPCs remain service-role-only.
+- anon/authenticated execute remains false.
+- `session_reminder_logs_count=0`.
+- Preview body, claim, and finalize were not executed.
+- No real Discord ID was recorded.
+
+Gate 6.5 implementation result:
+
+- `dispatch-session-reminders` now accepts `gm_discord_user_id` from the
+  service-role RPC result.
+- Edge code validates it with `^[0-9]{17,20}$` before use.
+- `gm_confirmed` production content uses `<@id>` only when the value is valid.
+- GM payload uses `allowed_mentions.parse=[]` and
+  `allowed_mentions.users=[id]` only for that one GM user.
+- Missing/invalid ID falls back to no mention.
+- Dry-run preview masks the mention as `<@GM>` and exposes no raw ID.
+- Production response exposes no raw ID.
+
+Still not performed:
+
+- Edge deploy
+- runtime invocation
+- Discord send
+- DB write
+- Webhook/secret change

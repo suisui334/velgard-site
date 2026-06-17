@@ -190,3 +190,65 @@ Still not performed:
 Next gate:
 
 - Gate 6.4: SQL apply independent approval and SELECT-only confirmation.
+
+## Gate 6.4 Apply Result
+
+Status: SQL apply completed by user. Codex did not execute SQL.
+
+Result doc:
+
+- `docs/session-reminder-gm-discord-id-apply-result.md`
+
+Summary:
+
+- The first apply candidate failed with `syntax error at or near "union"`.
+- The user stopped, ran `rollback`, and confirmed the existing preview/claim
+  RPCs were retained.
+- Rollback-state checks showed both RPCs still existed, both remained
+  `security definer`, service-role execute remained available, browser roles
+  remained blocked, `gm_discord_user_id` was not yet present, and
+  `session_reminder_logs_count=0`.
+- The user then applied a corrected no-UNION SQL version.
+- Final SELECT-only checks confirmed `gm_discord_user_id` is present in both
+  `preview_due_session_reminders` and `claim_due_session_reminders`.
+- Final checks confirmed service-role execute is available and
+  anon/authenticated execute is false.
+- `session_reminder_logs_count` remained `0`.
+- The preview RPC body was not executed.
+- Claim/finalize were not executed.
+- No real Discord ID was recorded.
+
+The apply candidate file was corrected to the applied no-UNION shape:
+
+- `docs/sql-drafts/session-reminder-gm-discord-id-apply-candidate.sql`
+
+## Gate 6.5 Edge Implementation Result
+
+Status: Edge Function source updated. Not deployed.
+
+Updated:
+
+- `supabase/functions/dispatch-session-reminders/index.ts`
+
+Implementation summary:
+
+- accepts `gm_discord_user_id` from the service-role preview/claim RPC result
+- defensively validates it as `^[0-9]{17,20}$`
+- uses `<@gm_discord_user_id>` only for `gm_confirmed` production content when
+  the ID is valid
+- masks the dry-run preview mention as `<@GM>`
+- exposes only `gm_mention_available` / `gm_mention_used` booleans in response
+  shapes, not the raw Discord ID
+- keeps shortage `@everyone` behavior unchanged
+- keeps GM fallback as no-mention content when the ID is missing or invalid
+- keeps `flags: 4` suppress-embed behavior
+
+Still not performed:
+
+- Edge Function deploy
+- runtime invocation
+- Discord send
+- Discord dry-run send
+- claim/finalize runtime execution
+- `session_reminder_logs` write
+- Webhook/secret change

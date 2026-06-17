@@ -1,10 +1,11 @@
 # Session Reminder GM Discord ID SQL Checklist
 
-Status: Gate 6.3 apply candidate reviewed. SQL not applied.
+Status: Gate 6.4 apply completed by user. Checklist retained for audit.
 
 ## Target File
 
-Use this apply candidate only after explicit approval in a later gate:
+Use this corrected apply candidate only after explicit approval in a later
+re-apply or audit gate:
 
 - `docs/sql-drafts/session-reminder-gm-discord-id-apply-candidate.sql`
 
@@ -13,6 +14,13 @@ Do not run it automatically. Do not place it under `supabase/migrations/` yet.
 The Gate 6.2 draft remains available for history:
 
 - `docs/sql-drafts/session-reminder-gm-discord-id-draft.sql`
+
+Gate 6.4 note:
+
+- The first Gate 6.3 candidate failed near `union` and was rolled back.
+- The current apply candidate has been corrected to the no-UNION shape that the
+  user applied successfully.
+- Do not rerun it unless a later gate explicitly approves re-apply.
 
 ## Apply Preconditions
 
@@ -29,10 +37,13 @@ Before applying, confirm:
 
 ## SQL Review Checklist
 
-Gate 6.3 review confirmed the apply candidate:
+Gate 6.3 review confirmed the original apply candidate. Gate 6.4 then required
+the no-UNION correction. Confirm the corrected apply candidate:
 
 - drops `claim_due_session_reminders(timestamptz, integer)` before `preview_due_session_reminders(timestamptz, integer)`
 - does not use `cascade`
+- does not use the failed `union all` candidate shape
+- uses a no-UNION candidate construction with explicit reminder-type branching
 - recreates `preview_due_session_reminders` with `gm_discord_user_id text`
 - recreates `claim_due_session_reminders` with `gm_discord_user_id text`
 - keeps both RPCs `security definer`
@@ -111,10 +122,7 @@ If any SQL Editor error occurs:
 
 ## Next Gates
 
-If SQL review passes:
-
-- Gate 6.4: SQL apply independent approval
-
-After apply succeeds:
+After the successful Gate 6.4 apply:
 
 - Gate 6.5: Edge Function GM mention implementation, no deploy
+- Later deploy/runtime gates remain separate.
