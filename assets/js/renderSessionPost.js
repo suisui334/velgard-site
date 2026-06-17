@@ -61,6 +61,10 @@ const MANAGE_SESSION_SELECT = [
   "session_tool",
   "player_min",
   "player_max",
+  "shortage_reminder_enabled",
+  "shortage_reminder_hours_before",
+  "gm_reminder_enabled",
+  "gm_reminder_minutes_before",
   "summary",
   "visibility",
   "status",
@@ -140,7 +144,17 @@ const SESSION_POST_TEMPLATE_FORMAT = "velgard.session_post_template.v1";
 const SESSION_POST_TEMPLATE_APPLY_CONFIRM_MESSAGE = "保存せずにテンプレートを反映すると、現在の入力内容が失われます。続けますか？";
 const DISCORD_MENTION_REQUIRED_MESSAGE = "Discord通知を送るか送らないかを選択してください。";
 const DISCORD_MENTION_LATE_NIGHT_CONFIRM_MESSAGE = "現在は日本時間の深夜帯です。@everyone通知を送信しますか？";
+const REMINDER_SETTINGS_RPC = "update_session_reminder_settings";
+const REMINDER_SAVE_ERROR_MESSAGE = "依頼書は保存されましたが、リマインド設定の保存に失敗しました。";
 const DISCORD_MENTION_MODES = new Set(["everyone", "none"]);
+const SHORTAGE_REMINDER_HOUR_VALUES = new Set([1, 2, 3]);
+const GM_REMINDER_MINUTE_VALUES = new Set([30, 60]);
+const REMINDER_CONTROL_NAMES = new Set([
+  "shortage_reminder_enabled",
+  "shortage_reminder_hours_before",
+  "gm_reminder_enabled",
+  "gm_reminder_minutes_before"
+]);
 const CREATE_INITIAL_STATUS_VALUES = new Set(["draft", "tentative", "recruiting"]);
 const SESSION_POST_TEMPLATE_TYPE_OPTIONS = Object.freeze([
   { value: "session_post", label: "依頼書用" },
@@ -291,6 +305,7 @@ function renderShell(initialStartAt = "") {
               <span data-session-post-manage-state aria-live="polite" hidden>読み込み中</span>
             </label>
             ${renderDiscordMentionField()}
+            ${renderSessionReminderSettingsField()}
             <p class="session-post-publication-note" data-session-post-publication-note aria-live="polite" hidden></p>
             ${renderTextareaField(getSessionPostLabel("summary", "概要"), "p_summary", 1000)}
           </div>
@@ -333,6 +348,42 @@ function renderDiscordMentionField() {
   `;
 }
 
+function renderSessionReminderSettingsField() {
+  return `
+    <fieldset class="session-post-field session-post-discord-mention-field session-post-field--wide" data-session-reminder-settings-field>
+      <legend>開始前Discordリマインド</legend>
+      <p>セッション開始前に、条件を満たした場合のみDiscordへ通知します。</p>
+      <div class="session-post-discord-mention-options">
+        <label>
+          <input type="checkbox" name="shortage_reminder_enabled" value="yes">
+          <span>最低人数不足時に@everyoneで募集通知する</span>
+        </label>
+        <label>
+          <span>通知タイミング</span>
+          <select name="shortage_reminder_hours_before" disabled>
+            <option value="1">1時間前</option>
+            <option value="2">2時間前</option>
+            <option value="3">3時間前</option>
+          </select>
+        </label>
+      </div>
+      <div class="session-post-discord-mention-options">
+        <label>
+          <input type="checkbox" name="gm_reminder_enabled" value="yes">
+          <span>開催確定時にGM向けリマインドを送る</span>
+        </label>
+        <label>
+          <span>通知タイミング</span>
+          <select name="gm_reminder_minutes_before" disabled>
+            <option value="30">30分前</option>
+            <option value="60">60分前</option>
+          </select>
+        </label>
+      </div>
+    </fieldset>
+  `;
+}
+
 function setState(target, message, modifier = "") {
   if (!target) return;
   target.textContent = message;
@@ -360,6 +411,60 @@ function setDiscordMentionMode(form, value) {
   form?.querySelectorAll?.('input[name="discord_mention_mode"]').forEach((radio) => {
     radio.checked = Boolean(mode) && radio.value === mode;
   });
+}
+
+function normalizeAllowedInteger(value, allowedValues) {
+  const number = Number(String(value ?? "").trim());
+  return Number.isInteger(number) && allowedValues.has(number) ? number : null;
+}
+
+function isCheckboxChecked(form, name) {
+  const control = getFormControl(form, name);
+  return Boolean(control && "checked" in control && control.checked);
+}
+
+function setCheckboxChecked(form, name, checked) {
+  const control = getFormControl(form, name);
+  if (control && "checked" in control) control.checked = Boolean(checked);
+}
+
+function updateReminderSelectState(form, checkboxName, selectName, fallbackValue, allowedValues) {
+  const select = getFormControl(form, selectName);
+  if (!select || !("disabled" in select)) return;
+  const enabled = isCheckboxChecked(form, checkboxName);
+  select.disabled = !enabled;
+  const normalized = normalizeAllowedInteger(select.value, allowedValues);
+  if (enabled && normalized === null) select.value = String(fallbackValue);
+  if (!enabled && !select.value) select.value = String(fallbackValue);
+}
+
+function updateReminderSelectStates(form) {
+  updateReminderSelectState(
+    form,
+    "shortage_reminder_enabled",
+    "shortage_reminder_hours_before",
+    1,
+    SHORTAGE_REMINDER_HOUR_VALUES
+  );
+  updateReminderSelectState(
+    form,
+    "gm_reminder_enabled",
+    "gm_reminder_minutes_before",
+    30,
+    GM_REMINDER_MINUTE_VALUES
+  );
+}
+
+function setReminderSettings(form, session = null) {
+  const shortageEnabled = Boolean(session?.shortageReminderEnabled);
+  const shortageHours = normalizeAllowedInteger(session?.shortageReminderHoursBefore, SHORTAGE_REMINDER_HOUR_VALUES) || 1;
+  const gmEnabled = Boolean(session?.gmReminderEnabled);
+  const gmMinutes = normalizeAllowedInteger(session?.gmReminderMinutesBefore, GM_REMINDER_MINUTE_VALUES) || 30;
+  setCheckboxChecked(form, "shortage_reminder_enabled", shortageEnabled);
+  setFormValue(form, "shortage_reminder_hours_before", shortageHours);
+  setCheckboxChecked(form, "gm_reminder_enabled", gmEnabled);
+  setFormValue(form, "gm_reminder_minutes_before", gmMinutes);
+  updateReminderSelectStates(form);
 }
 
 function updateDiscordMentionFieldVisibility(elements) {
@@ -515,6 +620,35 @@ function buildUpdatePayload(form, session) {
     ...buildSessionPayload(form),
     p_session_tool: getValue(form, "p_session_tool")
   };
+}
+
+function buildReminderSettingsPayload(form, sessionId) {
+  const targetSessionId = normalizeSessionDetailId(sessionId);
+  if (!targetSessionId) throw new Error("session_not_found");
+  const shortageEnabled = isCheckboxChecked(form, "shortage_reminder_enabled");
+  const gmEnabled = isCheckboxChecked(form, "gm_reminder_enabled");
+  return {
+    p_session_id: targetSessionId,
+    p_shortage_reminder_enabled: shortageEnabled,
+    p_shortage_reminder_hours_before: shortageEnabled
+      ? normalizeAllowedInteger(getValue(form, "shortage_reminder_hours_before"), SHORTAGE_REMINDER_HOUR_VALUES) || 1
+      : null,
+    p_gm_reminder_enabled: gmEnabled,
+    p_gm_reminder_minutes_before: gmEnabled
+      ? normalizeAllowedInteger(getValue(form, "gm_reminder_minutes_before"), GM_REMINDER_MINUTE_VALUES) || 30
+      : null
+  };
+}
+
+async function saveReminderSettings(client, form, sessionId) {
+  let payload = null;
+  try {
+    payload = buildReminderSettingsPayload(form, sessionId);
+    const { error } = await client.rpc(REMINDER_SETTINGS_RPC, payload);
+    return { ok: !error, payload, error };
+  } catch (error) {
+    return { ok: false, payload, error };
+  }
 }
 
 function buildDeletePayload(session) {
@@ -791,6 +925,10 @@ function normalizeManagedSession(row, options = {}) {
     playerMin,
     playerMax,
     playerCountLabel: formatPlayerCountLabel(playerMin, playerMax),
+    shortageReminderEnabled: Boolean(row?.shortage_reminder_enabled),
+    shortageReminderHoursBefore: normalizeAllowedInteger(row?.shortage_reminder_hours_before, SHORTAGE_REMINDER_HOUR_VALUES),
+    gmReminderEnabled: Boolean(row?.gm_reminder_enabled),
+    gmReminderMinutesBefore: normalizeAllowedInteger(row?.gm_reminder_minutes_before, GM_REMINDER_MINUTE_VALUES),
     summary: String(row?.summary ?? "").trim(),
     visibility,
     visibilityLabel: VISIBILITY_LABELS[visibility] || "未設定",
@@ -879,6 +1017,7 @@ function fillFormFromManagedSession(form, session) {
   setSelectValue(form, "p_visibility", session.visibility, "hidden", (value) => VISIBILITY_LABELS[value] || value);
   setSelectValue(form, "p_status", session.status, "draft", getSessionStatusLabel);
   setDiscordMentionMode(form, "");
+  setReminderSettings(form, session);
   const publicConfirm = getFormControl(form, "public_confirm");
   if (publicConfirm && "checked" in publicConfirm) publicConfirm.checked = false;
 }
@@ -898,6 +1037,7 @@ function resetFormForNewSession(form) {
   setSelectValue(form, "p_visibility", "hidden", "hidden", (value) => VISIBILITY_LABELS[value] || value);
   setSelectValue(form, "p_status", "draft", "draft", getSessionStatusLabel);
   setDiscordMentionMode(form, "");
+  setReminderSettings(form, null);
   const publicConfirm = getFormControl(form, "public_confirm");
   if (publicConfirm && "checked" in publicConfirm) publicConfirm.checked = false;
 }
@@ -1034,6 +1174,14 @@ function appendDiscordSyncMessage(message, syncResult, options = {}) {
   return syncMessage ? `${message} ${syncMessage}` : message;
 }
 
+function appendReminderSettingsMessage(message, reminderResult) {
+  return reminderResult?.ok === false ? `${message} ${REMINDER_SAVE_ERROR_MESSAGE}` : message;
+}
+
+function getSaveStateModifier(syncResult, reminderResult) {
+  return reminderResult?.ok === false ? "is-warn" : getDiscordSyncStateModifier(syncResult);
+}
+
 function shouldRedirectToSessionDetailAfterSave(payload) {
   return payload?.p_visibility === "public" && payload?.p_status !== "draft";
 }
@@ -1088,7 +1236,7 @@ function getDeleteErrorMessage(error) {
   return key ? DELETE_ERROR_MESSAGES[key] : DELETE_ERROR_MESSAGE;
 }
 
-function normalizeManagedSessionFromUpdate(previousSession, payload, result) {
+function normalizeManagedSessionFromUpdate(previousSession, payload, result, reminderPayload = null) {
   return normalizeManagedSession({
     id: previousSession.id,
     title: payload.p_title,
@@ -1101,6 +1249,18 @@ function normalizeManagedSessionFromUpdate(previousSession, payload, result) {
     session_type: payload.p_session_type,
     player_min: payload.p_player_min,
     player_max: payload.p_player_max,
+    shortage_reminder_enabled: reminderPayload
+      ? reminderPayload.p_shortage_reminder_enabled
+      : previousSession.shortageReminderEnabled,
+    shortage_reminder_hours_before: reminderPayload
+      ? reminderPayload.p_shortage_reminder_hours_before
+      : previousSession.shortageReminderHoursBefore,
+    gm_reminder_enabled: reminderPayload
+      ? reminderPayload.p_gm_reminder_enabled
+      : previousSession.gmReminderEnabled,
+    gm_reminder_minutes_before: reminderPayload
+      ? reminderPayload.p_gm_reminder_minutes_before
+      : previousSession.gmReminderMinutesBefore,
     summary: payload.p_summary,
     visibility: payload.p_visibility,
     status: payload.p_status,
@@ -1151,28 +1311,38 @@ async function saveManagedSession(client, elements) {
 
     const result = Array.isArray(data) ? data[0] : data;
     if (!result || typeof result !== "object") throw new Error("invalid-result");
+    const savedSessionId = resolveSavedSessionId(result, previousSession.id);
+    const reminderResult = await saveReminderSettings(client, elements.form, savedSessionId);
 
     const syncResult = await syncUpdatedSession(client, {
-      sessionId: resolveSavedSessionId(result, previousSession.id),
+      sessionId: savedSessionId,
       payload,
       session: previousSession
     });
     const resultForMemory = syncResult.ok && syncResult.attempted
       ? { ...result, discord_sync_status: "posted" }
       : result;
-    const updatedSession = normalizeManagedSessionFromUpdate(previousSession, payload, resultForMemory);
+    const updatedSession = normalizeManagedSessionFromUpdate(
+      previousSession,
+      payload,
+      resultForMemory,
+      reminderResult.ok ? reminderResult.payload : null
+    );
     updateManagedSessionMemory(elements, updatedSession, previousSession);
     fillFormFromManagedSession(elements.form, updatedSession);
     updatePublicationHint(elements);
     elements.refreshTemplateControls?.();
     setState(
       elements.formState,
-      appendDiscordSyncMessage(getSaveSuccessMessage(payload), syncResult),
-      getDiscordSyncStateModifier(syncResult)
+      appendReminderSettingsMessage(
+        appendDiscordSyncMessage(getSaveSuccessMessage(payload), syncResult),
+        reminderResult
+      ),
+      getSaveStateModifier(syncResult, reminderResult)
     );
     setState(elements.manageState, "");
-    if (shouldRedirectToSessionDetailAfterSave(payload)) {
-      redirectToSessionDetail(resolveSavedSessionId(result, updatedSession.id));
+    if (reminderResult.ok && shouldRedirectToSessionDetailAfterSave(payload)) {
+      redirectToSessionDetail(savedSessionId || updatedSession.id);
     }
   } catch (error) {
     setState(elements.formState, getUpdateErrorMessage(error), "is-error");
@@ -1660,6 +1830,9 @@ async function initializeForm(root, client, access = {}) {
     if (event.target?.name === "p_visibility" || event.target?.name === "p_status") {
       updatePublicationHint(manageElements);
     }
+    if (REMINDER_CONTROL_NAMES.has(event.target?.name)) {
+      updateReminderSelectStates(form);
+    }
   });
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -1707,8 +1880,10 @@ async function initializeForm(root, client, access = {}) {
       if (error) throw error;
       const result = Array.isArray(data) ? data[0] : data;
       if (!result || typeof result !== "object") throw new Error("invalid-result");
+      const savedSessionId = resolveSavedSessionId(result);
+      const reminderResult = await saveReminderSettings(client, form, savedSessionId);
       const syncResult = await syncCreatedSession(client, {
-        sessionId: resolveSavedSessionId(result),
+        sessionId: savedSessionId,
         payload,
         discordMentionMode
       });
@@ -1717,11 +1892,14 @@ async function initializeForm(root, client, access = {}) {
         appendDiscordSyncMessage("作成しました。", syncResult),
         getDiscordSyncStateModifier(syncResult)
       );
+      if (!reminderResult.ok) {
+        setState(state, appendReminderSettingsMessage(state.textContent, reminderResult), "is-warn");
+      }
       renderResult(resultList, syncResult.ok && syncResult.attempted
         ? { ...result, discord_sync_status: "posted" }
         : result);
       resultPanel.hidden = false;
-      if (shouldRedirectToSessionDetailAfterSave(payload) && redirectToSessionDetail(resolveSavedSessionId(result))) {
+      if (reminderResult.ok && shouldRedirectToSessionDetailAfterSave(payload) && redirectToSessionDetail(savedSessionId)) {
         return;
       }
       await loadManagedSessions(client, manageElements);

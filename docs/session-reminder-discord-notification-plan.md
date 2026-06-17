@@ -545,6 +545,38 @@ Recommended next gate:
 - Update the session-post managed edit retrieval contract to include the four reminder setting columns, or define a dedicated session retrieval RPC that returns them.
 - Then retry the UI implementation and add the `update_session_reminder_settings` call after existing session save success.
 
+## Gate 3.1 UI Implementation Result
+
+Gate 3.1 resolved the Gate 3 blocker and implemented the frontend reminder settings UI.
+
+Result docs:
+
+- `docs/session-reminder-ui-implementation-result.md`
+
+Implemented:
+
+- Added the four reminder setting columns to `assets/js/renderSessionPost.js` `MANAGE_SESSION_SELECT`.
+- Added the `開始前Discordリマインド` optional setting section to the `session-post` create/edit form.
+- Added checkbox/select controls for:
+  - shortage reminder: `shortage_reminder_enabled`, `shortage_reminder_hours_before`
+  - GM reminder: `gm_reminder_enabled`, `gm_reminder_minutes_before`
+- Added a post-save `update_session_reminder_settings` RPC call after the existing `create_session_post` / `update_session_post` save succeeds.
+- Preserved existing `create_session_post` and `update_session_post` signatures.
+- Updated frontend cache-bust to `20260618-session-reminder-settings-ui`.
+
+Not performed:
+
+- SQL apply
+- DB/RPC/RLS change
+- authenticated create/edit DB write QA
+- Edge Function deploy
+- Discord dry-run or production send
+- secret/Webhook change
+
+Recommended next gate:
+
+- Gate 4: Edge Function / scheduled dispatcher dry-run.
+
 ## Open Questions
 
 1. Should `waitlisted` stay excluded from the first threshold decision?

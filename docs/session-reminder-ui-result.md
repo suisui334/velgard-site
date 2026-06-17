@@ -78,3 +78,26 @@ Only after that contract is approved should the UI controls and `update_session_
 ## Safety Notes
 
 No raw user identifiers, email addresses, tokens, JWTs, management keys, Discord identifiers, Discord URLs, Webhook URLs, provider message identifiers, or row-level values were recorded.
+
+## Gate 3.1 Follow-up
+
+Gate 3.1 resolved the blocker in a follow-up implementation pass.
+
+Result docs:
+
+- `docs/session-reminder-ui-implementation-result.md`
+
+Summary:
+
+- Added the four reminder setting columns to `MANAGE_SESSION_SELECT`.
+- Added optional `session-post` create/edit form controls for shortage and GM reminder settings.
+- Added a post-save `update_session_reminder_settings` RPC call.
+- Kept `create_session_post` and `update_session_post` unchanged.
+- Kept SQL/RPC/RLS, Edge Function, Discord send, secret handling, and `updates.json` unchanged.
+
+Remaining `not_tested` items:
+
+- authenticated create/edit DB write QA
+- runtime success/failure behavior of `update_session_reminder_settings`
+- Edge Function scheduled dispatcher
+- Discord dry-run / production send

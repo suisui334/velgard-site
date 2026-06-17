@@ -9926,6 +9926,34 @@ Status: blocked before UI implementation.
 - No raw user id, email, token, JWT, management key, Discord id, Discord URL,
   Webhook URL, provider message id, or secret value was recorded.
 
+## Gate 3.1 session reminder settings UI
+
+Status: implemented without DB write QA.
+
+- Baseline: `0014c75 Record session reminder UI blocker`.
+- Resolved the Gate 3 blocker by adding the four reminder setting columns to
+  `assets/js/renderSessionPost.js` `MANAGE_SESSION_SELECT`:
+  - `shortage_reminder_enabled`
+  - `shortage_reminder_hours_before`
+  - `gm_reminder_enabled`
+  - `gm_reminder_minutes_before`
+- Added optional `session-post` create/edit UI for `開始前Discordリマインド`.
+- Added frontend save handling that calls `update_session_reminder_settings`
+  only after the existing session save succeeds.
+- Preserved the existing `create_session_post` and `update_session_post` RPC
+  signatures.
+- Updated the frontend cache-bust chain to
+  `20260618-session-reminder-settings-ui`.
+- Added
+  `docs/session-reminder-ui-implementation-result.md`.
+- Updated:
+  - `docs/session-reminder-ui-result.md`
+  - `docs/session-reminder-discord-notification-plan.md`
+  - `docs/task-backlog.md`
+- Did not run SQL Editor, SQL apply, DB/RPC/RLS changes, Edge deploy,
+  Discord dry-run, Discord production send, secret changes, or real DB write QA.
+- Next candidate gate: Edge Function / scheduled dispatcher dry-run.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
