@@ -578,6 +578,28 @@ Next-world adoption impact:
 - recommends the next docs-only candidate:
   scenarios / hooks template structure
 
+## Phase 3-C5 Scenarios / Hooks Structure Follow-Up
+
+Phase 3-C5 completes that recommended docs-only candidate:
+
+- `docs/world-template-scenarios-hooks-structure-plan.md`
+
+Next-world adoption impact:
+
+- separates world-template adventure seeds and scenario proposals from reusable
+  ops live-session surfaces
+- documents the current `scenarios.html` / `hooks.html` / `scenario-detail.html`
+  routing and the active `data/scenarios.json` source
+- records a next-world decision point: keep hooks separately, unify under
+  scenarios, keep hooks only as compatibility, or remove compatibility behind a
+  future implementation gate
+- clarifies that GitHub Pages scenario/hook data is public and must not contain
+  real GM secrets or private operations data
+- keeps session-post, session-detail, auth, DB/RPC/RLS, Edge Functions,
+  Discord sync, and `updates.json` outside scenarios/hooks template adoption
+- recommends the next docs-only candidate:
+  page-by-page world-template adoption checklist
+
 ## Limited And Not Tested
 
 This guide is docs-only and does not add new runtime QA.

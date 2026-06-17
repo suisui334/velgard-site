@@ -9425,6 +9425,53 @@ Status: completed.
   logging addition, auth/permission logic change, RPC/DB key configuration,
   `management_key` display, or raw id/email/token/JWT display was performed.
 
+## Phase 3-C5 scenarios / hooks template structures
+
+Status: completed.
+
+- Baseline: `ffb4ba2 Document world image asset boundaries`.
+- Added
+  `docs/world-template-scenarios-hooks-structure-plan.md`.
+- Updated:
+  - `docs/world-template-content-structures-plan.md`
+  - `docs/world-template-next-world-adoption-guide.md`
+  - `docs/world-site-template-extraction-plan.md`
+  - `docs/task-backlog.md`
+- Documented current scenarios/hooks inventory:
+  - `scenarios.html` is the official scenarios entry
+  - `hooks.html` is a compatibility entry
+  - `scenario-detail.html` is the detail route
+  - `main.js` maps both `scenarios` and `hooks` to `renderScenarios`
+  - `renderScenarios.js` and `renderScenarioDetail.js` use
+    `data/scenarios.json`
+  - `data/hooks.json` remains compatibility / comparison data
+- Documented current fields for `data/scenarios.json` and `data/hooks.json`,
+  including `id`, `title`, `category`, `genre`, `image`, `summary`,
+  `description`, `examples`, related ids, `status`, and scenario
+  `releaseStatus`.
+- Separated world-template responsibilities such as public adventure seeds,
+  scenario proposals, public premises, and public release metadata from
+  reusable ops responsibilities such as session-post, session-detail, calendar,
+  participation applications, comments, Discord sync, DB/RPC/RLS, membership,
+  and auth.
+- Documented public/GM-secret boundary: GitHub Pages data is public, so real GM
+  secrets, spoilers, private notes, operation data, raw ids, emails, tokens,
+  JWTs, Discord IDs/URLs, Webhooks, and actual `management_key` values must not
+  be stored in public scenario/hook data.
+- Documented pseudo structures for hooks and scenarios, empty-state policy,
+  relation-id handling, checklist, rollback/recovery policy, and reusable ops
+  core boundary.
+- Recommended next docs-only candidate:
+  page-by-page world-template adoption checklist.
+- This was docs-only: no implementation, HTML, CSS, JS, data/json, sample data,
+  scenario/hook text, image file, renderer, session-post, session-detail, or
+  `updates.json` change was performed.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+  operation, secret/Webhook change, direct Supabase write, debug console
+  logging addition, auth/permission logic change, membership logic change,
+  RPC/DB key configuration, `management_key` display, or raw
+  id/email/token/JWT display was performed.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

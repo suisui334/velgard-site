@@ -684,6 +684,30 @@ Recommended next docs-only candidate after C4:
 
 - scenarios / hooks template structure.
 
+## Phase 3-C5 Scenarios / Hooks Structure Follow-Up
+
+Phase 3-C5 completes the recommended scenarios / hooks template structure plan:
+
+- `docs/world-template-scenarios-hooks-structure-plan.md`
+
+Content-structure impact:
+
+- treats scenarios and hooks as world-template content, not live session
+  recruitment data
+- records the current Velgard split where `data/scenarios.json` is the active
+  public source and `data/hooks.json` remains compatibility / comparison data
+- documents scale-variable states such as zero visible entries, lightweight
+  hooks, one-shots, campaign chapters, and preparing/released/archived entries
+- separates public summary/premise/release metadata from GM-secret notes that
+  must not be committed to public GitHub Pages data
+- keeps renderer/CSS classes, DOM ids, scenario image modals, filters,
+  release badges, session-post, session-detail, auth, DB/RPC/RLS, and Discord
+  sync outside scenarios/hooks data ownership
+
+Recommended next docs-only candidate after C5:
+
+- page-by-page world-template adoption checklist.
+
 ## Limited And Not Tested
 
 This plan is docs-only and does not add runtime QA.

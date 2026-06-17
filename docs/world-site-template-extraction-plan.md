@@ -1124,3 +1124,32 @@ World-site template impact:
 Recommended next docs-only candidate:
 
 - scenarios / hooks template structure
+
+## Phase 3-C5 Scenarios / Hooks Structure Plan
+
+Phase 3-C5 completes that recommended docs-only candidate:
+
+- `docs/world-template-scenarios-hooks-structure-plan.md`
+
+World-site template impact:
+
+- records `scenarios.html` as the official scenarios entry, `hooks.html` as a
+  compatibility entry, and `scenario-detail.html` as the detail route
+- records that both `scenarios` and `hooks` currently route to
+  `renderScenarios`, while `renderScenarios` and `renderScenarioDetail` use
+  `data/scenarios.json`
+- keeps `data/hooks.json` as compatibility / comparison data rather than the
+  active display source
+- documents required-looking and optional fields for hooks and scenarios,
+  including public release fields such as `releaseStatus`, `textUrl`, and
+  `pdfUrl`
+- separates PL-public summary/premise/release data from GM-secret notes that
+  should not be committed to public GitHub Pages data
+- keeps session-post, session-detail, Discord sync, DB/RPC/RLS, auth,
+  membership, CSS classes, DOM ids, and renderer behavior outside
+  scenarios/hooks data ownership
+- records empty-state, relation-id, public-check, and rollback guidance
+
+Recommended next docs-only candidate:
+
+- page-by-page world-template adoption checklist
