@@ -428,3 +428,91 @@ Next gate:
 - Gate 11H: review/apply the claim RPC fix SQL under explicit SQL apply
   approval, then run SELECT-only post-apply checks. Do not retry production
   send until the claim RPC fix is applied and checked.
+
+## Gate 11H Claim RPC Fix Apply Result
+
+The claim RPC fix SQL was applied by the user before Gate 11I.
+
+Reported SELECT-only result:
+
+- claim RPC exists: `true`
+- security definer: `true`
+- `service_role` execute: `true`
+- `anon` / `authenticated` execute: `false`
+- return columns: `18`
+- `gm_discord_user_id text`: `true`
+- logs constraints: `OK`
+- `session_reminder_logs` count: `0`
+
+No row values, session ids, Discord ids, message ids, Webhook URLs, token
+values, or message bodies were recorded.
+
+## Gate 11I Production Retry After Claim Fix
+
+Gate 11I retried the limited `gm_confirmed` production send exactly once after
+the claim RPC fix was applied.
+
+Preflight:
+
+- `dry_run:true` with the same JST 20:00 override returned HTTP `200`
+- response `ok`: `true`
+- response `count`: `1`
+- reminder type: `gm_confirmed`
+- shortage item present: `false`
+- message preview contained `@everyone`: `false`
+- raw Discord ID pattern in response: not observed
+- `production_enabled:false`
+- `db_write:false`
+- `discord_send:false`
+- logs count before: `0`
+
+Production retry:
+
+- `SESSION_REMINDER_DISPATCH_TOKEN` was regenerated for the gate.
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was temporarily enabled.
+- production invocation shape: `dry_run:false`, `limit:1`, same JST 20:00
+  override, dispatch token header
+- production invocation count: `1`
+- sanitized HTTP status: `200`
+- response `ok`: `true`
+- `claimed_count:1`
+- `sent_count:1`
+- `failed_count:0`
+- `skipped_count:0`
+- result count: `1`
+- result type: `gm_confirmed`
+- result status: `sent`
+- raw Discord ID pattern in sanitized response: not observed
+- provider message id: not recorded
+
+Post-attempt safety checks:
+
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was set back to disabled immediately
+  after the retry.
+- A subsequent `dry_run:false` check returned HTTP `403` with
+  `production_not_enabled`.
+- post-disable stage: `production_gate`
+- positive claimed/sent counts after re-disable: `false` / `false`
+- `session_reminder_logs` count after: `1`
+
+This confirmed one `gm_confirmed` reminder send and created one reminder log
+row. No retry was performed.
+
+Not performed:
+
+- shortage send
+- `@everyone` send
+- multiple-item send
+- retry after success
+- cron setup
+- Edge deploy
+- SQL/DB structure change
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+- secret/token/Webhook/Discord ID/message id/message body recording
+
+Next gate:
+
+- Gate 12 planning or a separate shortage `@everyone` approval gate. Do not
+  enable shortage production sending without a fresh target-count check and
+  explicit `@everyone` approval.

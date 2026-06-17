@@ -196,3 +196,52 @@ Recommended next gate:
   approval, then run SELECT-only post-apply checks.
 
 Do not retry production send until the claim RPC fix is applied and checked.
+
+## Gate 11H Apply Result
+
+The claim RPC fix SQL was applied by the user before Gate 11I.
+
+Reported SELECT-only result:
+
+- claim RPC exists: `true`
+- security definer: `true`
+- `service_role` execute: `true`
+- `anon` / `authenticated` execute: `false`
+- return columns: `18`
+- `gm_discord_user_id text`: `true`
+- logs constraints: `OK`
+- `session_reminder_logs` count: `0`
+
+No row values, session ids, Discord ids, message ids, Webhook URLs, token
+values, or message bodies were recorded.
+
+## Gate 11I Production Retry Follow-up
+
+Gate 11I retried the limited `gm_confirmed` production send after the claim RPC
+fix was applied.
+
+Sanitized result:
+
+- preflight `dry_run:true`: HTTP `200`, `ok:true`, `count:1`, reminder type
+  `gm_confirmed`
+- shortage item present: `false`
+- message preview contained `@everyone`: `false`
+- raw Discord ID pattern in response: not observed
+- production retry count: `1`
+- production retry HTTP status: `200`
+- `ok:true`
+- `claimed_count:1`
+- `sent_count:1`
+- `failed_count:0`
+- `skipped_count:0`
+- result count: `1`
+- result type: `gm_confirmed`
+- result status: `sent`
+- raw Discord ID pattern in sanitized response: not observed
+- post-disable `dry_run:false`: HTTP `403`, `production_not_enabled`, stage
+  `production_gate`
+- logs count before/after: `0` / `1`
+
+The claim RPC fix resolved the `claim_rpc` failure for the tested
+`gm_confirmed` item. Real send was disabled again immediately after the retry.
+No shortage reminder or `@everyone` send was attempted.

@@ -674,6 +674,53 @@ Next gate before any production retry:
   send, no real-send enablement, no claim/finalize runtime execution, and no DB
   write.
 
+Gate 11H / Gate 11I claim-fix retry result:
+
+- the claim RPC fix SQL was applied by the user before Gate 11I
+- SELECT-only apply result:
+  - claim RPC exists: `true`
+  - security definer: `true`
+  - `service_role` execute: `true`
+  - `anon` / `authenticated` execute: `false`
+  - return columns: `18`
+  - `gm_discord_user_id text`: `true`
+  - logs constraints: `OK`
+  - `session_reminder_logs` count: `0`
+- Gate 11I preflight `dry_run:true`: HTTP `200`, `ok:true`, `count:1`,
+  reminder type `gm_confirmed`
+- shortage item present: `false`
+- message preview contained `@everyone`: `false`
+- raw Discord ID pattern in response: not observed
+- regenerated dispatch token for the gate
+- temporarily enabled real send
+- production invocation count: `1`
+- production retry HTTP status: `200`
+- `ok:true`
+- `claimed_count:1`
+- `sent_count:1`
+- `failed_count:0`
+- `skipped_count:0`
+- result count: `1`
+- result type: `gm_confirmed`
+- result status: `sent`
+- no retry was performed
+- real send was disabled immediately after the retry
+- post-disable `dry_run:false`: HTTP `403`, `production_not_enabled`, stage
+  `production_gate`
+- positive claimed/sent counts after re-disable: `false` / `false`
+- logs count before/after: `0` / `1`
+
+Gate 11I confirmed one `gm_confirmed` production send without `@everyone`.
+No shortage send, multiple-item send, cron setup, Edge deploy, SQL/DB structure
+change, UI change, `updates.json` change, or secret/token/Webhook/Discord
+ID/message id/message body recording was performed.
+
+Next gate:
+
+- Gate 12 planning or a separate shortage `@everyone` approval gate. Require a
+  fresh target-count check, destination confirmation, and explicit `@everyone`
+  approval before any shortage production operation.
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:

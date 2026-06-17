@@ -11064,6 +11064,100 @@ Next candidate gate:
   approval, then run SELECT-only post-apply checks. Do not retry production send
   until the claim RPC fix is applied and checked.
 
+## Gate 11I session reminder GM confirmed production retry after claim fix
+
+Status: claim RPC fix apply result recorded and one limited `gm_confirmed`
+production retry succeeded.
+
+- Baseline: `31a1b37 Diagnose session reminder claim RPC failure`.
+- Updated:
+  - `docs/session-reminder-limited-production-send-result.md`
+  - `docs/session-reminder-production-claim-rpc-diagnosis.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+
+Gate 11H claim fix apply result reported by the user:
+
+- claim RPC exists: `true`
+- security definer: `true`
+- `service_role` execute: `true`
+- `anon` / `authenticated` execute: `false`
+- return columns: `18`
+- `gm_discord_user_id text`: `true`
+- logs constraints: `OK`
+- `session_reminder_logs`: `0`
+
+Preflight:
+
+- Runtime `dry_run:true` with the JST 20:00 override returned HTTP `200`.
+- `ok:true`.
+- `count:1`.
+- reminder type: `gm_confirmed`.
+- shortage item present: `false`.
+- message preview contained `@everyone`: `false`.
+- raw Discord ID pattern in response: not observed.
+- `production_enabled:false`.
+- `db_write:false`.
+- `discord_send:false`.
+- `session_reminder_logs` count before:
+  - `0`
+
+Production retry:
+
+- Regenerated `SESSION_REMINDER_DISPATCH_TOKEN` for the gate.
+- Temporarily enabled `SESSION_REMINDER_REAL_SEND_ENABLED`.
+- Invoked production path exactly once with `dry_run:false`, `limit:1`, the
+  same JST 20:00 override, and the dispatch token header.
+- Sanitized result:
+  - HTTP status: `200`
+  - `ok:true`
+  - `claimed_count:1`
+  - `sent_count:1`
+  - `failed_count:0`
+  - `skipped_count:0`
+  - result count: `1`
+  - result type: `gm_confirmed`
+  - result status: `sent`
+  - raw Discord ID pattern in response: not observed
+- Did not retry.
+- Immediately disabled `SESSION_REMINDER_REAL_SEND_ENABLED` again.
+- Post-disable `dry_run:false` returned HTTP `403`,
+  `production_not_enabled`, stage `production_gate`.
+- Post-disable positive claimed/sent counts: `false` / `false`.
+- `session_reminder_logs` count after:
+  - `1`
+
+This confirmed the claim RPC fix for the tested `gm_confirmed` path and sent
+one GM confirmed reminder without `@everyone`.
+
+Not recorded:
+
+- Webhook URL
+- dispatch token value
+- raw Discord ID
+- Discord message id
+- session id
+- session URL
+- message body
+
+Not performed:
+
+- shortage send
+- `@everyone` send
+- multiple-item send
+- retry after success
+- cron setup
+- Edge deploy
+- SQL/DB structure change
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+
+Next candidate gate:
+
+- Gate 12 planning or a separate shortage `@everyone` approval gate. Require a
+  fresh target-count check, destination confirmation, and explicit `@everyone`
+  approval before any shortage production operation.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
