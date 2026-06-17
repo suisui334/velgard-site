@@ -477,14 +477,58 @@ Operation state after Gate 12H:
 - Discord send did not occur
 - shortage `@everyone` did not occur
 
-## Not Performed In Gate 12H
+## Gate 12I Real Send Operation Start
+
+Gate 12I enabled session reminder real send for automatic scheduler operation.
+
+Result doc:
+
+- `docs/session-reminder-real-send-enabled-result.md`
+
+Preflight before enablement:
+
+- current-time `dry_run:true` was executed without `now` override
+- HTTP status: `200`
+- `count`: `0`
+- `gm_confirmed` count: `0`
+- shortage count: `0`
+- `@everyone` marker: false
+- raw Discord ID pattern: false
+- `session_reminder_logs` before: `1`
+
+Operation change:
+
+- `SESSION_REMINDER_REAL_SEND_ENABLED=true` was set
+- cron remains `dispatch-session-reminders-every-minute`
+- cron payload remains `dry_run:false`, `limit:1`
+- no cron schedule change was made
+- no Edge deploy was made
+
+Observation:
+
+- observed approximately 2 to 3 minutes after enablement
+- recent pg_net rows included HTTP `200`
+- recent 5-minute HTTP `200` response count observed: `10`
+- `session_reminder_logs` before/after: `1` -> `1`
+- no new reminder log row was created
+- no new Discord send was indicated by reminder logs
+
+Current operation mode:
+
+- scheduler automatic checks are active
+- real send is enabled
+- future due candidates may be sent automatically by cron
+- duplicate prevention remains handled by `session_reminder_logs`
+- shortage `@everyone` remains possible only when the configured shortage
+  conditions become due and the scheduler claims such a row
+
+## Not Performed In Gate 12I
 
 - Discord send
 - Discord dry-run send
 - `@everyone` send
 - shortage send
-- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
-- production `dry_run:false`
+- manual production `dry_run:false` retry
 - claim/finalize runtime execution
 - DB write
 - SQL structure change

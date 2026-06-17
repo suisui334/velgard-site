@@ -11903,6 +11903,77 @@ Next candidate gates:
 3. Gate 12J: shortage `@everyone` final approval and bounded production
    operation.
 
+## Gate 12I session reminder real-send operation start
+
+Status: session reminder real send enabled for automatic scheduler operation.
+
+- Baseline: `13f944a Record GM automatic scheduler send test`.
+- Added:
+  - `docs/session-reminder-real-send-enabled-result.md`
+- Updated:
+  - `docs/session-reminder-current-operation-status.md`
+  - `docs/session-reminder-scheduler-operation-plan.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+
+Preflight result:
+
+- current-time `dry_run:true` was executed without `now` override
+- HTTP status: `200`
+- `ok`: true
+- `dry_run`: true
+- `production_enabled`: false
+- `count`: `0`
+- `gm_confirmed` count: `0`
+- shortage count: `0`
+- reminder type breakdown: none
+- `@everyone` marker: false
+- raw Discord ID pattern: false
+- `session_reminder_logs` before: `1`
+
+Enablement and observation:
+
+- `SESSION_REMINDER_REAL_SEND_ENABLED=true` was set
+- cron job remains `dispatch-session-reminders-every-minute`
+- cron payload remains `dry_run:false`, `limit:1`
+- observed approximately 2 to 3 minutes after enablement
+- recent pg_net rows included HTTP `200`
+- recent 5-minute HTTP `200` response count observed: `10`
+- `session_reminder_logs` before/after: `1` -> `1`
+- historical sent log count remained `1`
+- no new reminder log row was created
+- no new Discord send was indicated by reminder logs
+
+Current operation state:
+
+- scheduler automatic checks are active
+- real send is enabled
+- future due candidates may be sent automatically by cron
+- duplicate prevention remains handled by `session_reminder_logs`
+- shortage `@everyone` is still limited to configured shortage conditions and
+  the scheduler `limit:1` payload
+
+Gate 12I not performed:
+
+- manual production `dry_run:false` retry
+- manual resend
+- cron change
+- SQL structure change
+- Edge deploy
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+- raw Function URL / JWT / token / Webhook / Discord ID / message id /
+  message body recording
+
+Next candidate gates:
+
+1. Monitor automatic scheduler operation with real send enabled using
+   status/count-only checks.
+2. Shortage `@everyone` policy review before intentionally preparing any
+   shortage production test.
+3. Rollback gate to disable `SESSION_REMINDER_REAL_SEND_ENABLED` if
+   production behavior needs to be paused.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

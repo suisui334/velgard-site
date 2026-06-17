@@ -865,6 +865,31 @@ Next GM automatic scheduler send test should wait for or prepare exactly one
 current-time `gm_confirmed` due candidate, then rerun preflight before any
 real-send window.
 
+Gate 12I real-send operation start:
+
+- result doc:
+  `docs/session-reminder-real-send-enabled-result.md`
+- current-time `dry_run:true` was executed without `now` override before
+  enablement
+- preflight HTTP status: `200`
+- preflight `count`: `0`
+- preflight `gm_confirmed` count: `0`
+- preflight shortage count: `0`
+- preflight `@everyone` marker: false
+- preflight raw Discord ID pattern: false
+- `session_reminder_logs` before: `1`
+- `SESSION_REMINDER_REAL_SEND_ENABLED=true` was set
+- cron remains `dispatch-session-reminders-every-minute`
+- cron payload remains `dry_run:false`, `limit:1`
+- observed approximately 2 to 3 minutes after enablement
+- recent pg_net rows included HTTP `200`
+- recent 5-minute HTTP `200` response count observed: `10`
+- `session_reminder_logs` before/after: `1` -> `1`
+- no new reminder log row was created
+- no new Discord send was indicated during the observation window
+- shortage `@everyone` did not occur during the observation window
+- real send remains enabled for future due candidates
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:
@@ -911,8 +936,8 @@ If production reminder sending misbehaves:
 
 - Exact reminder Webhook secret value: `not_recorded`, to be set/confirmed in a
   later secret gate.
-- `SESSION_REMINDER_REAL_SEND_ENABLED`: remains disabled until a later send
-  gate.
+- `SESSION_REMINDER_REAL_SEND_ENABLED`: enabled in Gate 12I for automatic
+  scheduler operation.
 - GM reminder exact wording: mostly implemented, but final production wording
   can still be checked before first send.
 - GM Discord DM route: future gate.

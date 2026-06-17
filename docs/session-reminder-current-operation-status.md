@@ -112,3 +112,41 @@ Current state after Gate 12H:
 - scheduler automatic production send remains not started
 - Discord send did not occur
 - shortage `@everyone` did not occur
+
+## Gate 12I Real Send Enabled
+
+Gate 12I enabled automatic production delivery for session reminders.
+
+Result doc:
+
+- `docs/session-reminder-real-send-enabled-result.md`
+
+Preflight result before enablement:
+
+- current-time `dry_run:true` was executed without `now` override
+- HTTP status: `200`
+- `count`: `0`
+- `gm_confirmed` count: `0`
+- shortage count: `0`
+- `@everyone` marker: false
+- raw Discord ID pattern: false
+- `session_reminder_logs` before: `1`
+
+Enablement and observation:
+
+- `SESSION_REMINDER_REAL_SEND_ENABLED=true` was set
+- scheduler cron was not changed
+- Edge Function was not redeployed
+- observed approximately 2 to 3 minutes after enablement
+- recent pg_net rows included HTTP `200`
+- recent 5-minute HTTP `200` response count observed: `10`
+- `session_reminder_logs` before/after: `1` -> `1`
+- reminder log growth: `0`
+
+Current state after Gate 12I:
+
+- scheduler automatic checks remain active
+- real send is enabled
+- future due candidates may be sent automatically by cron
+- no new Discord send was indicated during the observation window
+- shortage `@everyone` did not occur during the observation window
