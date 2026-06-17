@@ -142,3 +142,117 @@ Stop reason:
 
 No real send flag was enabled, no production `dry_run:false` was called, no
 Discord send occurred, and no reminder log rows were created.
+
+## Gate 11B Retry Candidate Check
+
+Gate 11B retry checked the prepared GM reminder candidate with the requested
+JST override before any production send.
+
+Runtime invocation:
+
+- method: `POST`
+- body shape: `{ "dry_run": true, "now": "JST 20:00 override", "limit": 20 }`
+
+Sanitized result:
+
+- HTTP status: `200`
+- response `ok`: `true`
+- response `dry_run`: `true`
+- response `count`: `1`
+- reminder type: `gm_confirmed`
+- shortage item present: `false`
+- message preview contained `@everyone`: `false`
+- raw Discord ID pattern in response: not observed
+- safety `production_enabled`: `false`
+- safety `db_write`: `false`
+- safety `discord_send`: `false`
+
+Logs:
+
+- `session_reminder_logs` count before/after: `0` / `0`
+
+This satisfied the one-item `gm_confirmed` preflight condition. No real send
+flag was enabled and no production path was called in Gate 11B retry.
+
+## Gate 11C Limited Production Attempt
+
+Gate 11C performed one limited production attempt for the prepared
+`gm_confirmed` candidate only. It did not send any shortage reminder and did
+not allow `@everyone`.
+
+Preflight immediately before the production attempt:
+
+- `dry_run:true` with the same JST 20:00 override returned HTTP `200`
+- response `ok`: `true`
+- response `count`: `1`
+- reminder type: `gm_confirmed`
+- shortage item present: `false`
+- message preview contained `@everyone`: `false`
+- raw Discord ID pattern in response: not observed
+- logs count before: `0`
+
+Production attempt:
+
+- `SESSION_REMINDER_DISPATCH_TOKEN` was regenerated for this gate.
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was temporarily set to enabled.
+- production invocation shape: `dry_run:false`, `limit:1`, same JST 20:00
+  override, dispatch token header
+- production invocation count: `1`
+- sanitized HTTP status: `500`
+- response `ok`: `false`
+- `sent_count`: not present / not `1`
+- `claimed_count`: not present
+- `failed_count`: not present
+- `skipped_count`: not present
+- raw Discord ID pattern in sanitized response: not observed
+- provider message id: not recorded
+
+Stop decision:
+
+- Gate 11C stopped after the single production attempt because `sent_count=1`
+  was not confirmed.
+- No retry was performed.
+
+Post-attempt safety checks:
+
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was set back to disabled immediately
+  after the attempt.
+- A subsequent `dry_run:false` check returned HTTP `403` with production
+  disabled rejection.
+- claimed count positive after re-disable: `false`
+- sent count positive after re-disable: `false`
+- `session_reminder_logs` count after: `0`
+
+Because the logs count remained `0`, no reminder log row was created. This
+indicates the normal successful claim/finalize path did not complete. The
+usual `before + 1` log increase did not occur.
+
+Not recorded:
+
+- Webhook URL
+- dispatch token value
+- Discord user ID
+- Discord message id
+- session id
+- session URL
+- message body
+
+Not performed:
+
+- shortage send
+- `@everyone` send
+- multiple-item send
+- retry after HTTP `500`
+- cron setup
+- Edge deploy
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS structure change
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+
+Next gate:
+
+- Gate 11D: production path HTTP `500` diagnosis without sending. Confirm
+  secret presence/format by name or safe status only, inspect sanitized Edge
+  logs if needed, and do not re-run production send until the cause is known.

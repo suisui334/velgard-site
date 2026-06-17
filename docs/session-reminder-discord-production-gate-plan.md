@@ -545,6 +545,48 @@ Next preparation:
   an approved UI/RPC path, then retry the candidate check before any production
   send.
 
+Gate 11B retry candidate check:
+
+- `dry_run:true` with the JST 20:00 override returned HTTP `200`.
+- `ok:true`.
+- `count:1`.
+- reminder type: `gm_confirmed`.
+- shortage item present: `false`.
+- message preview contained `@everyone`: `false`.
+- raw Discord ID pattern in response: not observed.
+- `session_reminder_logs` count before/after: `0` / `0`.
+- no real send enablement, production invocation, Discord send, claim/finalize,
+  DB write, Edge deploy, SQL apply, cron setup, or UI change was performed.
+
+Gate 11C limited production attempt:
+
+- preflight immediately before send again returned exactly one safe
+  `gm_confirmed` candidate.
+- `SESSION_REMINDER_DISPATCH_TOKEN` was regenerated for the gate.
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was temporarily enabled.
+- one production invocation was made with `dry_run:false`, `limit:1`, the same
+  JST 20:00 override, and the dispatch token header.
+- sanitized HTTP status: `500`.
+- `ok:false`.
+- `sent_count`: not present / not `1`.
+- `claimed_count`: not present.
+- `failed_count`: not present.
+- `skipped_count`: not present.
+- raw Discord ID pattern in sanitized response: not observed.
+- Discord provider message id: not recorded.
+- no retry was performed.
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was immediately disabled again.
+- post-disable `dry_run:false` returned HTTP `403` with production disabled
+  rejection.
+- post-disable claimed/sent positive counts: `false` / `false`.
+- `session_reminder_logs` count before/after: `0` / `0`.
+
+Gate 11C did not confirm a successful send. Because logs remained `0`, the
+successful claim/finalize path did not complete. Before any further production
+send attempt, run a send-free Gate 11D diagnosis for the HTTP `500` production
+path failure. Record only safe status/counts and do not expose Webhook, token,
+Discord ID, message id, session id, session URL, or message body values.
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:

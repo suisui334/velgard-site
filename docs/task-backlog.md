@@ -10663,6 +10663,84 @@ Next candidate gate:
   existing or test session through the approved UI/RPC path, then retry Gate
   11A.
 
+## Gate 11B retry / 11C session reminder GM confirmed limited production attempt
+
+Status: Gate 11B retry candidate check succeeded; Gate 11C production attempt
+stopped after one HTTP `500` response. No retry was performed.
+
+- Baseline: `9f529fd Record GM confirmed reminder candidate check`.
+- Updated:
+  - `docs/session-reminder-limited-production-send-result.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+
+Gate 11B retry preflight:
+
+- Runtime `dry_run:true` with the JST 20:00 override returned HTTP `200`.
+- `ok:true`.
+- `count:1`.
+- reminder type: `gm_confirmed`.
+- shortage item present: `false`.
+- message preview contained `@everyone`: `false`.
+- raw Discord ID pattern in response: not observed.
+- `production_enabled:false`.
+- `db_write:false`.
+- `discord_send:false`.
+- `session_reminder_logs` count before/after: `0` / `0`.
+
+Gate 11C preflight:
+
+- Runtime `dry_run:true` with the same JST 20:00 override again returned
+  exactly one safe `gm_confirmed` candidate.
+- logs count before: `0`.
+
+Gate 11C production attempt:
+
+- Regenerated `SESSION_REMINDER_DISPATCH_TOKEN` for the gate.
+- Temporarily enabled `SESSION_REMINDER_REAL_SEND_ENABLED`.
+- Invoked production path exactly once with `dry_run:false`, `limit:1`, the
+  same JST 20:00 override, and the dispatch token header.
+- Sanitized result:
+  - HTTP status: `500`
+  - `ok:false`
+  - `sent_count`: not present / not `1`
+  - `claimed_count`: not present
+  - `failed_count`: not present
+  - `skipped_count`: not present
+  - raw Discord ID pattern in sanitized response: not observed
+- Stopped because `sent_count=1` was not confirmed.
+- Did not retry.
+- Immediately disabled `SESSION_REMINDER_REAL_SEND_ENABLED` again.
+- Post-disable `dry_run:false` returned HTTP `403` with production disabled
+  rejection.
+- Post-disable positive claimed/sent counts: `false` / `false`.
+- `session_reminder_logs` count after: `0`.
+
+Because logs stayed `0`, no reminder log row was created and the successful
+claim/finalize path did not complete. No Discord provider message id, Webhook
+URL, dispatch token value, raw Discord ID, session id, session URL, or message
+body was recorded.
+
+Not performed:
+
+- shortage send
+- `@everyone` send
+- multiple-item send
+- retry after HTTP `500`
+- cron setup
+- Edge deploy
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS structure change
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+
+Next candidate gate:
+
+- Gate 11D: production path HTTP `500` diagnosis without sending. Confirm
+  secret presence/format by name or safe status only, inspect sanitized Edge
+  logs if needed, and do not re-run production send until the cause is known.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
