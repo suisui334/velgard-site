@@ -149,6 +149,14 @@ Gate 6.1 update:
 - Dry-run preview and docs must mask the mention, for example `<@GM>`.
 - Current reminder RPCs do not return `gm_discord_user_id`, so Gate 6.1 is blocked until SQL/RPC returns a safe, validated GM Discord id.
 
+Gate 6.2 follow-up:
+
+- The safe source is drafted as `public.sessions.gm_user_id -> public.profiles.id -> public.profiles.discord_handle`.
+- The draft returns `gm_discord_user_id` only when the stored value matches `^[0-9]{17,20}$`.
+- Missing or invalid values return `null`, so the Edge Function can fall back to no mention.
+- The draft keeps preview/claim RPCs service-role-only and does not expose Discord ids through public/browser RPCs.
+- SQL apply is still not performed.
+
 Implementation recommendation:
 
 - Use the same reminder Webhook env as shortage unless a separate GM reminder channel is explicitly chosen.
@@ -170,6 +178,7 @@ Open destination options:
 - Separate GM-only channel later.
 - Server-side GM mention later after profile ownership, privacy, mention format, and visibility rules are approved.
 - SQL/RPC contract update for server-side GM mention, now required before the Edge code can safely implement the new GM mention policy.
+- Gate 6.2 draft: `docs/sql-drafts/session-reminder-gm-discord-id-draft.sql`.
 
 ## Discord Payload Policy
 
@@ -226,6 +235,7 @@ Gate 6.1 payload update:
 - If the id is missing, content should omit the mention and use `allowed_mentions.parse=[]`.
 - Dry-run `message_preview` should mask the mention as `<@GM>` or equivalent.
 - This payload update is blocked until the preview/claim RPC result includes the safe GM Discord id.
+- Gate 6.2 created a draft to add that return field, but production Edge code must wait until the SQL apply gate is completed.
 
 ## Production Flow
 

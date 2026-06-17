@@ -10155,6 +10155,57 @@ Status: GM mention implementation blocked before source change.
   validated GM Discord user id field to `preview_due_session_reminders` and
   `claim_due_session_reminders`; do not apply SQL in that draft gate.
 
+## Gate 6.2 session reminder GM Discord ID RPC draft
+
+Status: SQL/RPC draft created, not applied.
+
+- Baseline: `f964cca Record GM mention reminder blocker`.
+- Added:
+  - `docs/sql-drafts/session-reminder-gm-discord-id-draft.sql`
+  - `docs/session-reminder-gm-discord-id-sql-checklist.md`
+  - `docs/session-reminder-gm-discord-id-result.md`
+- Updated:
+  - `docs/session-reminder-gm-mention-result.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/session-reminder-discord-notification-plan.md`
+  - `docs/task-backlog.md`
+- GM Discord ID source decision:
+  - `public.sessions.gm_user_id` identifies the session GM.
+  - `public.profiles.discord_handle` is the existing Discord user ID
+    registration field.
+  - The draft joins `public.sessions.gm_user_id` to `public.profiles.id`.
+  - The draft returns `gm_discord_user_id` only when
+    `profiles.discord_handle` matches `^[0-9]{17,20}$`.
+  - Missing, empty, or invalid values return `null`.
+- Drafted return column additions:
+  - `preview_due_session_reminders`: `gm_discord_user_id text`.
+  - `claim_due_session_reminders`: `gm_discord_user_id text`.
+- The draft keeps both RPCs `security definer`, `set search_path = ''`, and
+  service-role-only, with execute revoked from `public`, `anon`, and
+  `authenticated`.
+- The draft does not change `public_profiles`, browser/public RPCs,
+  `get_my_profile_contact()`, `update_my_discord_id(text)`,
+  `get_gm_session_accepted_contacts(text)`,
+  `update_session_reminder_settings`, `finalize_session_reminder`, tables,
+  RLS, policies, Edge Functions, or UI.
+- The draft uses drop/recreate for the two `returns table` RPCs, drops claim
+  before preview, and does not use `cascade`.
+- Included SELECT-only post-apply checks for RPC presence, return column
+  presence, `security definer`, execute privileges, and log count reference.
+- Did not run SQL Editor, apply SQL, mutate DB/RPC/RLS, change Edge Function
+  source, deploy Edge Function, invoke runtime, send Discord, run Discord
+  dry-run sends, set/change Webhook or secrets, execute claim/finalize at
+  runtime, write `session_reminder_logs`, configure cron, change
+  UI/HTML/CSS/browser JS, add `console.*`, add direct Supabase write helpers,
+  or modify `updates.json`.
+- No real Discord ID, Webhook URL, channel id, message id, token, JWT,
+  `management_key`, raw user id, email, real session URL, or full message
+  preview was recorded.
+- Next candidate gates:
+  - Gate 6.3: GM Discord ID RPC apply candidate review.
+  - Gate 6.4: SQL apply independent approval.
+  - Gate 6.5: Edge Function GM mention implementation, no deploy.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

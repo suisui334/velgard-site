@@ -772,6 +772,50 @@ Next Gate recorded from Gate 6.1:
 
 - Gate 6.2: draft SQL/RPC update to add a safe GM Discord id field to `preview_due_session_reminders` and `claim_due_session_reminders`
 
+## Gate 6.2 GM Discord ID SQL/RPC Draft
+
+Gate 6.2 created the SQL/RPC draft for the GM mention source.
+
+Created:
+
+- `docs/sql-drafts/session-reminder-gm-discord-id-draft.sql`
+- `docs/session-reminder-gm-discord-id-sql-checklist.md`
+- `docs/session-reminder-gm-discord-id-result.md`
+
+Source decision:
+
+- `public.sessions.gm_user_id` identifies the session GM
+- `public.profiles.discord_handle` is the existing Discord user ID registration field
+- the draft joins `public.sessions.gm_user_id` to `public.profiles.id`
+- the draft returns `gm_discord_user_id` only when `profiles.discord_handle` matches `^[0-9]{17,20}$`
+- missing, empty, or invalid values return `null`
+
+RPC changes drafted:
+
+- add `gm_discord_user_id text` to `preview_due_session_reminders`
+- add `gm_discord_user_id text` to `claim_due_session_reminders`
+- keep both RPCs `security definer`
+- keep both RPCs `service_role`-only
+- do not expose Discord IDs through browser/public RPCs
+
+Not performed in Gate 6.2:
+
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS change
+- Edge Function change
+- Edge deploy
+- runtime invocation
+- Discord send
+- DB write
+- Webhook/secret change
+
+Next Gates recorded from Gate 6.2:
+
+- Gate 6.3: GM Discord ID RPC apply candidate review
+- Gate 6.4: SQL apply independent approval
+- Gate 6.5: Edge Function GM mention implementation, no deploy
+
 ## Open Questions
 
 1. Should `waitlisted` stay excluded from the first threshold decision?

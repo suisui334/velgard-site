@@ -130,3 +130,40 @@ Recommended next gate:
 - Gate 6.2: draft SQL/RPC update for GM Discord ID in reminder preview/claim results
 
 Gate 6.2 should still avoid SQL apply until a later explicit gate.
+
+## Gate 6.2 Follow-up Result
+
+Gate 6.2 confirmed a safe draft source and created the SQL/RPC draft.
+
+Created:
+
+- `docs/sql-drafts/session-reminder-gm-discord-id-draft.sql`
+- `docs/session-reminder-gm-discord-id-sql-checklist.md`
+- `docs/session-reminder-gm-discord-id-result.md`
+
+Source decision:
+
+- use `public.sessions.gm_user_id` to identify the session GM
+- join to `public.profiles.id`
+- read `public.profiles.discord_handle`
+- return it as `gm_discord_user_id` only when it matches `^[0-9]{17,20}$`
+- return `null` when missing or invalid
+
+The draft keeps `preview_due_session_reminders` and `claim_due_session_reminders` service-role-only and does not expose Discord ids to browser/public RPCs.
+
+Still not performed:
+
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS change
+- Edge Function change
+- Edge deploy
+- runtime invocation
+- Discord send
+- DB write
+
+Next gates:
+
+- Gate 6.3: GM Discord ID RPC apply candidate review
+- Gate 6.4: SQL apply independent approval
+- Gate 6.5: Edge Function GM mention implementation, no deploy
