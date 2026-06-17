@@ -10437,6 +10437,53 @@ Not performed:
 - UI / HTML / CSS / browser JS change
 - `updates.json` change
 
+## Gate 9 session reminder secret setup attempt
+
+Status: blocked before secret changes.
+
+- Baseline: `c1bd31d Plan session reminder Discord secret boundary`.
+- Added `docs/session-reminder-secret-setup-result.md`.
+- Updated:
+  - `docs/session-reminder-discord-secret-boundary-plan.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+- Intended target secrets:
+  - `DISCORD_SESSION_REMINDER_WEBHOOK_URL`
+  - `SESSION_REMINDER_DISPATCH_TOKEN`
+- Real send flag:
+  - `SESSION_REMINDER_REAL_SEND_ENABLED` was not enabled.
+- Blocker:
+  - the actual Discord Webhook URL value for
+    `DISCORD_SESSION_REMINDER_WEBHOOK_URL` was not available from local env,
+    repository files, or readable Supabase CLI output
+  - the existing session-post Webhook secret name is present, but its raw value
+    is not retrievable from the CLI secret listing for copying
+- Partial setup decision:
+  - `SESSION_REMINDER_DISPATCH_TOKEN` was not set independently, to avoid a
+    partial and misleading secret boundary while the Webhook value is missing
+
+Not performed:
+
+- secret/Webhook setting or change
+- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
+- Edge deploy
+- runtime invocation
+- Discord send
+- Discord dry-run send
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS mutation
+- claim/finalize runtime execution
+- `session_reminder_logs` write
+- cron setup
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+
+Next candidate gate:
+
+- Gate 9 retry after the actual Discord Webhook URL is supplied securely or set
+  manually by the user, keeping real send disabled.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

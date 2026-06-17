@@ -453,6 +453,18 @@ Scope:
 - Do not write DB.
 - Do not record secret values.
 
+Gate 9 attempt result:
+
+- `docs/session-reminder-secret-setup-result.md`
+- blocked before secret changes because the actual Webhook URL value for
+  `DISCORD_SESSION_REMINDER_WEBHOOK_URL` was not available to Codex
+- Supabase secret listing confirmed useful secret names/metadata but did not
+  expose a usable raw Webhook URL for copying
+- `SESSION_REMINDER_DISPATCH_TOKEN` was not set partially
+- `SESSION_REMINDER_REAL_SEND_ENABLED` remained disabled / not enabled
+- no Discord send, Edge deploy, runtime invocation, claim/finalize, DB write,
+  SQL apply, cron setup, or UI change was performed
+
 ### Gate 10: Deploy / Runtime Secret Presence Check, Production Still Rejected
 
 Scope:

@@ -162,6 +162,17 @@ Expected result:
 - real send remains disabled
 - no runtime send path is exercised
 
+Gate 9 attempt result:
+
+- `docs/session-reminder-secret-setup-result.md`
+- blocked before secret changes because the actual Discord Webhook URL for
+  `DISCORD_SESSION_REMINDER_WEBHOOK_URL` was not available from local env,
+  repository files, or readable Supabase CLI output
+- `SESSION_REMINDER_DISPATCH_TOKEN` was not set partially
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was not enabled
+- no secret/Webhook change, Edge deploy, runtime invocation, Discord send, DB
+  write, SQL apply, cron setup, or UI change was performed
+
 ### Gate 10: Deploy / Runtime Secret Presence Check, Production Still Rejected
 
 Scope:
