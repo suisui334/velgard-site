@@ -1,20 +1,26 @@
 # Session Reminder GM Discord ID SQL Checklist
 
-Status: Gate 6.2 checklist draft. SQL not applied.
+Status: Gate 6.3 apply candidate reviewed. SQL not applied.
 
 ## Target File
 
-Use this draft only after explicit approval in a later gate:
+Use this apply candidate only after explicit approval in a later gate:
 
-- `docs/sql-drafts/session-reminder-gm-discord-id-draft.sql`
+- `docs/sql-drafts/session-reminder-gm-discord-id-apply-candidate.sql`
 
 Do not run it automatically. Do not place it under `supabase/migrations/` yet.
+
+The Gate 6.2 draft remains available for history:
+
+- `docs/sql-drafts/session-reminder-gm-discord-id-draft.sql`
 
 ## Apply Preconditions
 
 Before applying, confirm:
 
 - current git worktree is clean
+- latest reviewed SQL candidate is
+  `docs/sql-drafts/session-reminder-gm-discord-id-apply-candidate.sql`
 - current production/dry-run runtime behavior is understood
 - no Edge Function deploy is bundled into this SQL gate
 - no Discord send or Discord dry-run send is bundled into this SQL gate
@@ -23,7 +29,7 @@ Before applying, confirm:
 
 ## SQL Review Checklist
 
-Confirm the draft:
+Gate 6.3 review confirmed the apply candidate:
 
 - drops `claim_due_session_reminders(timestamptz, integer)` before `preview_due_session_reminders(timestamptz, integer)`
 - does not use `cascade`
@@ -37,6 +43,9 @@ Confirm the draft:
 - does not change `update_session_reminder_settings`
 - does not change `finalize_session_reminder`
 - does not change tables, RLS, policies, browser grants, Edge Functions, or UI
+
+If reviewing again before apply, confirm the same points against the apply
+candidate file, not the draft history file.
 
 ## GM Discord ID Source Checklist
 
@@ -54,7 +63,8 @@ Confirm the draft:
 
 ## Post-Apply SELECT Checks
 
-After apply, run only the SELECT-only checks included at the end of the draft.
+After apply, run only the SELECT-only checks included at the end of the apply
+candidate.
 
 Record only status/count-style results:
 
@@ -103,7 +113,6 @@ If any SQL Editor error occurs:
 
 If SQL review passes:
 
-- Gate 6.3: GM Discord ID RPC apply candidate review
 - Gate 6.4: SQL apply independent approval
 
 After apply succeeds:

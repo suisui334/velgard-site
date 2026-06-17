@@ -10206,6 +10206,52 @@ Status: SQL/RPC draft created, not applied.
   - Gate 6.4: SQL apply independent approval.
   - Gate 6.5: Edge Function GM mention implementation, no deploy.
 
+## Gate 6.3 session reminder GM Discord ID RPC apply candidate
+
+Status: apply candidate prepared, not applied.
+
+- Baseline: `da9f99a Draft GM Discord ID reminder RPC update`.
+- Added:
+  - `docs/sql-drafts/session-reminder-gm-discord-id-apply-candidate.sql`
+- Updated:
+  - `docs/session-reminder-gm-discord-id-sql-checklist.md`
+  - `docs/session-reminder-gm-discord-id-result.md`
+  - `docs/session-reminder-gm-mention-result.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/session-reminder-discord-notification-plan.md`
+  - `docs/task-backlog.md`
+- SQL draft review result:
+  - the Gate 6.2 draft was promoted to an apply candidate under
+    `docs/sql-drafts/`
+  - `claim_due_session_reminders(timestamptz, integer)` is dropped before
+    `preview_due_session_reminders(timestamptz, integer)`
+  - `cascade` is not used
+  - both RPCs return `gm_discord_user_id text`
+  - both RPCs remain `security definer` with `set search_path = ''`
+  - both RPCs check `auth.role() = 'service_role'`
+  - execute is revoked from `public`, `anon`, and `authenticated`
+  - execute is granted only to `service_role`
+- Snowflake filter policy:
+  - source remains `public.sessions.gm_user_id` ->
+    `public.profiles.id` -> `public.profiles.discord_handle`
+  - the value is returned only when it matches `^[0-9]{17,20}$`
+  - missing, empty, or invalid values return `null`
+  - shortage reminder rows return `null`
+  - `gm_confirmed` rows return the sanitized value when available
+- Post-apply checks remain SELECT-only and do not run the preview RPC.
+- Did not run SQL Editor, apply SQL, mutate DB/RPC/RLS, change Edge Function
+  source, deploy Edge Function, invoke runtime, send Discord, run Discord
+  dry-run sends, set/change Webhook or secrets, execute claim/finalize at
+  runtime, write `session_reminder_logs`, configure cron, change
+  UI/HTML/CSS/browser JS, add `console.*`, add direct Supabase write helpers,
+  or modify `updates.json`.
+- No real Discord ID, Webhook URL, channel id, message id, token, JWT,
+  `management_key`, raw user id, email, real session URL, or full message
+  preview was recorded.
+- Next candidate gates:
+  - Gate 6.4: SQL apply independent approval and SELECT-only confirmation.
+  - Gate 6.5: Edge Function GM mention implementation, no deploy.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

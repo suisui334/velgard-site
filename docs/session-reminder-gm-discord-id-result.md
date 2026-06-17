@@ -139,3 +139,54 @@ Recommended next gates:
 1. Gate 6.3: GM Discord ID RPC apply candidate review.
 2. Gate 6.4: SQL apply independent approval.
 3. Gate 6.5: Edge Function GM mention implementation, no deploy.
+
+## Gate 6.3 Apply Candidate Review
+
+Status: apply candidate created. SQL not applied.
+
+Reviewed source draft:
+
+- `docs/sql-drafts/session-reminder-gm-discord-id-draft.sql`
+
+Created apply candidate:
+
+- `docs/sql-drafts/session-reminder-gm-discord-id-apply-candidate.sql`
+
+Review result:
+
+- drop/recreate order is `claim_due_session_reminders` first, then
+  `preview_due_session_reminders`
+- `cascade` is not used
+- both RPC return definitions include `gm_discord_user_id text`
+- both RPCs remain `security definer`
+- both RPCs keep `set search_path = ''`
+- both RPCs check `auth.role() = 'service_role'`
+- execute grants remain service-role-only
+- `anon` and `authenticated` execute grants are revoked
+- `profiles.discord_handle` is returned only when it matches
+  `^[0-9]{17,20}$`
+- invalid, empty, or missing values return `null`
+- shortage reminder rows return `null` for `gm_discord_user_id`
+- `gm_confirmed` rows return the sanitized value when available
+- post-apply checks are SELECT-only and do not run preview
+
+The apply candidate remains under `docs/sql-drafts/` and was not placed in
+`supabase/migrations/`.
+
+Still not performed:
+
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS change
+- Edge Function change
+- Edge Function deploy
+- runtime invocation
+- Discord send
+- Discord dry-run send
+- Webhook/secret change
+- claim/finalize runtime execution
+- `session_reminder_logs` write
+
+Next gate:
+
+- Gate 6.4: SQL apply independent approval and SELECT-only confirmation.

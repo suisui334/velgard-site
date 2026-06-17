@@ -167,3 +167,42 @@ Next gates:
 - Gate 6.3: GM Discord ID RPC apply candidate review
 - Gate 6.4: SQL apply independent approval
 - Gate 6.5: Edge Function GM mention implementation, no deploy
+
+## Gate 6.3 Follow-up Result
+
+Gate 6.3 reviewed the SQL/RPC draft and created an apply candidate.
+
+Created:
+
+- `docs/sql-drafts/session-reminder-gm-discord-id-apply-candidate.sql`
+
+Updated:
+
+- `docs/session-reminder-gm-discord-id-sql-checklist.md`
+- `docs/session-reminder-gm-discord-id-result.md`
+
+Review summary:
+
+- `gm_discord_user_id text` is included in both
+  `preview_due_session_reminders` and `claim_due_session_reminders`
+- source remains `public.sessions.gm_user_id` ->
+  `public.profiles.id` -> `public.profiles.discord_handle`
+- the value is returned only when it matches `^[0-9]{17,20}$`
+- service-role-only execution is preserved
+- browser/public RPCs are not given Discord user IDs
+- post-apply checks remain SELECT-only
+
+Still not performed:
+
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS change
+- Edge Function change
+- Edge deploy
+- runtime invocation
+- Discord send
+- DB write
+
+Next gate:
+
+- Gate 6.4: SQL apply independent approval and SELECT-only confirmation.

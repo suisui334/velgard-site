@@ -816,6 +816,50 @@ Next Gates recorded from Gate 6.2:
 - Gate 6.4: SQL apply independent approval
 - Gate 6.5: Edge Function GM mention implementation, no deploy
 
+## Gate 6.3 GM Discord ID RPC Apply Candidate Review
+
+Gate 6.3 reviewed the Gate 6.2 SQL/RPC draft and created the apply
+candidate.
+
+Created:
+
+- `docs/sql-drafts/session-reminder-gm-discord-id-apply-candidate.sql`
+
+Updated:
+
+- `docs/session-reminder-gm-discord-id-sql-checklist.md`
+- `docs/session-reminder-gm-discord-id-result.md`
+- `docs/session-reminder-gm-mention-result.md`
+- `docs/session-reminder-discord-production-gate-plan.md`
+
+Review result:
+
+- the apply candidate keeps `gm_discord_user_id text` in both
+  `preview_due_session_reminders` and `claim_due_session_reminders`
+- `gm_discord_user_id` is populated only from
+  `public.profiles.discord_handle` values matching `^[0-9]{17,20}$`
+- missing or invalid values return `null`
+- `preview_due_session_reminders` and `claim_due_session_reminders` remain
+  service-role-only
+- browser/public RPCs still do not expose Discord user IDs
+- post-apply verification remains SELECT-only
+
+Still not performed:
+
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS change
+- Edge Function change
+- Edge deploy
+- runtime invocation
+- Discord send
+- DB write
+- Webhook/secret change
+
+Next Gate recorded from Gate 6.3:
+
+- Gate 6.4: SQL apply independent approval and SELECT-only confirmation.
+
 ## Open Questions
 
 1. Should `waitlisted` stay excluded from the first threshold decision?

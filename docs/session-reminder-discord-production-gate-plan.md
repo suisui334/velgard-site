@@ -157,6 +157,16 @@ Gate 6.2 follow-up:
 - The draft keeps preview/claim RPCs service-role-only and does not expose Discord ids through public/browser RPCs.
 - SQL apply is still not performed.
 
+Gate 6.3 follow-up:
+
+- The Gate 6.2 draft was reviewed and promoted to an apply candidate:
+  `docs/sql-drafts/session-reminder-gm-discord-id-apply-candidate.sql`.
+- The apply candidate keeps `gm_discord_user_id text` in both preview and
+  claim RPC return definitions.
+- The snowflake-like filter remains `^[0-9]{17,20}$`.
+- Browser roles remain revoked; execute remains service-role-only.
+- SQL apply is still not performed.
+
 Implementation recommendation:
 
 - Use the same reminder Webhook env as shortage unless a separate GM reminder channel is explicitly chosen.
@@ -179,6 +189,8 @@ Open destination options:
 - Server-side GM mention later after profile ownership, privacy, mention format, and visibility rules are approved.
 - SQL/RPC contract update for server-side GM mention, now required before the Edge code can safely implement the new GM mention policy.
 - Gate 6.2 draft: `docs/sql-drafts/session-reminder-gm-discord-id-draft.sql`.
+- Gate 6.3 apply candidate:
+  `docs/sql-drafts/session-reminder-gm-discord-id-apply-candidate.sql`.
 
 ## Discord Payload Policy
 
@@ -236,6 +248,8 @@ Gate 6.1 payload update:
 - Dry-run `message_preview` should mask the mention as `<@GM>` or equivalent.
 - This payload update is blocked until the preview/claim RPC result includes the safe GM Discord id.
 - Gate 6.2 created a draft to add that return field, but production Edge code must wait until the SQL apply gate is completed.
+- Gate 6.3 created the reviewed apply candidate, but production Edge code must
+  still wait until the SQL apply gate is completed.
 
 ## Production Flow
 
