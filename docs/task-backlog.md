@@ -9515,6 +9515,70 @@ Status: completed.
   RPC/DB key configuration, CSS class/DOM id/anchor change,
   `management_key` display, or raw id/email/token/JWT display was performed.
 
+## Phase 3-C7 campaigns / episodes template structures
+
+Status: completed.
+
+- Baseline: `07e77ac Document world template page adoption`.
+- Added
+  `docs/world-template-campaigns-episodes-structure-plan.md`.
+- Updated:
+  - `docs/world-template-scenarios-hooks-structure-plan.md`
+  - `docs/world-template-page-adoption-checklist.md`
+  - `docs/world-template-next-world-adoption-guide.md`
+  - `docs/world-site-template-extraction-plan.md`
+  - `docs/task-backlog.md`
+- Documented current campaigns / episodes inventory:
+  - `campaigns.html`
+  - `campaign-detail.html`
+  - `episode-detail.html`
+  - `assets/js/renderCampaigns.js`
+  - `assets/js/renderCampaignDetail.js`
+  - `assets/js/renderEpisodeDetail.js`
+  - `data/campaigns.json`
+  - `data/episodes.json`
+- Recorded current data scale:
+  - `data/campaigns.json`: 1 campaign record
+  - `data/episodes.json`: 3 episode records
+  - current statuses: all `preparing`
+  - all current episodes belong to `velgard-open-campaign`
+- Documented current campaign fields:
+  `id`, `title`, `subtitle`, `catchcopy`, `trailer`, `introduction`,
+  `keyVisual`, `thumbnail`, `image`, `status`, `visibility`,
+  `relatedSpots`, `relatedCharacters`, and `notes`.
+- Documented current episode fields:
+  `id`, `campaignId`, `episodeNumber`, `episodeIndex`, `title`,
+  `catchcopy`, `summary`, `image`, `relatedSpots`, `relatedCharacters`,
+  `status`, `visibility`, and `notes`.
+- Separated world-template responsibilities:
+  campaign introductions, chapter structures, public episode summaries, public
+  recaps, reading order, and related public links.
+- Separated reusable ops responsibilities:
+  live session recruitment, dates, applications, comments, session-post,
+  session-detail, calendar, Discord sync, DB/RPC/RLS, membership, auth, and
+  operation state.
+- Documented scale-variable states:
+  zero campaigns, one-shot worlds without campaign pages, short serials, long
+  campaigns, planned/frozen/completed states, missing related links, and
+  image-free records.
+- Documented public/GM-secret boundary:
+  GitHub Pages campaign/episode data is public; real GM secrets, private
+  session logs, hidden rewards, future twists, member data, Discord values,
+  raw ids, emails, tokens, JWTs, Webhooks, and actual `management_key` values
+  must not be committed there.
+- Documented pseudo structures for `campaigns` and `episodes`, empty-state
+  policy, checklist, rollback/recovery policy, and reusable ops core boundary.
+- Recommended next docs-only candidate:
+  pre-auth / pre-DB / pre-Discord checklist.
+- This was docs-only: no implementation, HTML, CSS, JS, data/json, image file,
+  sample data, campaign/episode text, renderer, session-post, session-detail,
+  calendar, or `updates.json` change was performed.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+  operation, secret/Webhook change, direct Supabase write, debug console
+  logging addition, auth/permission logic change, membership logic change,
+  RPC/DB key configuration, CSS class/DOM id/anchor change,
+  `management_key` display, or raw id/email/token/JWT display was performed.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

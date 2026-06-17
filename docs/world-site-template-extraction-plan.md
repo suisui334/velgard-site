@@ -1182,3 +1182,31 @@ World-site template impact:
 Recommended next docs-only candidate:
 
 - campaigns / episodes template structure
+
+## Phase 3-C7 Campaigns / Episodes Structure Plan
+
+Phase 3-C7 completes that recommended docs-only candidate:
+
+- `docs/world-template-campaigns-episodes-structure-plan.md`
+
+World-site template impact:
+
+- records current `campaigns.html`, `campaign-detail.html`, and
+  `episode-detail.html` as optional world-template story pages
+- documents current `data/campaigns.json` and `data/episodes.json` fields and
+  renderer paths as a Velgard reference, not next-world production content
+- treats campaigns as public story containers and episodes as public story
+  units / recap pages
+- supports zero campaigns, no campaign pages for one-shot worlds, short
+  serials, long campaigns, planned/frozen/completed display states, and missing
+  related links
+- separates campaign/episode public copy from GM secrets, private session
+  notes, live session history, applications, comments, Discord sync, DB/RPC/RLS,
+  auth, membership, and calendar/session operation data
+- keeps related links to scenarios/hooks/spots/characters/terms as optional
+  world-template links, not ownership merges
+- records empty-state, public-data, checklist, and rollback guidance
+
+Recommended next docs-only candidate:
+
+- pre-auth / pre-DB / pre-Discord checklist

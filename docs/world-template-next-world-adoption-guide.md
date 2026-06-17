@@ -620,6 +620,31 @@ Next-world adoption impact:
 - recommends the next docs-only candidate:
   campaigns / episodes template structure
 
+## Phase 3-C7 Campaigns / Episodes Structure Follow-Up
+
+Phase 3-C7 completes that recommended docs-only candidate:
+
+- `docs/world-template-campaigns-episodes-structure-plan.md`
+
+Next-world adoption impact:
+
+- documents `campaigns.html`, `campaign-detail.html`, and
+  `episode-detail.html` as optional world-template story pages
+- records the current campaign/episode data fields and renderer path as a
+  reference for future worlds
+- treats campaigns as public story containers and episodes as public story
+  units, not live session operation records
+- supports zero campaigns, one-shot worlds without campaign pages, short
+  serials, long campaigns, planned/frozen/completed states, and missing related
+  links
+- separates public PL-facing summary/recap text from GM secrets and private
+  session notes that must not be committed to public GitHub Pages data
+- keeps session-post, session-detail, calendar, timeline, auth, membership,
+  DB/RPC/RLS, Edge Functions, Discord sync, and `updates.json` outside
+  campaigns / episodes template adoption
+- recommends the next docs-only candidate:
+  pre-auth / pre-DB / pre-Discord checklist
+
 ## Limited And Not Tested
 
 This guide is docs-only and does not add new runtime QA.

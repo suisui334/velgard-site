@@ -1424,6 +1424,31 @@ Reason:
 - clarifying campaign recap versus live session history will reduce confusion
   before reusable ops pages are connected
 
+## Phase 3-C7 Campaigns / Episodes Structure Follow-Up
+
+Phase 3-C7 completes the recommended campaigns / episodes template structure:
+
+- `docs/world-template-campaigns-episodes-structure-plan.md`
+
+Page-adoption impact:
+
+- `campaigns.html`, `campaign-detail.html`, and `episode-detail.html` remain
+  optional world-template pages
+- campaign and episode data is public story/recap content, not live session
+  operation data
+- the plan records the current `data/campaigns.json` / `data/episodes.json`
+  fields and renderer path as a reference, not as next-world production values
+- one-shot worlds may omit these pages or keep them hidden without blocking the
+  rest of the world-template launch
+- GM-secret information, private session logs, member data, and operation
+  state must stay out of public campaign/episode data
+- session-post, session-detail, calendar, timeline, auth, DB/RPC/RLS, and
+  Discord sync remain reusable ops gates
+
+Recommended next docs-only candidate after C7:
+
+- pre-auth / pre-DB / pre-Discord checklist.
+
 ## Limited And Not Tested
 
 This checklist is docs-only and does not add runtime QA.

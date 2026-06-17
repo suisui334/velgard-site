@@ -659,6 +659,28 @@ Recommended next docs-only candidate after C6:
 
 - campaigns / episodes template structure.
 
+## Phase 3-C7 Campaigns / Episodes Structure Follow-Up
+
+Phase 3-C7 completes that recommended campaigns / episodes structure plan:
+
+- `docs/world-template-campaigns-episodes-structure-plan.md`
+
+Scenarios/hooks impact:
+
+- scenarios/hooks remain world-template adventure seeds and scenario proposals
+- campaigns/episodes are documented as separate world-template story units,
+  chapter structures, public recaps, and reading-order content
+- neither area owns live session recruitment, applications, comments, Discord
+  sync, DB/RPC/RLS, auth, membership, or session operation state
+- related links between scenarios/hooks and campaigns/episodes are allowed in
+  a future gate, but ownership remains separate
+- public GitHub Pages data still must not contain real GM secrets, private
+  notes, or live operation data
+
+Recommended next docs-only candidate after C7:
+
+- pre-auth / pre-DB / pre-Discord checklist.
+
 ## Limited And Not Tested
 
 This plan is docs-only and does not add runtime QA.
