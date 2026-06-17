@@ -170,6 +170,32 @@ Recorded direction:
 Gate 8 did not set or change secrets, deploy Edge Functions, invoke runtime,
 send Discord, write DB, run SQL, configure cron, or change UI.
 
+## Gate 10 Secret Runtime Follow-up
+
+Gate 10 confirmed that the reminder Webhook and dispatch token secret names are
+present, while real send remains disabled.
+
+Result doc:
+
+- `docs/session-reminder-secret-runtime-check-result.md`
+
+Sanitized result:
+
+- `DISCORD_SESSION_REMINDER_WEBHOOK_URL`: present
+- `SESSION_REMINDER_DISPATCH_TOKEN`: present
+- `SESSION_REMINDER_REAL_SEND_ENABLED`: not present / not enabled
+- Edge deploy: not performed
+- runtime `dry_run:true`: HTTP `200`, `ok:true`, `count:0`
+- `production_enabled:false`
+- `db_write:false`
+- `discord_send:false`
+- runtime `dry_run:false`: HTTP `403`, production disabled rejection
+- `session_reminder_logs` count before/after: `0` / `0`
+
+This confirms that secret presence alone did not enable production sending. No
+Discord send, claim/finalize success path, DB write, secret/Webhook change, SQL
+apply, cron setup, or UI change was performed.
+
 ## Safety Notes
 
 Only the explicitly approved Edge deploy was performed. No SQL apply,

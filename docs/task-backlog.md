@@ -10492,6 +10492,60 @@ Next candidate gate:
 
 - Gate 10: deploy/runtime secret-presence check while production still rejects.
 
+## Gate 10 session reminder secret runtime disabled check
+
+Status: secret presence and production-disabled runtime check completed.
+
+- Baseline: `b51ff2d Record session reminder secret setup retry`.
+- Added `docs/session-reminder-secret-runtime-check-result.md`.
+- Updated:
+  - `docs/session-reminder-secret-setup-result.md`
+  - `docs/session-reminder-edge-production-disabled-result.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+- Secret name check:
+  - `DISCORD_SESSION_REMINDER_WEBHOOK_URL`: present
+  - `SESSION_REMINDER_DISPATCH_TOKEN`: present
+  - `SESSION_REMINDER_REAL_SEND_ENABLED`: not present / not enabled
+- Edge deploy:
+  - not performed, because there was no code change after the previous deploy
+- Runtime `dry_run:true`:
+  - HTTP `200`
+  - `ok:true`
+  - `count:0`
+  - `items` present
+  - `production_enabled:false`
+  - `db_write:false`
+  - `discord_send:false`
+- Runtime `dry_run:false`:
+  - HTTP `403`
+  - production disabled rejection
+  - no positive claimed/sent/failed counts
+- `session_reminder_logs` count before/after:
+  - `0` / `0`
+
+Not performed:
+
+- Edge deploy
+- Discord send
+- Discord dry-run send
+- `@everyone` send
+- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
+- secret/Webhook setting or change
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS mutation
+- claim/finalize success path
+- `session_reminder_logs` write
+- cron setup
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+
+Next candidate gate:
+
+- Gate 11: limited production send test, preferably with a single
+  `gm_confirmed` candidate before any shortage `@everyone` test.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

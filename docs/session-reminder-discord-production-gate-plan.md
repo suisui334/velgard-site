@@ -488,6 +488,20 @@ Scope:
 - Confirm no Discord send.
 - Confirm `session_reminder_logs` does not grow.
 
+Gate 10 result:
+
+- `docs/session-reminder-secret-runtime-check-result.md`
+- `DISCORD_SESSION_REMINDER_WEBHOOK_URL`: present
+- `SESSION_REMINDER_DISPATCH_TOKEN`: present
+- `SESSION_REMINDER_REAL_SEND_ENABLED`: not present / not enabled
+- Edge deploy was not performed because there was no code change after the
+  previous deploy
+- `dry_run:true`: HTTP `200`, `ok:true`, `production_enabled:false`
+- `dry_run:false`: HTTP `403`, production disabled rejection
+- `session_reminder_logs` count before/after: `0` / `0`
+- no Discord send, claim/finalize success path, DB write, secret/Webhook
+  change, SQL apply, cron setup, or UI change was performed
+
 ### Gate 11: Limited Production Send Test
 
 Scope:

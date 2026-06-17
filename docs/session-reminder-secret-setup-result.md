@@ -149,6 +149,30 @@ Recommended next gate:
 
 - Gate 10: deploy/runtime secret-presence check while production still rejects.
 
+## Gate 10 Runtime Follow-up
+
+Gate 10 confirmed the configured secret names are present and production
+remains disabled at runtime.
+
+Result doc:
+
+- `docs/session-reminder-secret-runtime-check-result.md`
+
+Sanitized result:
+
+- `DISCORD_SESSION_REMINDER_WEBHOOK_URL`: present
+- `SESSION_REMINDER_DISPATCH_TOKEN`: present
+- `SESSION_REMINDER_REAL_SEND_ENABLED`: not present / not enabled
+- Edge deploy: not performed
+- `dry_run:true`: HTTP `200`, `ok:true`, `count:0`,
+  `production_enabled:false`
+- `dry_run:false`: HTTP `403`, production disabled rejection
+- `session_reminder_logs` count before/after: `0` / `0`
+
+No secret value, Webhook URL, dispatch token, project ref, Discord ID, provider
+message ID, raw user ID, email, JWT, service key, anon key, or management key
+was recorded.
+
 ## Not Performed
 
 - `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
