@@ -10068,6 +10068,48 @@ Status: production-send design documented only.
   `management_key`, raw user id, email, real session URL, or full message
   preview was recorded.
 
+## Gate 6 session reminder production send source
+
+Status: production-gated source path implemented, not deployed.
+
+- Baseline: `5a37bf2 Plan session reminder Discord production gate`.
+- Updated `supabase/functions/dispatch-session-reminders/index.ts`.
+- Added `docs/session-reminder-production-code-result.md`.
+- Updated:
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/session-reminder-edge-dry-run-result.md`
+  - `docs/session-reminder-edge-runtime-dry-run-result.md`
+  - `docs/session-reminder-discord-notification-plan.md`
+  - `docs/task-backlog.md`
+- Implemented production gate checks:
+  - `SESSION_REMINDER_REAL_SEND_ENABLED`
+  - `SESSION_REMINDER_DISPATCH_TOKEN`
+  - `DISCORD_SESSION_REMINDER_WEBHOOK_URL`
+  - `x-dispatch-token` request header
+- Implemented production helpers for:
+  - `claim_due_session_reminders`
+  - Discord Webhook send with `wait=true`
+  - `finalize_session_reminder`
+- Kept `dry_run:true` path on `preview_due_session_reminders` only.
+- Discord payload policy:
+  - shortage reminders use `@everyone`,
+    `allowed_mentions.parse=["everyone"]`, and `flags: 4`.
+  - GM confirmed reminders use GM display name only,
+    `allowed_mentions.parse=[]`, and `flags: 4`.
+- `deno check --no-lock supabase/functions/dispatch-session-reminders/index.ts`
+  passed.
+- Did not deploy Edge Function, invoke runtime, send Discord, run Discord
+  dry-run sends, set or change Webhook/secrets, run SQL Editor, apply SQL,
+  mutate DB/RPC/RLS, execute claim/finalize at runtime, write
+  `session_reminder_logs`, configure cron, change UI/HTML/CSS/browser JS, or
+  modify `updates.json`.
+- No Webhook URL, channel id, message id, Discord id, token, JWT,
+  `management_key`, raw user id, email, real session URL, or full message
+  preview was recorded.
+- Next candidate gate: Gate 7 deploy the updated Function and confirm
+  `dry_run:true` still works while `dry_run:false` remains rejected without
+  production gates; also confirm no Discord send and no log growth.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

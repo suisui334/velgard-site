@@ -172,6 +172,12 @@ Gate 5 planning result:
 
 Gate 5 kept the deployed dispatcher production-disabled and did not change Edge Function code. It documented the later production path: dedicated reminder env boundary, `flags: 4`, explicit `allowed_mentions`, claim/finalize with `lock_token`, no automatic `@everyone` retry in the first version, and separate gates for code, deploy, secret setup, limited send, and final `@everyone` operation.
 
+Gate 6 source follow-up:
+
+- `docs/session-reminder-production-code-result.md`
+
+Gate 6 added the production-gated source path but did not deploy it. The deployed runtime remains the Gate 4.5 dry-run-confirmed Function until a later deploy gate. Dry-run source behavior remains preview-only, while production source requires `SESSION_REMINDER_REAL_SEND_ENABLED`, `SESSION_REMINDER_DISPATCH_TOKEN`, and `DISCORD_SESSION_REMINDER_WEBHOOK_URL` before claim/send/finalize can run.
+
 ## Safety Notes
 
 No raw user identifiers, email addresses, tokens, JWTs, management keys, Discord identifiers, Discord URLs, Webhook URLs, provider message identifiers, or row-level values were recorded.

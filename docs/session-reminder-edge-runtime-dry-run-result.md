@@ -113,6 +113,22 @@ Recorded direction:
 
 Gate 5 did not send Discord messages, change secrets, deploy Edge Functions, call claim/finalize, write DB rows, or change UI/code.
 
+## Gate 6 Source Follow-up
+
+Gate 6 implemented the production-gated source path and recorded it in:
+
+- `docs/session-reminder-production-code-result.md`
+
+Important boundary:
+
+- Gate 6 did not deploy the updated source.
+- Gate 6 did not invoke runtime.
+- Gate 6 did not send Discord.
+- Gate 6 did not call claim/finalize at runtime.
+- Gate 6 did not write `session_reminder_logs`.
+
+The currently deployed runtime remains the Gate 4.5 dry-run-confirmed Function until the next approved deploy gate.
+
 ## Safety Notes
 
 Only the explicitly approved Edge deploy was performed. No SQL apply, DB/RPC/RLS mutation, Discord send, secret/Webhook change, direct Supabase write, cron setup, or UI change was performed.

@@ -699,6 +699,49 @@ Next gate split:
 
 Gate 5 did not perform Discord send, Discord dry-run send, Webhook/secret change, Edge deploy, production implementation, claim/finalize call, DB write, SQL apply, UI change, or `updates.json` change.
 
+## Gate 6 Production Code Result
+
+Gate 6 implemented the production-gated source path only.
+
+Result docs:
+
+- `docs/session-reminder-production-code-result.md`
+
+Implemented in `supabase/functions/dispatch-session-reminders/index.ts`:
+
+- real-send env gate: `SESSION_REMINDER_REAL_SEND_ENABLED`
+- dispatch token gate: `SESSION_REMINDER_DISPATCH_TOKEN` via `x-dispatch-token`
+- reminder Webhook env: `DISCORD_SESSION_REMINDER_WEBHOOK_URL`
+- production `claim_due_session_reminders` helper
+- production Discord Webhook send helper
+- production `finalize_session_reminder` helper
+- `flags: 4` suppress embeds payload
+- shortage-only `allowed_mentions.parse=["everyone"]`
+- GM reminder channel message with GM display name only
+
+Preserved:
+
+- `dry_run:true` path still uses `preview_due_session_reminders` only.
+- dry-run path still does not call claim/finalize.
+- dry-run path still does not send Discord.
+- dry-run path still does not write DB.
+
+Not performed:
+
+- Edge deploy
+- runtime invocation
+- Discord send
+- Webhook/secret change
+- claim/finalize runtime execution
+- `session_reminder_logs` write
+- SQL/DB/RPC/RLS change
+- UI/HTML/CSS/browser JS change
+- `updates.json` change
+
+Recommended next gate:
+
+- Gate 7: deploy the updated Function and confirm production remains disabled.
+
 ## Open Questions
 
 1. Should `waitlisted` stay excluded from the first threshold decision?

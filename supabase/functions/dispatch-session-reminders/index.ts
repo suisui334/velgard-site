@@ -1,19 +1,27 @@
-// DRAFT ONLY / NOT DEPLOYED BY CODEX.
-// Dry-run dispatcher for session reminder previews.
+// Session reminder dispatcher.
 //
-// This function intentionally performs no Discord request and no DB write.
-// It only calls preview_due_session_reminders with a service-role client.
+// Gate 6 adds the production-gated code path, but this source is not deployed
+// in Gate 6. Dry-run still performs preview only: no Discord request, no DB
+// write, and no claim/finalize RPC calls.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 type ReminderType = "shortage" | "gm_confirmed";
+type FinalizeStatus = "sent" | "failed" | "skipped";
+type DeliveryStatus = FinalizeStatus | "finalize_failed";
 
 type ErrorCode =
   | "config_missing"
+  | "cron_auth_required"
+  | "db_claim_failed"
+  | "db_finalize_failed"
   | "db_preview_failed"
   | "invalid_payload"
   | "method_not_allowed"
-  | "production_not_enabled";
+  | "production_not_enabled"
+  | "webhook_config_missing"
+  | "webhook_response_invalid"
+  | "webhook_send_failed";
 
 interface DispatchOptions {
   dryRun: boolean;
@@ -39,7 +47,26 @@ interface PreviewReminderRow {
   scheduled_for: string | null;
 }
 
+interface ClaimedReminderRow extends PreviewReminderRow {
+  log_id: string | null;
+  lock_token: string | null;
+}
+
+interface FinalizedReminderRow {
+  log_id: string | null;
+  session_id: string | null;
+  reminder_type: string | null;
+  status: string | null;
+  sent_at: string | null;
+  finalized_at: string | null;
+}
+
 type SupportedPreviewReminderRow = PreviewReminderRow & { reminder_type: ReminderType };
+type SupportedClaimedReminderRow = ClaimedReminderRow & {
+  log_id: string;
+  lock_token: string;
+  reminder_type: ReminderType;
+};
 
 interface ReminderPreviewItem {
   reminder_type: ReminderType;
@@ -67,6 +94,22 @@ interface ReminderPreviewItem {
   };
 }
 
+interface ProductionReminderResult {
+  reminder_type: ReminderType;
+  status: DeliveryStatus;
+  title: string;
+  error_summary: string | null;
+  discord_message_reference: "received" | "not_sent";
+}
+
+interface DiscordWebhookPayload {
+  content: string;
+  flags: number;
+  allowed_mentions: {
+    parse: Array<"everyone">;
+  };
+}
+
 type SupabaseClient = ReturnType<typeof createClient>;
 
 type PreviewDueSessionRemindersRpcResult = Promise<{
@@ -74,22 +117,57 @@ type PreviewDueSessionRemindersRpcResult = Promise<{
   error: unknown;
 }>;
 
-type SessionReminderRpc = (
-  functionName: "preview_due_session_reminders",
-  args: { p_now: string; p_limit: number }
-) => PreviewDueSessionRemindersRpcResult;
+type ClaimDueSessionRemindersRpcResult = Promise<{
+  data: ClaimedReminderRow[] | null;
+  error: unknown;
+}>;
+
+type FinalizeSessionReminderRpcResult = Promise<{
+  data: FinalizedReminderRow[] | null;
+  error: unknown;
+}>;
+
+type SessionReminderRpc = {
+  (
+    functionName: "preview_due_session_reminders",
+    args: { p_now: string; p_limit: number }
+  ): PreviewDueSessionRemindersRpcResult;
+  (
+    functionName: "claim_due_session_reminders",
+    args: { p_now: string; p_limit: number }
+  ): ClaimDueSessionRemindersRpcResult;
+  (
+    functionName: "finalize_session_reminder",
+    args: {
+      p_log_id: string;
+      p_lock_token: string;
+      p_status: FinalizeStatus;
+      p_discord_message_id: string | null;
+      p_error_message: string | null;
+    }
+  ): FinalizeSessionReminderRpcResult;
+};
 
 type SessionReminderRpcClient = SupabaseClient & {
   rpc: SessionReminderRpc;
 };
 
+type DiscordSendResult =
+  | { ok: true; messageId: string }
+  | { ok: false; errorCode: ErrorCode; retryable: boolean };
+
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
+const DISCORD_SUPPRESS_EMBEDS_FLAG = 4;
 const PUBLIC_SITE_BASE_URL_ENV = "PUBLIC_SITE_BASE_URL";
 const SESSION_DETAIL_PAGE = "session-detail.html";
+const SESSION_REMINDER_REAL_SEND_ENABLED_ENV = "SESSION_REMINDER_REAL_SEND_ENABLED";
+const SESSION_REMINDER_DISPATCH_TOKEN_ENV = "SESSION_REMINDER_DISPATCH_TOKEN";
+const DISCORD_SESSION_REMINDER_WEBHOOK_URL_ENV = "DISCORD_SESSION_REMINDER_WEBHOOK_URL";
+const DISPATCH_TOKEN_HEADER = "x-dispatch-token";
 
 const CORS_HEADERS = {
-  "access-control-allow-headers": "authorization, content-type, x-client-info, apikey",
+  "access-control-allow-headers": "authorization, content-type, x-client-info, apikey, x-dispatch-token",
   "access-control-allow-methods": "POST, OPTIONS",
   "access-control-allow-origin": "*",
   "content-type": "application/json; charset=utf-8"
@@ -116,12 +194,17 @@ Deno.serve(async (request: Request) => {
 
   const options = optionsResult.value;
   if (!options.dryRun) {
-    return jsonError(
-      403,
-      "production_not_enabled",
-      "production dispatch is not enabled in this dry-run function.",
-      false
-    );
+    const productionGate = readProductionGate(request);
+    if (!productionGate.ok) {
+      return jsonError(productionGate.status, productionGate.errorCode, productionGate.message, false);
+    }
+
+    const clientResult = createServiceSupabaseClient();
+    if (!clientResult.ok) {
+      return jsonError(500, "config_missing", "Dispatcher configuration is missing.", false);
+    }
+
+    return handleProductionDispatch(clientResult.client, options, productionGate.webhookUrl);
   }
 
   const clientResult = createServiceSupabaseClient();
@@ -129,7 +212,11 @@ Deno.serve(async (request: Request) => {
     return jsonError(500, "config_missing", "Dispatcher configuration is missing.", true);
   }
 
-  const previewResult = await previewDueSessionReminders(clientResult.client, options);
+  return handleDryRun(clientResult.client, options);
+});
+
+async function handleDryRun(client: SessionReminderRpcClient, options: DispatchOptions): Promise<Response> {
+  const previewResult = await previewDueSessionReminders(client, options);
   if (!previewResult.ok) {
     return jsonError(500, "db_preview_failed", "Reminder preview failed.", true);
   }
@@ -150,7 +237,60 @@ Deno.serve(async (request: Request) => {
       production_enabled: false
     }
   });
-});
+}
+
+async function handleProductionDispatch(
+  client: SessionReminderRpcClient,
+  options: DispatchOptions,
+  webhookUrl: string
+): Promise<Response> {
+  const claimResult = await claimDueSessionReminders(client, options);
+  if (!claimResult.ok) {
+    return jsonError(500, "db_claim_failed", "Reminder claim failed.", false);
+  }
+
+  const publicSiteBaseUrl = normalizePublicSiteBaseUrl(Deno.env.get(PUBLIC_SITE_BASE_URL_ENV));
+  const results: ProductionReminderResult[] = [];
+
+  for (const row of claimResult.rows) {
+    const sessionUrl = buildSessionDetailUrl(row.session_public_id || row.session_id, publicSiteBaseUrl);
+    const sendResult = await sendDiscordReminder(row, sessionUrl, webhookUrl);
+    const finalizeStatus: FinalizeStatus = sendResult.ok ? "sent" : "failed";
+    const errorSummary = sendResult.ok ? null : normalizeErrorSummary(sendResult.errorCode);
+    const finalizeResult = await finalizeSessionReminder(
+      client,
+      row,
+      finalizeStatus,
+      sendResult.ok ? sendResult.messageId : null,
+      errorSummary
+    );
+
+    results.push({
+      reminder_type: row.reminder_type,
+      status: finalizeResult.ok ? finalizeStatus : "finalize_failed",
+      title: row.title || "タイトル未設定",
+      error_summary: finalizeResult.ok ? errorSummary : "db_finalize_failed",
+      discord_message_reference: sendResult.ok ? "received" : "not_sent"
+    });
+  }
+
+  return jsonOk({
+    ok: true,
+    dry_run: false,
+    production_enabled: true,
+    claimed_count: claimResult.rows.length,
+    sent_count: results.filter((result) => result.status === "sent").length,
+    failed_count: results.filter((result) => result.status === "failed" || result.status === "finalize_failed").length,
+    skipped_count: results.filter((result) => result.status === "skipped").length,
+    results,
+    safety: {
+      preview_rpc_only: false,
+      db_write: true,
+      discord_send: true,
+      claim_finalize: true
+    }
+  });
+}
 
 async function readJsonBody(request: Request): Promise<{ ok: true; value: Record<string, unknown> } | { ok: false }> {
   const text = await request.text();
@@ -196,6 +336,52 @@ function normalizeLimit(value: unknown): number {
   return Math.max(1, Math.min(MAX_LIMIT, Math.floor(parsed)));
 }
 
+function readProductionGate(request: Request): {
+  ok: true;
+  webhookUrl: string;
+} | {
+  ok: false;
+  status: number;
+  errorCode: ErrorCode;
+  message: string;
+} {
+  if (Deno.env.get(SESSION_REMINDER_REAL_SEND_ENABLED_ENV) !== "true") {
+    return {
+      ok: false,
+      status: 403,
+      errorCode: "production_not_enabled",
+      message: "production dispatch is not enabled."
+    };
+  }
+
+  if (!hasDispatchAuthorization(request)) {
+    return {
+      ok: false,
+      status: 401,
+      errorCode: "cron_auth_required",
+      message: "dispatch authorization failed."
+    };
+  }
+
+  const webhookUrl = readDiscordWebhookUrl();
+  if (!webhookUrl.ok) {
+    return {
+      ok: false,
+      status: 500,
+      errorCode: "webhook_config_missing",
+      message: "Discord Webhook is not configured."
+    };
+  }
+
+  return { ok: true, webhookUrl: webhookUrl.value };
+}
+
+function hasDispatchAuthorization(request: Request): boolean {
+  const expected = normalizeText(Deno.env.get(SESSION_REMINDER_DISPATCH_TOKEN_ENV), 300);
+  const actual = normalizeText(request.headers.get(DISPATCH_TOKEN_HEADER), 300);
+  return Boolean(expected && actual && expected === actual);
+}
+
 function createServiceSupabaseClient(): { ok: true; client: SessionReminderRpcClient } | { ok: false } {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -231,6 +417,43 @@ async function previewDueSessionReminders(
   }
 }
 
+async function claimDueSessionReminders(
+  client: SessionReminderRpcClient,
+  options: DispatchOptions
+): Promise<{ ok: true; rows: SupportedClaimedReminderRow[] } | { ok: false }> {
+  try {
+    const result = await client.rpc("claim_due_session_reminders", {
+      p_now: options.nowIso,
+      p_limit: options.limit
+    });
+    if (result.error || !Array.isArray(result.data)) return { ok: false };
+    return { ok: true, rows: result.data.map(normalizeClaimedReminderRow).filter(isSupportedClaimedReminderRow) };
+  } catch {
+    return { ok: false };
+  }
+}
+
+async function finalizeSessionReminder(
+  client: SessionReminderRpcClient,
+  row: SupportedClaimedReminderRow,
+  status: FinalizeStatus,
+  discordMessageId: string | null,
+  errorMessage: string | null
+): Promise<{ ok: true } | { ok: false }> {
+  try {
+    const result = await client.rpc("finalize_session_reminder", {
+      p_log_id: row.log_id,
+      p_lock_token: row.lock_token,
+      p_status: status,
+      p_discord_message_id: discordMessageId,
+      p_error_message: errorMessage
+    });
+    return result.error || !Array.isArray(result.data) || result.data.length === 0 ? { ok: false } : { ok: true };
+  } catch {
+    return { ok: false };
+  }
+}
+
 function normalizePreviewReminderRow(row: PreviewReminderRow): PreviewReminderRow {
   return {
     session_id: normalizeText(row?.session_id, 120),
@@ -251,15 +474,25 @@ function normalizePreviewReminderRow(row: PreviewReminderRow): PreviewReminderRo
   };
 }
 
+function normalizeClaimedReminderRow(row: ClaimedReminderRow): ClaimedReminderRow {
+  return {
+    ...normalizePreviewReminderRow(row),
+    log_id: normalizeText(row?.log_id, 120),
+    lock_token: normalizeText(row?.lock_token, 120)
+  };
+}
+
 function isSupportedReminderRow(row: PreviewReminderRow): row is SupportedPreviewReminderRow {
   return row.reminder_type === "shortage" || row.reminder_type === "gm_confirmed";
 }
 
+function isSupportedClaimedReminderRow(row: ClaimedReminderRow): row is SupportedClaimedReminderRow {
+  return Boolean(row.log_id && row.lock_token && isSupportedReminderRow(row));
+}
+
 function buildReminderPreviewItem(row: SupportedPreviewReminderRow, publicSiteBaseUrl: string): ReminderPreviewItem {
   const sessionUrl = buildSessionDetailUrl(row.session_public_id || row.session_id, publicSiteBaseUrl);
-  const messagePreview = row.reminder_type === "shortage"
-    ? buildShortageMessagePreview(row, sessionUrl)
-    : buildGmConfirmedMessagePreview(row, sessionUrl);
+  const messagePreview = buildReminderMessage(row, sessionUrl);
 
   return {
     reminder_type: row.reminder_type,
@@ -282,10 +515,97 @@ function buildReminderPreviewItem(row: SupportedPreviewReminderRow, publicSiteBa
       would_send: false,
       suppress_embeds: true,
       allowed_mentions: {
-        parse: row.reminder_type === "shortage" ? ["everyone"] : []
+        parse: getAllowedMentionParse(row.reminder_type)
       }
     }
   };
+}
+
+async function sendDiscordReminder(
+  row: SupportedClaimedReminderRow,
+  sessionUrl: string,
+  webhookUrl: string
+): Promise<DiscordSendResult> {
+  let response: Response;
+  try {
+    response = await fetch(buildDiscordWebhookWaitUrl(webhookUrl), {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify(buildDiscordWebhookPayload(row, sessionUrl))
+    });
+  } catch {
+    return { ok: false, errorCode: "webhook_send_failed", retryable: true };
+  }
+
+  if (!response.ok) {
+    return {
+      ok: false,
+      errorCode: "webhook_send_failed",
+      retryable: response.status === 429 || response.status >= 500
+    };
+  }
+
+  const messageId = await readDiscordMessageId(response);
+  return messageId
+    ? { ok: true, messageId }
+    : { ok: false, errorCode: "webhook_response_invalid", retryable: false };
+}
+
+function readDiscordWebhookUrl(): { ok: true; value: string } | { ok: false } {
+  const rawUrl = normalizeText(Deno.env.get(DISCORD_SESSION_REMINDER_WEBHOOK_URL_ENV), 2048);
+  if (!rawUrl) return { ok: false };
+
+  try {
+    const parsedUrl = new URL(rawUrl);
+    const isDiscordHost = parsedUrl.hostname === "discord.com" || parsedUrl.hostname === "discordapp.com";
+    const isWebhookPath = parsedUrl.pathname.startsWith("/api/webhooks/");
+    if (parsedUrl.protocol !== "https:" || !isDiscordHost || !isWebhookPath) return { ok: false };
+    return { ok: true, value: rawUrl };
+  } catch {
+    return { ok: false };
+  }
+}
+
+function buildDiscordWebhookWaitUrl(webhookUrl: string): string {
+  const url = new URL(webhookUrl);
+  url.searchParams.set("wait", "true");
+  return url.toString();
+}
+
+function buildDiscordWebhookPayload(
+  row: SupportedClaimedReminderRow,
+  sessionUrl: string
+): DiscordWebhookPayload {
+  return {
+    content: truncateDiscordContent(buildReminderMessage(row, sessionUrl)),
+    flags: DISCORD_SUPPRESS_EMBEDS_FLAG,
+    allowed_mentions: {
+      parse: getAllowedMentionParse(row.reminder_type)
+    }
+  };
+}
+
+function getAllowedMentionParse(reminderType: ReminderType): Array<"everyone"> {
+  return reminderType === "shortage" ? ["everyone"] : [];
+}
+
+async function readDiscordMessageId(response: Response): Promise<string | null> {
+  try {
+    const value = await response.json();
+    if (!isRecord(value)) return null;
+    const messageId = normalizeText(value.id, 120);
+    return isDiscordSnowflakeLike(messageId) ? messageId : null;
+  } catch {
+    return null;
+  }
+}
+
+function buildReminderMessage(row: SupportedPreviewReminderRow, sessionUrl: string): string {
+  return row.reminder_type === "shortage"
+    ? buildShortageMessagePreview(row, sessionUrl)
+    : buildGmConfirmedMessagePreview(row, sessionUrl);
 }
 
 function buildShortageMessagePreview(row: PreviewReminderRow, sessionUrl: string): string {
@@ -304,9 +624,9 @@ function buildGmConfirmedMessagePreview(row: PreviewReminderRow, sessionUrl: str
   const startTime = formatStartTimeForJapaneseMessage(row.start_at);
   const gmName = row.gm_display_name || "GM";
   return [
-    `GM向けリマインド：${gmName}さん`,
+    `${gmName}さんへ`,
     `■依頼書【${title}】［${sessionUrl}］`,
-    `本日${startTime}より開催予定です。最低人数を満たしているため、開催準備の確認をお願いします。`
+    `本日${startTime}より開催予定です。最低人数を満たしています。GMは開催準備をご確認ください。`
   ].join("\n");
 }
 
@@ -357,6 +677,18 @@ function normalizePublicSiteBaseUrl(value: unknown): string {
   } catch {
     return "";
   }
+}
+
+function truncateDiscordContent(value: string): string {
+  return value.slice(0, 1900);
+}
+
+function isDiscordSnowflakeLike(value: string): boolean {
+  return /^\d{10,30}$/.test(value);
+}
+
+function normalizeErrorSummary(value: unknown): string {
+  return normalizeText(value, 120).replace(/[^a-z0-9_:-]/gi, "_") || "session_reminder_dispatch_error";
 }
 
 function normalizeText(value: unknown, maxLength: number): string {

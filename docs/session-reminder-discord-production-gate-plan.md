@@ -304,6 +304,13 @@ Scope:
 - Do not send Discord.
 - Do not call claim/finalize runtime.
 
+Gate 6 result:
+
+- `docs/session-reminder-production-code-result.md`
+- production-gated code was implemented in source
+- `deno check --no-lock supabase/functions/dispatch-session-reminders/index.ts`: passed
+- no Edge deploy, runtime invocation, Discord send, claim/finalize runtime call, DB write, secret/Webhook change, or `updates.json` change was performed
+
 ### Gate 7: Deploy And Production Disabled Check
 
 Scope:
