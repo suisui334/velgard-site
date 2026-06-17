@@ -240,6 +240,44 @@ Recommended gate split:
 
 Keep shortage `@everyone` as the final, independent approval gate.
 
+## Gate 12C SQL Draft Follow-up
+
+Gate 12C added the scheduler SQL draft and post-apply checklist:
+
+- `docs/sql-drafts/session-reminder-scheduler-draft.sql`
+- `docs/session-reminder-scheduler-sql-checklist.md`
+
+Draft design:
+
+- cron job name: `dispatch-session-reminders-every-minute`
+- scheduler mechanism: Supabase `pg_cron` + `pg_net`
+- target Function: `dispatch-session-reminders`
+- initial schedule: every minute (`* * * * *`)
+- lower-noise alternative: every 5 minutes (`*/5 * * * *`)
+- payload: `dry_run:false`, `limit:1`
+- dispatch token header: `x-dispatch-token`
+- Function URL, invoke JWT, and dispatch token are read from Supabase Vault
+  secret names, not inline values
+
+Vault secret names expected by the draft:
+
+- `SESSION_REMINDER_FUNCTION_URL`
+- `SESSION_REMINDER_INVOKE_JWT`
+- `SESSION_REMINDER_DISPATCH_TOKEN`
+
+Important boundary:
+
+- creating cron does not enable real send by itself
+- real send remains controlled by the Edge Function secret/env
+  `SESSION_REMINDER_REAL_SEND_ENABLED`
+- the first apply/runtime gate should keep real send disabled and confirm the
+  dispatcher rejects production mode safely
+- shortage `@everyone` remains a later independent approval gate
+
+Gate 12C itself did not run SQL, create cron, invoke runtime, enable real send,
+send Discord, write DB rows, deploy Edge Functions, change secrets, or change
+`updates.json`.
+
 ## Not Performed
 
 - Discord send

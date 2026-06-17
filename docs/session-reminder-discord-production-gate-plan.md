@@ -771,6 +771,30 @@ Gate 12B itself was docs-only and did not send Discord, enable real send, call
 `dry_run:false`, execute claim/finalize, write DB rows, apply SQL, deploy Edge
 Functions, configure cron, change UI, change secrets, or change `updates.json`.
 
+Gate 12C scheduler SQL draft result:
+
+- scheduler draft: `docs/sql-drafts/session-reminder-scheduler-draft.sql`
+- post-apply checklist:
+  `docs/session-reminder-scheduler-sql-checklist.md`
+- cron job name: `dispatch-session-reminders-every-minute`
+- mechanism: Supabase `pg_cron` + `pg_net`
+- target Function: `dispatch-session-reminders`
+- recommended schedule: every minute
+- lower-noise alternative: every 5 minutes
+- payload: `dry_run:false`, `limit:1`
+- expected Vault secret names:
+  - `SESSION_REMINDER_FUNCTION_URL`
+  - `SESSION_REMINDER_INVOKE_JWT`
+  - `SESSION_REMINDER_DISPATCH_TOKEN`
+- real send remains controlled separately by
+  `SESSION_REMINDER_REAL_SEND_ENABLED`
+- apply must stop if required Vault secrets are missing
+- post-apply checks must return status/count style results only
+
+Gate 12C itself was docs-only and did not run SQL, create cron, invoke runtime,
+enable real send, send Discord, write DB rows, deploy Edge Functions, change
+secrets, or change `updates.json`.
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:

@@ -11311,6 +11311,83 @@ Gate 12B not performed:
 - secret/Webhook setting or change
 - `updates.json` change
 
+## Gate 12C session reminder scheduler SQL draft
+
+Status: scheduler SQL draft and post-apply SELECT-only checklist prepared.
+
+- Baseline: `d402323 Plan session reminder scheduler operation`.
+- Added:
+  - `docs/sql-drafts/session-reminder-scheduler-draft.sql`
+  - `docs/session-reminder-scheduler-sql-checklist.md`
+- Updated:
+  - `docs/session-reminder-scheduler-operation-plan.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+
+Existing pattern reviewed:
+
+- admin-cap announcement scheduler uses Supabase `pg_cron` + `pg_net`
+- scheduler SQL uses Vault secret names instead of inline Function URL, JWT,
+  dispatch token, Webhook URL, or project-specific values
+- post-apply checks use generalized `check_name / status / result_value /
+  note` output
+
+Session reminder scheduler draft:
+
+- cron job name: `dispatch-session-reminders-every-minute`
+- target Function: `dispatch-session-reminders`
+- initial schedule: `* * * * *`
+- documented lower-noise alternative: `*/5 * * * *`
+- payload: `dry_run:false`, `limit:1`
+- dispatch token header: `x-dispatch-token`
+- expected Vault secret names:
+  - `SESSION_REMINDER_FUNCTION_URL`
+  - `SESSION_REMINDER_INVOKE_JWT`
+  - `SESSION_REMINDER_DISPATCH_TOKEN`
+- real send remains controlled separately by
+  `SESSION_REMINDER_REAL_SEND_ENABLED`
+- shortage `@everyone` remains a later independent approval gate
+
+Post-apply checklist includes:
+
+- cron job existence and job name
+- schedule and active state
+- `pg_net.http_post` usage
+- `dry_run:false` and `limit:1` payload confirmation
+- Authorization, apikey, and dispatch-token header presence
+- Vault secret reference confirmation
+- inline secret pattern checks
+- optional pg_net response status/count review
+- unschedule rollback draft for a later explicit rollback gate
+
+Gate 12C not performed:
+
+- SQL Editor execution
+- SQL apply
+- cron creation
+- runtime invocation
+- production `dry_run:false`
+- claim/finalize runtime execution
+- DB write
+- Discord send
+- `@everyone` send
+- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
+- Edge deploy
+- DB/RPC/RLS structure change
+- secret/Webhook setting or change
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+
+Next candidate gates:
+
+1. Gate 12D: configure/confirm required Vault secrets if needed, then apply the
+   scheduler SQL under explicit approval while real send remains disabled.
+2. Gate 12E: scheduler runtime production-disabled confirmation.
+3. Gate 12F: GM automatic scheduler send test with bounded target count.
+4. Gate 12G: shortage `@everyone` production planning only.
+5. Gate 12H: shortage `@everyone` final approval and bounded production
+   operation.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
