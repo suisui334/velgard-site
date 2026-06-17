@@ -843,6 +843,28 @@ Gate 12G did not enable real send, send Discord, send `@everyone`, change
 secrets, deploy Edge Functions, change SQL structure, change cron, change UI,
 or change `updates.json`.
 
+Gate 12H GM automatic scheduler send preflight:
+
+- result doc:
+  `docs/session-reminder-gm-automatic-send-result.md`
+- current-time `dry_run:true` was executed without `now` override
+- HTTP status: `200`
+- `count`: `0`
+- `gm_confirmed` count: `0`
+- shortage count: `0`
+- `@everyone` marker: false
+- raw Discord ID pattern: false
+- `session_reminder_logs` count remained `1`
+- preflight did not meet the exactly-one-`gm_confirmed` requirement
+- real send was not enabled
+- scheduler automatic production send was not attempted
+- Discord send did not occur
+- shortage `@everyone` send did not occur
+
+Next GM automatic scheduler send test should wait for or prepare exactly one
+current-time `gm_confirmed` due candidate, then rerun preflight before any
+real-send window.
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:

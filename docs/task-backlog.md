@@ -11843,6 +11843,66 @@ Next candidate gates:
 3. Gate 12J: shortage `@everyone` final approval and bounded production
    operation.
 
+## Gate 12H GM automatic scheduler send preflight stop
+
+Status: GM automatic scheduler send test stopped at preflight because there was
+no current-time `gm_confirmed` due candidate.
+
+- Baseline: `089b637 Record session reminder scheduler disabled status`.
+- Added:
+  - `docs/session-reminder-gm-automatic-send-result.md`
+- Updated:
+  - `docs/session-reminder-current-operation-status.md`
+  - `docs/session-reminder-scheduler-operation-plan.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+
+Preflight result:
+
+- current-time `dry_run:true` was executed without `now` override
+- HTTP status: `200`
+- `ok`: true
+- `dry_run`: true
+- `production_enabled`: false
+- `count`: `0`
+- `gm_confirmed` count: `0`
+- shortage count: `0`
+- `@everyone` marker: false
+- raw Discord ID pattern: false
+- `session_reminder_logs` before/after: `1` -> `1`
+
+Continuation condition result:
+
+- required exactly one `gm_confirmed` candidate
+- actual candidate count was `0`
+- Gate 12H stopped before real-send enablement
+- automatic scheduler production send was not attempted
+
+Gate 12H not performed:
+
+- `SESSION_REMINDER_REAL_SEND_ENABLED=true`
+- Discord send
+- `@everyone` send
+- shortage send
+- multiple-item send
+- manual production `dry_run:false`
+- cron change
+- SQL structure change
+- Edge deploy
+- secret change
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+- raw Function URL / JWT / token / Webhook / Discord ID / message id /
+  message body recording
+
+Next candidate gates:
+
+1. Gate 12H retry: prepare or wait for exactly one current-time `gm_confirmed`
+   due candidate, then rerun preflight.
+2. Gate 12I: shortage `@everyone` production planning only.
+3. Gate 12J: shortage `@everyone` final approval and bounded production
+   operation.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

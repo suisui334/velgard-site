@@ -446,7 +446,38 @@ Current operation mode:
 - the existing reminder log row is from the prior manual `gm_confirmed` send
 - shortage `@everyone` has never been sent
 
-## Not Performed In Gate 12G
+## Gate 12H GM Automatic Send Preflight Stop
+
+Gate 12H checked whether a bounded GM automatic scheduler send test could run.
+
+Result doc:
+
+- `docs/session-reminder-gm-automatic-send-result.md`
+
+Preflight result:
+
+- current time was used
+- no `now` override was used
+- `dry_run:true` HTTP status: `200`
+- `count`: `0`
+- `gm_confirmed` count: `0`
+- shortage count: `0`
+- `@everyone` marker: false
+- raw Discord ID pattern: false
+- `session_reminder_logs` remained `1`
+
+Because the preflight did not return exactly one `gm_confirmed` candidate,
+Gate 12H stopped before enabling real send.
+
+Operation state after Gate 12H:
+
+- scheduler automatic checks remain active
+- real send remains disabled
+- scheduler automatic production send remains not started
+- Discord send did not occur
+- shortage `@everyone` did not occur
+
+## Not Performed In Gate 12H
 
 - Discord send
 - Discord dry-run send

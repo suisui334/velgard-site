@@ -83,3 +83,32 @@ Recommended next gates:
 2. Gate 12I: shortage `@everyone` production planning only.
 3. Gate 12J: shortage `@everyone` final approval and bounded production
    operation.
+
+## Gate 12H GM Automatic Send Preflight
+
+Gate 12H attempted to start a bounded GM automatic scheduler send test, but
+stopped at preflight.
+
+Preflight result:
+
+- current time was used
+- no `now` override was used
+- `dry_run:true` HTTP status: `200`
+- `count`: `0`
+- `gm_confirmed` count: `0`
+- shortage count: `0`
+- `@everyone` marker: false
+- raw Discord ID pattern: false
+- `session_reminder_logs` before/after: `1` -> `1`
+
+Because the preflight did not return exactly one `gm_confirmed` candidate,
+real send was not enabled and the scheduler automatic production send test was
+not attempted.
+
+Current state after Gate 12H:
+
+- scheduler automatic checks remain active
+- real send remains disabled
+- scheduler automatic production send remains not started
+- Discord send did not occur
+- shortage `@everyone` did not occur
