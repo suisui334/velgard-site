@@ -10741,6 +10741,81 @@ Next candidate gate:
   secret presence/format by name or safe status only, inspect sanitized Edge
   logs if needed, and do not re-run production send until the cause is known.
 
+## Gate 11D session reminder production HTTP 500 diagnosis
+
+Status: diagnosis and source hardening completed. No send was performed.
+
+- Baseline: `5c81e19 Record GM confirmed production send test`.
+- Added `docs/session-reminder-production-500-diagnosis.md`.
+- Updated:
+  - `supabase/functions/dispatch-session-reminders/index.ts`
+  - `docs/session-reminder-limited-production-send-result.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+- SELECT-only `session_reminder_logs` count during Gate 11D:
+  - `0`
+- Interpretation:
+  - the successful claim/finalize path did not complete
+  - the failure was before a claim log row was persisted or inside claim before
+    persistence
+- Edge logs:
+  - the local Supabase CLI available in the workspace did not expose a function
+    logs subcommand
+  - no Dashboard logs, Webhook URL, token, raw Discord ID, message id, session
+    id, session URL, or message body values were copied into docs
+- Gate 11C deployed response did not yet include a safe `stage` field, so the
+  exact runtime stage could not be read from the recorded response alone.
+- Code-path inference:
+  - real-send env gate likely passed for the single attempt
+  - dispatch-token gate likely passed
+  - successful claim/finalize did not complete
+  - likely remaining pre-send failure areas are `webhook_config` or `claim_rpc`
+
+Source hardening:
+
+- Added safe `stage` fields to dispatcher error responses.
+- Added stages including:
+  - `request_validation`
+  - `service_client_config`
+  - `production_gate`
+  - `production_auth`
+  - `webhook_config`
+  - `preview_rpc`
+  - `claim_rpc`
+- Mapped expected preview/claim RPC failures to HTTP `502`.
+- Mapped webhook configuration failure to HTTP `502`.
+- Kept production disabled as HTTP `403`.
+- Kept auth/token rejection as HTTP `401`.
+- Response remains free of Webhook URLs, token values, raw Discord IDs,
+  Discord message ids, session ids, session URLs, and message bodies.
+- `deno check --no-lock supabase/functions/dispatch-session-reminders/index.ts`:
+  passed.
+
+Not performed:
+
+- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
+- production `dry_run:false` invocation
+- Discord send
+- Discord dry-run send
+- `@everyone` send
+- shortage send
+- claim/finalize runtime execution
+- `session_reminder_logs` write
+- Edge deploy
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS structure change
+- secret/Webhook setting or change
+- cron setup
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+
+Next candidate gate:
+
+- Gate 11E: deploy the stage-aware dispatcher and run production-disabled
+  checks only. Do not re-run production send until the stage-aware deployment is
+  verified and a separate explicit send gate is approved.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

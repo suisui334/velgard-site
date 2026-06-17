@@ -23,6 +23,15 @@ type ErrorCode =
   | "webhook_response_invalid"
   | "webhook_send_failed";
 
+type ErrorStage =
+  | "request_validation"
+  | "service_client_config"
+  | "production_gate"
+  | "production_auth"
+  | "webhook_config"
+  | "preview_rpc"
+  | "claim_rpc";
+
 interface DispatchOptions {
   dryRun: boolean;
   nowIso: string;
@@ -184,29 +193,29 @@ Deno.serve(async (request: Request) => {
   }
 
   if (request.method !== "POST") {
-    return jsonError(405, "method_not_allowed", "POSTで呼び出してください。", true);
+    return jsonError(405, "method_not_allowed", "POSTで呼び出してください。", true, "request_validation");
   }
 
   const parsedBody = await readJsonBody(request);
   if (!parsedBody.ok) {
-    return jsonError(400, "invalid_payload", "リクエスト内容を確認してください。", true);
+    return jsonError(400, "invalid_payload", "リクエスト内容を確認してください。", true, "request_validation");
   }
 
   const optionsResult = readDispatchOptions(parsedBody.value);
   if (!optionsResult.ok) {
-    return jsonError(400, "invalid_payload", optionsResult.message, true);
+    return jsonError(400, "invalid_payload", optionsResult.message, true, "request_validation");
   }
 
   const options = optionsResult.value;
   if (!options.dryRun) {
     const productionGate = readProductionGate(request);
     if (!productionGate.ok) {
-      return jsonError(productionGate.status, productionGate.errorCode, productionGate.message, false);
+      return jsonError(productionGate.status, productionGate.errorCode, productionGate.message, false, productionGate.stage);
     }
 
     const clientResult = createServiceSupabaseClient();
     if (!clientResult.ok) {
-      return jsonError(500, "config_missing", "Dispatcher configuration is missing.", false);
+      return jsonError(500, "config_missing", "Dispatcher configuration is missing.", false, "service_client_config");
     }
 
     return handleProductionDispatch(clientResult.client, options, productionGate.webhookUrl);
@@ -214,7 +223,7 @@ Deno.serve(async (request: Request) => {
 
   const clientResult = createServiceSupabaseClient();
   if (!clientResult.ok) {
-    return jsonError(500, "config_missing", "Dispatcher configuration is missing.", true);
+    return jsonError(500, "config_missing", "Dispatcher configuration is missing.", true, "service_client_config");
   }
 
   return handleDryRun(clientResult.client, options);
@@ -223,7 +232,7 @@ Deno.serve(async (request: Request) => {
 async function handleDryRun(client: SessionReminderRpcClient, options: DispatchOptions): Promise<Response> {
   const previewResult = await previewDueSessionReminders(client, options);
   if (!previewResult.ok) {
-    return jsonError(500, "db_preview_failed", "Reminder preview failed.", true);
+    return jsonError(502, "db_preview_failed", "Reminder preview failed.", true, "preview_rpc");
   }
 
   const publicSiteBaseUrl = normalizePublicSiteBaseUrl(Deno.env.get(PUBLIC_SITE_BASE_URL_ENV));
@@ -251,7 +260,7 @@ async function handleProductionDispatch(
 ): Promise<Response> {
   const claimResult = await claimDueSessionReminders(client, options);
   if (!claimResult.ok) {
-    return jsonError(500, "db_claim_failed", "Reminder claim failed.", false);
+    return jsonError(502, "db_claim_failed", "Reminder claim failed.", false, "claim_rpc");
   }
 
   const publicSiteBaseUrl = normalizePublicSiteBaseUrl(Deno.env.get(PUBLIC_SITE_BASE_URL_ENV));
@@ -349,6 +358,7 @@ function readProductionGate(request: Request): {
   ok: false;
   status: number;
   errorCode: ErrorCode;
+  stage: ErrorStage;
   message: string;
 } {
   if (Deno.env.get(SESSION_REMINDER_REAL_SEND_ENABLED_ENV) !== "true") {
@@ -356,6 +366,7 @@ function readProductionGate(request: Request): {
       ok: false,
       status: 403,
       errorCode: "production_not_enabled",
+      stage: "production_gate",
       message: "production dispatch is not enabled."
     };
   }
@@ -365,6 +376,7 @@ function readProductionGate(request: Request): {
       ok: false,
       status: 401,
       errorCode: "cron_auth_required",
+      stage: "production_auth",
       message: "dispatch authorization failed."
     };
   }
@@ -373,8 +385,9 @@ function readProductionGate(request: Request): {
   if (!webhookUrl.ok) {
     return {
       ok: false,
-      status: 500,
+      status: 502,
       errorCode: "webhook_config_missing",
+      stage: "webhook_config",
       message: "Discord Webhook is not configured."
     };
   }
@@ -760,10 +773,17 @@ function jsonOk(body: unknown): Response {
   });
 }
 
-function jsonError(status: number, errorCode: ErrorCode, message: string, dryRun: boolean): Response {
+function jsonError(
+  status: number,
+  errorCode: ErrorCode,
+  message: string,
+  dryRun: boolean,
+  stage?: ErrorStage
+): Response {
   return new Response(JSON.stringify({
     ok: false,
     error_code: errorCode,
+    ...(stage ? { stage } : {}),
     message,
     dry_run: dryRun
   }), {

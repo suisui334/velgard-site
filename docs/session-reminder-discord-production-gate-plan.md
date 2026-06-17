@@ -587,6 +587,33 @@ send attempt, run a send-free Gate 11D diagnosis for the HTTP `500` production
 path failure. Record only safe status/counts and do not expose Webhook, token,
 Discord ID, message id, session id, session URL, or message body values.
 
+Gate 11D production HTTP `500` diagnosis:
+
+- result doc: `docs/session-reminder-production-500-diagnosis.md`
+- `session_reminder_logs` count remained `0`
+- provider-side Edge logs were not copied into docs; the local CLI available in
+  this workspace did not expose a function logs subcommand
+- the Gate 11C deployed response did not yet include a safe `stage` field, so
+  the exact runtime stage could not be read from the recorded response
+- code-path inference: real-send and token gates likely passed; successful
+  claim/finalize did not complete; likely remaining pre-send failure areas are
+  `webhook_config` or `claim_rpc`
+- prepared source hardening in
+  `supabase/functions/dispatch-session-reminders/index.ts`
+- new safe error stages include `production_gate`, `production_auth`,
+  `webhook_config`, `preview_rpc`, and `claim_rpc`
+- expected webhook configuration and claim RPC failures now map to HTTP `502`
+  with a safe stage after the next deploy
+- no Edge deploy, production invocation, Discord send, claim/finalize runtime
+  execution, DB write, SQL/DB structure change, secret change, cron setup, UI
+  change, or `updates.json` change was performed
+
+Next gate before any resend:
+
+- deploy the stage-aware dispatcher and run production-disabled checks only.
+  Do not re-run production send until the stage-aware deployment has been
+  verified and a separate explicit send gate is approved.
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:

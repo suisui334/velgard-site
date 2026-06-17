@@ -256,3 +256,32 @@ Next gate:
 - Gate 11D: production path HTTP `500` diagnosis without sending. Confirm
   secret presence/format by name or safe status only, inspect sanitized Edge
   logs if needed, and do not re-run production send until the cause is known.
+
+## Gate 11D Production 500 Diagnosis Follow-up
+
+Result doc:
+
+- `docs/session-reminder-production-500-diagnosis.md`
+
+Sanitized diagnosis:
+
+- `session_reminder_logs` count remained `0`.
+- The successful claim/finalize path did not complete.
+- The Gate 11C deployed response did not include a safe stage value, so the
+  exact runtime stage could not be distinguished from the response alone.
+- Code-path inference narrows the likely pre-send failure area to
+  `webhook_config` or `claim_rpc`.
+
+Source hardening prepared, but not deployed:
+
+- added safe `stage` fields to dispatcher error responses
+- mapped webhook configuration failure to HTTP `502` with stage
+  `webhook_config`
+- mapped claim RPC failure to HTTP `502` with stage `claim_rpc`
+- kept production disabled as HTTP `403` with stage `production_gate`
+- kept auth/token rejection as HTTP `401` with stage `production_auth`
+
+Gate 11D did not enable real send, did not call `dry_run:false`, did not send
+Discord, did not execute claim/finalize, did not write DB rows, did not deploy
+the Edge Function, and did not change secrets, SQL, DB structure, UI, or
+`updates.json`.
