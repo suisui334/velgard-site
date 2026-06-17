@@ -637,6 +637,28 @@ Reason:
 - It can remain docs-only and avoid implementation, renderer, CSS, auth, DB,
   and Discord risk.
 
+## Phase 3-C6 Page Adoption Checklist Follow-Up
+
+Phase 3-C6 completes the recommended page-by-page adoption checklist:
+
+- `docs/world-template-page-adoption-checklist.md`
+
+Scenarios/hooks impact:
+
+- `scenarios.html`, `hooks.html`, and `scenario-detail.html` are classified as
+  world-template pages
+- `hooks.html` remains documented as a compatibility route until a future gate
+  changes it
+- scenario/hook data remains separate from live session-post and
+  session-detail data
+- public scenario/hook data must remain free of GM secrets before launch
+- page-level checks now include detail id behavior, related links, release file
+  links, missing images, and cache-bust chain review
+
+Recommended next docs-only candidate after C6:
+
+- campaigns / episodes template structure.
+
 ## Limited And Not Tested
 
 This plan is docs-only and does not add runtime QA.

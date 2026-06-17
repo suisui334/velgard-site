@@ -1153,3 +1153,32 @@ World-site template impact:
 Recommended next docs-only candidate:
 
 - page-by-page world-template adoption checklist
+
+## Phase 3-C6 Page Adoption Checklist
+
+Phase 3-C6 completes that recommended docs-only candidate:
+
+- `docs/world-template-page-adoption-checklist.md`
+
+World-site template impact:
+
+- inventories the current root HTML pages and their `data-page` keys
+- classifies pages as:
+  - world-template pages: index, world, characters, spots, spot-detail, terms,
+    scenarios, hooks, scenario-detail, regulation, gallery, campaigns,
+    campaign-detail, and episode-detail
+  - reusable ops pages: calendar, session-post, session-detail, mypage,
+    timeline, and admin-cap announcements
+  - auxiliary/common pages: tools and updates
+  - do-not-copy values: secrets, tokens, raw ids, emails, Webhooks, Discord
+    IDs/URLs, Supabase project-specific private values, live member/session
+    data, and Velgard-specific assets
+- records per-page reusable structure, replace-per-world content, dangerous
+  surfaces, related data, JS, CSS/assets, cache-bust targets, minimum checks,
+  and rollback guidance
+- establishes the recommended next-world page introduction order before any
+  auth, DB/RPC/RLS, Edge, Discord, or data-changing gate
+
+Recommended next docs-only candidate:
+
+- campaigns / episodes template structure

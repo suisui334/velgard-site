@@ -350,6 +350,28 @@ Reason:
 - a docs-only structure plan can clarify ownership before any renderer,
   category, image-path, DB, Discord, or auth work
 
+## Phase 3-C6 Page Adoption Checklist Follow-Up
+
+Phase 3-C6 adds the page-by-page adoption checklist:
+
+- `docs/world-template-page-adoption-checklist.md`
+
+Gallery/image impact:
+
+- gallery is classified as a world-template page
+- index, world, characters, spots, scenarios/hooks, campaigns/episodes, and
+  gallery all keep image ownership on the world-template side
+- OGP, favicon, hero, map, and shared gallery/spot images remain careful-gate
+  assets
+- reusable ops pages may link to world images later, but do not own gallery
+  assets
+- page adoption now requires broken-image / 404 / fallback checks before public
+  launch
+
+Recommended next docs-only candidate after C6:
+
+- campaigns / episodes template structure.
+
 ## Limited And Not Tested
 
 This guide is docs-only and does not add runtime QA.

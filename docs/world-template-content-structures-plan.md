@@ -708,6 +708,28 @@ Recommended next docs-only candidate after C5:
 
 - page-by-page world-template adoption checklist.
 
+## Phase 3-C6 Page Adoption Checklist Follow-Up
+
+Phase 3-C6 completes the page-by-page world-template adoption checklist:
+
+- `docs/world-template-page-adoption-checklist.md`
+
+Content-structure impact:
+
+- places characters, spots, terms, scenarios/hooks, gallery, regulation,
+  campaigns, and episodes into a wider page adoption matrix
+- documents that 0/few/many data states remain page-level checks, not fixed
+  required counts
+- keeps related-link, image, cache-bust, and rollback checks visible for each
+  world-template page
+- separates reusable ops pages such as calendar, session-post, session-detail,
+  mypage, timeline, and admin-cap announcements from world-template content
+  ownership
+
+Recommended next docs-only candidate after C6:
+
+- campaigns / episodes template structure.
+
 ## Limited And Not Tested
 
 This plan is docs-only and does not add runtime QA.

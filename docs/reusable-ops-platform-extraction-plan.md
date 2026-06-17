@@ -1530,3 +1530,24 @@ Recommended next docs-only candidate:
 
 - draft a regulation sample data composition before attempting broader
   ops-core adoption for a second world
+
+## Phase 3-C6 Page Adoption Checklist
+
+Phase 3-C6 adds the page-by-page world-template adoption checklist:
+
+- `docs/world-template-page-adoption-checklist.md`
+
+Reusable-ops impact:
+
+- calendar, session-post, session-detail, mypage, timeline, and
+  admin-cap-announcements are classified as reusable ops or ops-admin surfaces
+- those pages remain optional for a next world and require separate setup and
+  QA before use
+- world-template pages can link to ops pages, but do not own auth,
+  membership, DB/RPC/RLS, Discord sync, application/comment data, live session
+  data, or admin announcement behavior
+- tools and updates are documented as auxiliary/common pages rather than
+  reusable ops core
+- the next-world page adoption path does not change `assets/js/core/`,
+  `main.js`, `style.css`, session orchestrators, mypage auth client, Discord
+  sync client, DB/RPC/RLS, or `updates.json`

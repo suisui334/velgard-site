@@ -600,6 +600,26 @@ Next-world adoption impact:
 - recommends the next docs-only candidate:
   page-by-page world-template adoption checklist
 
+## Phase 3-C6 Page Adoption Checklist Follow-Up
+
+Phase 3-C6 completes that recommended docs-only candidate:
+
+- `docs/world-template-page-adoption-checklist.md`
+
+Next-world adoption impact:
+
+- inventories the current root HTML pages and `main.js` page keys
+- classifies pages as world-template, reusable ops core, auxiliary/common, or
+  do-not-copy/careful values
+- records page-by-page reusable structures, replace-per-world data, dangerous
+  surfaces, related data, related JS, image/assets, cache-bust targets, minimum
+  checks, and rollback guidance
+- keeps world-template content pages separate from calendar, session-post,
+  session-detail, mypage, timeline, admin, auth, DB/RPC/RLS, Edge Functions,
+  Discord sync, and live data
+- recommends the next docs-only candidate:
+  campaigns / episodes template structure
+
 ## Limited And Not Tested
 
 This guide is docs-only and does not add new runtime QA.

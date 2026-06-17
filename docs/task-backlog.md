@@ -9472,6 +9472,49 @@ Status: completed.
   RPC/DB key configuration, `management_key` display, or raw
   id/email/token/JWT display was performed.
 
+## Phase 3-C6 page-by-page world-template adoption checklist
+
+Status: completed.
+
+- Baseline: `a6316a0 Plan scenarios hooks template structures`.
+- Added
+  `docs/world-template-page-adoption-checklist.md`.
+- Updated:
+  - `docs/world-template-next-world-adoption-guide.md`
+  - `docs/world-template-content-structures-plan.md`
+  - `docs/world-template-gallery-image-assets-guide.md`
+  - `docs/world-template-scenarios-hooks-structure-plan.md`
+  - `docs/world-site-template-extraction-plan.md`
+  - `docs/reusable-ops-platform-extraction-plan.md`
+  - `docs/task-backlog.md`
+- Inventoried current root HTML pages and `main.js` page keys.
+- Classified pages into:
+  - world-template pages: index, world, characters, spots, spot-detail, terms,
+    scenarios, hooks, scenario-detail, regulation, gallery, campaigns,
+    campaign-detail, and episode-detail
+  - reusable ops pages: calendar, session-post, session-detail, mypage,
+    timeline, and admin-cap-announcements
+  - auxiliary/common pages: tools and updates
+  - do-not-copy/careful values: secrets, tokens, JWTs, Webhooks, raw ids,
+    emails, Discord IDs/URLs, Supabase project-specific private values, live
+    member/session data, Velgard images, and Velgard-specific content values
+- Recorded page-by-page reusable structures, replace-per-world content,
+  dangerous surfaces, related data/json, related JS, related CSS/assets,
+  cache-bust targets, minimum next-world checks, and rollback guidance.
+- Documented recommended adoption order from static world-template pages to
+  optional auxiliary pages and only then reusable ops pages behind separate
+  auth/DB/Discord gates.
+- Recommended next docs-only candidate:
+  campaigns / episodes template structure.
+- This was docs-only: no implementation, HTML, CSS, JS, data/json, image file,
+  sample data, renderer, world copy, scenario/hook data, gallery change,
+  ops-core change, or `updates.json` change was performed.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+  operation, secret/Webhook change, direct Supabase write, debug console
+  logging addition, auth/permission logic change, membership logic change,
+  RPC/DB key configuration, CSS class/DOM id/anchor change,
+  `management_key` display, or raw id/email/token/JWT display was performed.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
