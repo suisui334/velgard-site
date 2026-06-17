@@ -9649,6 +9649,78 @@ Status: completed.
   RPC/DB key configuration, CSS class/DOM id/anchor change,
   `management_key` display, or raw id/email/token/JWT display was performed.
 
+## Phase 3-C9 ops core static connection dry-run checklist
+
+Status: completed.
+
+- Baseline: `d057ed5 Document pre ops connection checklist`.
+- Added
+  `docs/world-template-ops-static-dry-run-checklist.md`.
+- Updated:
+  - `docs/world-template-pre-ops-connection-checklist.md`
+  - `docs/world-template-page-adoption-checklist.md`
+  - `docs/world-template-next-world-adoption-guide.md`
+  - `docs/reusable-ops-platform-extraction-plan.md`
+  - `docs/task-backlog.md`
+- Documented static dry-run purpose:
+  review ops-facing pages before auth, DB/RPC/RLS, Edge, Discord, or
+  data-changing gates, without treating dry-run success as production
+  readiness.
+- Documented current ops / auxiliary inventory:
+  `calendar.html`, `session-post.html`, `session-detail.html`, `mypage.html`,
+  `timeline.html`, `tools.html`, and strict separate-gate
+  `admin-cap-announcements.html`.
+- Documented page-specific dry-run scopes:
+  - `calendar`: HTML, `main.js`, `core/calendar/renderCalendar.js`, reusable
+    ops config, membership gate state, `data/calendarConfig.json`, and
+    regulation-level-cap separation
+  - `session-post`: HTML, `renderSessionPost.js`, session display facade,
+    session form helpers, player-count helper, reusable ops config,
+    membership access, and Discord sync import path, without submit/save/edit
+    /template/Discord actions
+  - `session-detail`: HTML, `renderSessionDetail.js`, session data/display,
+    application/comment module, membership access, reusable ops config,
+    Supabase client, and Discord sync import path, without real session id,
+    application/comment, GM management, or Discord sync testing
+  - `mypage`: HTML, `renderMypage.js`, normal-script auth client boundary,
+    fallback display, and deferral of profile/membership/manager/template QA
+  - `timeline`: HTML, `renderTimeline.js`, membership gate, timeline display
+    helper, and DB/RPC requirement boundary
+  - `tools`: public auxiliary page, `renderTools.js`, `data/randomTables.json`,
+    local-only behavior, and next-world text suitability
+  - `admin-cap-announcements`: strict admin / separate-gate surface
+- Documented what dry-run may check:
+  HTTP 200, broken import / 404, cache-bust consistency, config/helper
+  imports, empty states, fixture display, `undefined` / `[object Object]`,
+  public data secret review, and docs status records.
+- Documented what dry-run must not check:
+  SQL execution/apply, DB writes, RLS/RPC changes, Edge deploy, Discord
+  production operations, real post/edit/delete, applications, comments,
+  membership approval/rejection/manager grants, cleanup apply, and bulk data
+  changes.
+- Documented result status labels:
+  `completed`, `limited`, `not_tested`, `not_connected`, `blocked`,
+  `requires_auth`, `requires_db`, `requires_discord`, and
+  `requires_separate_gate`.
+- Documented advancement conditions for later auth, DB/RPC/RLS, and
+  Discord/Edge gates.
+- Documented rollback/recovery:
+  fix static import/cache-bust/config/helper issues only in an approved future
+  implementation gate, do not escape to auth/DB/Discord, mark unresolved issues
+  as `blocked`, and re-check HTTP 200 / broken import after rollback.
+- Recommended next docs-only candidate:
+  tools / updates auxiliary page policy.
+- This was docs-only: no implementation, HTML, CSS, JS, data/json, sample data,
+  auth connection, DB connection, RPC/RLS change, SQL execution/apply, Edge
+  deploy, Discord operation, secret/Webhook change, real post/edit/delete,
+  application/comment write, membership action, cleanup apply, or
+  `updates.json` change was performed.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+  operation, secret/Webhook change, direct Supabase write, debug logging
+  addition, auth/permission logic change, membership logic change, RPC/DB key
+  configuration, CSS class/DOM id/anchor change, `management_key` display, or
+  raw id/email/token/JWT display was performed.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

@@ -1573,3 +1573,24 @@ Reusable-ops impact:
   and actual management keys out of docs
 - recommends a future docs-only ops core static connection dry-run checklist
   before any auth, DB/RPC/RLS, Edge, Discord, or write workflow gate
+
+## Phase 3-C9 Ops Static Dry-Run Checklist
+
+Phase 3-C9 adds that dry-run checklist:
+
+- `docs/world-template-ops-static-dry-run-checklist.md`
+
+Reusable-ops impact:
+
+- defines how to inspect `calendar`, `session-post`, `session-detail`,
+  `mypage`, `timeline`, `tools`, and admin surfaces without connecting auth,
+  DB/RPC/RLS, Edge, or Discord
+- treats HTTP 200, broken imports, cache-bust, config/helper imports, fixture
+  display, empty states, and gated/unconnected displays as valid dry-run checks
+- keeps real session create/edit/delete, applications, comments, membership
+  approval, manager grants, SQL execution/apply, DB writes, Edge deploy,
+  Discord production operations, and cleanup apply outside dry-run
+- records dry-run status labels and advancement conditions for later auth,
+  DB/RPC/RLS, and Discord/Edge gates
+- recommends a docs-only tools / updates auxiliary page policy as the next
+  low-risk world-template/support boundary task

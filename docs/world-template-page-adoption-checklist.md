@@ -1473,6 +1473,29 @@ Recommended next docs-only candidate after C8:
 
 - ops core static connection dry-run checklist.
 
+## Phase 3-C9 Ops Static Dry-Run Checklist Follow-Up
+
+Phase 3-C9 completes the recommended ops core static dry-run checklist:
+
+- `docs/world-template-ops-static-dry-run-checklist.md`
+
+Page-adoption impact:
+
+- `calendar`, `session-post`, `session-detail`, `mypage`, and `timeline` have
+  page-specific dry-run scopes before auth, DB/RPC/RLS, Edge, or Discord work
+- `tools` is documented as an auxiliary/public candidate rather than a live
+  ops surface
+- `admin-cap-announcements` remains strict admin / separate-gate territory
+- dry-run may check HTTP 200, broken imports, cache-bust, config/helper
+  imports, empty states, fixture display, and unconnected/gated states
+- dry-run must not perform real posts, edits, deletes, applications, comments,
+  SQL, DB writes, Edge deploy, Discord production operations, membership
+  approvals, or manager grants
+
+Recommended next docs-only candidate after C9:
+
+- tools / updates auxiliary page policy.
+
 ## Limited And Not Tested
 
 This checklist is docs-only and does not add runtime QA.

@@ -470,6 +470,30 @@ Reason:
 - It gives the team a structured way to inspect ops pages without accidentally
   treating them as connected production operations.
 
+## Phase 3-C9 Ops Static Dry-Run Checklist Follow-Up
+
+Phase 3-C9 completes the recommended Stage 2 dry-run checklist:
+
+- `docs/world-template-ops-static-dry-run-checklist.md`
+
+Pre-ops impact:
+
+- defines static dry-run purpose for `calendar`, `session-post`,
+  `session-detail`, `mypage`, `timeline`, `tools`, and strict admin surfaces
+- records what can be checked before auth/DB/Discord: HTTP 200, broken imports,
+  cache-bust, config/helper imports, empty states, fixture display, and
+  unconnected/gated-state documentation
+- records what must not be checked in dry-run: SQL, DB write, RLS/RPC changes,
+  Edge deploy, Discord production operations, real posting/editing/deleting,
+  applications, comments, membership approval, manager grants, and cleanup
+  apply
+- documents conservative status labels such as `completed`, `limited`,
+  `not_tested`, `not_connected`, `requires_auth`, `requires_db`,
+  `requires_discord`, and `requires_separate_gate`
+- defines conditions for advancing to auth, DB/RPC/RLS, or Discord/Edge gates
+- recommends the next docs-only candidate:
+  tools / updates auxiliary page policy
+
 ## Limited And Not Tested
 
 This checklist is docs-only and does not add runtime QA.

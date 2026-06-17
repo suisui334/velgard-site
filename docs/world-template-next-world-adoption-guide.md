@@ -671,6 +671,29 @@ Next-world adoption impact:
 - recommends the next docs-only candidate:
   ops core static connection dry-run checklist
 
+## Phase 3-C9 Ops Static Dry-Run Checklist Follow-Up
+
+Phase 3-C9 completes that recommended docs-only candidate:
+
+- `docs/world-template-ops-static-dry-run-checklist.md`
+
+Next-world adoption impact:
+
+- documents how to review ops-facing pages statically before live operational
+  connection
+- covers `calendar`, `session-post`, `session-detail`, `mypage`, `timeline`,
+  `tools`, and strict admin surfaces
+- separates dry-run checks such as HTTP 200, import chains, config/helper
+  exports, cache-bust, empty states, and gated/unconnected states from auth,
+  DB/RPC/RLS, Edge, Discord, and write workflows
+- records status words for dry-run results and conditions for advancing to
+  auth, DB/RPC/RLS, and Discord/Edge gates
+- keeps real posts, edits, deletes, applications, comments, membership actions,
+  SQL, DB writes, Edge deploy, Discord production operations, and cleanup apply
+  outside dry-run
+- recommends the next docs-only candidate:
+  tools / updates auxiliary page policy
+
 ## Limited And Not Tested
 
 This guide is docs-only and does not add new runtime QA.
