@@ -10455,6 +10455,91 @@ Next steps:
 4. Confirm public reward section output still shows the reward paragraphs first
    and the `超過報酬の例` callout second.
 
+## M-14F-130 regulation reward callout public check
+
+Status: Phase 3-B14 `reward` callout data module public rollout check
+completed.
+
+- Baseline: `21cb352 Extract regulation reward callout data`.
+- Added
+  `docs/world-template-regulation-reward-callout-data-module-public-check.md`.
+- Updated the Phase 3-B regulation tracking docs with the public rollout
+  result.
+
+Public static delivery confirmed:
+
+- public `regulation.html`: HTTP 200.
+- public `regulation.html` references
+  `assets/js/main.js?v=20260617-regulation-reward-callout-data-module`.
+- public `main.js`: HTTP 200.
+- public `main.js` imports
+  `./renderRegulation.js?v=20260617-regulation-reward-callout-data-module`.
+- public `renderRegulation.js`: HTTP 200.
+- public `renderRegulation.js` imports
+  `./world/regulation/rewardCalloutBlocksData.js`.
+- public `renderRegulation.js` loads
+  `data/regulation.json?v=20260617-regulation-reward-callout-data-module`.
+- public `rewardCalloutBlocksData.js`: HTTP 200 and exports
+  `rewardCalloutBlocks`.
+- public `data/regulation.json`: HTTP 200 and parse OK.
+- checked public 404 count: 0.
+- checked public fetch failure count: 0.
+
+Public data and DOM confirmed:
+
+- `rewardCalloutBlocks.length`: 1.
+- block type: `callout`.
+- title: `超過報酬の例`.
+- paragraph count: 4.
+- every paragraph is a non-empty plain string.
+- public `data/regulation.json` keeps the `reward` section.
+- public `data/regulation.json` reward block types: `paragraphs`.
+- public `data/regulation.json` target reward callout count: 0.
+- public DOM target reward callout count: 1.
+- public DOM reward callout count: 1.
+- public DOM callout title: `超過報酬の例`.
+- public DOM callout paragraph count: 4.
+- public DOM callout class: `.regulation-callout`.
+- public DOM callout id: empty.
+- public DOM parent section id: `reward`.
+- public DOM TOC link `#reward`: present.
+- public DOM term cards: 12.
+- public DOM level-cap rows: 14.
+- browser error log entries checked in this pass: 0.
+
+Cache-mixing risks checked:
+
+- new `data/regulation.json` plus old `renderRegulation.js`: not observed.
+- old `regulation.html` plus new `renderRegulation.js`: not observed.
+- new `renderRegulation.js` plus missing `rewardCalloutBlocksData.js`: not
+  observed.
+- old `data/regulation.json` plus new `renderRegulation.js` duplicate callout:
+  not observed.
+- stale JSON duplicate-display guard exists in public `renderRegulation.js`.
+
+Limited or not tested:
+
+- full desktop/mobile manual visual review: `limited`.
+- scroll-through active TOC behavior: `limited`.
+- non-regulation pages: `not_tested`.
+- authenticated role-specific behavior: `not_tested`.
+- data-changing workflows, DB/RPC/RLS, Edge Functions, and Discord sync:
+  `not_tested`.
+
+No implementation change, HTML change, CSS change, JS change, JSON/data change,
+renderer change, `updates.json` change, SQL Editor execution, SQL apply,
+DB/RPC/RLS mutation, Edge deploy, Discord operation, direct Supabase write,
+debug console logging addition, auth/permission logic change,
+`management_key` display, or raw id/email/token/JWT display was performed.
+
+Next steps:
+
+1. Summarize the reward callout pilot and decide whether to stop Phase 3-B
+   pilots or choose one more small regulation data target.
+2. Keep reward section-wide moves, all-callout registries, long-rule schemas,
+   standalone JSON/fetch migration, renderer rewrites, and reusable ops core
+   integration behind separate gates.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

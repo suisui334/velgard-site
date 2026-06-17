@@ -165,3 +165,30 @@ Next recommended gate:
 That check should verify the public cache-bust chain, public availability of
 `rewardCalloutBlocksData.js`, public `data/regulation.json` without the moved
 callout block, and rendered reward-section output.
+
+## Phase 3-B14 Public Rollout Check
+
+Phase 3-B14 verifies the public delivery of this implementation:
+
+- `docs/world-template-regulation-reward-callout-data-module-public-check.md`
+
+Confirmed public state:
+
+- `regulation.html`: HTTP 200 and references the expected cache-bust
+- `main.js`: HTTP 200 and imports the matching `renderRegulation.js`
+- `renderRegulation.js`: HTTP 200 and imports
+  `rewardCalloutBlocksData.js`
+- `rewardCalloutBlocksData.js`: HTTP 200 and exports
+  `rewardCalloutBlocks`
+- `data/regulation.json`: HTTP 200, parse OK, and no target reward callout
+  block
+- reward section remains in public JSON
+- public DOM renders `超過報酬の例` exactly once
+- public DOM keeps 4 callout paragraphs
+- public DOM keeps `.regulation-callout`, parent section id `reward`, and TOC
+  link `#reward`
+- public `termExplanations` cards remain 12
+- public `levelCaps` rows remain 14
+
+The checked public rollout did not observe broken imports, 404s, fetch/module
+load failures, or duplicate reward callout display.

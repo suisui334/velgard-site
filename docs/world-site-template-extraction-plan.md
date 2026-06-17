@@ -894,3 +894,19 @@ This keeps the world-site template extraction path narrow:
 
 The next world-site gate should verify public rollout and cache-bust behavior
 for the new module before selecting another regulation data target.
+
+## Phase 3-B14 Regulation Reward Callout Public Rollout
+
+Phase 3-B14 verifies the public rollout of the reward callout data module:
+
+- `docs/world-template-regulation-reward-callout-data-module-public-check.md`
+
+The public site now serves the expected cache-bust chain, imports
+`rewardCalloutBlocksData.js`, serves the module with HTTP 200, and serves
+`data/regulation.json` without the moved callout block. Browser DOM inspection
+confirmed that the `reward` section still renders the `超過報酬の例` callout
+exactly once with 4 paragraphs.
+
+This completes public delivery verification for the third small world-site
+data-module pilot. The next world-site template step should summarize the
+three pilots before expanding to another regulation data shape.

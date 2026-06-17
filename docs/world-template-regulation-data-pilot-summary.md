@@ -587,3 +587,32 @@ Confirmed local checks:
 Next gate:
 
 - public rollout check for the reward callout data module and cache-bust chain
+
+## Phase 3-B14 Reward Callout Public Rollout Check
+
+Phase 3-B14 confirms the third data-module pilot on public delivery:
+
+- `docs/world-template-regulation-reward-callout-data-module-public-check.md`
+
+Summary:
+
+- the public cache-bust chain uses
+  `20260617-regulation-reward-callout-data-module`
+- public `renderRegulation.js` imports `rewardCalloutBlocksData.js`
+- public `rewardCalloutBlocksData.js` exports one `rewardCalloutBlocks` block
+- public `data/regulation.json` keeps the `reward` section but no longer owns
+  the moved callout block
+- public DOM renders the `超過報酬の例` callout exactly once with 4 paragraphs
+- stale JSON duplicate-display guard is present in public
+  `renderRegulation.js`
+
+This confirms the data-module pattern has now passed public checks for:
+
+- repeated card data
+- table row data
+- one nested callout block
+
+Next recommended gate:
+
+- summarize the reward callout pilot and decide whether to stop Phase 3-B pilots
+  or choose one more small regulation data target

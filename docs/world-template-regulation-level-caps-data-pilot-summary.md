@@ -471,3 +471,33 @@ Confirmed by smoke/snapshot checks:
   the moved callout block
 
 Public delivery and browser DOM checks remain for a later rollout-check gate.
+
+## Phase 3-B14 Reward Callout Public Rollout Check
+
+Phase 3-B14 confirms the public delivery of the reward callout data module:
+
+- `docs/world-template-regulation-reward-callout-data-module-public-check.md`
+
+Public checks passed:
+
+- public `regulation.html`: HTTP 200 and expected cache-bust
+- public `main.js`: HTTP 200 and matching `renderRegulation.js` import
+- public `renderRegulation.js`: HTTP 200 and imports
+  `rewardCalloutBlocksData.js`
+- public `rewardCalloutBlocksData.js`: HTTP 200 and exports
+  `rewardCalloutBlocks`
+- public `data/regulation.json`: HTTP 200, parse OK, and no selected reward
+  callout block
+- public JSON keeps the `reward` section and reward paragraph block
+- public DOM renders `超過報酬の例` exactly once
+- public DOM keeps 4 paragraphs, `.regulation-callout`, parent id `reward`,
+  and TOC link `#reward`
+- public DOM still has 12 term cards and 14 level-cap rows
+- checked broken path / fetch failure / browser error log count: 0
+
+Remaining limited or not-tested QA:
+
+- full desktop/mobile manual visual review: `limited`
+- scroll-through active TOC behavior: `limited`
+- non-regulation pages and authenticated/data-changing workflows:
+  `not_tested`

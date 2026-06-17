@@ -815,3 +815,23 @@ Schema-plan impact:
   remain later gates
 
 Public static delivery still needs a separate rollout-check gate.
+
+## Phase 3-B14 Reward Callout Public Rollout
+
+Phase 3-B14 confirms public static delivery and browser DOM output for the
+selected nested-block data module:
+
+- `docs/world-template-regulation-reward-callout-data-module-public-check.md`
+
+Schema-plan impact:
+
+- nested short-note data has now passed implementation and public rollout
+  checks
+- public JSON ownership matches the source split: parent `reward` section in
+  JSON, selected callout block in `rewardCalloutBlocksData.js`
+- public renderer can compose nested module data without changing
+  `renderBlock()` or `renderDataSection()`
+- stale JSON duplicate-display protection was confirmed in public
+  `renderRegulation.js`
+- general block registries, long-rule schemas, and standalone JSON/fetch
+  migration remain later gates

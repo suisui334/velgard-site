@@ -335,3 +335,19 @@ The implementation keeps the current behavior contract:
 - JSON/fetch loading was not introduced
 
 Public rollout remains a separate follow-up check.
+
+## Phase 3-B14 Public Rollout Check
+
+Phase 3-B14 confirms the public B13 rollout:
+
+- public-check doc:
+  `docs/world-template-regulation-reward-callout-data-module-public-check.md`
+- public `rewardCalloutBlocksData.js` is HTTP 200 and exports
+  `rewardCalloutBlocks`
+- public `data/regulation.json` keeps the `reward` section and no longer
+  contains the selected callout block
+- public DOM renders the `超過報酬の例` callout exactly once
+- public DOM keeps 4 paragraphs, `.regulation-callout`, parent section id
+  `reward`, and TOC link `#reward`
+- stale JSON duplicate-display guard is present in public
+  `renderRegulation.js`

@@ -465,3 +465,24 @@ Result:
 
 The next gate should be a public rollout check before choosing any additional
 nested block or long-rule data-module target.
+
+## Phase 3-B14 Reward Callout Public Rollout Check
+
+Phase 3-B14 completes the public rollout check for the reward callout data
+module:
+
+- `docs/world-template-regulation-reward-callout-data-module-public-check.md`
+
+Confirmed:
+
+- public cache-bust chain is live
+- public `rewardCalloutBlocksData.js` is HTTP 200
+- public `rewardCalloutBlocks` contains 1 callout block
+- public title remains `超過報酬の例`
+- public paragraph count remains 4
+- public `data/regulation.json` has no selected reward callout block
+- public reward DOM shows the callout once, after the reward paragraph block
+- stale JSON duplicate guard is present in public `renderRegulation.js`
+
+The next planning gate should summarize this third pilot before broadening the
+scope to another nested block, table, or long-rule candidate.
