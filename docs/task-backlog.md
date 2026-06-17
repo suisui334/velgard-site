@@ -9842,6 +9842,43 @@ Status: completed.
 - No raw user id, email, token, JWT, management key, Discord id, Discord URL,
   Webhook URL, or secret value was recorded.
 
+## Gate 1.5 session reminder SQL apply candidate
+
+Status: completed.
+
+- Baseline: `d16f313 Draft session reminder SQL design`.
+- Added
+  `docs/sql-drafts/session-reminder-notifications-apply-candidate.sql`.
+- Added
+  `docs/session-reminder-sql-apply-checklist.md`.
+- Updated
+  `docs/session-reminder-discord-notification-plan.md`.
+- Reviewed the Gate 1 SQL draft against existing `public.sessions`,
+  `public.session_applications`, session status values, application status
+  values, existing scheduled-dispatch RPC patterns, and existing
+  `create_session_post` / `update_session_post` overload concerns.
+- Prepared an apply candidate under `docs/sql-drafts/`, not
+  `supabase/migrations/`.
+- Main adjustments from Gate 1:
+  - added a dedicated `update_session_reminder_settings` RPC instead of
+    changing session create/update RPC signatures
+  - added service-role checks inside preview/claim/finalize RPCs
+  - added `lock_token` to claim/finalize for stronger concurrency handling
+  - renamed the threshold return field to `count_for_minimum`
+  - added SELECT-only post-apply checks
+- Kept first-version count policy as `pending + accepted`; `waitlisted` remains
+  returned but excluded from threshold decisions.
+- Kept first-version duplicate policy as `unique(session_id, reminder_type)` and
+  no automatic resend after a reminder has been logged.
+- Next gate: user-approved Gate 2 SQL apply + SELECT confirmation using
+  `docs/sql-drafts/session-reminder-notifications-apply-candidate.sql`.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, migration creation,
+  Edge deploy, Discord dry-run, Discord production send, secret/Webhook change,
+  UI change, HTML/CSS/JS change, data/json change, or `updates.json` change was
+  performed.
+- No raw user id, email, token, JWT, management key, Discord id, Discord URL,
+  Webhook URL, or secret value was recorded.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

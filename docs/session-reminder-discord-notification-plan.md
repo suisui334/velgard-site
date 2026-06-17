@@ -476,6 +476,32 @@ Next Gate 2 must review before any apply:
 - Whether a failed production send should be terminal in the first version or retryable.
 - Whether the `rollback;` ending should remain for review safety or be removed in a final apply draft.
 
+## Gate 1.5 SQL Apply Candidate Result
+
+Gate 1.5 reviewed the Gate 1 draft and prepared an apply candidate plus Gate 2 checklist only. No SQL was executed or applied.
+
+Apply candidate:
+
+- `docs/sql-drafts/session-reminder-notifications-apply-candidate.sql`
+
+Gate 2 checklist:
+
+- `docs/session-reminder-sql-apply-checklist.md`
+
+Main adjustments from the Gate 1 draft:
+
+- Added an explicit `APPLY CANDIDATE ONLY` header and `commit;`-based apply shape instead of the draft-only `rollback;` ending.
+- Kept the file under `docs/sql-drafts/`; no `supabase/migrations/` file was created.
+- Added a dedicated `update_session_reminder_settings` RPC so the first apply does not change `create_session_post` / `update_session_post` signatures or create PostgREST overload ambiguity.
+- Added service-role checks inside preview/claim/finalize RPCs, matching the existing scheduled-dispatch boundary pattern.
+- Added `lock_token` to `session_reminder_logs` and to claim/finalize, so finalize requires both `log_id` and `lock_token`.
+- Renamed the returned threshold field to `count_for_minimum` to make the `pending + accepted` rule explicit.
+- Kept `waitlisted_count` in preview/claim returns but outside `count_for_minimum`.
+- Kept shortage reminders limited to `tentative` / `recruiting`, and GM confirmed reminders eligible for `tentative` / `recruiting` / `full`.
+- Added SELECT-only post-apply checks for columns, constraints, table existence, RLS, direct table privileges, RPC existence, RPC privileges, session count, default enabled counts, and reminder log count.
+
+Gate 2 should run only after explicit approval. If any SQL Editor error occurs, stop and do not rerun blindly. Gate 2 must still avoid Edge deploy, Discord dry-run, Discord production send, secret changes, UI changes, and raw identifier disclosure.
+
 ## Open Questions
 
 1. Should `waitlisted` stay excluded from the first threshold decision?
