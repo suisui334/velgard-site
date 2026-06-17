@@ -1,7 +1,7 @@
 # Session Reminder Scheduler Vault Secret Prep Result
 
-Status: Gate 12D Vault secret preparation documented. No secret value was
-read, written, displayed, or recorded.
+Status: Gate 12F.1 scheduler Vault secrets configured and Edge dispatch token
+synchronized. No secret value was displayed or recorded.
 
 ## Scope
 
@@ -152,3 +152,66 @@ Recommended next gate:
 
 Gate 12E should stop if required Vault secrets are missing, and it should not
 send Discord or enable real send.
+
+## Gate 12F.1 Vault Setup Result
+
+Gate 12F.1 set the scheduler Vault secrets required by
+`docs/sql-drafts/session-reminder-scheduler-draft.sql`.
+
+Configured Vault secret names:
+
+- `SESSION_REMINDER_FUNCTION_URL`
+- `SESSION_REMINDER_INVOKE_JWT`
+- `SESSION_REMINDER_DISPATCH_TOKEN`
+
+Configuration source and boundary:
+
+- `SESSION_REMINDER_FUNCTION_URL` was derived from the existing admin-cap
+  scheduler Function URL by replacing only the Edge Function path with
+  `dispatch-session-reminders`.
+- `SESSION_REMINDER_INVOKE_JWT` reused the existing admin-cap scheduler invoke
+  JWT source inside Vault, without printing or recording the value.
+- `SESSION_REMINDER_DISPATCH_TOKEN` was regenerated as a new strong random
+  value.
+- The regenerated dispatch token was set to both:
+  - Edge Function secret/env `SESSION_REMINDER_DISPATCH_TOKEN`
+  - DB Vault secret `SESSION_REMINDER_DISPATCH_TOKEN`
+
+Real-send boundary:
+
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was explicitly kept false on the Edge
+  Function secret/env side.
+- It was not enabled.
+
+Value-redacted confirmation:
+
+- required Vault secret count: `3/3`
+- Function URL points to `dispatch-session-reminders`: true
+- invoke JWT shape check: true
+- dispatch token presence/shape check: true
+- Edge secret names present:
+  - `SESSION_REMINDER_DISPATCH_TOKEN`
+  - `SESSION_REMINDER_REAL_SEND_ENABLED`
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was set false, not enabled
+- cron job `dispatch-session-reminders-every-minute` count: `0`
+- `session_reminder_logs` count: `1`
+
+Not performed:
+
+- scheduler SQL apply
+- cron creation
+- runtime invocation
+- Discord send
+- `@everyone` send
+- real-send enablement
+- Edge deploy
+- DB/RPC/RLS structure change
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+- secret value, Function URL, JWT, dispatch token, Webhook URL, project ref,
+  Discord ID, session id, or message id recording
+
+Next gate recommendation:
+
+- Gate 12F retry: apply the scheduler SQL under explicit approval while real
+  send remains disabled, then run the SELECT-only scheduler confirmation.

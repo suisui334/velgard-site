@@ -97,3 +97,18 @@ After the Vault secret setup succeeds:
 - retry Gate 12F scheduler SQL apply under explicit approval
 - keep `SESSION_REMINDER_REAL_SEND_ENABLED` disabled
 - run the SELECT-only scheduler confirmation separately from the apply body
+
+## Gate 12F.1 Follow-up
+
+Gate 12F.1 resolved the Vault prerequisite blocker:
+
+- required Vault secret count after setup: `3/3`
+- `SESSION_REMINDER_DISPATCH_TOKEN` was regenerated and synchronized between
+  Edge Function secret/env and DB Vault
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was kept false
+- cron job count remained `0`
+- `session_reminder_logs` count remained `1`
+
+The scheduler SQL has still not been applied in this result doc. The next
+step remains a separate Gate 12F retry for scheduler SQL apply and SELECT-only
+confirmation.

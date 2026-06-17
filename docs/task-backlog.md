@@ -11633,6 +11633,82 @@ Next candidate gates:
 6. Gate 12J: shortage `@everyone` final approval and bounded production
    operation.
 
+## Gate 12F.1 session reminder scheduler Vault secret setup
+
+Status: scheduler Vault secrets configured and Edge dispatch token
+synchronized. Cron was not created.
+
+- Baseline: `51f6d9f Record session reminder scheduler apply blocker`.
+- Updated:
+  - `docs/session-reminder-scheduler-vault-secret-result.md`
+  - `docs/session-reminder-scheduler-sql-checklist.md`
+  - `docs/session-reminder-scheduler-apply-result.md`
+  - `docs/task-backlog.md`
+
+Configured Vault secret names:
+
+- `SESSION_REMINDER_FUNCTION_URL`
+- `SESSION_REMINDER_INVOKE_JWT`
+- `SESSION_REMINDER_DISPATCH_TOKEN`
+
+Edge / Vault token synchronization:
+
+- generated a new strong random dispatch token
+- set Edge Function secret/env `SESSION_REMINDER_DISPATCH_TOKEN`
+- set DB Vault secret `SESSION_REMINDER_DISPATCH_TOKEN` to the same generated
+  value
+- did not read or record any previous raw dispatch token value
+
+Function URL / invoke JWT source:
+
+- `SESSION_REMINDER_FUNCTION_URL` was derived from the existing admin-cap
+  scheduler Function URL by changing only the Edge Function path to
+  `dispatch-session-reminders`
+- `SESSION_REMINDER_INVOKE_JWT` reused the existing admin-cap scheduler invoke
+  JWT source inside Vault
+- no raw Function URL or JWT value was recorded
+
+Value-redacted confirmation:
+
+- required Vault secret count: `3/3`
+- Function URL points to `dispatch-session-reminders`: true
+- invoke JWT shape check: true
+- dispatch token presence/shape check: true
+- Edge secret names present:
+  - `SESSION_REMINDER_DISPATCH_TOKEN`
+  - `SESSION_REMINDER_REAL_SEND_ENABLED`
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was set false, not enabled
+- `dispatch-session-reminders-every-minute` cron job count: `0`
+- `session_reminder_logs` count: `1`
+
+Gate 12F.1 not performed:
+
+- scheduler SQL apply
+- cron creation
+- runtime invocation
+- production `dry_run:false`
+- claim/finalize runtime execution
+- Discord send
+- `@everyone` send
+- shortage send
+- real-send enablement
+- Edge deploy
+- DB/RPC/RLS structure change
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+- secret value, Function URL, JWT, dispatch token, Webhook URL, project ref,
+  Discord ID, session id, or message id recording
+
+Next candidate gates:
+
+1. Gate 12F retry: apply scheduler SQL under explicit approval while real send
+   remains disabled.
+2. Gate 12G: scheduler runtime production-disabled confirmation.
+3. Gate 12H: GM automatic scheduler send test with bounded target count.
+4. Gate 12I: shortage `@everyone` production planning only.
+5. Gate 12J: shortage `@everyone` final approval and bounded production
+   operation.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

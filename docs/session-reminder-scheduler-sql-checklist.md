@@ -1,7 +1,7 @@
 # Session Reminder Scheduler SQL Checklist
 
-Status: Gate 12F pre-apply Vault check stopped before SQL apply. Scheduler SQL
-not applied.
+Status: Gate 12F.1 resolved the scheduler Vault prerequisite. Scheduler SQL
+is still not applied.
 
 ## Scope
 
@@ -61,6 +61,26 @@ Post-stop SELECT-only checks:
 No secret values, Function URL, JWT, dispatch token, Webhook URL, project ref,
 Discord ID, session id, message id, response body, or request headers were
 recorded.
+
+## Gate 12F.1 Vault Setup Result
+
+Gate 12F.1 set the required scheduler Vault secrets and synchronized the
+dispatch token with the Edge Function secret/env.
+
+Value-redacted confirmation:
+
+- required Vault secret count: `3/3`
+- Function URL points to `dispatch-session-reminders`: true
+- invoke JWT shape check: true
+- dispatch token presence/shape check: true
+- Edge secret names present:
+  - `SESSION_REMINDER_DISPATCH_TOKEN`
+  - `SESSION_REMINDER_REAL_SEND_ENABLED`
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was set false, not enabled
+- cron job count: `0`
+- `session_reminder_logs` count: `1`
+
+No cron SQL was applied in Gate 12F.1.
 
 ## Gate 12D Vault Prep Result
 
@@ -349,8 +369,7 @@ where jobname = 'dispatch-session-reminders-every-minute';
 
 Recommended next gate:
 
-- Gate 12F.1: set or confirm the three required scheduler Vault secrets without
-  recording values.
+- Gate 12F retry: apply the scheduler SQL under explicit approval while real
+  send remains disabled.
 
-After the Vault secret setup succeeds, retry scheduler SQL apply under explicit
-approval while real send remains disabled.
+Run the apply body and SELECT-only confirmation separately.
