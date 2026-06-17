@@ -910,3 +910,29 @@ exactly once with 4 paragraphs.
 This completes public delivery verification for the third small world-site
 data-module pilot. The next world-site template step should summarize the
 three pilots before expanding to another regulation data shape.
+
+## Phase 3-B15 Regulation Reward Callout Pilot Summary
+
+Phase 3-B15 summarizes the third pilot and selects the next candidate:
+
+- `docs/world-template-regulation-reward-callout-data-pilot-summary.md`
+
+The updated extraction path is:
+
+- `termExplanations` proved repeated card data
+- `levelCaps` proved table row data
+- `rewardCalloutBlocks` proved one nested section block with stale JSON
+  duplicate-display protection
+- the next target should test one nested subsection item without changing
+  shared renderers
+
+Selected next candidate:
+
+- short note subsection item
+- first concrete target:
+  `general-skills` item `注釈2：『制限』について`
+
+The next gate should freeze the current subsection item behavior and output
+before any implementation. It should not move the whole `general-skills`
+section, split table columns out of `levelCapsData.js`, change shared
+renderers, or touch reusable ops core.

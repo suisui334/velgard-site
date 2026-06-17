@@ -835,3 +835,32 @@ Schema-plan impact:
   `renderRegulation.js`
 - general block registries, long-rule schemas, and standalone JSON/fetch
   migration remain later gates
+
+## Phase 3-B15 Reward Callout Pilot Summary
+
+Phase 3-B15 summarizes the first three data-module pilots:
+
+- `docs/world-template-regulation-reward-callout-data-pilot-summary.md`
+
+Schema-plan impact:
+
+- the data-module method now covers three shapes:
+  - repeated cards
+  - table rows
+  - one nested section block
+- nested item moves are plausible, but should be proven with one small
+  subsection item before any general registry
+- table-column schemas remain separate from row data ownership
+- reward amount, honor, and Sword Shard values should remain inside
+  `levelCapsData.js` until a table/column schema gate is opened
+- long-rule schemas and magic-angel rulings remain later gates
+
+Selected next schema candidate:
+
+- one short note subsection item under `general-skills`
+- concrete first target:
+  `注釈2：『制限』について`
+
+The future implementation may use a world-site data module for this one
+subsection item, but whole-section moves, all-subsection registries, and
+standalone JSON/fetch migration remain separate later decisions.

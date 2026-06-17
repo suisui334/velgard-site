@@ -10540,6 +10540,111 @@ Next steps:
    standalone JSON/fetch migration, renderer rewrites, and reusable ops core
    integration behind separate gates.
 
+## M-14F-131 regulation reward callout pilot summary
+
+Status: Phase 3-B15 `reward` callout data-module pilot summary completed.
+
+- Baseline: `da56e7c Check regulation reward callout rollout`.
+- Added
+  `docs/world-template-regulation-reward-callout-data-pilot-summary.md`.
+- Updated the Phase 3-B regulation tracking docs with the third pilot summary
+  and next-candidate decision.
+
+Reward callout pilot summary:
+
+- moved target: `reward` section `type: "callout"` block.
+- title: `超過報酬の例`.
+- data module:
+  `assets/js/world/regulation/rewardCalloutBlocksData.js`.
+- export: `rewardCalloutBlocks`.
+- removed source block:
+  `data/regulation.json` `sections[].id === "reward"` block index 1.
+- import connection: `assets/js/renderRegulation.js`.
+- kept `renderBlock()` callout branch unchanged.
+- kept `renderDataSection()` unchanged.
+- kept section id `reward`, TOC anchor `#reward`, `.regulation-callout`,
+  and callout DOM id behavior unchanged.
+- inserted the imported block back at the former reward block position for
+  rendering.
+- added stale JSON duplicate-display protection for the moved callout.
+
+Public rollout summary:
+
+- public `rewardCalloutBlocksData.js`: HTTP 200 and exports
+  `rewardCalloutBlocks`.
+- public `data/regulation.json`: HTTP 200, parse OK, keeps the `reward`
+  section, and no longer contains the selected callout block.
+- public DOM renders `超過報酬の例` exactly once.
+- public DOM keeps 4 paragraphs, `.regulation-callout`, parent id `reward`,
+  and TOC link `#reward`.
+- public DOM still has 12 term cards and 14 level-cap rows.
+- checked broken path / fetch failure / browser error log count: 0.
+
+Updated data-module evaluation:
+
+- successful shapes now include:
+  - repeated card data: `termExplanations`.
+  - table row data: `levelCaps`.
+  - one nested section block: `rewardCalloutBlocks`.
+- no extra regulation `fetch` was added.
+- GitHub Pages delivery remains easy to verify by HTML/main/renderer/module/JSON
+  chain.
+- cache-mixing checks remain mandatory when removing a JSON key or block.
+- stale JSON duplicate-display guards may be needed for nested moves.
+- shared renderers and table column definitions remain separate gates.
+
+Candidate decision:
+
+- reward amount table: keep fixed for now because `rewardAmount` is already a
+  column inside `levelCapsData.js`.
+- Sword Shard / honor table: keep fixed for now because `minHonor` and
+  `swordShardGuide` are already columns inside `levelCapsData.js`.
+- fumble experience and lower-bound growth cards: do not split now because they
+  already live in `termExplanationsData.js`.
+- magic-angel ruling, long house rules, and growth rules overall: keep fixed
+  for now because they are too large or cross current pilot boundaries.
+- selected next candidate:
+  `general-skills` subsection item `注釈2：『制限』について`.
+
+Next target details:
+
+- section id: `general-skills`.
+- block index: 0.
+- block type: `subsections`.
+- subsection item index: 7.
+- current item shape: `title` plus 1 paragraph.
+- proposed future module:
+  `assets/js/world/regulation/generalSkillNoteSubsectionsData.js`.
+- proposed future export:
+  `generalSkillNoteSubsections`.
+- future renderer connection should inject the imported item into the loaded
+  `general-skills` subsection `items` array before existing rendering.
+
+Limited or not tested:
+
+- full desktop/mobile manual visual review: `limited`.
+- scroll-through active TOC behavior: `limited`.
+- non-regulation pages: `not_tested`.
+- authenticated role-specific behavior: `not_tested`.
+- data-changing workflows, DB/RPC/RLS, Edge Functions, and Discord sync:
+  `not_tested`.
+
+No implementation change, HTML change, CSS change, JS change, JSON/data change,
+data module creation, renderer change, regulation copy change, `updates.json`
+change, SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy,
+Discord operation, direct Supabase write, debug console logging addition,
+auth/permission logic change, `management_key` display, or raw
+id/email/token/JWT display was performed.
+
+Next steps:
+
+1. Run a docs-only behavior/spec freeze for the selected
+   `general-skills` subsection item.
+2. Do not implement the subsection item move directly from the B15 summary.
+3. Keep whole-section moves, global subsection registries, table-column splits,
+   long rules, magic-angel rulings, renderer rewrites, JSON/fetch migration,
+   and reusable ops core integration behind separate gates.
+
 ## M-14F-102 player count field helper public check
 
 Status: Phase 2-V player count field helper public rollout check completed.

@@ -616,3 +616,39 @@ Next recommended gate:
 
 - summarize the reward callout pilot and decide whether to stop Phase 3-B pilots
   or choose one more small regulation data target
+
+## Phase 3-B15 Reward Callout Pilot Summary
+
+Phase 3-B15 summarizes the third data-module pilot and selects the next
+candidate:
+
+- `docs/world-template-regulation-reward-callout-data-pilot-summary.md`
+
+Summary:
+
+- `termExplanations` proved repeated card data
+- `levelCaps` proved table row data
+- `rewardCalloutBlocks` proved one nested section block
+- all three pilots avoided extra fetches
+- all three pilots kept DOM ids, anchors, CSS classes, active TOC behavior, and
+  reusable ops core outside the data move
+- nested block moves may need stale JSON duplicate-display guards
+
+Updated constraints:
+
+- shared renderers remain separate gates
+- column definitions remain separate gates
+- reward amount, honor, and Sword Shard values should not be split out of
+  `levelCapsData.js` until a table/column schema gate exists
+- long rules and magic-angel rulings remain too heavy for the next pilot
+
+Selected next candidate:
+
+- short note subsection item
+- first concrete target:
+  `general-skills` subsection item `注釈2：『制限』について`
+
+The next gate should freeze this subsection item before implementation. It
+should not move the whole `general-skills` section, change `renderBlock()`,
+change `renderDataSection()`, introduce a generic registry, or touch reusable
+ops core.

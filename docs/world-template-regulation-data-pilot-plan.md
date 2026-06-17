@@ -486,3 +486,28 @@ Confirmed:
 
 The next planning gate should summarize this third pilot before broadening the
 scope to another nested block, table, or long-rule candidate.
+
+## Phase 3-B15 Reward Callout Pilot Summary
+
+Phase 3-B15 completes that summary gate:
+
+- `docs/world-template-regulation-reward-callout-data-pilot-summary.md`
+
+Decision:
+
+- continue only with small, isolated data-module candidates
+- keep reward amount, honor, and Sword Shard values in `levelCapsData.js` for
+  now
+- keep shared renderer behavior, table columns, and long-rule schemas behind
+  separate gates
+- choose one subsection item as the next narrow pilot
+
+Selected next target:
+
+- `data/regulation.json` `sections[].id === "general-skills"`
+- block index 0
+- block type `subsections`
+- item title `注釈2：『制限』について`
+
+The next gate should be a behavior/spec freeze for this item. Do not implement
+the move directly from this summary.

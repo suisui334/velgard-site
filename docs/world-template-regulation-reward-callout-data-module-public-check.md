@@ -222,3 +222,24 @@ Keep out of scope until a separate gate:
 - standalone JSON/fetch migration
 - renderer rewrite
 - reusable ops core integration
+
+## Phase 3-B15 Follow-Up
+
+Phase 3-B15 summarizes the reward callout pilot and selects the next candidate:
+
+- `docs/world-template-regulation-reward-callout-data-pilot-summary.md`
+
+Decision:
+
+- the reward callout pilot is complete through public rollout
+- data modules have now succeeded for repeated cards, table rows, and one
+  nested section block
+- reward amount, honor, and Sword Shard values should not be split out of
+  `levelCapsData.js` without a separate table/column schema gate
+- the next candidate should be one small subsection item, not a whole section
+  or long-rule group
+- selected next target:
+  `general-skills` subsection item `注釈2：『制限』について`
+
+The next gate should be a behavior/spec freeze for that subsection item before
+any implementation.
