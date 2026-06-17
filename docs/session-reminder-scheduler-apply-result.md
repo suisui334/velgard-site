@@ -112,3 +112,43 @@ Gate 12F.1 resolved the Vault prerequisite blocker:
 The scheduler SQL has still not been applied in this result doc. The next
 step remains a separate Gate 12F retry for scheduler SQL apply and SELECT-only
 confirmation.
+
+## Gate 12F Retry Apply Result
+
+The scheduler SQL was applied after Gate 12F.1 resolved the Vault prerequisite.
+
+User-side apply result:
+
+- `cron.schedule` result job id: `2`
+
+SELECT-only confirmation:
+
+- required Vault secret count: `3/3`
+- cron job count: `1`
+- cron job id: `2`
+- job name: `dispatch-session-reminders-every-minute`
+- schedule: `* * * * *`
+- job active: true
+- payload marker `dry_run:false`: true
+- payload marker `limit:1`: true
+- Vault reference markers for Function URL, invoke JWT, and dispatch token:
+  true
+- `session_reminder_logs` count: `1`
+
+Production-disabled observation:
+
+- recent cron run status: `succeeded`
+- recent cron run count observed: `3`
+- recent pg_net responses included HTTP `403`
+- `403` rows included a production-disabled marker
+- no sent-count success marker was observed
+- response bodies were not recorded
+
+Safety result:
+
+- real send remained disabled
+- Discord send did not occur
+- `@everyone` send did not occur
+- reminder logs did not increase
+- no raw Function URL, JWT, token, Webhook URL, project ref, Discord ID,
+  session id, message id, request headers, or response body was recorded

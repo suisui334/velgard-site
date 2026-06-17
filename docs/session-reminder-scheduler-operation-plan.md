@@ -386,6 +386,40 @@ Next gate recommendation:
 - Gate 12F.1: set or confirm the three required scheduler Vault secrets without
   recording values, then retry scheduler SQL apply under explicit approval.
 
+## Gate 12F Retry Apply And Disabled Observation
+
+After Gate 12F.1 resolved the Vault prerequisite, the scheduler SQL apply
+completed.
+
+Result doc:
+
+- `docs/session-reminder-scheduler-disabled-observation.md`
+
+Scheduler result:
+
+- `cron.schedule` result job id: `2`
+- cron job count: `1`
+- job name: `dispatch-session-reminders-every-minute`
+- schedule: `* * * * *`
+- payload markers: `dry_run:false`, `limit:1`
+- required Vault secret count: `3/3`
+- `session_reminder_logs` count remained `1`
+
+Production-disabled observation:
+
+- recent cron run status was `succeeded`
+- recent pg_net responses included HTTP `403`
+- `403` rows included a production-disabled marker
+- no sent-count success marker was observed
+- response bodies and raw request/secret values were not recorded
+
+Interpretation:
+
+- cron is active and invoking the dispatcher
+- real send remains disabled
+- Discord send did not occur
+- reminder logs did not increase
+
 ## Not Performed
 
 - Discord send

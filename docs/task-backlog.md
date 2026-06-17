@@ -11709,6 +11709,73 @@ Next candidate gates:
 5. Gate 12J: shortage `@everyone` final approval and bounded production
    operation.
 
+## Gate 12F result session reminder scheduler apply
+
+Status: scheduler SQL apply completed and production-disabled observation
+recorded.
+
+- Baseline: `a041b50 Set session reminder scheduler vault secrets`.
+- Added:
+  - `docs/session-reminder-scheduler-disabled-observation.md`
+- Updated:
+  - `docs/session-reminder-scheduler-apply-result.md`
+  - `docs/session-reminder-scheduler-operation-plan.md`
+  - `docs/task-backlog.md`
+
+Apply result:
+
+- `cron.schedule` result job id: `2`
+- required Vault secret count: `3/3`
+- cron job count: `1`
+- job name: `dispatch-session-reminders-every-minute`
+- schedule: `* * * * *`
+- job active: true
+- payload marker `dry_run:false`: true
+- payload marker `limit:1`: true
+- Vault reference markers for Function URL, invoke JWT, and dispatch token:
+  true
+- `session_reminder_logs` count: `1`
+
+Production-disabled observation:
+
+- recent cron run status: `succeeded`
+- recent cron run count observed: `3`
+- recent pg_net responses included HTTP `403`
+- `403` rows included a production-disabled marker
+- no sent-count success marker was observed
+- response body, request headers, Function URL, JWT, token, Webhook URL,
+  project ref, Discord ID, session id, and message id were not recorded
+
+Interpretation:
+
+- cron is active and invoking `dispatch-session-reminders`
+- real send remains disabled
+- Discord send did not occur
+- `@everyone` send did not occur
+- `session_reminder_logs` did not increase
+
+Gate 12F result not performed:
+
+- real-send enablement
+- Discord send
+- `@everyone` send
+- shortage send
+- secret change
+- Edge deploy
+- extra SQL structure change
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+- raw secret or response-body recording
+
+Next candidate gates:
+
+1. Gate 12G: scheduler runtime production-disabled confirmation/monitoring
+   wrap-up.
+2. Gate 12H: GM automatic scheduler send test with bounded target count.
+3. Gate 12I: shortage `@everyone` production planning only.
+4. Gate 12J: shortage `@everyone` final approval and bounded production
+   operation.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
