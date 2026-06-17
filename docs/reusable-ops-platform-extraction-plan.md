@@ -1503,3 +1503,30 @@ Boundary:
 
 No ops-core implementation, file move, JS/CSS/HTML/data change, SQL, RPC, DB,
 Edge, Discord, or secret operation was performed for this planning step.
+
+## Phase 3-C1 Next World Adoption Guide
+
+Phase 3-C1 documents how a future world should adopt the world-site template
+while keeping reusable ops core separate:
+
+- `docs/world-template-next-world-adoption-guide.md`
+
+Reusable-ops impact:
+
+- `assets/js/core/config/`, `assets/js/core/calendar/`, and
+  `assets/js/core/session/` are reusable candidates for a next world
+- calendar, session-post, session-detail, and mypage remain ops-leaning
+  surfaces that need explicit setup and QA before use
+- auth, membership, Discord sync, DB/RPC/RLS, Edge Functions, live session data,
+  and live member data are not copied as part of world-template adoption
+- `main.js`, `style.css`, `sessionData.js`, `mypageAuthClient.js`,
+  `membershipAccessClient.js`, `discordSyncClient.js`, whole-file
+  `sessionDisplay.js`, `renderSessionPost.js`, and `renderSessionDetail.js`
+  remain careful-gate surfaces
+- regulation data modules remain world-site template files, not reusable ops
+  core files
+
+Recommended next docs-only candidate:
+
+- draft a regulation sample data composition before attempting broader
+  ops-core adoption for a second world

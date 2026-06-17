@@ -342,6 +342,25 @@ Reason:
 - QA strengthening remains valuable, but it should follow from a clear
   template checklist rather than replace it.
 
+## Phase 3-C1 Next World Adoption Follow-Up
+
+Phase 3-C1 creates the broader next-world adoption guide:
+
+- `docs/world-template-next-world-adoption-guide.md`
+
+Relationship to this regulation guide:
+
+- this document remains the detailed procedure for regulation data-module
+  moves
+- the Phase 3-C1 guide decides when a next world should use the regulation
+  template at all, what content must be replaced, and which ops-core surfaces
+  remain separate
+- the next-world guide keeps the first regulation adoption pass conservative:
+  no broad HTML/CSS/renderer rewrite, no standalone JSON/fetch migration, and
+  no active TOC / anchor / CSS class changes
+- the next-world guide recommends a future docs-only regulation sample data
+  composition before more extraction work
+
 ## Limited And Not Tested
 
 This docs-only guide does not add new runtime QA.

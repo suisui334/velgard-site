@@ -9228,6 +9228,60 @@ Status: completed.
   logging addition, auth/permission logic change, RPC/DB key configuration,
   `management_key` display, or raw id/email/token/JWT display was performed.
 
+## Phase 3-C1 next world template adoption guide
+
+Status: completed.
+
+- Baseline: `4208cf1 Document regulation data module adoption`.
+- Added
+  `docs/world-template-next-world-adoption-guide.md`.
+- Updated:
+  - `docs/world-site-template-extraction-plan.md`
+  - `docs/world-template-regulation-data-module-adoption-guide.md`
+  - `docs/world-template-regulation-structure-plan.md`
+  - `docs/reusable-ops-platform-extraction-plan.md`
+  - `docs/task-backlog.md`
+- Classified next-world adoption surfaces:
+  - easy to reuse: page skeletons, card/detail layouts, TOC/side-menu patterns,
+    regulation block concepts, regulation data-module method, and the current
+    `assets/js/core/` config/calendar/session helper structure
+  - replace per world: world/characters/spots/scenarios/terms/regulation data,
+    regulation data modules, gallery images, site title/copy, proper nouns, and
+    world-specific rules
+  - decide carefully: `style.css`, `main.js`, `sessionData.js`,
+    `mypageAuthClient.js`, `membershipAccessClient.js`, `discordSyncClient.js`,
+    whole-file session/session-post/detail renderers, public assets,
+    `updates.json`, auth/membership/Discord/DB/RPC/RLS, and cache-bust strategy
+  - do not copy: secrets, Webhooks, tokens, JWT values, raw user ids, emails,
+    Discord IDs/URLs, Supabase project-specific secret values,
+    `management_key` values, live session data, and live member data
+- Documented the recommended next-world setup order:
+  site identity, minimum world data, regulation structure, optional regulation
+  data modules, ops connection decision, later auth/DB/Discord gates, small CSS
+  adaptation, static public checks, and separate authenticated/data-changing QA.
+- Documented regulation template adoption policy:
+  keep HTML/CSS/renderer stable first, use small data-module targets, avoid
+  initial JSON/fetch migration, update cache-bust, check public delivery,
+  handle stale JSON/cache mixing, and preserve active TOC/anchor/CSS class
+  contracts.
+- Reconfirmed reusable ops core boundary:
+  core helpers are ops-side; regulation data modules are world-site template
+  side; auth/membership/Discord sync/DB/RPC/RLS remain separate gates.
+- Added file placement guidance for:
+  `assets/js/core/config/`, `assets/js/core/calendar/`,
+  `assets/js/core/session/`, `assets/js/world/regulation/`, `data/`, optional
+  future `assets/data/`, and `docs/`.
+- Added next-world adoption checklist and rollback/recovery policy.
+- Recommended next docs-only candidate:
+  regulation sample data composition.
+- This was docs-only: no implementation, HTML, CSS, JS, data/json,
+  data-module, renderer, regulation copy, world copy, gallery image, or
+  `updates.json` change was performed.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+  operation, secret/Webhook change, direct Supabase write, debug console
+  logging addition, auth/permission logic change, RPC/DB key configuration,
+  `management_key` display, or raw id/email/token/JWT display was performed.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

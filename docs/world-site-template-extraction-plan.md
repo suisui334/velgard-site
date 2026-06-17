@@ -1023,3 +1023,26 @@ Recommended next route:
 - Route C: continue world-template docs by documenting next-world setup order,
   regulation template structure, initial data/module setup, and a sample
   composition plan.
+
+## Phase 3-C1 Next World Adoption Guide
+
+Phase 3-C1 starts Route C by documenting the next-world adoption procedure:
+
+- `docs/world-template-next-world-adoption-guide.md`
+
+World-site template impact:
+
+- classifies what can be reused, what must be replaced per world, what needs a
+  careful gate, and what must not be copied
+- records a setup order that starts with world name, site identity, minimum
+  world/terms/regulation/characters/spots data, and only later considers ops
+  connections
+- keeps regulation template adoption on the world-site side and points detailed
+  data-module work back to
+  `docs/world-template-regulation-data-module-adoption-guide.md`
+- separates reusable ops core from world-site data and copy
+- records file placement guidance for `assets/js/core/`,
+  `assets/js/world/regulation/`, `data/`, optional `assets/data/`, and `docs/`
+- adds a next-world checklist and rollback/recovery policy
+- recommends the next docs-only candidate:
+  regulation sample data composition

@@ -425,3 +425,24 @@ The spec keeps term explanation cards on the world-site template side and
 records that future work should preserve the `term-explanations` section id,
 card order, paragraph text, optional callout behavior, current CSS classes, TOC
 active behavior, and ops-core separation.
+
+## Phase 3-C1 Next World Adoption
+
+Phase 3-C1 adds the broader next-world template adoption guide:
+
+- `docs/world-template-next-world-adoption-guide.md`
+
+Regulation-structure impact:
+
+- regulation remains a world-site template page, not reusable ops core
+- next-world regulation adoption should start from the existing page skeleton,
+  TOC/side-menu structure, block rendering concepts, and conservative
+  data-module method
+- world-specific rule text, proper nouns, values, and notes must be replaced
+  or intentionally reviewed before reuse
+- active TOC behavior, anchors, DOM ids, CSS classes, table columns, and shared
+  renderer branches remain separate gates
+- auth, membership, session-post, calendar, DB/RPC/RLS, Edge Functions, and
+  Discord sync remain ops-side or separate-gate concerns
+- the recommended next docs-only candidate is a regulation sample data
+  composition for a future world
