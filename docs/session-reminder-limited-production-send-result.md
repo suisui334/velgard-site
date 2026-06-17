@@ -112,3 +112,33 @@ Recommended next gate:
 
 Do not enable real send until the preflight conditions are satisfied in the same
 gate immediately before the send.
+
+## Gate 11A Candidate Check Follow-up
+
+Gate 11A checked whether an existing `gm_confirmed` candidate can be prepared
+without sending.
+
+Result doc:
+
+- `docs/session-reminder-gm-confirmed-candidate-check.md`
+
+Sanitized result:
+
+- current `dry_run:true`: HTTP `200`, `ok:true`, `count:0`
+- shortage item present: `false`
+- message preview contained `@everyone`: `false`
+- raw Discord ID pattern in response: not observed
+- `session_reminder_logs` count before/after: `0` / `0`
+
+Diagnosis:
+
+- `gm_reminder_enabled=true` sessions: `0`
+- due-window GM reminder candidates: `0`
+
+Stop reason:
+
+- no existing session currently has GM reminder enabled, so `now` override
+  cannot produce a `gm_confirmed` candidate from the current data.
+
+No real send flag was enabled, no production `dry_run:false` was called, no
+Discord send occurred, and no reminder log rows were created.

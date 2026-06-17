@@ -10599,6 +10599,70 @@ Next candidate gate:
 - Gate 11 retry after a due `gm_confirmed` candidate is prepared and
   `dry_run:true` returns exactly one safe `gm_confirmed` item.
 
+## Gate 11A session reminder GM confirmed candidate check
+
+Status: completed, no send candidate found.
+
+- Baseline: `382ddb9 Record limited session reminder production send test`.
+- Added `docs/session-reminder-gm-confirmed-candidate-check.md`.
+- Updated:
+  - `docs/session-reminder-limited-production-send-result.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+- Logs count before:
+  - `0`
+- Runtime `dry_run:true`:
+  - HTTP `200`
+  - `ok:true`
+  - `count:0`
+  - `items` present
+  - reminder types returned: none
+  - shortage item present: `false`
+  - message preview contained `@everyone`: `false`
+  - raw Discord ID pattern in response: not observed
+  - `production_enabled:false`
+  - `db_write:false`
+  - `discord_send:false`
+- SELECT-only aggregate diagnosis:
+  - total sessions checked: `9`
+  - `gm_reminder_enabled=true`: `0`
+  - valid GM reminder timing config: `0`
+  - active public GM reminder config: `0`
+  - minimum-met GM reminder candidates: `0`
+  - valid GM Discord ID among minimum-met GM reminder candidates: `0`
+  - unlogged ready GM reminder candidates: `0`
+  - due-window GM reminder candidates: `0`
+- Stop reason:
+  - no existing session currently has GM reminder enabled, so `now` override
+    cannot produce a `gm_confirmed` candidate from the current data
+- Logs count after:
+  - `0`
+
+Not performed:
+
+- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
+- secret/Webhook setting or change
+- production `dry_run:false` invocation
+- Discord send
+- Discord dry-run send
+- `@everyone` send
+- shortage send
+- claim/finalize runtime execution
+- `session_reminder_logs` write
+- Edge deploy
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS mutation
+- cron setup
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+
+Next candidate gate:
+
+- Prepare one test candidate by enabling GM reminder settings on a suitable
+  existing or test session through the approved UI/RPC path, then retry Gate
+  11A.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

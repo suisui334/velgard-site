@@ -529,6 +529,22 @@ Gate 11 preflight result:
 - no Discord send, claim/finalize success path, DB write, Edge deploy, SQL
   apply, cron setup, or UI change was performed
 
+Gate 11A candidate check result:
+
+- `docs/session-reminder-gm-confirmed-candidate-check.md`
+- current `dry_run:true` returned `count=0`
+- SELECT-only aggregate found `gm_reminder_enabled=true` sessions: `0`
+- due-window GM reminder candidates: `0`
+- logs count before/after: `0` / `0`
+- no real send enablement, production invocation, Discord send, claim/finalize,
+  DB write, Edge deploy, SQL apply, cron setup, or UI change was performed
+
+Next preparation:
+
+- enable GM reminder settings on one suitable existing or test session through
+  an approved UI/RPC path, then retry the candidate check before any production
+  send.
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:
