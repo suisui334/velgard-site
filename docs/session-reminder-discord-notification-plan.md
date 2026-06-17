@@ -742,13 +742,43 @@ Recommended next gate:
 
 - Gate 7: deploy the updated Function and confirm production remains disabled.
 
+## Gate 6.1 GM Mention Review
+
+Gate 6.1 reviewed the updated requirement that `gm_confirmed` should mention the GM's Discord user directly.
+
+Updated policy:
+
+- shortage reminder remains the only reminder type that can use `@everyone`
+- shortage payload keeps `allowed_mentions.parse=["everyone"]`
+- GM confirmed reminder should use a single GM Discord user mention
+- GM confirmed payload should use `allowed_mentions.parse=[]` and `allowed_mentions.users=[gm_discord_user_id]`
+- if a GM Discord id is missing or invalid, GM confirmed falls back to no mention and GM display-name text
+- dry-run preview and docs must mask the mention as `<@GM>` or equivalent
+
+Investigation result:
+
+- `preview_due_session_reminders` currently returns `gm_display_name` but no GM Discord user id
+- `claim_due_session_reminders` currently returns `gm_display_name` but no GM Discord user id
+- `dispatch-session-reminders` row types have no GM Discord id field
+- existing `profiles.discord_handle` / `get_my_profile_contact()` / `update_my_discord_id(text)` / `get_gm_session_accepted_contacts(text)` flows are useful precedents, but do not provide a safe dispatcher delivery field for the session GM
+
+Blocker:
+
+- implementing GM mention now would require a SQL/RPC contract change
+- no Edge Function code change was made in Gate 6.1
+- no SQL Editor execution, SQL apply, DB/RPC/RLS change, Edge deploy, runtime invocation, Discord send, claim/finalize execution, DB write, Webhook/secret change, or `updates.json` change was performed
+
+Next Gate recorded from Gate 6.1:
+
+- Gate 6.2: draft SQL/RPC update to add a safe GM Discord id field to `preview_due_session_reminders` and `claim_due_session_reminders`
+
 ## Open Questions
 
 1. Should `waitlisted` stay excluded from the first threshold decision?
 2. Should shortage reminders be skipped after `application_deadline` has passed?
 3. Should sessions with status `full` stay eligible for GM reminder?
 4. What is the approved destination for GM reminders?
-5. Should direct GM Discord mention be supported in the first version, or should it start with GM display name only?
+5. Which SQL/RPC field should carry the validated GM Discord user id for GM mention?
 6. If a session start time or reminder offset changes after a reminder was already sent, should a second send be allowed?
 7. Which channel key should receive shortage reminders?
 8. Which channel key should receive GM reminders?

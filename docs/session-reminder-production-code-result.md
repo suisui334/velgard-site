@@ -123,3 +123,22 @@ Recommended next gate:
 - Gate 7: deploy `dispatch-session-reminders` and confirm production remains disabled.
 
 Gate 7 should deploy only this Function, confirm `dry_run:true` still works, confirm `dry_run:false` is rejected without the production gates, confirm no Discord send, and confirm `session_reminder_logs` does not grow.
+
+## Gate 6.1 GM Mention Review
+
+Gate 6.1 changed the desired product policy for `gm_confirmed`: it should mention the GM's Discord user directly, not only include the GM display name.
+
+Review result:
+
+- current `preview_due_session_reminders` returns `gm_display_name` but no GM Discord user id
+- current `claim_due_session_reminders` returns `gm_display_name` but no GM Discord user id
+- current Edge Function row types likewise have no GM Discord id field
+- existing Discord ID/contact flows are useful precedents but do not provide a safe dispatcher delivery field for the session GM
+
+Because the required value is missing from the reminder RPC contract, Gate 6.1 stopped before code changes. The Gate 6 production source remains not deployed.
+
+Follow-up:
+
+- Gate 6.2 should draft a SQL/RPC update that adds a safe GM Discord user id field to the reminder preview/claim result.
+- After that update, Edge code can add `<@id>` for `gm_confirmed`, `allowed_mentions.parse=[]`, and `allowed_mentions.users=[id]`.
+- Dry-run previews and docs must mask the mention as `<@GM>` or equivalent and never record the actual Discord id.

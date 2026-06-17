@@ -141,6 +141,14 @@ Initial product direction:
 - Send to the existing Discord notification channel with GM display name.
 - Keep GM individual mention/profile Discord contact as a later privacy and routing gate.
 
+Gate 6.1 update:
+
+- Product direction changed to GM本人へのDiscord user mention.
+- GM confirmed reminder still must not use `@everyone`.
+- Production payload should use `allowed_mentions.parse=[]` plus `allowed_mentions.users=[gm_discord_user_id]`.
+- Dry-run preview and docs must mask the mention, for example `<@GM>`.
+- Current reminder RPCs do not return `gm_discord_user_id`, so Gate 6.1 is blocked until SQL/RPC returns a safe, validated GM Discord id.
+
 Implementation recommendation:
 
 - Use the same reminder Webhook env as shortage unless a separate GM reminder channel is explicitly chosen.
@@ -148,12 +156,20 @@ Implementation recommendation:
 - Use `gm_display_name` from the server-side preview/claim result.
 - Do not include raw `gm_user_id`, email, Discord user id, or profile contact fields.
 
+Implementation recommendation after Gate 6.1:
+
+- Extend `preview_due_session_reminders` and `claim_due_session_reminders` with a safe GM Discord id field before changing Edge send code.
+- Use the GM id only for `gm_confirmed`, only after validating it as a Discord snowflake-like value.
+- Fall back to GM display-name-only, no-mention delivery if the GM id is missing or invalid.
+- Do not expose the actual id in runtime responses, docs, or final reports.
+
 Open destination options:
 
 - Same existing notification channel for both reminder types.
 - Dedicated reminder channel for both reminder types.
 - Separate GM-only channel later.
 - Server-side GM mention later after profile ownership, privacy, mention format, and visibility rules are approved.
+- SQL/RPC contract update for server-side GM mention, now required before the Edge code can safely implement the new GM mention policy.
 
 ## Discord Payload Policy
 
@@ -201,6 +217,15 @@ Payload rules:
 - Use `flags: 4` if a session URL is included.
 - Use `wait=true` if the provider message id is needed for finalize.
 - Keep exact wording open until the production implementation gate.
+
+Gate 6.1 payload update:
+
+- Desired first line is a GM user mention such as `<@GM_DISCORD_ID>` in production content.
+- The actual id must come from a service-role reminder RPC result, not from public data or docs.
+- `allowed_mentions` should be `{ "parse": [], "users": ["GM_DISCORD_ID"] }` when the id is present.
+- If the id is missing, content should omit the mention and use `allowed_mentions.parse=[]`.
+- Dry-run `message_preview` should mask the mention as `<@GM>` or equivalent.
+- This payload update is blocked until the preview/claim RPC result includes the safe GM Discord id.
 
 ## Production Flow
 

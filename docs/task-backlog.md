@@ -10110,6 +10110,51 @@ Status: production-gated source path implemented, not deployed.
   `dry_run:true` still works while `dry_run:false` remains rejected without
   production gates; also confirm no Discord send and no log growth.
 
+## Gate 6.1 session reminder GM mention blocker
+
+Status: GM mention implementation blocked before source change.
+
+- Baseline: `1871dd4 Add session reminder production send path`.
+- Added `docs/session-reminder-gm-mention-result.md`.
+- Updated:
+  - `docs/session-reminder-production-code-result.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/session-reminder-discord-notification-plan.md`
+  - `docs/task-backlog.md`
+- Product direction changed: `gm_confirmed` reminders should mention the GM's
+  Discord user directly, not use `@everyone`, and not rely only on display
+  name.
+- Desired GM payload policy:
+  - shortage remains the only `@everyone` reminder type.
+  - shortage keeps `allowed_mentions.parse=["everyone"]`.
+  - GM confirmed should use `allowed_mentions.parse=[]` plus
+    `allowed_mentions.users=[gm_discord_user_id]`.
+  - dry-run previews and docs must mask the mention as `<@GM>` or equivalent.
+- Investigation result:
+  - `preview_due_session_reminders` returns `gm_display_name` but no GM
+    Discord user id.
+  - `claim_due_session_reminders` returns `gm_display_name` but no GM Discord
+    user id.
+  - `dispatch-session-reminders` row types currently have no GM Discord id
+    field.
+  - Existing `profiles.discord_handle`, `get_my_profile_contact()`,
+    `update_my_discord_id(text)`, and `get_gm_session_accepted_contacts(text)`
+    are useful precedents, but do not provide a safe dispatcher delivery field
+    for the session GM.
+- Blocker: adding GM mention requires a SQL/RPC contract update before Edge
+  send code can safely include `<@id>`.
+- Did not change Edge Function source, deploy Edge Function, invoke runtime,
+  send Discord, run Discord dry-run sends, set/change Webhook or secrets, run
+  SQL Editor, apply SQL, mutate DB/RPC/RLS, execute claim/finalize at runtime,
+  write `session_reminder_logs`, configure cron, change UI/HTML/CSS/browser
+  JS, or modify `updates.json`.
+- No Discord ID value, Webhook URL, channel id, message id, token, JWT,
+  `management_key`, raw user id, email, real session URL, or full message
+  preview was recorded.
+- Next candidate gate: Gate 6.2 draft SQL/RPC update to add a safe,
+  validated GM Discord user id field to `preview_due_session_reminders` and
+  `claim_due_session_reminders`; do not apply SQL in that draft gate.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
