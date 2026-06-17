@@ -744,6 +744,33 @@ Gate 12A itself was docs-only and did not send Discord, enable real send, call
 `dry_run:false`, execute claim/finalize, write DB rows, apply SQL, deploy Edge
 Functions, configure cron, change UI, change secrets, or change `updates.json`.
 
+Gate 12B shortage and scheduler operation plan:
+
+- plan doc: `docs/session-reminder-scheduler-operation-plan.md`
+- shortage `@everyone` remains the final independent approval gate
+- shortage sends require a fresh target-count check, destination confirmation,
+  and explicit `@everyone` approval
+- shortage condition remains minimum-attendance shortage only
+- GM reminders and shortage reminders remain separate operation paths
+- candidate count `0` should stop the shortage operation rather than forcing
+  test data
+- scheduler design should use Supabase `pg_cron` + `pg_net`
+- recommended scheduler cadence: every minute
+- lower-noise alternative: every 5 minutes
+- cron should call `dispatch-session-reminders`
+- initial cron payload should stay bounded with `limit:1`
+- dispatch token and Function URL should be referenced through secrets/Vault or
+  equivalent safe indirection
+- real-send enablement remains a separate operational switch and should not be
+  bundled with cron creation
+- `session_reminder_logs` unique constraint remains the duplicate-prevention
+  mechanism
+- failed/skipped retry and log reset require a separate future SQL gate
+
+Gate 12B itself was docs-only and did not send Discord, enable real send, call
+`dry_run:false`, execute claim/finalize, write DB rows, apply SQL, deploy Edge
+Functions, configure cron, change UI, change secrets, or change `updates.json`.
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:

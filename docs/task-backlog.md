@@ -11229,6 +11229,88 @@ Next candidate gates:
 Do not enable shortage sending without a fresh target-count check, destination
 confirmation, and explicit `@everyone` approval.
 
+## Gate 12B session reminder shortage and scheduler operation plan
+
+Status: shortage `@everyone` operation policy and scheduler/cron design
+recorded.
+
+- Baseline: `729aded Record GM reminder send success`.
+- Added:
+  - `docs/session-reminder-scheduler-operation-plan.md`
+- Updated:
+  - `docs/session-reminder-gm-confirmed-send-success-summary.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+
+Current state recorded:
+
+- manual `gm_confirmed` production send succeeded in the previous gate
+- `session_reminder_logs` count moved `0` -> `1` for that manual send
+- real send was disabled again after the manual send
+- shortage send and `@everyone` send have not been performed
+- cron/scheduler auto execution has not been configured
+
+Shortage operation policy:
+
+- shortage is the only reminder type allowed to use `@everyone`
+- shortage production sending remains a final independent approval gate
+- immediately before any shortage send, require:
+  - fresh `dry_run:true` target-count confirmation
+  - destination confirmation
+  - explicit `@everyone` approval
+- send only for minimum-attendance shortage candidates
+- do not mix shortage send and GM reminder send in the same gate
+- if shortage candidates are `0`, stop rather than manufacturing test data
+- stop if the candidate count or reminder type differs from the approved
+  target
+
+Scheduler/cron design:
+
+- use Supabase `pg_cron` + `pg_net`, matching the existing admin-cap
+  announcement cron style
+- call `dispatch-session-reminders`; keep selection, claim, Discord send, and
+  finalize inside the Edge Function
+- recommended cadence is every minute; every 5 minutes is the slower
+  alternative if delay is acceptable
+- start scheduler operation with a bounded payload such as
+  `dry_run:false` + `limit:1` only after later explicit approval
+- keep dispatch token and Function URL behind secrets/Vault or equivalent safe
+  indirection; do not inline raw values into docs
+- real-send enablement remains a separate switch and must not be bundled with
+  cron creation
+- rely on `session_reminder_logs` and the `(session_id, reminder_type)` unique
+  constraint for duplicate prevention
+- keep reset/retry for failed or skipped log rows as a future SQL gate
+
+Next candidate gates:
+
+1. Gate 12C: scheduler SQL draft and post-apply SELECT-only checklist.
+2. Gate 12D: scheduler SQL apply under explicit approval, production disabled.
+3. Gate 12E: scheduler runtime production-disabled confirmation.
+4. Gate 12F: GM automatic scheduler send test with bounded target count.
+5. Gate 12G: shortage `@everyone` production planning only.
+6. Gate 12H: shortage `@everyone` final approval and bounded production
+   operation.
+
+Gate 12B not performed:
+
+- Discord send
+- Discord dry-run send
+- `@everyone` send
+- shortage send
+- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
+- production `dry_run:false`
+- claim/finalize runtime execution
+- DB write
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS structure change
+- Edge deploy
+- cron setup
+- UI / HTML / CSS / browser JS change
+- secret/Webhook setting or change
+- `updates.json` change
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

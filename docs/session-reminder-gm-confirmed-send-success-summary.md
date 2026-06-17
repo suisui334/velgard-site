@@ -80,3 +80,31 @@ Recommended next candidates:
 
 Do not enable shortage sending without a fresh target-count check, destination
 confirmation, and explicit `@everyone` approval.
+
+## Gate 12B Operation Planning Follow-up
+
+Plan doc:
+
+- `docs/session-reminder-scheduler-operation-plan.md`
+
+Gate 12B recorded the next-stage operation policy:
+
+- shortage `@everyone` remains the final independent approval gate
+- shortage sends require fresh target-count check, destination confirmation,
+  and explicit `@everyone` approval
+- candidate count `0` should stop the operation rather than forcing test data
+- scheduler design should use Supabase `pg_cron` + `pg_net`, matching the
+  existing admin-cap announcement pattern
+- recommended scheduler cadence is every minute, with 5 minutes as a lower
+  noise alternative
+- cron payload should remain bounded, initially `dry_run:false` with
+  `limit:1`, after real-send automation is separately approved
+- dispatch token and Function URL should be referenced through secrets/Vault or
+  equivalent safe indirection, not inline values
+- `session_reminder_logs` duplicate prevention remains the main protection
+  against repeated sends
+- reset/retry remains a separate future SQL gate
+
+Gate 12B itself was docs-only and did not send Discord, enable real send, call
+`dry_run:false`, execute claim/finalize, write DB rows, apply SQL, deploy Edge
+Functions, configure cron, change UI, change secrets, or change `updates.json`.
