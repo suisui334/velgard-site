@@ -615,6 +615,57 @@ Recommended next gate:
 
 - Gate 4.5: approved safe runtime dry-run invocation, or Gate 5 planning for the production send gate.
 
+## Gate 4.5 Edge Runtime Dry-run Result
+
+Gate 4.5 deployed and invoked the dry-run dispatcher after explicit approval for this independent deploy gate.
+
+Result docs:
+
+- `docs/session-reminder-edge-runtime-dry-run-result.md`
+
+Deploy scope:
+
+- deployed only `dispatch-session-reminders`
+- did not deploy any other Edge Function
+- did not configure cron
+- did not change secrets or Webhooks
+
+Runtime dry-run:
+
+- request body shape: `{ "dry_run": true, "limit": 20 }`
+- HTTP status: `200`
+- response `ok`: `true`
+- response `dry_run`: `true`
+- response `count`: `0`
+- response `items`: present
+- safety `preview_rpc_only`: `true`
+- safety `db_write`: `false`
+- safety `discord_send`: `false`
+- safety `production_enabled`: `false`
+
+DB write check:
+
+- `session_reminder_logs` count after dry-run: `0`
+- Gate 2 had reported the same count after apply, so dry-run did not increase logs.
+
+Still not performed:
+
+- Discord dry-run send
+- Discord production send
+- claim RPC
+- finalize RPC
+- `session_reminder_logs` write
+- cron / scheduled invocation
+- channel/Webhook/secret selection
+
+The zero runtime count means there was no due session reminder candidate at the invocation time. Real session ids, session URLs, message preview contents, project ref, runtime URL, Webhook URL, token, Discord identifier, and provider message id were not recorded.
+
+Recommended next gate:
+
+- Gate 5: production send gate planning and implementation design.
+
+Gate 5 must separately decide the Discord destination, `@everyone` production approval, GM reminder destination, suppress-embed payload, claim/finalize flow, retry behavior, and sanitized reporting format.
+
 ## Open Questions
 
 1. Should `waitlisted` stay excluded from the first threshold decision?

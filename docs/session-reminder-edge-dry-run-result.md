@@ -1,6 +1,6 @@
 # Session Reminder Edge Dry-run Result
 
-Status: Gate 4 dry-run dispatcher implemented, not deployed.
+Status: Gate 4 dry-run dispatcher implemented. Gate 4.5 deployed the dispatcher and completed a runtime dry-run check.
 
 ## Scope
 
@@ -124,20 +124,44 @@ Static checks:
 
 - `deno check --no-lock supabase/functions/dispatch-session-reminders/index.ts`: passed
 
+## Gate 4.5 Runtime Follow-up
+
+Gate 4.5 deployed only:
+
+- `dispatch-session-reminders`
+
+Runtime dry-run result is recorded in:
+
+- `docs/session-reminder-edge-runtime-dry-run-result.md`
+
+Sanitized result:
+
+- deploy: succeeded
+- runtime `dry_run:true`: HTTP `200`
+- response `dry_run`: `true`
+- response `count`: `0`
+- safety `preview_rpc_only`: `true`
+- safety `db_write`: `false`
+- safety `discord_send`: `false`
+- `session_reminder_logs` count after dry-run: `0`
+
+No session ids, session URLs, project ref, runtime URL, message preview contents, Webhook URL, token, Discord identifier, or provider message id was recorded.
+
 ## Limited / Not Tested
 
-- Edge Function deploy: `not_tested`
+- Edge Function deploy: `completed` for `dispatch-session-reminders` only
+- runtime `dry_run:true`: `completed`
 - scheduled cron: `not_tested`
-- preview RPC execution against production: `not_tested`
+- preview RPC execution against production runtime: `completed` through the deployed dry-run function
 - Discord dry-run request/send: `not_tested`
 - Discord production send: `not_tested`
 - claim/finalize production flow: `not_tested`
+- nonzero reminder item runtime formatting: `limited`, because the dry-run returned `0` items
 
 ## Next Gate Candidate
 
 Recommended next gate:
 
-- Gate 4.5: local/runtime dry-run invocation with safe fixture or approved non-production environment, or
 - Gate 5: production send gate planning before any Discord send is enabled.
 
 Before production send, confirm target Discord channel, OGP suppression payload, GM reminder destination, retry behavior, and exact reporting format without exposing raw identifiers or secrets.

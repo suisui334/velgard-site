@@ -9983,6 +9983,43 @@ Status: dry-run dispatcher draft implemented, not deployed.
 - Next candidate gate: approved safe runtime dry-run invocation, or production
   send gate planning before any Discord send is enabled.
 
+## Gate 4.5 session reminder Edge runtime dry-run
+
+Status: approved Edge deploy and runtime dry-run completed.
+
+- Baseline: `01472ae Add session reminder dry run dispatcher`.
+- Added `docs/session-reminder-edge-runtime-dry-run-result.md`.
+- Updated:
+  - `docs/session-reminder-edge-dry-run-result.md`
+  - `docs/session-reminder-discord-notification-plan.md`
+  - `docs/task-backlog.md`
+- Deployed only `dispatch-session-reminders`.
+- Did not deploy any other Edge Function.
+- Runtime `dry_run:true` invocation returned HTTP `200`.
+- Sanitized runtime response:
+  - `ok=true`
+  - `dry_run=true`
+  - `count=0`
+  - `items` present
+  - `preview_rpc_only=true`
+  - `db_write=false`
+  - `discord_send=false`
+  - `production_enabled=false`
+- `session_reminder_logs` count after dry-run was `0`; Gate 2 had also
+  reported `0`, so the dry-run did not increase logs.
+- No session ids, session URLs, project ref, runtime URL, anon key,
+  service key, token, Webhook URL, Discord identifier, provider message id,
+  or message preview contents were recorded.
+- Did not run SQL Editor, apply SQL, mutate DB/RPC/RLS, change
+  secret/Webhook settings, call claim/finalize RPCs, write reminder logs,
+  send Discord messages, configure cron, change UI, or modify `updates.json`.
+- Limited: nonzero reminder item runtime formatting was not observed because
+  the dry-run returned `0` items.
+- Next candidate gate: Gate 5 production send gate planning and
+  implementation design, with channel/Webhook/secret, `@everyone`, GM
+  destination, claim/finalize, retry, and sanitized reporting decisions split
+  into explicit approval steps.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
