@@ -231,11 +231,12 @@ Before shortage operation:
 Recommended gate split:
 
 1. Gate 12C: scheduler SQL draft and post-apply SELECT-only checklist.
-2. Gate 12D: scheduler SQL apply under explicit approval, production disabled.
-3. Gate 12E: scheduler runtime production-disabled confirmation.
-4. Gate 12F: GM automatic scheduler send test with bounded target count.
-5. Gate 12G: shortage `@everyone` production planning only.
-6. Gate 12H: shortage `@everyone` final approval and bounded production
+2. Gate 12D: scheduler Vault secret preparation and boundary confirmation.
+3. Gate 12E: scheduler SQL apply under explicit approval, production disabled.
+4. Gate 12F: scheduler runtime production-disabled confirmation.
+5. Gate 12G: GM automatic scheduler send test with bounded target count.
+6. Gate 12H: shortage `@everyone` production planning only.
+7. Gate 12I: shortage `@everyone` final approval and bounded production
    operation.
 
 Keep shortage `@everyone` as the final, independent approval gate.
@@ -277,6 +278,40 @@ Important boundary:
 Gate 12C itself did not run SQL, create cron, invoke runtime, enable real send,
 send Discord, write DB rows, deploy Edge Functions, change secrets, or change
 `updates.json`.
+
+## Gate 12D Vault Secret Prep Follow-up
+
+Gate 12D documented the scheduler Vault secret boundary:
+
+- `docs/session-reminder-scheduler-vault-secret-result.md`
+
+Required Vault secret names:
+
+- `SESSION_REMINDER_FUNCTION_URL`
+- `SESSION_REMINDER_INVOKE_JWT`
+- `SESSION_REMINDER_DISPATCH_TOKEN`
+
+Alignment confirmed by file review:
+
+- scheduler draft and checklist use the same three Vault secret names
+- `SESSION_REMINDER_FUNCTION_URL` supplies the
+  `dispatch-session-reminders` invoke URL
+- `SESSION_REMINDER_INVOKE_JWT` supplies platform `Authorization` and `apikey`
+  headers
+- `SESSION_REMINDER_DISPATCH_TOKEN` supplies `x-dispatch-token`
+- Webhook URL stays on the Edge Function secret/env side as
+  `DISCORD_SESSION_REMINDER_WEBHOOK_URL`
+- real send stays controlled by `SESSION_REMINDER_REAL_SEND_ENABLED`
+
+Gate 12D did not check raw Vault values, set Vault secrets, enable real send,
+create cron, run SQL, invoke runtime, send Discord, deploy Edge Functions, or
+change `updates.json`.
+
+Next gate recommendation:
+
+- Gate 12E: scheduler SQL apply under explicit approval while real send
+  remains disabled. If required Vault secrets are missing, stop before cron
+  creation and record missing secret names only.
 
 ## Not Performed
 

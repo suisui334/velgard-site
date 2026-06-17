@@ -11380,12 +11380,83 @@ Gate 12C not performed:
 
 Next candidate gates:
 
-1. Gate 12D: configure/confirm required Vault secrets if needed, then apply the
-   scheduler SQL under explicit approval while real send remains disabled.
-2. Gate 12E: scheduler runtime production-disabled confirmation.
-3. Gate 12F: GM automatic scheduler send test with bounded target count.
-4. Gate 12G: shortage `@everyone` production planning only.
-5. Gate 12H: shortage `@everyone` final approval and bounded production
+1. Gate 12D: scheduler Vault secret preparation and boundary confirmation.
+2. Gate 12E: scheduler SQL apply under explicit approval while real send
+   remains disabled.
+3. Gate 12F: scheduler runtime production-disabled confirmation.
+4. Gate 12G: GM automatic scheduler send test with bounded target count.
+5. Gate 12H: shortage `@everyone` production planning only.
+6. Gate 12I: shortage `@everyone` final approval and bounded production
+   operation.
+
+## Gate 12D session reminder scheduler Vault prep
+
+Status: scheduler Vault secret boundary and setup procedure recorded.
+
+- Baseline: `c496d09 Draft session reminder scheduler SQL`.
+- Added:
+  - `docs/session-reminder-scheduler-vault-secret-result.md`
+- Updated:
+  - `docs/session-reminder-scheduler-sql-checklist.md`
+  - `docs/session-reminder-scheduler-operation-plan.md`
+  - `docs/task-backlog.md`
+
+Existing admin-cap pattern reviewed:
+
+- cron reads Function URL, invoke JWT, and dispatch token from Supabase Vault
+  secret names
+- SQL/docs do not inline Webhook URL, Function URL, JWT, dispatch token,
+  Discord IDs, provider message IDs, or response bodies
+- missing Vault secrets should stop before cron job creation
+- post-apply checks should report status/counts and boolean presence only
+
+Session reminder Vault secret names confirmed by file review:
+
+- `SESSION_REMINDER_FUNCTION_URL`
+- `SESSION_REMINDER_INVOKE_JWT`
+- `SESSION_REMINDER_DISPATCH_TOKEN`
+
+Scheduler SQL alignment:
+
+- `docs/sql-drafts/session-reminder-scheduler-draft.sql` checks the same three
+  Vault secret names before scheduling
+- `SESSION_REMINDER_FUNCTION_URL` supplies the
+  `dispatch-session-reminders` invoke URL
+- `SESSION_REMINDER_INVOKE_JWT` supplies `Authorization` and `apikey`
+  headers
+- `SESSION_REMINDER_DISPATCH_TOKEN` supplies `x-dispatch-token`
+- `DISCORD_SESSION_REMINDER_WEBHOOK_URL` remains an Edge Function secret/env
+  responsibility, not a cron SQL value
+- `SESSION_REMINDER_REAL_SEND_ENABLED=true` is not set by the scheduler draft
+
+Gate 12D not performed:
+
+- SQL Editor execution
+- SQL apply
+- Vault secret value read/write
+- cron creation
+- runtime invocation
+- production `dry_run:false`
+- claim/finalize runtime execution
+- DB write
+- Discord send
+- `@everyone` send
+- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
+- Edge deploy
+- DB/RPC/RLS structure change
+- secret/Webhook setting or change
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+
+Next candidate gates:
+
+1. Gate 12E: scheduler SQL apply under explicit approval while real send
+   remains disabled. If required Vault secrets are missing, stop before cron
+   creation and record missing secret names only.
+2. Gate 12F: scheduler runtime production-disabled confirmation.
+3. Gate 12G: GM automatic scheduler send test with bounded target count.
+4. Gate 12H: shortage `@everyone` production planning only.
+5. Gate 12I: shortage `@everyone` final approval and bounded production
    operation.
 
 ## M-14F-108 reusable ops session player-count label config

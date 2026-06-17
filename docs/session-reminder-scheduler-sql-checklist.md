@@ -1,6 +1,6 @@
 # Session Reminder Scheduler SQL Checklist
 
-Status: Gate 12C checklist drafted. SQL not applied.
+Status: Gate 12D Vault preparation documented. SQL not applied.
 
 ## Scope
 
@@ -19,6 +19,36 @@ It is SELECT-only except for the separately approved apply draft:
 Gate 12C did not run SQL, apply cron, invoke the Edge Function, enable real
 send, send Discord, write DB rows, change secrets, deploy Edge Functions, or
 change `updates.json`.
+
+Gate 12D documented the Vault boundary and setup procedure, but did not query
+or change Vault secret values.
+
+Result doc:
+
+- `docs/session-reminder-scheduler-vault-secret-result.md`
+
+## Gate 12D Vault Prep Result
+
+The scheduler draft and this checklist are aligned on these required Vault
+secret names:
+
+- `SESSION_REMINDER_FUNCTION_URL`
+- `SESSION_REMINDER_INVOKE_JWT`
+- `SESSION_REMINDER_DISPATCH_TOKEN`
+
+Confirmed by file review:
+
+- `SESSION_REMINDER_FUNCTION_URL` is the Function URL source for
+  `dispatch-session-reminders`.
+- `SESSION_REMINDER_INVOKE_JWT` is used for the platform `Authorization` and
+  `apikey` headers.
+- `SESSION_REMINDER_DISPATCH_TOKEN` is used for the `x-dispatch-token` header.
+- `DISCORD_SESSION_REMINDER_WEBHOOK_URL` remains an Edge Function secret/env
+  and is not read by cron SQL.
+- `SESSION_REMINDER_REAL_SEND_ENABLED=true` is not set by the scheduler draft.
+
+Actual Vault existence and values were not checked by Codex in Gate 12D.
+Future confirmation must be SELECT-only and value-redacted.
 
 ## Apply Before Checklist
 
@@ -284,8 +314,8 @@ where jobname = 'dispatch-session-reminders-every-minute';
 
 Recommended next gate:
 
-- Gate 12D: configure/confirm required Vault secrets if needed, then apply the
-  scheduler SQL under explicit approval while real send remains disabled.
+- Gate 12E: apply the scheduler SQL under explicit approval while real send
+  remains disabled.
 
 If required Vault secrets are missing, stop before cron creation and record the
 missing secret names only.
