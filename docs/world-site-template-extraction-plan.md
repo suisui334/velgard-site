@@ -975,3 +975,24 @@ World-site template boundary:
 This is another nested subsection-item success case, still without a generic
 registry. Future work should decide whether more small pilots add value before
 extracting broader schemas.
+
+## Phase 3-B18 Regulation Data Module Midpoint
+
+Phase 3-B18 summarizes the five completed regulation data-module pilots:
+
+- `docs/world-template-regulation-data-module-midpoint-summary.md`
+
+World-site template impact:
+
+- five world-site data modules are now public-rollout checked
+- the extraction path remains separated from reusable ops core
+- the path still avoids JSON/fetch migration, whole-section moves, shared
+  renderer changes, column-definition moves, CSS/anchor changes, and active TOC
+  changes
+- remaining QA is explicitly classified as `limited` or `not_tested` where
+  appropriate
+
+Recommended next route:
+
+- Route D: strengthen template documentation and next-world adoption guidance
+  before continuing extraction

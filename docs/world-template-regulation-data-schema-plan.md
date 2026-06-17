@@ -906,3 +906,23 @@ Schema-plan impact:
 
 This reinforces that one-off subsection modules are workable, but it does not
 approve an all-subsection registry or section-wide extraction.
+
+## Phase 3-B18 Data Module Midpoint Summary
+
+Phase 3-B18 updates the schema decision status after five completed pilots:
+
+- `docs/world-template-regulation-data-module-midpoint-summary.md`
+
+Schema-plan impact:
+
+- data-module ownership is proven for isolated card arrays, row arrays,
+  section-level callout blocks, and nested subsection items
+- duplicate-display guards should remain scoped to the exact moved target
+- the current work still does not approve all-block registries, all-subsection
+  registries, standalone JSON/fetch migration, table-column migration, or
+  whole-section extraction
+
+Recommended next route:
+
+- Route D, so the existing module patterns become reusable template guidance
+  before new schema moves are attempted

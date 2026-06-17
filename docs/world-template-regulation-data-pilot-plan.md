@@ -562,3 +562,21 @@ Next planning action:
 
 - summarize the fifth pilot before choosing any further nested item or moving
   toward a broader schema decision
+
+## Phase 3-B18 Data Module Midpoint Summary
+
+Phase 3-B18 records the five-pilot midpoint:
+
+- `docs/world-template-regulation-data-module-midpoint-summary.md`
+
+Plan impact:
+
+- treat the first five data modules as a coherent checkpoint
+- keep low-risk one-item moves available, but do not keep adding them without
+  a template-docs pass
+- keep table-column, renderer, JSON/fetch, long-rule, and whole-section moves
+  behind separate gates
+
+Recommended next route:
+
+- Route D: regulation template docs and adoption guidance

@@ -712,3 +712,27 @@ Updated evaluation:
 - no generic registry has been introduced
 - further moves should first summarize whether more small pilots are still
   useful
+
+## Phase 3-B18 Data Module Midpoint Summary
+
+Phase 3-B18 creates a docs-only midpoint summary for the five completed
+regulation data-module pilots:
+
+- `docs/world-template-regulation-data-module-midpoint-summary.md`
+
+Summary:
+
+- completed modules: `termExplanations`, `levelCaps`, `rewardCalloutBlocks`,
+  `generalSkillNoteSubsections`, and `originalGeneralSkillBonusSubsections`
+- the static data-module method has covered repeated cards, table rows, one
+  section callout, and two nested subsection-item cases
+- `renderBlock()`, `renderDataSection()`, `renderTable()`, CSS classes, DOM ids,
+  anchors, active TOC behavior, and reusable ops core remain separate from the
+  moved data
+- QA is now classified as `completed`, `limited`, and `not_tested` instead of
+  a blanket pass
+
+Recommended next route:
+
+- Route D: pause implementation and strengthen regulation template docs before
+  adding more one-off module moves

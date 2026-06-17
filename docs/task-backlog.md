@@ -9144,6 +9144,42 @@ Status: completed.
   configuration, `management_key` display, or raw id/email/token/JWT display was
   performed.
 
+## Phase 3-B18 regulation data module midpoint summary
+
+Status: completed.
+
+- Baseline: `258449b Check regulation original general skill bonus rollout`.
+- Added
+  `docs/world-template-regulation-data-module-midpoint-summary.md`.
+- Updated:
+  - `docs/world-template-regulation-data-pilot-summary.md`
+  - `docs/world-template-regulation-data-pilot-plan.md`
+  - `docs/world-template-regulation-data-schema-plan.md`
+  - `docs/world-site-template-extraction-plan.md`
+  - `docs/task-backlog.md`
+- Summarized the five completed regulation data modules:
+  `termExplanations`, `levelCaps`, `rewardCalloutBlocks`,
+  `generalSkillNoteSubsections`, and
+  `originalGeneralSkillBonusSubsections`.
+- Recorded each module path, export, source JSON location, removed key/block/item,
+  renderer connection, cache-bust key, public check commit, maintained output,
+  and remaining `limited` / `not_tested` QA.
+- Updated the data-module method evaluation after five shapes: repeated cards,
+  table rows, one section callout, and two nested subsection items.
+- Reconfirmed constraints: no whole-section moves, no multi-section moves, no
+  long-rule or magic-angel extraction, no renderer/table/column/CSS/anchor/TOC
+  changes, no JSON/fetch migration, no `updates.json` change, and no mixing with
+  auth/DB/RPC/Discord/Edge or reusable ops core.
+- Classified QA as `completed`, `limited`, and `not_tested`.
+- Recommended next route: Route D, pause implementation and strengthen
+  regulation template docs / next-world adoption guidance.
+- No implementation, HTML, CSS, JS, data/json, data-module, renderer,
+  regulation copy, or `updates.json` change was performed.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+  operation, secret/Webhook change, direct Supabase write, debug console logging
+  addition, auth/permission logic change, RPC/DB key configuration,
+  `management_key` display, or raw id/email/token/JWT display was performed.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
