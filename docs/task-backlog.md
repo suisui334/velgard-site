@@ -9335,6 +9335,51 @@ Status: completed.
   logging addition, auth/permission logic change, RPC/DB key configuration,
   `management_key` display, or raw id/email/token/JWT display was performed.
 
+## Phase 3-C3 characters / spots / terms scalable structures
+
+Status: completed.
+
+- Baseline: `75558b0 Plan regulation sample data`.
+- Added
+  `docs/world-template-content-structures-plan.md`.
+- Updated:
+  - `docs/world-template-next-world-adoption-guide.md`
+  - `docs/world-template-regulation-sample-data-plan.md`
+  - `docs/world-site-template-extraction-plan.md`
+  - `docs/task-backlog.md`
+- Documented scale-variable template policies for:
+  - characters: zero/unpublished state, key NPC lists, faction/region/chapter
+    scaling, image-present/image-missing records, and optional category/tag
+    behavior
+  - spots: key hubs, region/location scaling, exploration/facility/nation/city
+    variants, image/map optionality, and optional related hooks/NPCs
+  - terms: small important-word lists, category dictionary growth,
+    session-progress additions, and optional reading/alias/related fields
+- Separated minimum, standard, and extended pseudo structures for characters,
+  spots, and terms without setting any required record count.
+- Documented minimum and optional field policies, including `id`/`slug`, name or
+  term, summary/body, category, tags, image, related ids, sort order, and
+  status/visibility/publish concepts.
+- Documented empty-state policy:
+  zero visible records is valid; missing images, maps, tags, categories, and
+  related links should hide optional UI instead of rendering broken labels or
+  empty sections.
+- Separated generic structures such as cards, lists, detail pages, categories,
+  tags, image frames, related links, sort order, and empty states from
+  world-specific NPC names, place names, organization names, terms, images,
+  tags, categories, and lore.
+- Reconfirmed reusable ops core boundary:
+  characters, spots, and terms are world-template data; ops pages may link to
+  them, but auth, DB/RPC/RLS, Edge Functions, Discord sync, and reusable ops
+  core do not own their data.
+- Recommended next docs-only candidate:
+  gallery / image asset boundary guide.
+- This was docs-only: no implementation, HTML, CSS, JS, data/json, images,
+  sample data, renderer, or `updates.json` change was performed.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+  operation, secret/Webhook change, direct Supabase write, debug console
+  logging addition, or auth/permission logic change was performed.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

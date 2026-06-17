@@ -1070,3 +1070,28 @@ World-site template impact:
 Recommended next docs-only candidate:
 
 - characters / spots / terms template structures
+
+## Phase 3-C3 Characters / Spots / Terms Structures
+
+Phase 3-C3 completes that recommended docs-only candidate:
+
+- `docs/world-template-content-structures-plan.md`
+
+World-site template impact:
+
+- documents scale-variable structures for characters, spots, and terms
+- treats zero public records, small initial sets, and large categorized datasets
+  as valid template states
+- separates minimum, standard, and extended pseudo structures without requiring
+  a fixed record count
+- records empty-state policies for missing images, maps, tags, categories, and
+  related links
+- separates generic structures such as cards, lists, details, categories, tags,
+  images, related links, sort order, and empty states from world-specific names,
+  lore, categories, tags, and images
+- keeps ownership on the world-template side and outside reusable ops core,
+  auth, DB/RPC/RLS, Edge Functions, and Discord sync
+
+Recommended next docs-only candidate:
+
+- gallery / image asset boundary guide

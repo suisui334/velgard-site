@@ -535,6 +535,27 @@ Recommended next candidate after C2:
 
 - characters / spots / terms template structures.
 
+## Phase 3-C3 Content Structures Follow-Up
+
+Phase 3-C3 adds the scalable content structure plan for characters, spots, and
+terms:
+
+- `docs/world-template-content-structures-plan.md`
+
+Next-world adoption impact:
+
+- treats zero, small, and large public datasets as valid states
+- separates minimum, standard, and extended pseudo structures for each content
+  area
+- documents required-looking and optional fields without setting a required
+  record count
+- records empty-state behavior for missing records, categories, tags, images,
+  maps, and related links
+- keeps characters, spots, and terms on the world-template side, with possible
+  ops links but no ops ownership
+- recommends the next docs-only candidate:
+  gallery / image asset boundary guide
+
 ## Limited And Not Tested
 
 This guide is docs-only and does not add new runtime QA.

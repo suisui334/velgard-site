@@ -924,6 +924,22 @@ Reason:
 - This can remain docs-only and keep auth, DB, Discord, CSS, and renderer
   changes out of scope.
 
+## Phase 3-C3 Content Structures Follow-Up
+
+Phase 3-C3 completes that next docs-only candidate:
+
+- `docs/world-template-content-structures-plan.md`
+
+Regulation-sample impact:
+
+- regulation remains the rule-page template, while characters, spots, and terms
+  now have their own scalable world-content structure plan
+- future regulation records can link to terms, characters, or spots without
+  moving those datasets into regulation ownership
+- related links remain optional and should not break when the linked content
+  area is still sparse or unpublished
+- reusable ops core remains separate from all four world-template content areas
+
 ## Limited And Not Tested
 
 This plan is docs-only and does not add new runtime QA.
