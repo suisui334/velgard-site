@@ -954,3 +954,27 @@ Recommended next schema route:
 - Route C: broaden next-world template docs with setup order, sample
   composition, and regulation template structure before adding more production
   data modules.
+
+## Phase 3-C2 Regulation Sample Data Plan
+
+Phase 3-C2 adds a docs-only sample data composition plan:
+
+- `docs/world-template-regulation-sample-data-plan.md`
+
+Schema-plan impact:
+
+- defines a first next-world regulation sample set without creating data files
+- separates required, optional, and deferred regulation content candidates
+- maps candidate structures to roles, fields, minimum fields, optional fields,
+  data-module suitability, JSON ownership, world-specific values, replacement
+  points, and renderer responsibilities
+- keeps placeholder values distinct from production values
+- keeps renderer-owned behavior separate: `renderBlock()`,
+  `renderDataSection()`, `renderTable()`, table columns, CSS classes, DOM ids,
+  anchors, active TOC, and section-order logic remain outside sample data
+- keeps regulation sample data outside reusable ops core and separate from
+  calendar-side level-cap date ranges
+
+Recommended next schema candidate:
+
+- characters / spots / terms template structures.

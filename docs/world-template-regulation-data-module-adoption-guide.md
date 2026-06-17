@@ -361,6 +361,24 @@ Relationship to this regulation guide:
 - the next-world guide recommends a future docs-only regulation sample data
   composition before more extraction work
 
+## Phase 3-C2 Sample Data Follow-Up
+
+Phase 3-C2 adds the sample data composition plan:
+
+- `docs/world-template-regulation-sample-data-plan.md`
+
+Relationship to this data-module guide:
+
+- sample data should start in a conservative `data/regulation.json`-style
+  structure
+- data modules are optional and should be added one target at a time
+- good sample module candidates remain short term cards, short notes/callouts,
+  one exact subsection item, one exact block, or table row data
+- long rulings, table columns, renderer changes, CSS classes, DOM ids, anchors,
+  active TOC, and JSON/fetch migration remain separate gates
+- sample values must be placeholders or world-reviewed values, not copied
+  Velgard production values
+
 ## Limited And Not Tested
 
 This docs-only guide does not add new runtime QA.

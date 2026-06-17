@@ -512,6 +512,29 @@ Reason:
 - Characters/spots/terms can follow after the regulation sample demonstrates
   the expected level of detail.
 
+## Phase 3-C2 Regulation Sample Data Follow-Up
+
+Phase 3-C2 creates the regulation sample data composition plan:
+
+- `docs/world-template-regulation-sample-data-plan.md`
+
+Next-world adoption impact:
+
+- defines the purpose of regulation sample data as a next-world template draft,
+  not a copy of Velgard values
+- classifies required, optional, and deferred regulation sample candidates
+- documents pseudo structures such as `regulationPage`, `regulationSections`,
+  `termExplanations`, `levelCaps`, `rewardRules`, `honorRules`, `growthRules`,
+  `noteCards`, `calloutBlocks`, `specialRulings`, `gmNotes`, and
+  `playerNotes`
+- records data module placement policy and sample-value placeholder rules
+- keeps renderer/CSS/anchor/active TOC changes, JSON/fetch migration, and ops
+  core changes out of the sample-data pass
+
+Recommended next candidate after C2:
+
+- characters / spots / terms template structures.
+
 ## Limited And Not Tested
 
 This guide is docs-only and does not add new runtime QA.

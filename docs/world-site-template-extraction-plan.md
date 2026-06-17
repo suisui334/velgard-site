@@ -1046,3 +1046,27 @@ World-site template impact:
 - adds a next-world checklist and rollback/recovery policy
 - recommends the next docs-only candidate:
   regulation sample data composition
+
+## Phase 3-C2 Regulation Sample Data Plan
+
+Phase 3-C2 completes that recommended docs-only candidate:
+
+- `docs/world-template-regulation-sample-data-plan.md`
+
+World-site template impact:
+
+- provides a first regulation sample data composition for a future world
+- records required, optional, and deferred regulation sample candidates
+- documents pseudo structures for page metadata, sections, terms, level caps,
+  rewards, honor/Sword Shard guidance, growth notes, callouts, special rulings,
+  GM notes, and player notes
+- clarifies that sample values must be placeholders or world-reviewed values,
+  not copied Velgard production values
+- keeps data modules optional, target-scoped, and under
+  `assets/js/world/regulation/`
+- keeps renderer, CSS, anchor, active TOC, JSON/fetch, and ops-core changes out
+  of the sample-data plan
+
+Recommended next docs-only candidate:
+
+- characters / spots / terms template structures

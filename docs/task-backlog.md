@@ -9282,6 +9282,59 @@ Status: completed.
   logging addition, auth/permission logic change, RPC/DB key configuration,
   `management_key` display, or raw id/email/token/JWT display was performed.
 
+## Phase 3-C2 regulation sample data plan
+
+Status: completed.
+
+- Baseline: `9a4f42a Document next world template adoption`.
+- Added
+  `docs/world-template-regulation-sample-data-plan.md`.
+- Updated:
+  - `docs/world-template-next-world-adoption-guide.md`
+  - `docs/world-template-regulation-data-module-adoption-guide.md`
+  - `docs/world-template-regulation-data-schema-plan.md`
+  - `docs/world-site-template-extraction-plan.md`
+  - `docs/task-backlog.md`
+- Documented the purpose of regulation sample data as a next-world template
+  draft, not a copy of Velgard production values.
+- Classified the initial regulation set:
+  - required candidates: page title, intro, basic policy cards, term cards,
+    level caps, reward/honor guidance, growth overview, GM notes, and player
+    notes
+  - optional candidates: special race/item rulings, fumble/lower-bound growth,
+    general/original skill rules, individual house-rule cards, and caution
+    cards
+  - deferred candidates: long house rules, complex special rulings,
+    magic-angel style multi-step rulings, multi-section rules, active
+    TOC/anchor changes, CSS additions, renderer changes, and table-column moves
+- Added pseudo structure guidance for `regulationPage`, `regulationSections`,
+  `termExplanations`, `levelCaps`, `rewardRules`, `honorRules`, `growthRules`,
+  `noteCards`, `calloutBlocks`, `specialRulings`, `gmNotes`, and
+  `playerNotes`.
+- Documented data-module placement policy:
+  use `assets/js/world/regulation/`, do not create all modules initially, move
+  one target per gate, keep one file to one target or close target group, and
+  keep JSON/fetch and renderer rewrites as separate gates.
+- Documented sample value policy:
+  Velgard reward amounts, honor/Sword Shard values, level-cap dates,
+  concrete rulings, proper nouns, and operation notes must not be copied as
+  next-world defaults; placeholder values must be labeled as placeholders.
+- Reconfirmed renderer and reusable ops boundaries:
+  data owns text/rows/short blocks, while renderer owns CSS classes, DOM ids,
+  anchors, active TOC, `renderBlock()`, `renderDataSection()`, `renderTable()`,
+  table columns, and section-order behavior; regulation sample data does not
+  belong in reusable ops core.
+- Added introduction checklist and rollback/recovery policy.
+- Recommended next docs-only candidate:
+  characters / spots / terms template structures.
+- This was docs-only: no implementation, HTML, CSS, JS, data/json,
+  data-module, sample data file, renderer, regulation copy, or `updates.json`
+  change was performed.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+  operation, secret/Webhook change, direct Supabase write, debug console
+  logging addition, auth/permission logic change, RPC/DB key configuration,
+  `management_key` display, or raw id/email/token/JWT display was performed.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
