@@ -4,6 +4,14 @@ Status: Gate 1.5 checklist only. SQL has not been executed.
 
 Use this checklist for the next explicit user-approved Gate 2 only.
 
+## Gate 2 Result Reference
+
+Gate 2 was later executed by the user and recorded in:
+
+- `docs/session-reminder-sql-apply-result.md`
+
+The checklist below remains as the historical apply procedure and expected SELECT confirmation order. It is not a request to rerun SQL.
+
 ## Apply Candidate
 
 Paste this file into Supabase SQL Editor only after explicit approval:

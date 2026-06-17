@@ -9879,6 +9879,53 @@ Status: completed.
 - No raw user id, email, token, JWT, management key, Discord id, Discord URL,
   Webhook URL, or secret value was recorded.
 
+## Gate 3 session reminder apply result and UI blocker
+
+Status: blocked before UI implementation.
+
+- Baseline: `2fdab0c Prepare session reminder SQL apply candidate`.
+- Added
+  `docs/session-reminder-sql-apply-result.md`.
+- Added
+  `docs/session-reminder-ui-result.md`.
+- Updated:
+  - `docs/session-reminder-discord-notification-plan.md`
+  - `docs/session-reminder-sql-apply-checklist.md`
+  - `docs/task-backlog.md`
+- Recorded user-reported Gate 2 SQL apply SELECT results:
+  - reminder columns `4 / expected 4`
+  - reminder constraints `2 / expected 2`
+  - `session_reminder_logs` exists
+  - log constraints `6 / expected 6`
+  - log RLS enabled
+  - reported direct anon/authenticated log table privileges false
+  - reminder RPC count `4`
+  - settings RPC authenticated execute true, anon execute false
+  - service-role preview/claim/finalize true
+  - sessions count `9`
+  - default enabled rows `0 / 0`
+  - reminder log count `0`
+  - preview RPC `not_run`
+- Checked the existing session-post edit/manage fetch path:
+  `assets/js/renderSessionPost.js` uses `MANAGE_SESSION_SELECT` and
+  `.select(MANAGE_SESSION_SELECT)`.
+- Blocker: `MANAGE_SESSION_SELECT` does not include
+  `shortage_reminder_enabled`, `shortage_reminder_hours_before`,
+  `gm_reminder_enabled`, or `gm_reminder_minutes_before`.
+- Per Gate 3 instruction, UI implementation stopped instead of adding controls
+  that could not safely restore existing reminder values.
+- No UI controls were added, no JS/HTML/CSS/cache-bust change was made, and
+  `update_session_reminder_settings` was not called from frontend code.
+- Next gate: approve a session-post managed edit retrieval contract update for
+  the four reminder columns, or define a dedicated retrieval RPC that returns
+  them, then retry UI implementation.
+- No SQL Editor execution, SQL apply by Codex, DB/RPC/RLS mutation,
+  migration creation, Edge deploy, Discord dry-run, Discord production send,
+  secret/Webhook change, UI change, HTML/CSS/JS change, data/json change,
+  DB write QA, or `updates.json` change was performed in this gate.
+- No raw user id, email, token, JWT, management key, Discord id, Discord URL,
+  Webhook URL, provider message id, or secret value was recorded.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

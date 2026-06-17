@@ -502,6 +502,49 @@ Main adjustments from the Gate 1 draft:
 
 Gate 2 should run only after explicit approval. If any SQL Editor error occurs, stop and do not rerun blindly. Gate 2 must still avoid Edge deploy, Discord dry-run, Discord production send, secret changes, UI changes, and raw identifier disclosure.
 
+## Gate 2 Apply Result And Gate 3 UI Blocker
+
+Gate 2 SQL apply was completed by the user and recorded in:
+
+- `docs/session-reminder-sql-apply-result.md`
+
+Reported status summary:
+
+- session reminder columns: `4 / expected 4`
+- session reminder constraints: `2 / expected 2`
+- `session_reminder_logs`: exists
+- log constraints: `6 / expected 6`
+- log RLS: `enabled`
+- direct anon/authenticated log table privileges: `false` for reported checks
+- reminder RPCs: `4`
+- default enabled rows: `0`
+- reminder log count: `0`
+- preview RPC: `not_run`
+
+Gate 3 UI implementation was then reviewed but stopped before code changes.
+
+Blocker record:
+
+- `docs/session-reminder-ui-result.md`
+
+Reason:
+
+- `assets/js/renderSessionPost.js` uses `MANAGE_SESSION_SELECT` for the edit/manage fetch path.
+- The current `MANAGE_SESSION_SELECT` does not include:
+  - `shortage_reminder_enabled`
+  - `shortage_reminder_hours_before`
+  - `gm_reminder_enabled`
+  - `gm_reminder_minutes_before`
+- The instruction for Gate 3 required stopping if the existing session retrieval result did not already include these fields.
+- UI implementation would risk losing existing reminder settings on edit if it rendered disabled defaults without restoring current values.
+
+No UI, JS, HTML, CSS, SQL, RPC, RLS, Edge Function, Discord, or secret change was performed in Gate 3.
+
+Recommended next gate:
+
+- Update the session-post managed edit retrieval contract to include the four reminder setting columns, or define a dedicated session retrieval RPC that returns them.
+- Then retry the UI implementation and add the `update_session_reminder_settings` call after existing session save success.
+
 ## Open Questions
 
 1. Should `waitlisted` stay excluded from the first threshold decision?
