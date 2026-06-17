@@ -116,3 +116,24 @@ Recommended next gate:
 After that, use a separate explicit gate to re-run the limited `gm_confirmed`
 production attempt only if the operator approves it. If it fails again, record
 the safe `stage` value and stop without retrying.
+
+## Gate 11E Runtime Follow-up
+
+Result doc:
+
+- `docs/session-reminder-stage-aware-runtime-result.md`
+
+Sanitized result:
+
+- deployed only `dispatch-session-reminders`
+- initial local Docker-based deploy path was unavailable because Docker was not
+  running
+- deploy succeeded via Supabase API bundling
+- `dry_run:true`: HTTP `200`, `ok:true`, `production_enabled:false`,
+  `db_write:false`, `discord_send:false`
+- `dry_run:false`: HTTP `403`, `production_not_enabled`, stage
+  `production_gate`
+- `session_reminder_logs` count before/after: `0` / `0`
+
+No real send flag was enabled, no Discord send occurred, no successful
+claim/finalize path ran, and no reminder log rows were created.

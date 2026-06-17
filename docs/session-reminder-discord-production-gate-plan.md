@@ -614,6 +614,29 @@ Next gate before any resend:
   Do not re-run production send until the stage-aware deployment has been
   verified and a separate explicit send gate is approved.
 
+Gate 11E stage-aware runtime result:
+
+- result doc: `docs/session-reminder-stage-aware-runtime-result.md`
+- deployed only `dispatch-session-reminders`
+- initial local Docker-based deploy path was unavailable because Docker was not
+  running
+- deploy succeeded via Supabase API bundling
+- `dry_run:true`: HTTP `200`, `ok:true`, `count:1`,
+  `production_enabled:false`, `db_write:false`, `discord_send:false`
+- `dry_run:false`: HTTP `403`, `production_not_enabled`, stage
+  `production_gate`
+- positive claimed/sent counts: `false` / `false`
+- `session_reminder_logs` count before/after: `0` / `0`
+- no real-send enablement, production send retry, Discord send, successful
+  claim/finalize path, DB write, SQL/DB change, secret change, cron setup, UI
+  change, or `updates.json` change was performed
+
+Next gate before any `gm_confirmed` retry:
+
+- Gate 11F: limited `gm_confirmed` production retry with the stage-aware
+  dispatcher, only after explicit approval. If it fails, record the safe
+  `stage` and stop without repeating the production send.
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:

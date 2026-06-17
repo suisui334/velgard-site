@@ -10816,6 +10816,74 @@ Next candidate gate:
   checks only. Do not re-run production send until the stage-aware deployment is
   verified and a separate explicit send gate is approved.
 
+## Gate 11E session reminder stage-aware runtime check
+
+Status: stage-aware dispatcher deployed and production-disabled runtime checks
+completed.
+
+- Baseline: `efe4a51 Diagnose session reminder production send failure`.
+- Added `docs/session-reminder-stage-aware-runtime-result.md`.
+- Updated:
+  - `docs/session-reminder-production-500-diagnosis.md`
+  - `docs/session-reminder-limited-production-send-result.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+- `deno check --no-lock supabase/functions/dispatch-session-reminders/index.ts`:
+  passed.
+- Deploy target:
+  - `dispatch-session-reminders`
+- Deploy result:
+  - initial local Docker-based deploy path was unavailable because Docker was
+    not running
+  - deploy succeeded via Supabase API bundling
+- `session_reminder_logs` count before:
+  - `0`
+- Runtime `dry_run:true`:
+  - HTTP `200`
+  - `ok:true`
+  - `count:1`
+  - `items` present
+  - stage: not present, as expected for success
+  - raw Discord ID pattern in response: not observed
+  - `production_enabled:false`
+  - `db_write:false`
+  - `discord_send:false`
+  - `preview_rpc_only:true`
+- Runtime `dry_run:false`:
+  - HTTP `403`
+  - `ok:false`
+  - response `dry_run:false` confirmed
+  - error code: `production_not_enabled`
+  - stage: `production_gate`
+  - positive claimed/sent counts: `false` / `false`
+  - raw Discord ID pattern in response: not observed
+- `session_reminder_logs` count after:
+  - `0`
+
+Not performed:
+
+- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
+- production send retry
+- Discord send
+- Discord dry-run send
+- `@everyone` send
+- shortage send
+- successful claim/finalize path
+- `session_reminder_logs` write
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS structure change
+- secret/Webhook setting or change
+- cron setup
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+
+Next candidate gate:
+
+- Gate 11F: limited `gm_confirmed` production retry with the stage-aware
+  dispatcher, only after explicit approval. If it fails, record the safe
+  `stage` and stop without repeating the production send.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

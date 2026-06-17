@@ -285,3 +285,26 @@ Gate 11D did not enable real send, did not call `dry_run:false`, did not send
 Discord, did not execute claim/finalize, did not write DB rows, did not deploy
 the Edge Function, and did not change secrets, SQL, DB structure, UI, or
 `updates.json`.
+
+## Gate 11E Stage-aware Runtime Follow-up
+
+Result doc:
+
+- `docs/session-reminder-stage-aware-runtime-result.md`
+
+Sanitized result:
+
+- deployed only `dispatch-session-reminders`
+- `deno check --no-lock supabase/functions/dispatch-session-reminders/index.ts`:
+  passed
+- initial Docker-based deploy path was unavailable; API bundling deploy
+  succeeded
+- `dry_run:true`: HTTP `200`, `ok:true`, `count:1`,
+  `production_enabled:false`, `db_write:false`, `discord_send:false`
+- `dry_run:false`: HTTP `403`, `production_not_enabled`, stage
+  `production_gate`
+- `session_reminder_logs` count before/after: `0` / `0`
+
+Gate 11E did not enable real send, did not retry the production send, did not
+send Discord, did not run a successful claim/finalize path, and did not create
+reminder log rows.
