@@ -424,11 +424,63 @@ Existing future sessions should not be bulk-enabled. Initial support can be:
 
 No destructive migration is required for existing data.
 
+## Gate 1 SQL Draft Result
+
+Gate 1 produced the DB/RPC design draft only:
+
+- `docs/sql-drafts/session-reminder-notifications-draft.sql`
+
+No SQL was executed or applied. No DB, RPC, RLS, Edge Function, Discord, UI, HTML, CSS, JS, data, or `updates.json` change was made.
+
+The draft proposes these session setting columns on `public.sessions`:
+
+- `shortage_reminder_enabled`
+- `shortage_reminder_hours_before`
+- `gm_reminder_enabled`
+- `gm_reminder_minutes_before`
+
+The draft proposes `public.session_reminder_logs` for duplicate prevention and production send result recording. The first version uses `unique(session_id, reminder_type)` so a sent or claimed reminder is not automatically resent after start time or timing edits. If resend becomes necessary, a later explicit reset or log invalidation gate is required.
+
+The draft proposes these RPC boundaries:
+
+- `preview_due_session_reminders(p_now, p_limit)` for write-free dry-run preview.
+- `claim_due_session_reminders(p_now, p_limit)` for production claim and duplicate prevention.
+- `finalize_session_reminder(p_log_id, p_status, p_discord_message_id, p_error_message)` for production result recording.
+
+The first SQL draft keeps dry-run write-free. Production send is the only path that writes reminder logs.
+
+Count policy in the draft:
+
+- `pending_count`: distinct `session_applications.user_id` rows with status `pending`.
+- `accepted_count`: distinct rows with status `accepted`.
+- `waitlisted_count`: returned for visibility, but not counted in the first threshold decision.
+- `total_for_minimum`: `pending_count + accepted_count`.
+
+Reason for initially excluding `waitlisted`: the current UI and count RPC distinguish waitlisted from pending/accepted, and the product phrase can be satisfied conservatively with pending plus accepted. Including waitlisted later is a one-line eligibility change, but including it too early could overstate readiness.
+
+Session eligibility in the draft:
+
+- shortage reminder: `visibility = public`, future start, `player_min > 0`, status `tentative` or `recruiting`, before application deadline when a deadline exists, and `pending + accepted < player_min`.
+- GM confirmed reminder: `visibility = public`, future start, `player_min > 0`, status `tentative`, `recruiting`, or `full`, and `pending + accepted >= player_min`.
+- excluded by default: `draft`, `closed`, `finished`, `canceled`, hidden/private sessions, sessions without start time, sessions without positive minimum players, already-started sessions, and sessions already present in `session_reminder_logs`.
+
+GM reminder destination in the draft remains the initial low-risk option: an existing Discord notification channel with GM display name, not direct GM mention or DM. GM individual mention remains a later privacy and routing gate.
+
+Next Gate 2 must review before any apply:
+
+- Whether settings belong on `public.sessions` or a separate settings table.
+- Whether to use a dedicated `update_session_reminder_settings` RPC first, rather than changing `create_session_post` / `update_session_post` signatures immediately.
+- Whether `service_role`-only RPC grants match the planned Edge Function invocation route.
+- Whether `full` status should stay included for GM confirmed reminders.
+- Whether application-deadline skipping for shortage reminders is correct.
+- Whether a failed production send should be terminal in the first version or retryable.
+- Whether the `rollback;` ending should remain for review safety or be removed in a final apply draft.
+
 ## Open Questions
 
-1. Does "applicant count" include only `pending`, or should `waitlisted` also count?
+1. Should `waitlisted` stay excluded from the first threshold decision?
 2. Should shortage reminders be skipped after `application_deadline` has passed?
-3. Should sessions with status `full` be eligible for GM reminder?
+3. Should sessions with status `full` stay eligible for GM reminder?
 4. What is the approved destination for GM reminders?
 5. Should direct GM Discord mention be supported in the first version, or should it start with GM display name only?
 6. If a session start time or reminder offset changes after a reminder was already sent, should a second send be allowed?

@@ -9803,6 +9803,45 @@ Status: completed.
 - No raw user id, email, token, JWT, management key, Discord id, Discord URL,
   Webhook URL, or secret value was recorded.
 
+## Gate 1 session reminder DB/RPC SQL design draft
+
+Status: completed.
+
+- Baseline: `d4e72b8 Plan session reminder notifications`.
+- Added
+  `docs/sql-drafts/session-reminder-notifications-draft.sql`.
+- Updated
+  `docs/session-reminder-discord-notification-plan.md`.
+- Drafted session reminder settings on `public.sessions`:
+  `shortage_reminder_enabled`, `shortage_reminder_hours_before`,
+  `gm_reminder_enabled`, and `gm_reminder_minutes_before`.
+- Drafted `public.session_reminder_logs` for duplicate prevention and
+  production result recording.
+- Drafted three RPC boundaries:
+  `preview_due_session_reminders`, `claim_due_session_reminders`, and
+  `finalize_session_reminder`.
+- Recorded first-version count policy:
+  `pending + accepted` counts toward the minimum, while `waitlisted` is
+  returned for visibility but excluded from the threshold decision.
+- Recorded initial target filtering:
+  shortage reminders use `tentative` / `recruiting`; GM confirmed reminders
+  may include `tentative` / `recruiting` / `full`; canceled, draft, hidden,
+  closed, finished, already-started, and no-positive-minimum sessions are
+  excluded.
+- Recorded first-version duplicate policy:
+  `unique(session_id, reminder_type)` and no automatic resend after a reminder
+  is logged.
+- Kept GM reminder destination as a channel message with GM display name in
+  the first version; direct GM mention/DM remains a later gate.
+- Next gate: SQL draft review and Gate 2 planning. SQL apply still requires a
+  separate explicit user-approved gate.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, migration creation,
+  Edge deploy, Discord dry-run, Discord production send, secret/Webhook change,
+  UI change, HTML/CSS/JS change, data/json change, or `updates.json` change was
+  performed.
+- No raw user id, email, token, JWT, management key, Discord id, Discord URL,
+  Webhook URL, or secret value was recorded.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
