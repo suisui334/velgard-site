@@ -9721,6 +9721,54 @@ Status: completed.
   configuration, CSS class/DOM id/anchor change, `management_key` display, or
   raw id/email/token/JWT display was performed.
 
+## Phase 3-C10 tools / updates auxiliary page policy
+
+Status: completed.
+
+- Baseline: `dd56374 Document ops static dry run checklist`.
+- Added
+  `docs/world-template-auxiliary-pages-policy.md`.
+- Updated:
+  - `docs/world-template-page-adoption-checklist.md`
+  - `docs/world-template-next-world-adoption-guide.md`
+  - `docs/world-template-ops-static-dry-run-checklist.md`
+  - `docs/world-site-template-extraction-plan.md`
+  - `docs/task-backlog.md`
+- Documented current `tools` inventory:
+  `tools.html`, `assets/js/renderTools.js`, `data/randomTables.json`,
+  `assets/js/main.js`, and related `assets/css/style.css` classes.
+- Recorded current random-table data shape:
+  top-level `version` / `description` / `tables`, 15 tables total, 13 visible
+  tables, 2 hidden helper tables, `branch` / `table` table types, and local
+  browser history under `velgard.tools.rollHistory`.
+- Documented current `updates` inventory:
+  `updates.html`, `assets/js/renderUpdates.js`, `data/updates.json`,
+  `assets/js/main.js`, and related `assets/css/style.css` classes.
+- Recorded current updates data shape:
+  array format, 41 entries, and observed `date`, `title`, `description`,
+  `target`, and `tags` fields.
+- Classified `tools` as an auxiliary/public page while it remains client-only
+  and public-data only.
+- Classified `updates` as an auxiliary changelog/notice page whose display
+  structure is reusable, while the current `data/updates.json` is Velgard
+  operation history and should normally be reset or newly created for a next
+  world.
+- Documented reusable structure, replace-per-world content, careful-gate
+  surfaces, do-not-copy content, pseudo data structures, introduction
+  checklists, and rollback/recovery guidance for both pages.
+- Recommended next docs-only candidate:
+  OGP / favicon / hero image rollout gate.
+- This was docs-only: no implementation, HTML, CSS, JS, data/json, sample data,
+  renderer, tools behavior, update history, auth connection, DB connection,
+  RPC/RLS change, SQL execution/apply, Edge deploy, Discord operation,
+  secret/Webhook change, real post/edit/delete, application/comment write,
+  membership action, cleanup apply, or `updates.json` change was performed.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+  operation, secret/Webhook change, direct Supabase write, debug logging
+  addition, auth/permission logic change, membership logic change, RPC/DB key
+  configuration, CSS class/DOM id/anchor change, `management_key` display, or
+  raw id/email/token/JWT display was performed.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

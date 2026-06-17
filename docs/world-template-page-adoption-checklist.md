@@ -1496,6 +1496,32 @@ Recommended next docs-only candidate after C9:
 
 - tools / updates auxiliary page policy.
 
+## Phase 3-C10 Auxiliary Pages Policy Follow-Up
+
+Phase 3-C10 completes the recommended tools / updates auxiliary page policy:
+
+- `docs/world-template-auxiliary-pages-policy.md`
+
+Page-adoption impact:
+
+- `tools.html` remains an auxiliary/public page, not a live ops surface while
+  it stays client-side and public-data only
+- the current random-table structure is reusable, but table text, page copy,
+  regulation links, and world-specific labels must be reviewed or rewritten for
+  a next world
+- `updates.html` keeps a reusable changelog display structure, but
+  `data/updates.json` is Velgard operation history and should normally be
+  reset or newly created for another world
+- updates content must remain public-safe and must not contain internal
+  operation logs, Discord results, secret-adjacent values, raw user data, or
+  private URLs
+- tools and updates stay outside auth, DB/RPC/RLS, Edge, Discord, and session
+  write workflows unless a later separate gate explicitly changes that
+
+Recommended next docs-only candidate after C10:
+
+- OGP / favicon / hero image rollout gate.
+
 ## Limited And Not Tested
 
 This checklist is docs-only and does not add runtime QA.

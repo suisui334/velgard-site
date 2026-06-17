@@ -694,6 +694,31 @@ Next-world adoption impact:
 - recommends the next docs-only candidate:
   tools / updates auxiliary page policy
 
+## Phase 3-C10 Auxiliary Pages Policy Follow-Up
+
+Phase 3-C10 completes that recommended docs-only candidate:
+
+- `docs/world-template-auxiliary-pages-policy.md`
+
+Next-world adoption impact:
+
+- classifies `tools` and `updates` as auxiliary pages, not direct reusable ops
+  core surfaces
+- keeps client-only tools reusable as public support structure while requiring
+  world-specific table text, page copy, regulation links, and labels to be
+  reviewed or rewritten
+- treats current `data/randomTables.json` as a public random-table reference,
+  not as automatically portable next-world content
+- treats current `data/updates.json` as Velgard operation history that should
+  normally be reset or newly created for a second world
+- records that updates are public changelog/notice content, not internal ops
+  logs or Discord sync results
+- keeps auth, DB/RPC/RLS, Edge Functions, Discord operations, live session
+  writes, and `updates.json` changes outside auxiliary-page adoption unless a
+  later explicit gate approves them
+- recommends the next docs-only candidate:
+  OGP / favicon / hero image rollout gate
+
 ## Limited And Not Tested
 
 This guide is docs-only and does not add new runtime QA.

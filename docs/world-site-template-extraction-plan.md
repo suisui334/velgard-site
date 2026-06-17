@@ -1210,3 +1210,29 @@ World-site template impact:
 Recommended next docs-only candidate:
 
 - pre-auth / pre-DB / pre-Discord checklist
+
+## Phase 3-C10 Auxiliary Pages Policy
+
+Phase 3-C10 documents the tools / updates auxiliary-page boundary:
+
+- `docs/world-template-auxiliary-pages-policy.md`
+
+World-site template impact:
+
+- classifies `tools.html` and `updates.html` as auxiliary pages rather than
+  primary world-template content or reusable ops core
+- documents that current tools behavior is client-side and public-data based,
+  with `data/randomTables.json` as the active random-table source
+- records that random-table structure may be reused, but world-specific table
+  text, page copy, regulation references, and labels must be rewritten or
+  reviewed for a next world
+- documents that `updates.html` display structure is reusable, but
+  `data/updates.json` is Velgard history and should not be copied as another
+  world's production history
+- keeps update history separate from DB/RPC/RLS, Discord sync results, live
+  session operation logs, and auth/membership data
+- keeps `updates.json` unchanged in this phase
+
+Recommended next docs-only candidate:
+
+- OGP / favicon / hero image rollout gate

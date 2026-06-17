@@ -623,6 +623,32 @@ Reason:
 - This can remain docs-only and avoid auth, DB/RPC/RLS, Edge, Discord, and
   data-changing workflows.
 
+## Phase 3-C10 Auxiliary Pages Policy Follow-Up
+
+Phase 3-C10 completes Candidate B:
+
+- `docs/world-template-auxiliary-pages-policy.md`
+
+Dry-run impact:
+
+- `tools` should be checked as public auxiliary behavior while it remains
+  client-only and public-data only
+- `tools` dry-run can cover HTTP 200, import/cache-bust chain, public JSON
+  parse, table selector, empty/history states, local browser behavior if
+  intentionally exercised, and absence of broken visible output
+- `updates` should be checked as public changelog display, not as DB-backed or
+  Discord-backed operation history
+- `data/updates.json` must not be copied as next-world production history; a
+  second world should reset or recreate the content while reusing only the
+  display schema
+- any tool or update feature that reaches auth, DB/RPC/RLS, Edge, Discord, or
+  session write workflows leaves static dry-run and requires a later explicit
+  gate
+
+Recommended next docs-only candidate after C10:
+
+- OGP / favicon / hero image rollout gate.
+
 ## Limited And Not Tested
 
 This checklist is docs-only and does not add runtime QA.
