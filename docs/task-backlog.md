@@ -10971,6 +10971,99 @@ Next candidate gate:
   and SELECT-only checks. Do not enable real send or retry production send until
   the `claim_rpc` cause is understood.
 
+## Gate 11G session reminder claim RPC diagnosis
+
+Status: claim RPC diagnosis and SQL draft completed. No claim execution or DB
+write was performed.
+
+- Baseline: `bbe6a4f Record GM confirmed production retry result`.
+- Added:
+  - `docs/session-reminder-production-claim-rpc-diagnosis.md`
+  - `docs/sql-drafts/session-reminder-claim-rpc-fix-draft.sql`
+- Updated:
+  - `docs/session-reminder-limited-production-send-result.md`
+  - `docs/task-backlog.md`
+
+SELECT-only metadata reviewed:
+
+- applied `claim_due_session_reminders` definition
+- `preview_due_session_reminders` / `claim_due_session_reminders` OUT column
+  metadata
+- `session_reminder_logs` relevant column types
+- `session_reminder_logs` constraints
+- RLS status, policies, owner, and function owner metadata
+- function execute privileges
+- Edge expected claim row shape
+
+Findings:
+
+- `session_reminder_logs` count: `0`
+- `session_reminder_logs.session_id`: `text`, matching `sessions.id`
+- `claim_due_session_reminders` return shape includes `log_id uuid`,
+  `lock_token uuid`, `session_id text`, `gm_discord_user_id text`, and
+  `scheduled_for timestamptz`
+- duplicate-prevention unique constraint exists on `(session_id,
+  reminder_type)`
+- claimed rows require `claimed_at` and `lock_token`
+- `status`, `dry_run`, offset, and FK constraints are compatible with intended
+  claim values
+- logs table owner: `postgres`
+- claim and preview function owner: `postgres`
+- logs RLS enabled, force RLS false
+- table policies: none
+- direct `service_role` table insert/select privileges are false, but intended
+  boundary is security-definer function execution
+- `service_role` can execute claim RPC
+- `anon` / `authenticated` cannot execute claim RPC
+
+Diagnosis:
+
+- exact runtime SQL error was not captured because Gate 11G did not execute
+  claim and did not copy provider-side logs
+- confirmed failing area remains `claim_due_session_reminders`
+- likely failure point is inside the claim function body before a log row is
+  persisted
+- the applied claim SQL is fragile because CTE/output names overlap with
+  `returns table` output names such as `lock_token`, `session_id`, and
+  `reminder_type`
+
+Fix draft:
+
+- keeps the same function signature and return shape
+- keeps service-role-only execution
+- adds explicit `candidate_*` aliases
+- explicitly casts insert and return values
+- uses `on conflict on constraint session_reminder_logs_unique_session_type`
+- aliases `returning` columns explicitly
+- keeps duplicate prevention
+- returns only rows inserted by the current claim call
+- includes SELECT-only post-apply checks
+
+Not performed:
+
+- production retry
+- production `dry_run:false`
+- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
+- claim RPC execution
+- finalize RPC execution
+- Discord send
+- Discord dry-run send
+- `@everyone` send
+- `session_reminder_logs` write
+- SQL apply
+- DB/RPC/RLS mutation
+- Edge deploy
+- secret/Webhook setting or change
+- cron setup
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+
+Next candidate gate:
+
+- Gate 11H: review/apply the claim RPC fix SQL under explicit SQL apply
+  approval, then run SELECT-only post-apply checks. Do not retry production send
+  until the claim RPC fix is applied and checked.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

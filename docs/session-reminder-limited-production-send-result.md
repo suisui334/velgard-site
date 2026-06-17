@@ -387,3 +387,44 @@ Next gate:
 - Gate 11G: diagnose `claim_due_session_reminders` failure with SQL/RPC
   review and SELECT-only checks. Do not call claim/finalize runtime or retry
   production send until the `claim_rpc` cause is understood.
+
+## Gate 11G Claim RPC Diagnosis Follow-up
+
+Result doc:
+
+- `docs/session-reminder-production-claim-rpc-diagnosis.md`
+
+SQL draft:
+
+- `docs/sql-drafts/session-reminder-claim-rpc-fix-draft.sql`
+
+Sanitized diagnosis:
+
+- `session_reminder_logs` count remained `0`
+- claim RPC was not executed in Gate 11G
+- table column types and log constraints are broadly compatible with intended
+  claim values
+- RLS is unlikely to be the direct blocker because the claim function and logs
+  table are both owned by `postgres`, the function is `security definer`, and
+  force RLS is false
+- exact runtime SQL error was not captured without executing claim or copying
+  provider logs
+- confirmed failing area remains `claim_due_session_reminders`
+- likely failure point is inside the claim function body before a log row is
+  persisted
+
+Prepared fix direction:
+
+- keep the same claim RPC signature and return shape
+- keep service-role-only execution
+- add explicit candidate aliases and casts
+- use `on conflict on constraint session_reminder_logs_unique_session_type`
+- alias `returning` columns explicitly
+- keep duplicate prevention and return only rows inserted by the current claim
+  call
+
+Next gate:
+
+- Gate 11H: review/apply the claim RPC fix SQL under explicit SQL apply
+  approval, then run SELECT-only post-apply checks. Do not retry production
+  send until the claim RPC fix is applied and checked.
