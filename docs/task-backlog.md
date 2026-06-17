@@ -10327,6 +10327,55 @@ Status: Edge Function source updated, not deployed.
   - deploy the updated dispatcher and confirm `dry_run:true` plus
     production-disabled `dry_run:false` behavior in a separate approved gate.
 
+## Gate 7 session reminder production-disabled runtime check
+
+Status: approved Edge deploy and runtime safety check completed.
+
+- Baseline: `64d3347 Add GM mention support to session reminder dispatcher`.
+- Added `docs/session-reminder-edge-production-disabled-result.md`.
+- Updated session reminder planning/result docs with the sanitized Gate 7
+  outcome.
+- Deployed only:
+  - `dispatch-session-reminders`
+- Pre-deploy check:
+  - `deno check --no-lock supabase/functions/dispatch-session-reminders/index.ts`: passed
+- Runtime `dry_run:true` result:
+  - HTTP `200`
+  - `ok:true`
+  - `count:0`
+  - `items` present
+  - `production_enabled:false`
+  - `db_write:false`
+  - `discord_send:false`
+- Runtime `dry_run:false` result:
+  - HTTP `403`
+  - production-disabled rejection path
+  - no positive claimed/sent/failed counts
+- `session_reminder_logs` count before/after:
+  - `0` / `0`
+- Raw Discord ID pattern was not observed in the sanitized runtime response.
+
+Not performed:
+
+- Discord send
+- Discord dry-run send
+- `@everyone` send
+- Webhook/secret setting or change
+- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS mutation
+- claim/finalize success path
+- `session_reminder_logs` write
+- cron setup
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+
+Next candidate gate:
+
+- Decide and prepare the Discord destination/secret boundary without enabling
+  real sends, or split further into secret-planning and secret-setting gates.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

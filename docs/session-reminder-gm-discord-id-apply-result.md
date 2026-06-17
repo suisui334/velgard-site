@@ -97,3 +97,16 @@ was recorded.
 Gate 6.5 can update `dispatch-session-reminders` to use the now-applied
 `gm_discord_user_id` field for GM-only mentions, with no deploy and no runtime
 invocation.
+
+## Gate 7 Runtime Follow-up
+
+Gate 7 deployed the updated dispatcher after Gate 6.5 and confirmed that
+production remains disabled:
+
+- `dry_run:true`: HTTP `200`, `ok:true`, `production_enabled:false`
+- `dry_run:false`: HTTP `403` via the production-disabled path
+- `session_reminder_logs` count before/after: `0` / `0`
+
+The runtime response did not expose raw Discord user IDs. Preview rows with
+actual GM Discord IDs were not pasted into docs, and the preview RPC was only
+invoked through the dry-run Edge Function path.

@@ -176,3 +176,27 @@ Not performed:
 - Webhook/secret setting or change
 - claim/finalize runtime execution
 - `session_reminder_logs` write
+
+## Gate 7 Runtime Follow-up
+
+Gate 7 deployed the updated `dispatch-session-reminders` Function and confirmed
+production remains disabled at runtime.
+
+Result doc:
+
+- `docs/session-reminder-edge-production-disabled-result.md`
+
+Sanitized runtime result:
+
+- deploy target: `dispatch-session-reminders` only
+- `dry_run:true`: HTTP `200`, `ok:true`, `count:0`
+- `production_enabled:false`
+- `db_write:false`
+- `discord_send:false`
+- `dry_run:false`: HTTP `403` via `production_not_enabled`
+- `session_reminder_logs` count before/after: `0` / `0`
+
+No Discord send, claim/finalize success path, DB write, cron setup,
+Webhook/secret change, SQL apply, UI change, or `updates.json` change was
+performed. Runtime responses and docs did not expose raw Discord IDs, Webhook
+URLs, provider message IDs, project refs, or real session URLs.

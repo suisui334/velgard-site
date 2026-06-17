@@ -919,6 +919,45 @@ Next Gate recorded from Gate 6.5:
 - Deploy the updated dispatcher and confirm dry-run / production-disabled
   behavior in a separate approved gate.
 
+## Gate 7 Edge Deploy And Production Disabled Runtime Check
+
+Gate 7 deployed the updated `dispatch-session-reminders` Function and confirmed
+that production remains disabled.
+
+Result doc:
+
+- `docs/session-reminder-edge-production-disabled-result.md`
+
+Sanitized result:
+
+- deployed target: `dispatch-session-reminders` only
+- `dry_run:true`: HTTP `200`, `ok:true`, `count:0`, `items` present
+- `production_enabled:false`
+- `db_write:false`
+- `discord_send:false`
+- `dry_run:false`: HTTP `403` production-disabled rejection
+- `session_reminder_logs` count before/after: `0` / `0`
+- raw Discord ID pattern in runtime response: not observed
+
+Still not performed:
+
+- Discord send
+- Discord dry-run send
+- `@everyone` send
+- Webhook/secret setting or change
+- `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
+- SQL apply
+- DB/RPC/RLS mutation
+- claim/finalize success path
+- cron setup
+- UI/HTML/CSS/browser JS change
+- `updates.json` change
+
+Next Gate recorded from Gate 7:
+
+- Decide and prepare Discord destination/secret handling without enabling real
+  send, or split into separate secret-planning and secret-setting gates.
+
 ## Open Questions
 
 1. Should `waitlisted` stay excluded from the first threshold decision?

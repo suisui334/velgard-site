@@ -129,6 +129,30 @@ Important boundary:
 
 The currently deployed runtime remains the Gate 4.5 dry-run-confirmed Function until the next approved deploy gate.
 
+## Gate 7 Production Disabled Runtime Follow-up
+
+Gate 7 deployed the updated dispatcher source from Gate 6.5 and confirmed the
+runtime still rejects production mode while real send is disabled.
+
+Result doc:
+
+- `docs/session-reminder-edge-production-disabled-result.md`
+
+Sanitized result:
+
+- deploy: succeeded for `dispatch-session-reminders` only
+- logs count before: `0`
+- runtime `dry_run:true`: HTTP `200`, `ok:true`, `count:0`
+- `production_enabled:false`
+- `db_write:false`
+- `discord_send:false`
+- runtime `dry_run:false`: HTTP `403`, production-disabled rejection
+- logs count after: `0`
+- raw Discord ID pattern in runtime responses: not observed
+
+No Discord send, claim/finalize success path, DB write, secret/Webhook change,
+SQL apply, cron setup, or UI change was performed.
+
 ## Safety Notes
 
 Only the explicitly approved Edge deploy was performed. No SQL apply, DB/RPC/RLS mutation, Discord send, secret/Webhook change, direct Supabase write, cron setup, or UI change was performed.
