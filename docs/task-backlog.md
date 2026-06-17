@@ -9769,6 +9769,40 @@ Status: completed.
   configuration, CSS class/DOM id/anchor change, `management_key` display, or
   raw id/email/token/JWT display was performed.
 
+## Phase R-01 session reminder Discord notification plan
+
+Status: completed.
+
+- Baseline: `58f3325 Document auxiliary page policies`.
+- Added
+  `docs/session-reminder-discord-notification-plan.md`.
+- Investigated the existing session creation/edit flow, session data mapping,
+  application count/status handling, Discord session sync client, session sync
+  Edge Function, scheduled cap announcement dispatcher pattern, and GM Discord
+  contact docs.
+- Planned two optional per-session reminder types:
+  - shortage reminder with a separately gated production `@everyone` send
+    before start when active request count is below the minimum
+  - GM start reminder before start when active request count reaches the
+    minimum
+- Recorded that the current UI already has natural session-post create/edit
+  insertion points, but this phase did not add fields or payload changes.
+- Recommended a separate reminder log table and scheduled dispatcher instead
+  of browser-driven immediate Discord sync.
+- Recommended dry-run-first Edge Function behavior, production send flags,
+  duplicate prevention, suppress-embed URL handling, and sanitized docs
+  recording.
+- Recorded open questions around whether waitlisted applications count, how to
+  treat deadlines and `full` status, GM reminder destination, post-send edit
+  behavior, channel selection, retry count, and editor permissions.
+- Next gate: Gate 1 DB/RPC design SQL draft only, with no SQL apply.
+- This was docs-only: no implementation, SQL creation outside docs, SQL Editor
+  execution, SQL apply, DB/RPC/RLS change, Edge deploy, Discord dry-run,
+  Discord production send, secret/Webhook change, UI change, HTML/CSS/JS
+  change, data/json change, or `updates.json` change was performed.
+- No raw user id, email, token, JWT, management key, Discord id, Discord URL,
+  Webhook URL, or secret value was recorded.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
