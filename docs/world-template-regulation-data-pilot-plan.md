@@ -580,3 +580,30 @@ Plan impact:
 Recommended next route:
 
 - Route D: regulation template docs and adoption guidance
+
+## Phase 3-B19 Adoption Guidance
+
+Phase 3-B19 adds the shared adoption guide for future regulation data-module
+targets:
+
+- `docs/world-template-regulation-data-module-adoption-guide.md`
+
+Plan impact:
+
+- future low-risk data-module targets should use the guide's order:
+  candidate selection, current behavior check, module creation, exact JSON
+  removal, renderer composition, stale JSON guard review, cache-bust update,
+  smoke/snapshot, public rollout, docs, and rollback
+- suitable targets remain short cards, short notes/callouts, one subsection
+  item, one exact block, or table row data only
+- avoided targets remain whole sections, multiple sections, long rules,
+  magic-angel rulings, full growth-rule clusters, column definitions,
+  `renderTable()`, `renderBlock()`, `renderDataSection()`, CSS classes, DOM ids,
+  anchors, active TOC, and JSON/fetch migration
+- the ownership boundary stays world-site template side and outside reusable
+  ops core
+
+Recommended next route:
+
+- Route C: document next-world setup and sample regulation template structure
+  before selecting more extraction targets.

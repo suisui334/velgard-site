@@ -926,3 +926,31 @@ Recommended next route:
 
 - Route D, so the existing module patterns become reusable template guidance
   before new schema moves are attempted
+
+## Phase 3-B19 Data Module Adoption Guide
+
+Phase 3-B19 adds the operational guide for applying the current data-module
+method:
+
+- `docs/world-template-regulation-data-module-adoption-guide.md`
+
+Schema-plan impact:
+
+- data modules are documented as a static world-site template ownership split,
+  not as the final standalone JSON editing model
+- the guide permits only small isolated targets: short cards, notes/callouts,
+  one subsection item, one exact block, or table row data
+- the guide keeps whole-section schemas, all-block registries, all-subsection
+  registries, standalone JSON/fetch loading, table-column schemas, and shared
+  renderer rewrites behind separate gates
+- stale JSON and cache-mixing behavior is now part of the schema boundary:
+  nested moved data may need target-scoped duplicate guards, while sibling data
+  must remain untouched
+- rollback is defined as restoring JSON ownership and removing the import and
+  composition path, not changing ops, database, or Discord behavior
+
+Recommended next schema route:
+
+- Route C: broaden next-world template docs with setup order, sample
+  composition, and regulation template structure before adding more production
+  data modules.

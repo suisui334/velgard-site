@@ -9180,6 +9180,54 @@ Status: completed.
   addition, auth/permission logic change, RPC/DB key configuration,
   `management_key` display, or raw id/email/token/JWT display was performed.
 
+## Phase 3-B19 regulation data module adoption guide
+
+Status: completed.
+
+- Baseline: `00c3804 Summarize regulation data module midpoint`.
+- Added
+  `docs/world-template-regulation-data-module-adoption-guide.md`.
+- Updated:
+  - `docs/world-template-regulation-data-module-midpoint-summary.md`
+  - `docs/world-template-regulation-data-pilot-summary.md`
+  - `docs/world-template-regulation-data-pilot-plan.md`
+  - `docs/world-template-regulation-data-schema-plan.md`
+  - `docs/world-site-template-extraction-plan.md`
+  - `docs/task-backlog.md`
+- Documented the future regulation data-module adoption procedure:
+  candidate selection, current behavior check, module creation, exact
+  `data/regulation.json` key/block/item removal, `renderRegulation.js` import
+  and composition, stale JSON duplicate-display guard review, cache-bust
+  update, smoke/snapshot checks, GitHub Pages public rollout checks, docs
+  recording, and rollback.
+- Classified good candidates as short cards, short notes/callouts, one
+  subsection item, one exact block, table row data only, and targets that keep
+  existing renderers and output comparison stable.
+- Kept avoided targets out of scope: whole sections, multiple sections, long
+  house rules, magic-angel rulings, full growth-rule clusters, complex
+  fumble/lower-bound growth text, column definitions, `renderTable()`,
+  `renderBlock()`, `renderDataSection()`, CSS classes, DOM ids, anchors,
+  active TOC, and JSON/fetch migration.
+- Reconfirmed ownership boundaries:
+  - regulation data modules are world-site template files
+  - reusable ops core is not involved
+  - auth, membership, mypage, session-post, Discord sync, DB/RPC/RLS, Edge
+    Functions, calendar-side `levelCaps`, and `updates.json` remain separate
+- Added shared stale JSON/cache-mixing guidance and public delivery chain
+  checks for `regulation.html`, `main.js`, `renderRegulation.js`, the data
+  module, and `data/regulation.json`.
+- Added common smoke/snapshot, public rollout, and rollback checklists.
+- Recommended next route: Route C, strengthen broader world-template docs for
+  next-world setup, regulation template structure, initial data/module setup,
+  and a sample composition plan.
+- This was docs-only: no implementation, HTML, CSS, JS, data/json,
+  data-module, renderer, regulation copy, or `updates.json` change was
+  performed.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+  operation, secret/Webhook change, direct Supabase write, debug console
+  logging addition, auth/permission logic change, RPC/DB key configuration,
+  `management_key` display, or raw id/email/token/JWT display was performed.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

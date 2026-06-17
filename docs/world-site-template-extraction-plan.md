@@ -996,3 +996,30 @@ Recommended next route:
 
 - Route D: strengthen template documentation and next-world adoption guidance
   before continuing extraction
+
+## Phase 3-B19 Regulation Data Module Adoption Guide
+
+Phase 3-B19 completes that Route D follow-up for regulation data modules:
+
+- `docs/world-template-regulation-data-module-adoption-guide.md`
+
+World-site template impact:
+
+- the five completed regulation data modules now have a shared next-world
+  adoption procedure
+- file naming, export naming, placement, synchronous import policy, and
+  one-target-per-module guidance are documented
+- stale JSON / cache-mixing risk is documented as a public delivery concern
+  that must be checked across `regulation.html`, `main.js`,
+  `renderRegulation.js`, the data module, and `data/regulation.json`
+- smoke/snapshot, public rollout, and rollback checklists are documented
+- the boundary remains clear: regulation data modules are world-site template
+  files, not reusable ops core files, and they do not change auth, membership,
+  session-post, mypage, Discord sync, DB/RPC/RLS, Edge Functions, or
+  `updates.json`
+
+Recommended next route:
+
+- Route C: continue world-template docs by documenting next-world setup order,
+  regulation template structure, initial data/module setup, and a sample
+  composition plan.

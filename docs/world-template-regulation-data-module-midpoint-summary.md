@@ -141,6 +141,37 @@ Reason:
 - Route D also keeps heavier candidates out of scope until ownership,
   rollback, and schema boundaries are documented.
 
+## Phase 3-B19 Adoption Guide Follow-Up
+
+Phase 3-B19 completes the Route D follow-up:
+
+- `docs/world-template-regulation-data-module-adoption-guide.md`
+
+The adoption guide turns the five-pilot midpoint into reusable next-world
+instructions:
+
+- candidate selection and stop conditions
+- current behavior/spec confirmation
+- data module naming and placement
+- exact JSON key/block/item removal
+- `renderRegulation.js` import and composition pattern
+- stale JSON duplicate-display guard policy
+- cache-bust chain policy
+- smoke/snapshot checklist
+- GitHub Pages public rollout checklist
+- rollback checklist
+- world-site template versus reusable ops core ownership boundary
+
+Recommended next route after this guide:
+
+- Route C: strengthen broader world-template docs.
+
+Reason:
+
+- The module-level adoption path is now documented.
+- A second world still needs setup order, sample structure, and regulation
+  template handoff guidance before more one-off extraction is more useful.
+
 ## No Dangerous Work
 
 This checkpoint did not perform SQL Editor execution, SQL apply, DB/RPC/RLS

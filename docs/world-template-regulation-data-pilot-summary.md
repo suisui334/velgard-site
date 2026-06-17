@@ -736,3 +736,32 @@ Recommended next route:
 
 - Route D: pause implementation and strengthen regulation template docs before
   adding more one-off module moves
+
+## Phase 3-B19 Adoption Guide
+
+Phase 3-B19 completes the recommended Route D documentation pass:
+
+- `docs/world-template-regulation-data-module-adoption-guide.md`
+
+Pilot-summary impact:
+
+- the first five data-module pilots now have one shared adoption procedure
+- future candidates must pass candidate selection and current behavior checks
+  before implementation
+- removing a JSON key/block/item now has an explicit stale JSON and
+  cache-mixing checklist
+- smoke/snapshot checks are consolidated across cards, table rows, callouts,
+  and nested subsection items
+- public rollout checks now cover the full
+  `regulation.html` / `main.js` / `renderRegulation.js` / data module /
+  `data/regulation.json` chain
+- rollback is documented as a static-file rollback: remove the import, restore
+  the JSON target, remove the composition hook, update cache-bust, and verify
+  public delivery again
+- ownership remains world-site template side, not reusable ops core
+
+Recommended next route after the adoption guide:
+
+- Route C: strengthen broader world-template docs for next-world setup,
+  regulation template structure, initial data/module setup order, and sample
+  composition.
