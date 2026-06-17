@@ -1,6 +1,7 @@
 # Session Reminder Secret Setup Result
 
-Status: Gate 9 blocked before secret changes. No secret was set or changed.
+Status: Gate 9 retry completed. Reminder Webhook/token secrets were set while
+real send remained disabled.
 
 ## Scope
 
@@ -86,9 +87,9 @@ Reason:
 - keeping the environment unchanged is safer than creating a partial production
   boundary
 
-## Current State After Gate 9
+## Gate 9 Initial Attempt State
 
-No secret changes were made:
+The first Gate 9 attempt made no secret changes:
 
 - `DISCORD_SESSION_REMINDER_WEBHOOK_URL`: not set by this gate
 - `SESSION_REMINDER_DISPATCH_TOKEN`: not set by this gate
@@ -104,35 +105,52 @@ No runtime behavior was exercised:
 - DB write: not performed
 - cron setup: not performed
 
+## Gate 9 Retry
+
+The retry used a user-provided clipboard value for the Discord Webhook URL.
+
+Process:
+
+- the user copied the Webhook URL to the clipboard and did not paste it into
+  chat
+- Codex read the clipboard value locally
+- the Webhook URL format was checked without printing the value
+- Codex generated a new sufficiently long random dispatch token locally
+- a temporary env file outside the repository was used for the Supabase CLI
+  secret-set command and then removed
+
+Configured secret names:
+
+- `DISCORD_SESSION_REMINDER_WEBHOOK_URL`
+- `SESSION_REMINDER_DISPATCH_TOKEN`
+
+Post-setup name-only confirmation:
+
+- `DISCORD_SESSION_REMINDER_WEBHOOK_URL`: present
+- `SESSION_REMINDER_DISPATCH_TOKEN`: present
+- `SESSION_REMINDER_REAL_SEND_ENABLED`: not present / not enabled by this gate
+
+Real send remains disabled. No Webhook URL, dispatch token, project ref,
+Discord ID, channel ID, provider message ID, raw user ID, email, JWT, service
+key, anon key, or management key was recorded.
+
 ## Required Next Input
 
-To retry Gate 9 safely, provide one of the following through a secure channel
-that does not write the value into docs or git:
+The required Webhook value has now been supplied through clipboard for Gate 9
+retry. No additional secret value is needed for the next production-disabled
+runtime check.
 
-- the actual Discord Webhook URL for the chosen existing notification channel,
-  to be set as `DISCORD_SESSION_REMINDER_WEBHOOK_URL`
-- or explicit confirmation that the user will set
-  `DISCORD_SESSION_REMINDER_WEBHOOK_URL` manually in Supabase
-
-For `SESSION_REMINDER_DISPATCH_TOKEN`, Codex can generate a sufficiently long
-random value during the retry gate and set it without recording the value.
+Do not paste the Webhook URL, dispatch token, or other secret values into docs,
+issues, chat, or commit messages.
 
 ## Next Gate Candidate
 
 Recommended next gate:
 
-- Gate 9 retry: set `DISCORD_SESSION_REMINDER_WEBHOOK_URL` and
-  `SESSION_REMINDER_DISPATCH_TOKEN` after the Webhook value is supplied or
-  manually set by the user, keeping `SESSION_REMINDER_REAL_SEND_ENABLED`
-  disabled.
-
-After successful secret setup:
-
 - Gate 10: deploy/runtime secret-presence check while production still rejects.
 
 ## Not Performed
 
-- secret/Webhook setting or change
 - `SESSION_REMINDER_REAL_SEND_ENABLED` enablement
 - Edge deploy
 - runtime invocation

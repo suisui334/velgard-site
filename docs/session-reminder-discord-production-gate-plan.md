@@ -465,6 +465,18 @@ Gate 9 attempt result:
 - no Discord send, Edge deploy, runtime invocation, claim/finalize, DB write,
   SQL apply, cron setup, or UI change was performed
 
+Gate 9 retry result:
+
+- `DISCORD_SESSION_REMINDER_WEBHOOK_URL` was set through clipboard input without
+  recording the value
+- `SESSION_REMINDER_DISPATCH_TOKEN` was generated locally and set without
+  recording the value
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was not enabled
+- name-only confirmation showed the two target secrets present and real-send
+  flag absent / not enabled
+- no Discord send, Edge deploy, runtime invocation, claim/finalize, DB write,
+  SQL apply, cron setup, or UI change was performed
+
 ### Gate 10: Deploy / Runtime Secret Presence Check, Production Still Rejected
 
 Scope:
