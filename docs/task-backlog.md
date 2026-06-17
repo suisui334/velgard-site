@@ -10884,6 +10884,93 @@ Next candidate gate:
   dispatcher, only after explicit approval. If it fails, record the safe
   `stage` and stop without repeating the production send.
 
+## Gate 11F session reminder GM confirmed production retry
+
+Status: one limited production retry attempted; stopped on HTTP `502`
+`claim_rpc` failure. No retry was performed.
+
+- Baseline: `cc5e1fb Check stage-aware session reminder runtime`.
+- Updated:
+  - `docs/session-reminder-limited-production-send-result.md`
+  - `docs/session-reminder-stage-aware-runtime-result.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+
+Preflight:
+
+- Runtime `dry_run:true` with the JST 20:00 override returned HTTP `200`.
+- `ok:true`.
+- `count:1`.
+- reminder type: `gm_confirmed`.
+- shortage item present: `false`.
+- message preview contained `@everyone`: `false`.
+- raw Discord ID pattern in response: not observed.
+- `production_enabled:false`.
+- `db_write:false`.
+- `discord_send:false`.
+- `session_reminder_logs` count before:
+  - `0`
+
+Production retry:
+
+- Regenerated `SESSION_REMINDER_DISPATCH_TOKEN` for the gate.
+- Temporarily enabled `SESSION_REMINDER_REAL_SEND_ENABLED`.
+- Invoked production path exactly once with `dry_run:false`, `limit:1`, the
+  same JST 20:00 override, and the dispatch token header.
+- Sanitized result:
+  - HTTP status: `502`
+  - `ok:false`
+  - error code: `db_claim_failed`
+  - stage: `claim_rpc`
+  - `sent_count`: not present / not `1`
+  - `claimed_count`: not present
+  - `failed_count`: not present
+  - `skipped_count`: not present
+  - result count: `0`
+  - raw Discord ID pattern in response: not observed
+- Stopped because `sent_count=1` was not confirmed.
+- Did not retry.
+- Immediately disabled `SESSION_REMINDER_REAL_SEND_ENABLED` again.
+- Post-disable `dry_run:false` returned HTTP `403`,
+  `production_not_enabled`, stage `production_gate`.
+- Post-disable positive claimed/sent counts: `false` / `false`.
+- `session_reminder_logs` count after:
+  - `0`
+
+Because logs stayed `0`, no reminder log row was created and no successful
+claim/finalize path completed. The safe stage narrows the failure to
+`claim_due_session_reminders`.
+
+Not recorded:
+
+- Webhook URL
+- dispatch token value
+- raw Discord ID
+- Discord message id
+- session id
+- session URL
+- message body
+
+Not performed:
+
+- shortage send
+- `@everyone` send
+- multiple-item send
+- retry after HTTP `502`
+- cron setup
+- Edge deploy
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS structure change
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+
+Next candidate gate:
+
+- Gate 11G: diagnose `claim_due_session_reminders` failure with SQL/RPC review
+  and SELECT-only checks. Do not enable real send or retry production send until
+  the `claim_rpc` cause is understood.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

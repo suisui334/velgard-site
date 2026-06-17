@@ -308,3 +308,82 @@ Sanitized result:
 Gate 11E did not enable real send, did not retry the production send, did not
 send Discord, did not run a successful claim/finalize path, and did not create
 reminder log rows.
+
+## Gate 11F Stage-aware Production Retry
+
+Gate 11F retried the limited `gm_confirmed` production send exactly once with
+the stage-aware dispatcher.
+
+Preflight:
+
+- `dry_run:true` with the same JST 20:00 override returned HTTP `200`
+- response `ok`: `true`
+- response `count`: `1`
+- reminder type: `gm_confirmed`
+- shortage item present: `false`
+- message preview contained `@everyone`: `false`
+- raw Discord ID pattern in response: not observed
+- `production_enabled:false`
+- `db_write:false`
+- `discord_send:false`
+- logs count before: `0`
+
+Production retry:
+
+- `SESSION_REMINDER_DISPATCH_TOKEN` was regenerated for the gate.
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was temporarily enabled.
+- production invocation shape: `dry_run:false`, `limit:1`, same JST 20:00
+  override, dispatch token header
+- production invocation count: `1`
+- sanitized HTTP status: `502`
+- response `ok`: `false`
+- error code: `db_claim_failed`
+- stage: `claim_rpc`
+- `sent_count`: not present / not `1`
+- `claimed_count`: not present
+- `failed_count`: not present
+- `skipped_count`: not present
+- result count: `0`
+- raw Discord ID pattern in sanitized response: not observed
+- provider message id: not recorded
+
+Stop decision:
+
+- Gate 11F stopped after the single production retry because `sent_count=1`
+  was not confirmed.
+- No retry was performed.
+
+Post-attempt safety checks:
+
+- `SESSION_REMINDER_REAL_SEND_ENABLED` was set back to disabled immediately
+  after the retry.
+- A subsequent `dry_run:false` check returned HTTP `403` with
+  `production_not_enabled`.
+- post-disable stage: `production_gate`
+- positive claimed/sent counts after re-disable: `false` / `false`
+- `session_reminder_logs` count after: `0`
+
+Because the logs count remained `0`, no reminder log row was created. The
+stage-aware response narrows the failure to `claim_rpc`, before a successful
+claim/finalize path and before Discord send.
+
+Not performed:
+
+- shortage send
+- `@everyone` send
+- multiple-item send
+- retry after HTTP `502`
+- cron setup
+- Edge deploy
+- SQL Editor execution
+- SQL apply
+- DB/RPC/RLS structure change
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+- secret/token/Webhook/Discord ID/message id/message body recording
+
+Next gate:
+
+- Gate 11G: diagnose `claim_due_session_reminders` failure with SQL/RPC
+  review and SELECT-only checks. Do not call claim/finalize runtime or retry
+  production send until the `claim_rpc` cause is understood.

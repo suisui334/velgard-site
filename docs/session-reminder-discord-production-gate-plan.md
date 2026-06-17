@@ -637,6 +637,43 @@ Next gate before any `gm_confirmed` retry:
   dispatcher, only after explicit approval. If it fails, record the safe
   `stage` and stop without repeating the production send.
 
+Gate 11F stage-aware `gm_confirmed` production retry:
+
+- preflight `dry_run:true`: HTTP `200`, `ok:true`, `count:1`, reminder type
+  `gm_confirmed`
+- shortage item present: `false`
+- message preview contained `@everyone`: `false`
+- raw Discord ID pattern in response: not observed
+- logs count before: `0`
+- regenerated dispatch token for the gate
+- temporarily enabled real send
+- production invocation count: `1`
+- production retry HTTP status: `502`
+- error code: `db_claim_failed`
+- stage: `claim_rpc`
+- `sent_count`: not present / not `1`
+- `claimed_count`: not present
+- `failed_count`: not present
+- `skipped_count`: not present
+- result count: `0`
+- no retry was performed
+- real send was disabled immediately after the retry
+- post-disable `dry_run:false`: HTTP `403`, `production_not_enabled`, stage
+  `production_gate`
+- positive claimed/sent counts after re-disable: `false` / `false`
+- logs count after: `0`
+
+Gate 11F did not confirm a successful send. Because logs remained `0` and the
+stage-aware response reported `claim_rpc`, do not attempt another production
+send until `claim_due_session_reminders` has been reviewed with SQL/RPC and
+SELECT-only checks.
+
+Next gate before any production retry:
+
+- Gate 11G: diagnose `claim_due_session_reminders` failure with no Discord
+  send, no real-send enablement, no claim/finalize runtime execution, and no DB
+  write.
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:

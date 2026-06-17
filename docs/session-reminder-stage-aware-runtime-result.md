@@ -123,3 +123,35 @@ Recommended next gate:
 
 If the retry fails, record the safe `stage` and stop without repeating the
 production send.
+
+## Gate 11F Production Retry Follow-up
+
+Result doc:
+
+- `docs/session-reminder-limited-production-send-result.md`
+
+Sanitized result:
+
+- preflight `dry_run:true`: HTTP `200`, `ok:true`, `count:1`, reminder type
+  `gm_confirmed`
+- shortage item present: `false`
+- message preview contained `@everyone`: `false`
+- raw Discord ID pattern in response: not observed
+- production retry count: `1`
+- production retry HTTP status: `502`
+- error code: `db_claim_failed`
+- stage: `claim_rpc`
+- `sent_count`: not present / not `1`
+- logs count before/after: `0` / `0`
+- post-disable `dry_run:false`: HTTP `403`, `production_not_enabled`, stage
+  `production_gate`
+
+Gate 11F did not confirm a successful send. The stage-aware dispatcher narrowed
+the failure to the claim RPC path. No retry was performed after the HTTP `502`,
+real send was disabled again, no Discord provider message id was recorded, and
+no reminder log rows were created.
+
+Next recommended gate:
+
+- Gate 11G: diagnose `claim_due_session_reminders` with SQL/RPC review and
+  SELECT-only checks before any further production send attempt.
