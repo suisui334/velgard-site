@@ -817,6 +817,32 @@ Gate 12E did not run SQL, create cron, invoke runtime, enable real send, send
 Discord, write DB rows, deploy Edge Functions, change secrets, or change
 `updates.json`.
 
+Gate 12G production-disabled scheduler status:
+
+- status doc:
+  `docs/session-reminder-current-operation-status.md`
+- disabled observation doc:
+  `docs/session-reminder-scheduler-disabled-observation.md`
+- cron job `dispatch-session-reminders-every-minute` exists
+- cron job id: `2`
+- cron job count: `1`
+- schedule: `* * * * *`
+- cron calls `dispatch-session-reminders` with `dry_run:false`, `limit:1`
+- required Vault secret count: `3/3`
+- recent cron run status: `succeeded`
+- recent pg_net responses included HTTP `403`
+- `403` rows included a production-disabled marker
+- real send remains disabled
+- Discord send did not occur through scheduler automation
+- `session_reminder_logs` count remained `1`
+- prior manual `gm_confirmed` production send succeeded once
+- scheduler automatic production send is not started
+- shortage `@everyone` send is not started
+
+Gate 12G did not enable real send, send Discord, send `@everyone`, change
+secrets, deploy Edge Functions, change SQL structure, change cron, change UI,
+or change `updates.json`.
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:

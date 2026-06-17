@@ -420,7 +420,33 @@ Interpretation:
 - Discord send did not occur
 - reminder logs did not increase
 
-## Not Performed
+## Gate 12G Production-Disabled Operation Status
+
+Gate 12G recorded the current scheduler operation as a milestone:
+
+- status doc: `docs/session-reminder-current-operation-status.md`
+- cron job `dispatch-session-reminders-every-minute` exists
+- cron job id: `2`
+- cron job count: `1`
+- schedule: `* * * * *`
+- payload markers: `dry_run:false`, `limit:1`
+- required Vault secret count: `3/3`
+- recent cron run status: `succeeded`
+- recent cron run count observed: `13`
+- recent pg_net responses included HTTP `403`
+- `403` rows included a production-disabled marker
+- no sent-count success marker was observed
+- `session_reminder_logs` count remained `1`
+
+Current operation mode:
+
+- scheduler automatic checks are active
+- real send remains disabled
+- scheduler automatic production send is not started
+- the existing reminder log row is from the prior manual `gm_confirmed` send
+- shortage `@everyone` has never been sent
+
+## Not Performed In Gate 12G
 
 - Discord send
 - Discord dry-run send
@@ -430,10 +456,10 @@ Interpretation:
 - production `dry_run:false`
 - claim/finalize runtime execution
 - DB write
-- SQL apply
-- DB/RPC/RLS structure change
+- SQL structure change
+- DB/RPC/RLS structure change after scheduler creation
 - Edge deploy
-- cron setup
+- cron change
 - UI / HTML / CSS / browser JS change
 - secret/Webhook setting or change
 - `updates.json` change

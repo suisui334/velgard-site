@@ -11776,6 +11776,73 @@ Next candidate gates:
 4. Gate 12J: shortage `@everyone` final approval and bounded production
    operation.
 
+## Gate 12G session reminder scheduler production-disabled status
+
+Status: scheduler production-disabled operation confirmed and recorded as a
+milestone.
+
+- Baseline: `bdea0e1 Record session reminder scheduler apply result`.
+- Added:
+  - `docs/session-reminder-current-operation-status.md`
+- Updated:
+  - `docs/session-reminder-scheduler-disabled-observation.md`
+  - `docs/session-reminder-scheduler-operation-plan.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+
+Current operation state:
+
+- cron job `dispatch-session-reminders-every-minute` exists
+- cron job id: `2`
+- cron job count: `1`
+- schedule: `* * * * *`
+- job active: true
+- each tick invokes `dispatch-session-reminders`
+- payload markers:
+  - `dry_run:false`: true
+  - `limit:1`: true
+- required Vault secret count: `3/3`
+- recent cron run status: `succeeded`
+- recent cron run count observed: `13`
+- recent pg_net responses included HTTP `403`
+- `403` rows included a production-disabled marker
+- no sent-count success marker was observed
+- `session_reminder_logs` count remained `1`
+
+Interpretation:
+
+- scheduler automatic checks are active
+- real send remains disabled
+- Discord send has not occurred through scheduler automation
+- GM manual `gm_confirmed` production send succeeded once before scheduler
+  automation
+- scheduler automatic production send has not started
+- shortage `@everyone` has not been sent
+
+Gate 12G not performed:
+
+- real-send enablement
+- Discord send
+- `@everyone` send
+- shortage send
+- production send through scheduler
+- SQL structure change after scheduler creation
+- cron change after scheduler creation
+- Edge deploy
+- secret change
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+- raw Function URL / JWT / token / Webhook / Discord ID / message id /
+  response body recording
+
+Next candidate gates:
+
+1. Gate 12H: GM automatic scheduler send test with bounded target count and
+   explicit approval.
+2. Gate 12I: shortage `@everyone` production planning only.
+3. Gate 12J: shortage `@everyone` final approval and bounded production
+   operation.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
