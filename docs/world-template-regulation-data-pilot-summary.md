@@ -652,3 +652,30 @@ The next gate should freeze this subsection item before implementation. It
 should not move the whole `general-skills` section, change `renderBlock()`,
 change `renderDataSection()`, introduce a generic registry, or touch reusable
 ops core.
+
+## Phase 3-B16 General Skill Note Data Module
+
+Phase 3-B16 completed the selected nested subsection-item pilot:
+
+- `docs/world-template-regulation-general-skill-note-data-module-result.md`
+
+Summary:
+
+- `generalSkillNoteSubsectionsData.js` now owns the single note item
+  `注釈2：『制限』について`
+- `data/regulation.json` no longer contains that item, but still owns
+  `general-skills`, the parent `subsections` block, and all sibling items
+- `renderRegulation.js` imports the module and composes it back at item index 7
+- stale JSON duplicate-display protection is scoped to the moved item title
+- local smoke confirmed the composed current and stale data both match the old
+  item array exactly
+- public static delivery and DOM checks passed after GitHub Pages rollout
+
+Updated evaluation:
+
+- data modules now work for four shapes: repeated cards, table rows, one nested
+  section block, and one nested subsection item
+- nested-item moves remain safe only when the target item and insert position
+  are unambiguous
+- generic registries, whole-section moves, and long-rule schemas should remain
+  separate gates

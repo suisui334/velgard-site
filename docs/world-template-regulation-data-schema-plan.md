@@ -864,3 +864,25 @@ Selected next schema candidate:
 The future implementation may use a world-site data module for this one
 subsection item, but whole-section moves, all-subsection registries, and
 standalone JSON/fetch migration remain separate later decisions.
+
+## Phase 3-B16 General Skill Note Data Module
+
+Phase 3-B16 proved one nested subsection item can be moved without introducing
+a generic subsection registry:
+
+- `docs/world-template-regulation-general-skill-note-data-module-result.md`
+
+Schema-plan impact:
+
+- `generalSkillNoteSubsectionsData.js` owns exactly one `title` plus
+  `paragraphs` subsection item
+- the parent `general-skills` section and `subsections` block remain JSON-owned
+- the renderer composes module data back into the existing block before calling
+  `renderDataSection(sectionData)`
+- stale JSON duplicate protection can remain title-scoped for isolated nested
+  items
+- no new block schema, table schema, or fetch lifecycle was introduced
+
+Do not generalize this into an all-subsection registry until at least one
+separate schema gate defines ownership, duplicate keys, ordering, and rollback
+behavior.

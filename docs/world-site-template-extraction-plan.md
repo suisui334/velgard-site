@@ -936,3 +936,22 @@ The next gate should freeze the current subsection item behavior and output
 before any implementation. It should not move the whole `general-skills`
 section, split table columns out of `levelCapsData.js`, change shared
 renderers, or touch reusable ops core.
+
+## Phase 3-B16 Regulation General Skill Note Module
+
+Phase 3-B16 completed that next narrow extraction target:
+
+- `docs/world-template-regulation-general-skill-note-data-module-result.md`
+
+World-site template boundary:
+
+- moved one Velgard-specific note item into
+  `assets/js/world/regulation/generalSkillNoteSubsectionsData.js`
+- kept the parent `general-skills` section and rendering behavior in place
+- kept reusable ops core untouched
+- avoided standalone JSON/fetch migration
+- verified public GitHub Pages delivery and DOM output
+
+This adds one nested subsection-item success case to the world-site extraction
+pattern. Future work should still avoid whole-section extraction or generic
+registries without a separate schema decision.

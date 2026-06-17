@@ -511,3 +511,28 @@ Selected next target:
 
 The next gate should be a behavior/spec freeze for this item. Do not implement
 the move directly from this summary.
+
+## Phase 3-B16 General Skill Note Data Module
+
+Phase 3-B16 implemented and publicly verified the selected subsection-item
+pilot:
+
+- `docs/world-template-regulation-general-skill-note-data-module-result.md`
+
+Confirmed:
+
+- module: `assets/js/world/regulation/generalSkillNoteSubsectionsData.js`
+- export: `generalSkillNoteSubsections`
+- source target: `data/regulation.json` `general-skills` block index 0,
+  `subsections` item index 7
+- title: `注釈2：『制限』について`
+- renderer bodies unchanged: `renderBlock()` and `renderDataSection()`
+- cache-bust key:
+  `20260617-regulation-general-skill-note-data-module`
+- public DOM target count: 1
+- public DOM target index: 7
+
+Next planning action:
+
+- summarize this fourth pilot before selecting any additional nested item,
+  table, or long-rule target

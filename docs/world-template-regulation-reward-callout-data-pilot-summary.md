@@ -394,3 +394,28 @@ Proceed to a future behavior/spec gate for:
 Do not implement it directly from this B15 summary. The next gate should first
 freeze the current subsection item behavior, output, comparison checklist, and
 exact merge approach.
+
+## Phase 3-B16 Follow-Up: General Skill Note Pilot
+
+Phase 3-B16 completed the selected follow-up as one combined spec,
+implementation, smoke, and public rollout gate:
+
+- `docs/world-template-regulation-general-skill-note-data-module-result.md`
+
+Outcome:
+
+- added `assets/js/world/regulation/generalSkillNoteSubsectionsData.js`
+- export name: `generalSkillNoteSubsections`
+- moved only the `general-skills` subsection item
+  `注釈2：『制限』について`
+- kept the parent `general-skills` section and `subsections` block in
+  `data/regulation.json`
+- kept all sibling subsection items in `data/regulation.json`
+- inserted the module item back at index 7 before existing rendering
+- added a narrow stale JSON duplicate guard for that item title
+- kept `renderBlock()` and `renderDataSection()` bodies unchanged
+- public DOM confirmed the item appears once at index 7
+
+This confirms the data-module pattern has now covered repeated cards, table
+rows, one section block, and one nested subsection item without adding fetches
+or moving shared renderer behavior.
