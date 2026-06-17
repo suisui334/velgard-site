@@ -955,3 +955,23 @@ World-site template boundary:
 This adds one nested subsection-item success case to the world-site extraction
 pattern. Future work should still avoid whole-section extraction or generic
 registries without a separate schema decision.
+
+## Phase 3-B17 Regulation Original General Skill Bonus Module
+
+Phase 3-B17 completed one more narrow extraction target:
+
+- `docs/world-template-regulation-original-general-skill-bonus-data-module-result.md`
+
+World-site template boundary:
+
+- moved one Velgard-specific original-general-skills note item into
+  `assets/js/world/regulation/originalGeneralSkillBonusSubsectionsData.js`
+- kept the parent `original-general-skills` section and rendering behavior in
+  place
+- kept reusable ops core untouched
+- avoided standalone JSON/fetch migration
+- verified public GitHub Pages delivery and DOM output
+
+This is another nested subsection-item success case, still without a generic
+registry. Future work should decide whether more small pilots add value before
+extracting broader schemas.

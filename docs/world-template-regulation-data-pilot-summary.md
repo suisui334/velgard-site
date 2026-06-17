@@ -679,3 +679,36 @@ Updated evaluation:
   are unambiguous
 - generic registries, whole-section moves, and long-rule schemas should remain
   separate gates
+
+## Phase 3-B17 Original General Skill Bonus Data Module
+
+Phase 3-B17 selected and completed one more low-risk subsection-item pilot:
+
+- `docs/world-template-regulation-original-general-skill-bonus-data-module-result.md`
+
+Selected target:
+
+- `original-general-skills`
+- block index 2
+- item index 2
+- title: `オリジナル一般技能による「技能レベルボーナス」`
+
+Summary:
+
+- `originalGeneralSkillBonusSubsectionsData.js` owns the single target item
+- `data/regulation.json` still owns the parent section, parent block, and
+  sibling items
+- `renderRegulation.js` composes the item back only for
+  `original-general-skills` block index 2
+- stale JSON duplicate-display protection is scoped to the moved title
+- local snapshot confirmed current and stale composition both match old HEAD
+- public static delivery and DOM checks passed
+
+Updated evaluation:
+
+- data modules now cover repeated cards, table rows, one nested section block,
+  one general-skills nested subsection item, and one original-general-skills
+  nested subsection item
+- no generic registry has been introduced
+- further moves should first summarize whether more small pilots are still
+  useful

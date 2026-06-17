@@ -536,3 +536,29 @@ Next planning action:
 
 - summarize this fourth pilot before selecting any additional nested item,
   table, or long-rule target
+
+## Phase 3-B17 Original General Skill Bonus Data Module
+
+Phase 3-B17 implemented and publicly verified one additional low-risk
+subsection item:
+
+- `docs/world-template-regulation-original-general-skill-bonus-data-module-result.md`
+
+Confirmed:
+
+- module:
+  `assets/js/world/regulation/originalGeneralSkillBonusSubsectionsData.js`
+- export: `originalGeneralSkillBonusSubsections`
+- source target: `data/regulation.json` `original-general-skills` block index
+  2, `subsections` item index 2
+- title: `オリジナル一般技能による「技能レベルボーナス」`
+- renderer bodies unchanged: `renderBlock()` and `renderDataSection()`
+- cache-bust key:
+  `20260617-regulation-original-general-skill-bonus-data-module`
+- public DOM target count: 1
+- public DOM target index: 2
+
+Next planning action:
+
+- summarize the fifth pilot before choosing any further nested item or moving
+  toward a broader schema decision

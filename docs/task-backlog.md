@@ -9103,6 +9103,47 @@ Status: completed.
   configuration, `management_key` display, or raw id/email/token/JWT display was
   performed.
 
+## Phase 3-B17 regulation original general skill bonus data module
+
+Status: completed.
+
+- Baseline: `8b69a8c Check regulation general skill note rollout`.
+- Implementation commit:
+  `975deb3 Extract regulation original general skill bonus data`.
+- Added
+  `assets/js/world/regulation/originalGeneralSkillBonusSubsectionsData.js`.
+- Added
+  `docs/world-template-regulation-original-general-skill-bonus-data-module-result.md`.
+- Selected target:
+  `original-general-skills` block index 2, subsection item index 2,
+  `オリジナル一般技能による「技能レベルボーナス」`.
+- Removed only that item from `data/regulation.json`.
+- Kept the parent section, parent `subsections` block, sibling items, and all
+  other original-general-skills blocks in `data/regulation.json`.
+- Updated the regulation cache-bust chain to
+  `20260617-regulation-original-general-skill-bonus-data-module`.
+- Local smoke confirmed module count 1, paragraph count 1, exact match with old
+  HEAD, current JSON target count 0, composed current item index 2, and stale
+  JSON duplicate-display target count 1.
+- Public check confirmed HTTP 200 for `regulation.html`, `main.js`,
+  `renderRegulation.js`,
+  `originalGeneralSkillBonusSubsectionsData.js`, and `data/regulation.json`.
+- Public DOM confirmed the target appears once at index 2 with unchanged
+  paragraph text and `.regulation-subsection`, no DOM id, no `undefined`, no
+  `[object Object]`, and no empty subsection card.
+- Public DOM also confirmed term cards 12, level rows 14, reward callout 1, and
+  general-skills note 1.
+- Limited: full desktop/mobile visual scroll-through and detailed active TOC
+  scroll-state QA.
+- Not tested: auth/membership/mypage/session-post, DB/RPC/RLS, Edge Functions,
+  Discord sync, and regulation-unrelated pages beyond listed DOM side-effect
+  checks.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+  operation, secret/Webhook change, direct Supabase write, debug console logging
+  addition, `updates.json` change, auth/permission logic change, RPC/DB key
+  configuration, `management_key` display, or raw id/email/token/JWT display was
+  performed.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

@@ -886,3 +886,23 @@ Schema-plan impact:
 Do not generalize this into an all-subsection registry until at least one
 separate schema gate defines ownership, duplicate keys, ordering, and rollback
 behavior.
+
+## Phase 3-B17 Original General Skill Bonus Data Module
+
+Phase 3-B17 moved one `original-general-skills` subsection item while keeping
+the schema boundary narrow:
+
+- `docs/world-template-regulation-original-general-skill-bonus-data-module-result.md`
+
+Schema-plan impact:
+
+- `originalGeneralSkillBonusSubsectionsData.js` owns exactly one `title` plus
+  `paragraphs` subsection item
+- the parent `original-general-skills` section and target `subsections` block
+  remain JSON-owned
+- composition is section-scoped and block-index-scoped, not a generic registry
+- stale JSON duplicate protection remains title-scoped for this isolated item
+- no new block schema, table schema, or fetch lifecycle was introduced
+
+This reinforces that one-off subsection modules are workable, but it does not
+approve an all-subsection registry or section-wide extraction.
