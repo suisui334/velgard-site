@@ -577,6 +577,44 @@ Recommended next gate:
 
 - Gate 4: Edge Function / scheduled dispatcher dry-run.
 
+## Gate 4 Edge Dispatcher Dry-run Result
+
+Gate 4 added a dry-run-only Edge Function draft:
+
+- `supabase/functions/dispatch-session-reminders/index.ts`
+
+Result docs:
+
+- `docs/session-reminder-edge-dry-run-result.md`
+
+Implemented:
+
+- HTTP POST dry-run input handling for `dry_run`, optional `now`, and `limit`.
+- Safe default where omitted `dry_run` is treated as dry-run.
+- `dry_run: false` returns `production_not_enabled`.
+- Service-role Supabase client creation through env names only.
+- `preview_due_session_reminders` RPC call.
+- Reminder candidate normalization.
+- Message preview construction for shortage and GM-confirmed reminders.
+- Response safety metadata showing no DB write, no Discord send, and production disabled.
+
+Not implemented:
+
+- Edge deploy
+- cron setup
+- Discord request
+- claim RPC
+- finalize RPC
+- `session_reminder_logs` write
+- production send enablement
+- Webhook/secret change
+
+The dry-run response may contain message preview and session URL values at runtime. Docs and reports should not paste real message previews, real session URLs, raw identifiers, Discord identifiers, Webhook URLs, or provider message IDs.
+
+Recommended next gate:
+
+- Gate 4.5: approved safe runtime dry-run invocation, or Gate 5 planning for the production send gate.
+
 ## Open Questions
 
 1. Should `waitlisted` stay excluded from the first threshold decision?

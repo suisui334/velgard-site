@@ -104,6 +104,14 @@ Recommended next gate:
 
 Gate 4 should only preview due reminders, construct safe message preview values, and avoid DB write or Discord send until the production send gate.
 
+## Gate 4 Follow-up
+
+Gate 4 added the dry-run dispatcher draft and recorded the result in:
+
+- `docs/session-reminder-edge-dry-run-result.md`
+
+The Gate 4 function uses `preview_due_session_reminders` only and does not deploy, send Discord messages, claim/finalize reminders, or write DB rows.
+
 ## Safety Notes
 
 No raw user identifiers, email addresses, tokens, JWTs, management keys, Discord identifiers, Discord URLs, Webhook URLs, provider message identifiers, or row-level values were recorded.

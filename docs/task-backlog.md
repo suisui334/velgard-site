@@ -9954,6 +9954,35 @@ Status: implemented without DB write QA.
   Discord dry-run, Discord production send, secret changes, or real DB write QA.
 - Next candidate gate: Edge Function / scheduled dispatcher dry-run.
 
+## Gate 4 session reminder Edge dispatcher dry-run
+
+Status: dry-run dispatcher draft implemented, not deployed.
+
+- Baseline: `51c70b2 Add session reminder settings UI`.
+- Added `supabase/functions/dispatch-session-reminders/index.ts`.
+- Added `docs/session-reminder-edge-dry-run-result.md`.
+- Updated:
+  - `docs/session-reminder-discord-notification-plan.md`
+  - `docs/session-reminder-ui-implementation-result.md`
+  - `docs/task-backlog.md`
+- Implemented HTTP POST dry-run handling for:
+  - `dry_run`
+  - optional `now`
+  - `limit`
+- Uses `preview_due_session_reminders` only.
+- `dry_run:false` returns `production_not_enabled`.
+- Builds safe reminder preview items for shortage and GM-confirmed reminders.
+- Records embed suppression and allowed mention intent as preview metadata only.
+- Does not call claim/finalize RPCs.
+- Does not write `session_reminder_logs`.
+- Does not add direct Supabase `.insert/.update/.delete/.upsert`.
+- Does not send Discord requests or read Webhook URLs.
+- Did not deploy the Edge Function, configure cron, run SQL Editor, apply SQL,
+  mutate DB/RPC/RLS, change secrets, run production preview RPC, or change
+  `updates.json`.
+- Next candidate gate: approved safe runtime dry-run invocation, or production
+  send gate planning before any Discord send is enabled.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
