@@ -666,6 +666,39 @@ Recommended next gate:
 
 Gate 5 must separately decide the Discord destination, `@everyone` production approval, GM reminder destination, suppress-embed payload, claim/finalize flow, retry behavior, and sanitized reporting format.
 
+## Gate 5 Discord Production Gate Planning
+
+Gate 5 documented the Discord production-send design only.
+
+Result docs:
+
+- `docs/session-reminder-discord-production-gate-plan.md`
+
+Surveyed existing patterns:
+
+- session-post Discord sync uses env `DISCORD_SESSION_POST_WEBHOOK_URL`, Webhook `wait=true`, payload `flags: 4`, and explicit `allowed_mentions.parse`.
+- admin cap announcement dispatch uses a real-send env flag, dispatch token gate, target-channel env mapping, claim/finalize flow, and sanitized result reporting.
+- current `dispatch-session-reminders` remains preview-only and production-disabled.
+
+Production direction:
+
+- shortage reminder initially targets the existing Discord notification channel, but a dedicated env name such as `DISCORD_SESSION_REMINDER_WEBHOOK_URL` is the safer implementation boundary even if it points to the same channel.
+- shortage `@everyone` requires explicit production approval and `allowed_mentions.parse=["everyone"]`.
+- GM confirmed reminder starts as a channel message with GM display name only, no direct GM mention or DM.
+- OGP/image preview suppression should reuse Discord payload `flags: 4`; square brackets around a URL are not enough as the primary suppression mechanism.
+- production send should use `claim_due_session_reminders` and `finalize_session_reminder` with `lock_token`.
+- first version should not auto-retry `@everyone`; reset/resend remains a future gate.
+
+Next gate split:
+
+- Gate 6: production send code implementation, no deploy.
+- Gate 7: deploy and production-disabled runtime check.
+- Gate 8: secret/destination setup planning or approved setting.
+- Gate 9: limited production send test.
+- Gate 10: final shortage `@everyone` production operation.
+
+Gate 5 did not perform Discord send, Discord dry-run send, Webhook/secret change, Edge deploy, production implementation, claim/finalize call, DB write, SQL apply, UI change, or `updates.json` change.
+
 ## Open Questions
 
 1. Should `waitlisted` stay excluded from the first threshold decision?

@@ -95,6 +95,24 @@ Recommended next gate:
 
 Gate 5 should decide the Discord destination, Webhook/secret handling, `@everyone` production approval, GM reminder destination, suppress-embed payload, claim/finalize flow, and retry behavior before any Discord send is enabled.
 
+## Gate 5 Planning Follow-up
+
+Gate 5 completed the production-send planning document:
+
+- `docs/session-reminder-discord-production-gate-plan.md`
+
+Recorded direction:
+
+- Keep the current deployed dispatcher production-disabled until a later code/deploy gate.
+- Prefer a dedicated reminder Webhook/env boundary even if the destination is the existing Discord notification channel.
+- Use `flags: 4` for session URL embed suppression.
+- Use `allowed_mentions.parse=["everyone"]` only for shortage reminders.
+- Keep GM reminders as channel messages with GM display name only for the first production version.
+- Use claim/finalize with `lock_token` only in the production branch.
+- Split production code, deploy, secret setup, limited send, and final `@everyone` operation into separate gates.
+
+Gate 5 did not send Discord messages, change secrets, deploy Edge Functions, call claim/finalize, write DB rows, or change UI/code.
+
 ## Safety Notes
 
 Only the explicitly approved Edge deploy was performed. No SQL apply, DB/RPC/RLS mutation, Discord send, secret/Webhook change, direct Supabase write, cron setup, or UI change was performed.

@@ -166,6 +166,12 @@ Recommended next gate:
 
 Before production send, confirm target Discord channel, OGP suppression payload, GM reminder destination, retry behavior, and exact reporting format without exposing raw identifiers or secrets.
 
+Gate 5 planning result:
+
+- `docs/session-reminder-discord-production-gate-plan.md`
+
+Gate 5 kept the deployed dispatcher production-disabled and did not change Edge Function code. It documented the later production path: dedicated reminder env boundary, `flags: 4`, explicit `allowed_mentions`, claim/finalize with `lock_token`, no automatic `@everyone` retry in the first version, and separate gates for code, deploy, secret setup, limited send, and final `@everyone` operation.
+
 ## Safety Notes
 
 No raw user identifiers, email addresses, tokens, JWTs, management keys, Discord identifiers, Discord URLs, Webhook URLs, provider message identifiers, or row-level values were recorded.

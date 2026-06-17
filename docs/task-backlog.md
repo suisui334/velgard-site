@@ -10020,6 +10020,54 @@ Status: approved Edge deploy and runtime dry-run completed.
   destination, claim/finalize, retry, and sanitized reporting decisions split
   into explicit approval steps.
 
+## Gate 5 session reminder Discord production gate planning
+
+Status: production-send design documented only.
+
+- Baseline: `d219e71 Check session reminder runtime dry run`.
+- Added `docs/session-reminder-discord-production-gate-plan.md`.
+- Updated:
+  - `docs/session-reminder-discord-notification-plan.md`
+  - `docs/session-reminder-edge-runtime-dry-run-result.md`
+  - `docs/session-reminder-edge-dry-run-result.md`
+  - `docs/task-backlog.md`
+- Reviewed existing Discord send patterns:
+  - session-post Discord sync uses `DISCORD_SESSION_POST_WEBHOOK_URL`,
+    Webhook `wait=true`, payload `flags: 4`, and explicit
+    `allowed_mentions.parse`.
+  - admin cap announcement dispatcher uses a real-send env flag, dispatch
+    token, target-channel env mapping, claim/finalize, retryable failure
+    classification, and sanitized status/count responses.
+  - `dispatch-session-reminders` remains preview-only and production-disabled.
+- Production direction:
+  - shortage reminder initially targets the existing Discord notification
+    channel, but a dedicated reminder env boundary such as
+    `DISCORD_SESSION_REMINDER_WEBHOOK_URL` is safer even if it points to the
+    same channel.
+  - shortage `@everyone` requires explicit production approval and
+    `allowed_mentions.parse=["everyone"]`.
+  - GM confirmed reminder starts as a channel message with GM display name
+    only; GM direct mention/DM remains a later gate.
+  - OGP/link preview suppression should use Discord payload `flags: 4`;
+    square brackets around a URL are not sufficient as the primary mechanism.
+  - production send should use `claim_due_session_reminders` and
+    `finalize_session_reminder` with `lock_token`.
+  - the first version should not auto-retry `@everyone`; reset/resend remains
+    a future explicit gate.
+- Next gate split:
+  - Gate 6: production send code implementation, no deploy.
+  - Gate 7: deploy and production-disabled runtime check.
+  - Gate 8: secret/destination setup planning or approved setting.
+  - Gate 9: limited production send test.
+  - Gate 10: final shortage `@everyone` production operation.
+- Did not send Discord messages, run Discord dry-run sends, change Webhook or
+  secret settings, deploy Edge Functions, implement production send code, call
+  claim/finalize RPCs, write `session_reminder_logs`, run SQL Editor, apply
+  SQL, mutate DB/RPC/RLS, change UI/HTML/CSS/JS, or modify `updates.json`.
+- No Webhook URL, channel id, message id, Discord id, token, JWT,
+  `management_key`, raw user id, email, real session URL, or full message
+  preview was recorded.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.
