@@ -9380,6 +9380,51 @@ Status: completed.
   operation, secret/Webhook change, direct Supabase write, debug console
   logging addition, or auth/permission logic change was performed.
 
+## Phase 3-C4 gallery / image asset boundary guide
+
+Status: completed.
+
+- Baseline: `a5af636 Plan scalable world content templates`.
+- Added
+  `docs/world-template-gallery-image-assets-guide.md`.
+- Updated:
+  - `docs/world-template-content-structures-plan.md`
+  - `docs/world-template-next-world-adoption-guide.md`
+  - `docs/world-site-template-extraction-plan.md`
+  - `docs/task-backlog.md`
+- Documented the current Velgard gallery/image inventory as a reference only:
+  `gallery.html`, `assets/js/renderGallery.js`, `data/gallery.json`,
+  `data/site.json`, image-bearing world data, and the `assets/images/`
+  directory groups.
+- Classified gallery/image concerns into:
+  - reusable template structure such as cards, gallery grid, modal/lightbox,
+    filters, search, placeholders, and relation-id patterns
+  - replace-per-world assets such as character portraits, backgrounds, maps,
+    spot/facility images, gallery images, logos, banners, OGP, favicon, and key
+    visual assets
+  - careful-gate assets such as CSS background images, shared gallery/spot
+    images, placeholder images, map images, and strongly data-coupled paths
+  - do-not-copy assets such as Velgard-specific images, private/non-public
+    images, rights-unclear external images, and images containing personal or
+    secret information
+- Documented data-side fields such as `image`, `thumbnail`, `alt`, `caption`,
+  `credit`, `category`, `tags`, relation ids, placeholder flags, and
+  visibility.
+- Documented renderer/CSS ownership of image cards, grid/layout, modal UI,
+  fallback display, broken-image handling, image ratio control, CSS classes,
+  DOM ids, and JS hooks.
+- Recorded missing-image policy, next-world image introduction order, public
+  image/path checklist, rollback/recovery policy, and reusable ops core
+  boundary.
+- Recommended next docs-only candidate:
+  scenarios / hooks template structure.
+- This was docs-only: no implementation, HTML, CSS, JS, data/json, image file,
+  renderer, OGP, favicon, hero image, or `updates.json` change was performed.
+- No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge deploy, Discord
+  operation, secret/Webhook change, direct Supabase write, debug console
+  logging addition, auth/permission logic change, RPC/DB key configuration,
+  `management_key` display, or raw id/email/token/JWT display was performed.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

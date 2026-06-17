@@ -556,6 +556,28 @@ Next-world adoption impact:
 - recommends the next docs-only candidate:
   gallery / image asset boundary guide
 
+## Phase 3-C4 Gallery / Image Asset Boundary Follow-Up
+
+Phase 3-C4 completes that recommended docs-only candidate:
+
+- `docs/world-template-gallery-image-assets-guide.md`
+
+Next-world adoption impact:
+
+- classifies reusable gallery/page/card/modal/fallback structure separately
+  from world-specific image files, captions, credits, categories, maps, logos,
+  backgrounds, OGP, favicon, and key visual assets
+- records the current Velgard image inventory as a reference only, not as a
+  copy list for a second world
+- documents missing-image, zero-gallery, placeholder, alt, caption, and credit
+  policy for a next world
+- keeps gallery and image assets on the world-template side, not reusable ops
+  core
+- keeps auth, DB/RPC/RLS, Edge Functions, Discord sync, user-uploaded avatars,
+  and `updates.json` outside gallery/image template adoption
+- recommends the next docs-only candidate:
+  scenarios / hooks template structure
+
 ## Limited And Not Tested
 
 This guide is docs-only and does not add new runtime QA.

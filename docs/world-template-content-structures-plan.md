@@ -659,6 +659,31 @@ Reason:
 - the guide can remain docs-only and avoid renderer, CSS, auth, DB, and Discord
   changes.
 
+## Phase 3-C4 Gallery / Image Asset Boundary Follow-Up
+
+Phase 3-C4 completes the recommended gallery / image asset boundary guide:
+
+- `docs/world-template-gallery-image-assets-guide.md`
+
+Content-structure impact:
+
+- separates reusable gallery/card/modal/fallback behavior from world-specific
+  images, categories, captions, credits, OGP assets, favicon assets, logos,
+  maps, key visuals, and placeholders
+- records image-bearing data fields such as `image`, `thumbnail`, `alt`,
+  `caption`, `credit`, `category`, `tags`, and relation ids as world-template
+  data concerns
+- keeps CSS classes, DOM ids, modal behavior, image ratios, broken-image
+  fallback, and renderer behavior outside data ownership
+- confirms characters and spots must remain valid with missing images or
+  image-free cards
+- keeps gallery and image assets outside reusable ops core, auth, DB/RPC/RLS,
+  Edge Functions, Discord sync, and `updates.json`
+
+Recommended next docs-only candidate after C4:
+
+- scenarios / hooks template structure.
+
 ## Limited And Not Tested
 
 This plan is docs-only and does not add runtime QA.

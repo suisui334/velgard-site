@@ -1095,3 +1095,32 @@ World-site template impact:
 Recommended next docs-only candidate:
 
 - gallery / image asset boundary guide
+
+## Phase 3-C4 Gallery / Image Asset Boundary Guide
+
+Phase 3-C4 completes that recommended docs-only candidate:
+
+- `docs/world-template-gallery-image-assets-guide.md`
+
+World-site template impact:
+
+- documents the current Velgard gallery and image inventory only as a reference
+  point, not as content for a second world
+- separates reusable gallery behavior, image cards, modal patterns, relation
+  ids, placeholders, and fallback helpers from world-specific image files and
+  captions
+- classifies images into reusable structure, replace-per-world assets,
+  careful-gate assets, and do-not-copy assets
+- records data-side fields such as `image`, `thumbnail`, `alt`, `caption`,
+  `credit`, `category`, `tags`, relation ids, placeholder flags, and visibility
+- keeps renderer/CSS responsibilities such as grid, modal, image ratio,
+  broken-image fallback, CSS classes, DOM ids, and JS hooks outside data
+  ownership
+- keeps gallery/image assets on the world-template side and outside reusable
+  ops core, auth, DB/RPC/RLS, Edge Functions, Discord sync, and `updates.json`
+- records image introduction, missing-image, public-check, and rollback
+  checklists
+
+Recommended next docs-only candidate:
+
+- scenarios / hooks template structure
