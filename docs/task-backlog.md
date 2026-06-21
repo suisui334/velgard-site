@@ -11974,6 +11974,69 @@ Next candidate gates:
 3. Rollback gate to disable `SESSION_REMINDER_REAL_SEND_ENABLED` if
    production behavior needs to be paused.
 
+## Gate 13A session reminder Discord URL clickable fix
+
+Status: source fix completed. Edge deploy was not performed.
+
+- Baseline: `0acadcf Enable session reminder real send`.
+- Updated:
+  - `supabase/functions/dispatch-session-reminders/index.ts`
+- Added:
+  - `docs/session-reminder-discord-url-fix-result.md`
+- Updated:
+  - `docs/session-reminder-current-operation-status.md`
+  - `docs/session-reminder-discord-production-gate-plan.md`
+  - `docs/task-backlog.md`
+
+Fix summary:
+
+- reviewed the existing session-post Discord sync absolute URL generation
+  pattern
+- kept `PUBLIC_SITE_BASE_URL` as the first source for the public site base
+- added scheduler-safe fallback base URL behavior
+- changed reminder dry-run and production paths to use the resolved public site
+  base
+- kept one shared `buildSessionDetailUrl()` path for both `gm_confirmed` and
+  `shortage`
+- added a dry-run preview boolean for whether the session URL is absolute
+
+Preserved:
+
+- Discord payload `flags: 4`
+- shortage `allowed_mentions.parse=["everyone"]`
+- GM reminder `allowed_mentions.parse=[]` plus explicit GM user only when a
+  valid GM Discord user ID is present
+- dry-run raw Discord ID masking
+- Webhook URL / token / message id omission from docs
+
+Checks:
+
+- `deno check --no-lock supabase/functions/dispatch-session-reminders/index.ts`:
+  passed
+- code review confirmed both reminder types receive the same resolved absolute
+  session detail URL
+- code review confirmed OGP suppression remains `flags: 4`
+
+Gate 13A not performed:
+
+- Discord send
+- manual production `dry_run:false`
+- real-send flag change
+- cron change
+- Edge deploy
+- SQL / DB change
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+- Webhook / token / secret change
+- concrete public URL, Webhook URL, token, Discord ID, message id, or message
+  body recording
+
+Next candidate gates:
+
+1. Gate 13B: deploy updated `dispatch-session-reminders` and confirm the
+   production-safe dry-run URL shape without recording the full URL.
+2. Continue real-send monitoring with status/count-only reporting.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

@@ -99,6 +99,7 @@ interface ReminderPreviewItem {
   discord_delivery_preview: {
     would_send: false;
     suppress_embeds: true;
+    session_url_is_absolute: boolean;
     allowed_mentions: {
       parse: string[];
     };
@@ -173,6 +174,7 @@ const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
 const DISCORD_SUPPRESS_EMBEDS_FLAG = 4;
 const PUBLIC_SITE_BASE_URL_ENV = "PUBLIC_SITE_BASE_URL";
+const DEFAULT_PUBLIC_SITE_BASE_URL = "https://suisui334.github.io/velgard-site/";
 const SESSION_DETAIL_PAGE = "session-detail.html";
 const SESSION_REMINDER_REAL_SEND_ENABLED_ENV = "SESSION_REMINDER_REAL_SEND_ENABLED";
 const SESSION_REMINDER_DISPATCH_TOKEN_ENV = "SESSION_REMINDER_DISPATCH_TOKEN";
@@ -235,7 +237,7 @@ async function handleDryRun(client: SessionReminderRpcClient, options: DispatchO
     return jsonError(502, "db_preview_failed", "Reminder preview failed.", true, "preview_rpc");
   }
 
-  const publicSiteBaseUrl = normalizePublicSiteBaseUrl(Deno.env.get(PUBLIC_SITE_BASE_URL_ENV));
+  const publicSiteBaseUrl = resolvePublicSiteBaseUrl();
   const items = previewResult.rows.map((row) => buildReminderPreviewItem(row, publicSiteBaseUrl));
 
   return jsonOk({
@@ -263,7 +265,7 @@ async function handleProductionDispatch(
     return jsonError(502, "db_claim_failed", "Reminder claim failed.", false, "claim_rpc");
   }
 
-  const publicSiteBaseUrl = normalizePublicSiteBaseUrl(Deno.env.get(PUBLIC_SITE_BASE_URL_ENV));
+  const publicSiteBaseUrl = resolvePublicSiteBaseUrl();
   const results: ProductionReminderResult[] = [];
 
   for (const row of claimResult.rows) {
@@ -535,6 +537,7 @@ function buildReminderPreviewItem(row: SupportedPreviewReminderRow, publicSiteBa
     discord_delivery_preview: {
       would_send: false,
       suppress_embeds: true,
+      session_url_is_absolute: isAbsoluteHttpUrl(sessionUrl),
       allowed_mentions: {
         parse: getAllowedMentionParse(row.reminder_type)
       }
@@ -689,9 +692,10 @@ function formatStartTimeForJapaneseMessage(value: unknown): string {
   return minute === "00" ? `${hour}時` : `${hour}時${minute}分`;
 }
 
-function buildSessionDetailUrl(sessionId: string, publicSiteBaseUrl = ""): string {
+function buildSessionDetailUrl(sessionId: string, publicSiteBaseUrl = resolvePublicSiteBaseUrl()): string {
   const detailPath = `${SESSION_DETAIL_PAGE}?id=${encodeURIComponent(sessionId)}`;
-  const baseUrl = normalizePublicSiteBaseUrl(publicSiteBaseUrl);
+  const baseUrl = normalizePublicSiteBaseUrl(publicSiteBaseUrl)
+    || normalizePublicSiteBaseUrl(DEFAULT_PUBLIC_SITE_BASE_URL);
   if (!baseUrl) return detailPath;
 
   try {
@@ -701,12 +705,17 @@ function buildSessionDetailUrl(sessionId: string, publicSiteBaseUrl = ""): strin
   }
 }
 
+function resolvePublicSiteBaseUrl(): string {
+  return normalizePublicSiteBaseUrl(Deno.env.get(PUBLIC_SITE_BASE_URL_ENV))
+    || normalizePublicSiteBaseUrl(DEFAULT_PUBLIC_SITE_BASE_URL);
+}
+
 function normalizePublicSiteBaseUrl(value: unknown): string {
   const text = normalizeText(value, 2048);
   if (!text) return "";
   try {
     const url = new URL(text);
-    if (url.protocol !== "https:" && url.protocol !== "http:") return "";
+    if (url.protocol !== "https:") return "";
     if (!url.pathname.endsWith("/")) {
       url.pathname = `${url.pathname}/`;
     }
@@ -715,6 +724,15 @@ function normalizePublicSiteBaseUrl(value: unknown): string {
     return url.toString();
   } catch {
     return "";
+  }
+}
+
+function isAbsoluteHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
   }
 }
 

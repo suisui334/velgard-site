@@ -150,3 +150,32 @@ Current state after Gate 12I:
 - future due candidates may be sent automatically by cron
 - no new Discord send was indicated during the observation window
 - shortage `@everyone` did not occur during the observation window
+
+## Gate 13A Discord URL Clickable Source Fix
+
+Gate 13A fixed reminder message URL generation in source so Discord messages
+use an absolute `session-detail` URL instead of a relative
+`session-detail.html?id=...` URL.
+
+Result doc:
+
+- `docs/session-reminder-discord-url-fix-result.md`
+
+Updated source:
+
+- `supabase/functions/dispatch-session-reminders/index.ts`
+
+Summary:
+
+- reviewed the existing session-post Discord sync absolute URL pattern
+- kept `PUBLIC_SITE_BASE_URL` as the first source
+- added scheduler-safe fallback base URL behavior
+- applied the shared absolute session-detail URL path to both `gm_confirmed`
+  and `shortage`
+- kept Discord payload `flags: 4`
+- kept shortage `allowed_mentions.parse=["everyone"]`
+- kept GM reminder mention restrictions
+
+Gate 13A did not deploy the Edge Function, send Discord, change real-send
+state, change cron, change SQL, or change secrets. The deployed Function keeps
+the previous URL behavior until a later explicit deploy gate.

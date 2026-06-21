@@ -890,6 +890,26 @@ Gate 12I real-send operation start:
 - shortage `@everyone` did not occur during the observation window
 - real send remains enabled for future due candidates
 
+Gate 13A Discord URL clickable source fix:
+
+- result doc:
+  `docs/session-reminder-discord-url-fix-result.md`
+- updated source:
+  `supabase/functions/dispatch-session-reminders/index.ts`
+- reviewed the existing session-post Discord sync URL construction pattern
+- reminder messages now build an absolute `session-detail` URL from
+  `PUBLIC_SITE_BASE_URL` plus the detail page path
+- scheduler-only invocations have fallback base URL behavior to avoid relative
+  `session-detail.html?id=...` output
+- both `gm_confirmed` and `shortage` use the same resolved session detail URL
+- Discord payload `flags: 4` remains unchanged
+- shortage `allowed_mentions.parse=["everyone"]` remains unchanged
+- GM reminder mention restrictions remain unchanged
+- Edge deploy was not performed, so runtime behavior is not changed until a
+  later deploy gate
+- concrete public URL, Webhook URL, token, Discord ID, and message id values
+  were not recorded
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:
