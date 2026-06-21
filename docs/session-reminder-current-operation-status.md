@@ -179,3 +179,37 @@ Summary:
 Gate 13A did not deploy the Edge Function, send Discord, change real-send
 state, change cron, change SQL, or change secrets. The deployed Function keeps
 the previous URL behavior until a later explicit deploy gate.
+
+## Gate 13B URL Fix Deploy And Dry-Run
+
+Gate 13B deployed the URL fix to the production Edge Function.
+
+Result doc:
+
+- `docs/session-reminder-url-fix-deploy-result.md`
+
+Deploy result:
+
+- `deno check --no-lock supabase/functions/dispatch-session-reminders/index.ts`:
+  passed
+- deployed only `dispatch-session-reminders`
+- deploy succeeded
+
+Dry-run confirmation:
+
+- current-time `dry_run:true`: HTTP `200`, `ok:true`, `count=0`
+- future-candidate `dry_run:true`: HTTP `200`, `ok:true`, `count=1`
+- future-candidate reminder type breakdown: `shortage:1`
+- item-level absolute session URL count: `1`
+- relative-only detail URL pattern: false
+- raw Discord ID pattern: false
+- suppress-embeds item count: `1`
+
+Reminder log observation:
+
+- `session_reminder_logs` count after checks: `2`
+- status/type summary: `gm_confirmed` / `sent` = `2`
+- no shortage log row was observed in the status/count summary
+
+Gate 13B did not perform manual production `dry_run:false`, manual Discord
+send, real-send setting change, cron change, SQL change, or secret change.

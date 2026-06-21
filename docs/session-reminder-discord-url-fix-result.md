@@ -1,6 +1,6 @@
 # Session Reminder Discord URL Fix Result
 
-Status: Gate 13A source fix completed. Edge deploy was not performed.
+Status: Gate 13A source fix completed. Gate 13B deploy completed.
 
 ## Scope
 
@@ -76,13 +76,26 @@ Not performed:
   receive the same resolved absolute session detail URL.
 - Code review confirmed `flags: 4` remains in the Discord webhook payload.
 
-## Deployment Note
+## Gate 13B Deploy Note
 
-This gate only changes source code. The deployed Edge Function will continue to
-use the previous URL behavior until a later explicit Edge deploy gate.
+Gate 13B deployed the updated Edge Function.
+
+Deploy result doc:
+
+- `docs/session-reminder-url-fix-deploy-result.md`
+
+Runtime dry-run confirmation:
+
+- current-time dry-run returned `count=0`
+- a future-candidate dry-run returned `count=1`
+- item-level absolute session URL count was `1`
+- relative-only detail URL pattern was false
+- raw Discord ID pattern was false
+- suppress-embeds item count was `1`
+- the full session URL and message body were not recorded
 
 ## Next Gate Candidates
 
-1. Gate 13B: deploy updated `dispatch-session-reminders` and confirm
-   production-safe dry-run URL shape without recording the full URL.
-2. Continue real-send monitoring with status/count-only reporting.
+1. Continue real-send monitoring with status/count-only reporting.
+2. If a future reminder sends, confirm in Discord manually that the detail URL
+   is clickable without copying the full URL into docs.

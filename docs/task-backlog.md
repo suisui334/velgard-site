@@ -12037,6 +12037,65 @@ Next candidate gates:
    production-safe dry-run URL shape without recording the full URL.
 2. Continue real-send monitoring with status/count-only reporting.
 
+## Gate 13B session reminder URL fix deploy
+
+Status: URL fix deployed and runtime dry-run URL shape confirmed.
+
+- Baseline: `b3ef078 Fix session reminder Discord links`.
+- Added:
+  - `docs/session-reminder-url-fix-deploy-result.md`
+- Updated:
+  - `docs/session-reminder-discord-url-fix-result.md`
+  - `docs/session-reminder-current-operation-status.md`
+  - `docs/task-backlog.md`
+
+Deploy result:
+
+- `deno check --no-lock supabase/functions/dispatch-session-reminders/index.ts`:
+  passed
+- deployed only `dispatch-session-reminders`
+- deploy succeeded
+
+Runtime dry-run result:
+
+- current-time `dry_run:true`: HTTP `200`, `ok:true`, `count=0`
+- future-candidate `dry_run:true`: HTTP `200`, `ok:true`, `count=1`
+- future-candidate reminder type breakdown: `shortage:1`
+- item-level absolute session URL count: `1`
+- relative-only detail URL pattern: false
+- raw Discord ID pattern: false
+- suppress-embeds item count: `1`
+- `@everyone` marker was present only because the item was a dry-run shortage
+  preview
+
+Reminder log observation:
+
+- `session_reminder_logs` count after checks: `2`
+- status/type summary: `gm_confirmed` / `sent` = `2`
+- no shortage log row was observed in the status/count summary
+- no manual production `dry_run:false` was run in this gate
+- real send was already enabled before this gate and cron remained active
+
+Gate 13B not performed:
+
+- manual production `dry_run:false`
+- manual Discord send
+- real-send setting change
+- cron change
+- SQL / DB structure change
+- secret / Webhook change
+- UI / HTML / CSS / browser JS change
+- `updates.json` change
+- full URL / Webhook / token / Discord ID / message id / message body
+  recording
+
+Next candidate gates:
+
+1. Continue real-send monitoring with status/count-only reporting.
+2. If a future reminder sends, confirm in Discord manually that the detail URL
+   is clickable without copying the full URL into docs.
+3. Rollback/disable real send if unintended reminder candidates appear.
+
 ## M-14F-108 reusable ops session player-count label config
 
 Status: Phase 3-A1 minimal `A` label connection implemented.

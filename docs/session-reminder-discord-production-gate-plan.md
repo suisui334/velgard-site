@@ -910,6 +910,23 @@ Gate 13A Discord URL clickable source fix:
 - concrete public URL, Webhook URL, token, Discord ID, and message id values
   were not recorded
 
+Gate 13B URL fix deploy and dry-run:
+
+- deploy result doc:
+  `docs/session-reminder-url-fix-deploy-result.md`
+- deployed only `dispatch-session-reminders`
+- current-time `dry_run:true`: HTTP `200`, `ok:true`, `count=0`
+- future-candidate `dry_run:true`: HTTP `200`, `ok:true`, `count=1`
+- future-candidate reminder type breakdown: `shortage:1`
+- item-level absolute session URL count: `1`
+- relative-only detail URL pattern: false
+- raw Discord ID pattern: false
+- suppress-embeds item count: `1`
+- no manual production `dry_run:false` was run
+- no manual Discord send was performed
+- full URL, Webhook URL, token, Discord ID, message id, and message body values
+  were not recorded
+
 ### Gate 12: Shortage `@everyone` Production Operation
 
 Scope:
