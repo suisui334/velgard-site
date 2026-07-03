@@ -249,6 +249,41 @@ Not run:
 - cron change
 - `updates.json` change
 
+## MR-07 Unlock Real Send Runtime Boundary
+
+MR-07 unlock enables the manual recruitment reminder production gate for future
+GM/admin button operation.
+
+Changed operational state:
+
+- Supabase Edge secret `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED` is now
+  set to `true`.
+- Secret existence was checked by name only.
+- Webhook URL, token, project ref, JWT, Discord id, message id, concrete session
+  id, full URL, and message body values were not recorded.
+
+Important runtime implication:
+
+- After this gate, a GM/admin pressing `参加者募集中リマインドを送る` on an
+  eligible `session-detail` page can send a Discord `@everyone` recruitment
+  reminder.
+- The button should only be pressed when an actual recruitment reminder should
+  be sent.
+
+Not run:
+
+- button click
+- `dry_run:false`
+- claim/finalize
+- Discord send
+- DB write
+- log mutation
+- cooldown mutation
+- SQL/DB change
+- Edge deploy
+- cron change
+- `updates.json` change
+
 ## MR-06.6 User Browser QA Runtime Boundary
 
 MR-06.6 records the user-side authenticated browser QA result only.

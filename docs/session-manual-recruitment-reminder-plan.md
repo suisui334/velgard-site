@@ -634,6 +634,30 @@ Deferred production test policy:
 - Record only safe status/count results, never Webhook, token, JWT, Discord id,
   message id, concrete session id, full URL, or full message body values.
 
+## MR-07 Unlock Note
+
+Manual recruitment reminder real-send is now enabled for future GM/admin button
+operation.
+
+Current operation state:
+
+- Edge secret `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED` is set to `true`.
+- The secret was confirmed by name only; no secret value, Webhook URL, token,
+  project ref, JWT, Discord id, message id, concrete session id, full URL, or
+  message body was recorded.
+- No button click, `dry_run:false`, claim/finalize, Discord send, DB write, log
+  mutation, cooldown mutation, SQL/DB change, Edge deploy, cron change, or
+  `updates.json` change was performed in this gate.
+
+Operational warning:
+
+- From this point, pressing `参加者募集中リマインドを送る` on an eligible
+  `session-detail` page can send a Discord `@everyone` recruitment reminder.
+- The button should be pressed only at the actual recruitment reminder timing.
+- After the first real operation, record status/count only and confirm one
+  Discord post, OGP suppression, clickable absolute URL, log growth, `sent`
+  status, cooldown setting, and resend prevention.
+
 ## Not Performed In MR-01
 
 - Implementation

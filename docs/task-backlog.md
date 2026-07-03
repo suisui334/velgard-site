@@ -9429,6 +9429,38 @@ No SQL/DB change, Edge deploy, secret/Webhook change, cron change, UI/code
 change, `updates.json` change, direct Supabase write outside the deferred send
 path, or debug console logging addition was performed.
 
+## Gate MR-07 unlock manual recruitment real send
+
+Status: real-send flag enabled; no reminder was sent in this gate.
+
+- Baseline: `13972be Defer manual recruitment reminder production test`.
+- Supabase Edge secret `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED` was set
+  to `true`.
+- The secret was confirmed by name only.
+- From this point, an eligible GM/admin pressing
+  `参加者募集中リマインドを送る` can send a Discord `@everyone` recruitment
+  reminder.
+- The button was not clicked.
+- No `dry_run:false` request was made by Codex.
+- No claim/finalize runtime execution was triggered by Codex.
+- No Discord send occurred in this gate.
+- No manual recruitment reminder log or cooldown mutation occurred in this gate.
+- No secret value, project ref, token, Webhook URL, JWT, Discord id, message id,
+  concrete session id, full URL, or full message body was recorded.
+
+Current operation state:
+
+- UI/button visibility is confirmed by user-side GM/admin browser QA.
+- Manual recruitment real send is enabled.
+- First actual send remains an operator action: use exactly one target session,
+  press the button once, then confirm UI success, one Discord post, OGP
+  suppression, clickable absolute session-detail URL, log growth, `sent`
+  status, cooldown setting, and resend prevention.
+
+No SQL/DB change, Edge deploy, cron change, UI/code change, `updates.json`
+change, direct Supabase write outside the future operator-triggered send path,
+or debug console logging addition was performed.
+
 ## Gate MR-01 manual recruitment reminder planning
 
 Status: design investigation completed.
