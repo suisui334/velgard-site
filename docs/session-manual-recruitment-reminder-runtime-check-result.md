@@ -210,3 +210,27 @@ Not run:
 
 No JWT, token, Webhook URL, Discord id, message id, concrete session id, full
 session URL, or Discord message body was recorded.
+
+## MR-06.5 Retry Browser Runtime Scope
+
+MR-06.5 retry still did not obtain a logged-in GM/admin browser context.
+
+Observed:
+
+- public `mypage.html` showed logged-out state
+- a public `session-detail` candidate in logged-out state showed no management
+  panel
+- manual recruitment reminder UI and send button were not present in logged-out
+  state
+
+Not run:
+
+- authenticated `dry_run:true`
+- `dry_run:false`
+- claim/finalize
+- Discord send
+- DB write
+- log count mutation
+
+No JWT, token, Webhook URL, Discord id, message id, concrete session id, full
+session URL, or Discord message body was recorded.
