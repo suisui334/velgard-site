@@ -9064,6 +9064,42 @@ operation, direct Supabase write, debug console logging addition,
 rewrite, CSS split, auth/permission logic change, RPC/DB key configuration,
 `management_key` display, or raw id/email/token/JWT display was performed.
 
+## Gate MR-01 manual recruitment reminder planning
+
+Status: design investigation completed.
+
+- Added `docs/session-manual-recruitment-reminder-plan.md`.
+- Planned a GM/admin manual Discord recruitment reminder button for the
+  existing `session-detail` management panel.
+- Compared extending `dispatch-session-reminders` with creating a separate
+  manual Edge Function. The recommended first implementation is a separate
+  `send-session-recruitment-reminder` Function so cron/due-time automatic
+  reminders and GM-triggered manual `@everyone` sends remain separate.
+- Permission direction: frontend may hide/disable the button based on existing
+  GM/admin checks, but the server must re-check authenticated GM/admin access
+  with `is_admin()` / `is_session_gm(...)` before any Discord send.
+- Send condition direction: public, not-started sessions in recruitment-capable
+  states; block draft, hidden/private, full, closed, finished, canceled,
+  deadline-passed, deleted, or already-started sessions. Shortage is not
+  required for the manual reminder.
+- Abuse-prevention direction: introduce a manual-reminder log/cooldown path
+  rather than reusing automatic `session_reminder_logs` directly. Initial
+  recommendation is a server-enforced cooldown such as one successful manual
+  recruitment reminder per session per 6 hours, with the exact duration to be
+  reviewed in MR-02.
+- Discord payload direction: manual recruitment reminders may use `@everyone`
+  only after a dedicated approval gate, with `allowed_mentions.parse=["everyone"]`,
+  `flags: 4`, and an absolute `session-detail` URL.
+- Next gates: MR-02 DB/RPC/log SQL draft, MR-03 UI implementation with send
+  disabled or dry-run only, MR-04 Edge Function implementation without deploy,
+  MR-05 deploy + dry-run/production-disabled check, MR-06 limited production
+  send test, MR-07 operation start.
+
+No implementation, SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge
+deploy, Discord send, secret/Webhook change, UI/HTML/CSS/JS change,
+`updates.json` change, concrete Webhook URL, token, Discord ID, message id,
+full URL, or full Discord body recording was performed.
+
 ## Gate CAL-01 calendar initial selection behavior
 
 Status: calendar initial selection behavior fixed.
