@@ -140,3 +140,31 @@ Not confirmed:
 
 Next retry remains the same: prepare a logged-in GM/admin browser session and a
 safe target session-detail page, then confirm UI / `dry_run:true` only.
+
+## Gate MR-06.6 User Browser UI QA Record
+
+Status: user-side browser UI visibility confirmed.
+
+Recorded QA result:
+
+- The user used a browser that was already logged in as GM/admin.
+- On the target `session-detail` page, the manual recruitment reminder UI was
+  visible inside the GM/admin management area.
+- The `参加者募集中リマインドを送る` button was visible.
+- The button was not clicked in this gate.
+
+Not performed:
+
+- `dry_run:false`
+- claim/finalize runtime execution
+- Discord send
+- DB write
+- `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED` enablement
+- SQL/DB change
+- Edge deploy
+- secret change
+- cron change
+- `updates.json` change
+
+No JWT, token, Webhook URL, Discord id, message id, concrete session id, full
+session URL, or Discord message body was recorded.

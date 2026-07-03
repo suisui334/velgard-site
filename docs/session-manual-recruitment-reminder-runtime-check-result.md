@@ -211,6 +211,29 @@ Not run:
 No JWT, token, Webhook URL, Discord id, message id, concrete session id, full
 session URL, or Discord message body was recorded.
 
+## MR-06.6 User Browser QA Runtime Boundary
+
+MR-06.6 records the user-side authenticated browser QA result only.
+
+Confirmed by user-side browser:
+
+- The browser was logged in as GM/admin.
+- The target `session-detail` page showed the manual recruitment reminder UI.
+- The `参加者募集中リマインドを送る` button was visible.
+
+Not run in this gate:
+
+- button click
+- `dry_run:false`
+- claim/finalize
+- Discord send
+- DB write
+- manual recruitment reminder log mutation
+- real-send flag enablement
+
+No JWT, token, Webhook URL, Discord id, message id, concrete session id, full
+session URL, or Discord message body was recorded.
+
 ## MR-06.5 Retry Browser Runtime Scope
 
 MR-06.5 retry still did not obtain a logged-in GM/admin browser context.

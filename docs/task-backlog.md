@@ -9370,6 +9370,34 @@ change, Edge deploy, secret change, cron change, `updates.json` change, JWT,
 token, Webhook URL, Discord id, message id, concrete session id, full URL, or
 full Discord message body recording was performed.
 
+## Gate MR-06.6 manual recruitment user browser UI QA record
+
+Status: user-side GM/admin UI visibility confirmed; no send path executed.
+
+- Baseline: `c903da8 Record manual recruitment reminder authenticated UI QA`.
+- The user used a browser that was already logged in as GM/admin.
+- On the target `session-detail` page, the manual recruitment reminder UI was
+  visible inside the GM/admin management area.
+- The `参加者募集中リマインドを送る` button was visible.
+- The button was not clicked.
+- `dry_run:false` was not run.
+- claim/finalize runtime execution was not run.
+- Discord send did not occur.
+- DB write did not occur.
+- `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED` was not enabled.
+- No JWT, token, Webhook URL, Discord id, message id, concrete session id, full
+  URL, or full Discord message body was recorded.
+
+Next candidate:
+
+1. MR-07 limited production send test only after explicit approval.
+2. Keep manual recruitment real-send enablement and any `@everyone` send behind
+   a separate gate.
+
+No SQL/DB change, Edge deploy, secret change, cron change, UI/code change,
+`updates.json` change, direct Supabase write, or debug console logging addition
+was performed.
+
 ## Gate MR-01 manual recruitment reminder planning
 
 Status: design investigation completed.
