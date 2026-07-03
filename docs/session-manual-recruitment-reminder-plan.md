@@ -484,6 +484,32 @@ send.
 MR-04.5 did not deploy, invoke runtime, send Discord, change secrets, execute
 SQL, change DB/RPC/RLS, implement UI, change cron, or change `updates.json`.
 
+## Gate MR-05 Retry Result
+
+MR-05 retry deployed only:
+
+- `send-session-recruitment-reminder`
+
+Runtime result:
+
+- production-disabled `dry_run:false` returned HTTP `403` /
+  `production_not_enabled`
+- `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED` was not enabled
+- Discord send did not occur
+- claim/finalize did not execute
+
+Limited:
+
+- configured local GM/admin test credentials returned HTTP `400` during sign-in
+- no GM/admin JWT was obtained
+- runtime `dry_run:true` with GM/admin JWT was not completed
+- `can_send` / `blocked_reason` remain runtime `not_tested`
+- direct authenticated log table count was not available
+
+Next runtime dry-run requires a valid GM/admin JWT and target session id made
+available outside docs/reporting. Do not enable the manual real-send flag until
+that dry-run passes.
+
 ## Edge Function Direction
 
 Recommended new Edge Function:

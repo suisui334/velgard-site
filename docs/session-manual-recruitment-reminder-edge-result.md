@@ -152,3 +152,29 @@ Discord send.
 
 MR-04.5 did not deploy, invoke runtime, send Discord, change secrets, execute
 SQL, change DB/RPC/RLS, implement UI, change cron, or change `updates.json`.
+
+## Gate MR-05 Retry Runtime Result
+
+MR-05 retry deployed only:
+
+- `send-session-recruitment-reminder`
+
+Result:
+
+- deploy succeeded
+- production-disabled runtime check returned HTTP `403` /
+  `production_not_enabled`
+- manual-specific real-send flag was not enabled
+- Discord send did not occur
+- claim/finalize did not execute
+
+Limited / blocked:
+
+- configured GM/admin test account sign-in returned HTTP `400`, so runtime
+  `dry_run:true` with GM/admin JWT was not completed
+- direct authenticated table count for
+  `session_manual_recruitment_reminder_logs` was not available
+
+No project ref, Function URL, JWT, token, Webhook URL, Discord id, message id,
+concrete session id, full session URL, or full Discord message body was
+recorded.

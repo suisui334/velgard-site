@@ -82,3 +82,50 @@ The automatic session reminder flag must not enable this Function:
 Expected production-disabled behavior remains: if the manual-specific flag is
 unset or not `true`, `dry_run:false` is rejected before claim, before DB write,
 and before Discord send.
+
+## MR-05 Retry Result
+
+Status: deploy succeeded; production-disabled runtime gate confirmed; GM/admin
+dry-run preview remains blocked by unavailable authenticated test JWT.
+
+Completed:
+
+- `deno check --no-lock supabase/functions/send-session-recruitment-reminder/index.ts`
+  passed.
+- Deployed only `send-session-recruitment-reminder`.
+- Deploy used an explicit project ref because the working tree was not linked.
+  The project ref value was not recorded.
+- Runtime `dry_run:false` was invoked with the manual-specific real-send flag
+  not enabled.
+- Response was HTTP `403` with `production_not_enabled`.
+- This confirms the manual send path is rejected before claim when
+  `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED` is unset / not `true`.
+
+Blocked / limited:
+
+- GM/admin test sign-in using configured local test account env values returned
+  HTTP `400`; no user JWT was obtained.
+- Therefore runtime `dry_run:true` with GM/admin JWT was not completed.
+- `can_send` / `blocked_reason` were not confirmed at runtime.
+- Direct authenticated REST count for
+  `session_manual_recruitment_reminder_logs` was not available, consistent with
+  direct table access being closed.
+
+Not performed:
+
+- `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED=true`
+- Discord send
+- claim/finalize runtime execution
+- DB write
+- SQL/DB change
+- UI implementation
+- secret change
+- cron change
+- `updates.json` change
+
+No Function URL, project ref, JWT, token, Webhook URL, Discord id, message id,
+concrete session id, full session URL, or full Discord message body was
+recorded.
+
+Next retry needs a valid GM/admin authenticated JWT and a target session id
+provided or made available outside docs/reporting.

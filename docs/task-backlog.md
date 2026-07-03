@@ -9180,6 +9180,41 @@ Next candidate:
    verifying that only `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED=true`
    can open the manual send path.
 
+## Gate MR-05 retry manual recruitment runtime disabled check
+
+Status: deploy succeeded; production-disabled runtime gate confirmed; GM/admin
+dry-run remains blocked by unavailable authenticated test JWT.
+
+- `deno check --no-lock supabase/functions/send-session-recruitment-reminder/index.ts`
+  passed.
+- Deployed only `send-session-recruitment-reminder`.
+- The working tree was not linked, so deploy used an explicit project ref
+  without recording its value.
+- Runtime `dry_run:false` returned HTTP `403` with `production_not_enabled`.
+- `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED` was not enabled.
+- Discord send did not occur.
+- claim/finalize did not execute.
+
+Limited / not tested:
+
+- configured local GM/admin test sign-in returned HTTP `400`
+- no GM/admin JWT was obtained
+- runtime `dry_run:true` with GM/admin JWT was not completed
+- `can_send` / `blocked_reason` were not confirmed at runtime
+- direct authenticated count for
+  `session_manual_recruitment_reminder_logs` was not available
+
+Next candidate:
+
+1. MR-05 authenticated dry-run retry after a valid GM/admin JWT and target
+   session id are available outside docs/reporting.
+2. MR-06 UI integration only after authenticated dry-run behavior is confirmed.
+
+No manual real-send flag enablement, Discord send, SQL/DB change, UI
+implementation, secret change, cron change, `updates.json` change, concrete
+project ref, Function URL, JWT, token, Webhook URL, Discord id, message id,
+session id, full URL, or full Discord message body recording was performed.
+
 ## Gate MR-01 manual recruitment reminder planning
 
 Status: design investigation completed.
