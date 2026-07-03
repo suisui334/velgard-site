@@ -256,7 +256,7 @@ Recommendation:
 
 Optional future real-send gate:
 
-- `SESSION_RECRUITMENT_REMINDER_REAL_SEND_ENABLED`
+- `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED`
 
 If the function is only callable by GM/admin browser action, a real-send env is
 still useful for staged deploy and dry-run confirmation before the first
@@ -428,7 +428,7 @@ Implemented behavior:
 - `dry_run:true` calls `preview_manual_recruitment_reminder` with the caller JWT.
 - dry-run does not claim, finalize, write DB rows, or send Discord.
 - `dry_run:false` is rejected before claim unless
-  `SESSION_REMINDER_REAL_SEND_ENABLED=true`.
+  `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED=true`.
 - production claim uses `claim_manual_recruitment_reminder` with the caller JWT.
 - production finalize uses `finalize_manual_recruitment_reminder` with
   service-role context.
@@ -464,6 +464,25 @@ SQL/DB change, UI change, cron change, or `updates.json` change.
 Retry MR-05 after a linked Supabase project or explicit project ref is available
 outside docs/reporting, and after an authenticated GM/admin invocation context
 is available for the runtime dry-run.
+
+## Gate MR-04.5 Real-Send Flag Separation
+
+MR-04.5 updates the manual recruitment reminder production gate to use a
+manual-specific env:
+
+- `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED`
+
+The automatic reminder env remains separate:
+
+- `SESSION_REMINDER_REAL_SEND_ENABLED`
+
+Manual recruitment `dry_run:false` now ignores the automatic scheduler flag. It
+can proceed only when the manual-specific env is exactly `true`; otherwise it
+returns production disabled before claim, before DB write, and before Discord
+send.
+
+MR-04.5 did not deploy, invoke runtime, send Discord, change secrets, execute
+SQL, change DB/RPC/RLS, implement UI, change cron, or change `updates.json`.
 
 ## Edge Function Direction
 

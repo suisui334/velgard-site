@@ -9084,7 +9084,7 @@ Status: Edge Function source added, deploy not performed.
 - Dry-run path uses caller JWT and calls
   `preview_manual_recruitment_reminder` only.
 - Production path is implemented but not executed:
-  - rejects before claim unless `SESSION_REMINDER_REAL_SEND_ENABLED=true`
+  - rejects before claim unless `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED=true`
   - claims with caller JWT
   - sends Discord only after claim
   - finalizes with service-role RPC
@@ -9145,6 +9145,40 @@ Next candidate:
 
 No project ref value, Function URL, JWT, token, Webhook URL, Discord id, message
 id, full session URL, or full message body was recorded.
+
+## Gate MR-04.5 manual recruitment real-send flag separation
+
+Status: source/docs updated, deploy not performed.
+
+- Updated `supabase/functions/send-session-recruitment-reminder/index.ts`.
+- Manual recruitment production send is now gated by:
+  - `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED`
+- The automatic session reminder flag remains separate:
+  - `SESSION_REMINDER_REAL_SEND_ENABLED`
+- Manual recruitment `dry_run:false` ignores the automatic scheduler flag and
+  rejects before claim unless the manual-specific flag is exactly `true`.
+- This keeps automatic session reminder operation from enabling manual
+  recruitment `@everyone` sends.
+- `deno check --no-lock supabase/functions/send-session-recruitment-reminder/index.ts`
+  passed.
+
+Not performed:
+
+- Edge deploy
+- runtime invocation
+- Discord send
+- SQL/DB change
+- secret change
+- UI implementation
+- cron change
+- `updates.json` change
+- concrete Webhook URL/token/Discord id/message id/full message recording
+
+Next candidate:
+
+1. Retry MR-05 deploy + dry-run / production-disabled runtime confirmation,
+   verifying that only `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED=true`
+   can open the manual send path.
 
 ## Gate MR-01 manual recruitment reminder planning
 

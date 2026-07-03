@@ -49,7 +49,7 @@ Production path is implemented but not deployed or executed in MR-04.
 Production send requires:
 
 - authenticated caller JWT
-- `SESSION_REMINDER_REAL_SEND_ENABLED=true`
+- `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED=true`
 - configured Discord Webhook env
 
 The production path performs these steps in order:
@@ -131,3 +131,24 @@ SQL/DB change, UI change, cron change, or `updates.json` change.
 Result details:
 
 - `docs/session-manual-recruitment-reminder-runtime-check-result.md`
+
+## Gate MR-04.5 Real-Send Flag Separation
+
+MR-04.5 updates the source so manual recruitment reminders no longer share the
+automatic session reminder real-send flag.
+
+Manual recruitment production send is now gated by:
+
+- `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED=true`
+
+The automatic scheduler flag remains separate:
+
+- `SESSION_REMINDER_REAL_SEND_ENABLED`
+
+This means enabling automatic session reminders does not allow manual
+recruitment `@everyone` sends. If the manual-specific flag is unset or not
+`true`, `dry_run:false` is rejected before claim, before DB write, and before
+Discord send.
+
+MR-04.5 did not deploy, invoke runtime, send Discord, change secrets, execute
+SQL, change DB/RPC/RLS, implement UI, change cron, or change `updates.json`.
