@@ -607,6 +607,33 @@ Recommended next gates:
 5. MR-06: one limited production send test with explicit `@everyone` approval.
 6. MR-07: production operation start, with cooldown and rollback notes.
 
+## MR-07 Defer Note
+
+Production send testing is intentionally deferred until a real recruitment
+reminder is needed.
+
+Current operation state:
+
+- UI placement and button visibility have been confirmed by the user in a
+  GM/admin logged-in browser.
+- The send button has not been clicked.
+- The manual real-send flag has not been enabled.
+- No Discord send, claim/finalize, DB write, log mutation, or cooldown mutation
+  has been performed for manual recruitment reminders.
+
+Deferred production test policy:
+
+- Treat the future send as a separate explicit gate.
+- Use one target session only.
+- Enable `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED=true` only for the
+  approved send window.
+- Click the send button exactly once.
+- Confirm Discord post count, OGP suppression, clickable absolute URL,
+  `session_manual_recruitment_reminder_logs` growth, `sent` status,
+  cooldown setting, and resend prevention.
+- Record only safe status/count results, never Webhook, token, JWT, Discord id,
+  message id, concrete session id, full URL, or full message body values.
+
 ## Not Performed In MR-01
 
 - Implementation

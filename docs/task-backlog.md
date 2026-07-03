@@ -9398,6 +9398,37 @@ No SQL/DB change, Edge deploy, secret change, cron change, UI/code change,
 `updates.json` change, direct Supabase write, or debug console logging addition
 was performed.
 
+## Gate MR-07 defer manual recruitment production send test
+
+Status: deferred; production send test is waiting for an actual recruitment
+reminder timing.
+
+- Baseline: `22c9029 Record manual recruitment reminder user UI QA`.
+- GM/admin logged-in browser UI and button visibility are already confirmed by
+  user-side QA.
+- The manual recruitment reminder button was not clicked.
+- `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED=true` was not set.
+- No `dry_run:false` request was made.
+- No claim/finalize runtime execution occurred.
+- No Discord send occurred.
+- No manual recruitment reminder log or cooldown mutation occurred.
+
+Future send gate requirements:
+
+1. Use exactly one target session.
+2. Enable the manual recruitment real-send flag only for the approved send
+   window.
+3. Press the button exactly once from a GM/admin logged-in browser.
+4. Confirm UI success, one Discord `@everyone` recruitment post, OGP
+   suppression, clickable absolute session-detail URL, log increase, `sent`
+   status, cooldown setting, and resend prevention.
+5. Record status/count only; do not record Webhook, token, JWT, Discord id,
+   message id, concrete session id, full URL, or full message body values.
+
+No SQL/DB change, Edge deploy, secret/Webhook change, cron change, UI/code
+change, `updates.json` change, direct Supabase write outside the deferred send
+path, or debug console logging addition was performed.
+
 ## Gate MR-01 manual recruitment reminder planning
 
 Status: design investigation completed.

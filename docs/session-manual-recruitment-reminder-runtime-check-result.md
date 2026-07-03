@@ -211,6 +211,44 @@ Not run:
 No JWT, token, Webhook URL, Discord id, message id, concrete session id, full
 session URL, or Discord message body was recorded.
 
+## MR-07 Deferred Production Runtime Boundary
+
+MR-07 production send testing is deferred because this is not yet the timing
+where the GM/admin wants to send an actual recruitment reminder.
+
+Recorded state:
+
+- User-side GM/admin browser QA has confirmed the manual recruitment reminder
+  UI and send button are visible.
+- The send button was not clicked.
+- `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED=true` was not set.
+- No production request was made.
+- No Discord send occurred.
+- No manual recruitment reminder log or cooldown was created by this gate.
+
+When the send timing arrives, the next production gate should:
+
+- limit the test to one target session
+- enable the manual recruitment real-send flag only for the test window
+- press the button once
+- verify status/count only
+- confirm one Discord post, OGP suppression, clickable absolute URL, log growth,
+  `sent` status, cooldown, and resend prevention
+- avoid recording Webhook, token, JWT, Discord id, message id, concrete session
+  id, full URL, or message body values
+
+Not run:
+
+- `dry_run:false`
+- claim/finalize
+- Discord send
+- DB write
+- SQL/DB change
+- Edge deploy
+- secret change
+- cron change
+- `updates.json` change
+
 ## MR-06.6 User Browser QA Runtime Boundary
 
 MR-06.6 records the user-side authenticated browser QA result only.

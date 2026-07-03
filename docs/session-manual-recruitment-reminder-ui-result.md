@@ -168,3 +168,43 @@ Not performed:
 
 No JWT, token, Webhook URL, Discord id, message id, concrete session id, full
 session URL, or Discord message body was recorded.
+
+## Gate MR-07 Deferred Production Test
+
+Status: production send test deferred until an actual recruitment reminder is
+needed.
+
+Current state:
+
+- The user-side GM/admin browser already confirmed that the manual recruitment
+  reminder UI is visible on the target `session-detail` page.
+- The `参加者募集中リマインドを送る` button is visible.
+- The button was not clicked in this gate.
+- `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED=true` was not set.
+- Discord production send was not attempted.
+
+Future production test conditions:
+
+- Run only when the GM/admin actually wants to send a recruitment reminder.
+- Use exactly one target session.
+- Enable the manual recruitment real-send flag only for that send gate.
+- Click the button exactly once.
+- After sending, confirm UI success, one Discord `@everyone` recruitment post,
+  OGP suppression, clickable absolute session-detail URL, one log increase,
+  `sent` status, cooldown setting, and resend prevention.
+
+Not performed:
+
+- button click
+- `dry_run:false`
+- claim/finalize runtime execution
+- Discord send
+- DB write
+- SQL/DB change
+- Edge deploy
+- secret/Webhook change
+- cron change
+- `updates.json` change
+
+No JWT, token, Webhook URL, Discord id, message id, concrete session id, full
+session URL, or Discord message body was recorded.
