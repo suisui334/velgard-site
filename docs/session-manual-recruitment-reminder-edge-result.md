@@ -178,3 +178,27 @@ Limited / blocked:
 No project ref, Function URL, JWT, token, Webhook URL, Discord id, message id,
 concrete session id, full session URL, or full Discord message body was
 recorded.
+
+## Gate MR-05.5 Authenticated Dry-Run Attempt
+
+MR-05.5 attempted to obtain an authenticated GM/admin runtime context for
+`send-session-recruitment-reminder` dry-run confirmation.
+
+Result:
+
+- configured admin / GM password-grant checks returned HTTP `400` /
+  `captcha_failed`
+- Chrome public `mypage.html` was not already logged in
+- no GM/admin JWT was available
+- runtime `dry_run:true` was not invoked
+- `can_send` / `blocked_reason` remain `not_tested`
+- direct anon count for `session_manual_recruitment_reminder_logs` returned
+  HTTP `401`, so direct count was unavailable
+
+No `dry_run:false`, Discord send, claim/finalize, DB write, SQL/DB change,
+secret change, UI implementation, cron change, or `updates.json` change was
+performed.
+
+No Function URL, JWT, token, Webhook URL, Discord id, message id, concrete
+session id, full session URL, email address, password, or full Discord message
+body was recorded.

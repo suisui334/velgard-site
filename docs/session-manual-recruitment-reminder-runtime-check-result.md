@@ -129,3 +129,50 @@ recorded.
 
 Next retry needs a valid GM/admin authenticated JWT and a target session id
 provided or made available outside docs/reporting.
+
+## MR-05.5 Authenticated Dry-Run Attempt
+
+Status: blocked before runtime dry-run because a valid GM/admin authenticated
+JWT was not available in this execution context.
+
+Authentication checks:
+
+- Local test account password-grant attempts for configured admin / GM accounts
+  returned HTTP `400` with safe error code `captcha_failed`.
+- No access token was obtained.
+- Chrome was opened to the public `mypage.html`; the page was not already
+  logged in.
+- No browser storage, raw JWT, password, email address, token, or session value
+  was recorded.
+
+Runtime dry-run:
+
+- `send-session-recruitment-reminder` `dry_run:true` with GM/admin JWT was not
+  invoked.
+- No target session id was used.
+- `can_send` / `blocked_reason` were not confirmed.
+- participant count fields were not confirmed.
+
+Log count:
+
+- Direct anon REST count for
+  `session_manual_recruitment_reminder_logs` returned HTTP `401`.
+- Count was not available through direct table access.
+- No DB write path was executed, so no manual recruitment reminder log could be
+  created by this attempt.
+
+Not performed:
+
+- `dry_run:false`
+- `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED=true`
+- Discord send
+- claim/finalize runtime execution
+- DB write
+- SQL/DB change
+- UI implementation
+- secret change
+- cron change
+- `updates.json` change
+
+Next retry requires a valid GM/admin authenticated browser session or JWT and a
+target session id provided outside docs/reporting.

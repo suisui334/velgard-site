@@ -9215,6 +9215,36 @@ implementation, secret change, cron change, `updates.json` change, concrete
 project ref, Function URL, JWT, token, Webhook URL, Discord id, message id,
 session id, full URL, or full Discord message body recording was performed.
 
+## Gate MR-05.5 manual recruitment authenticated dry-run attempt
+
+Status: blocked before runtime dry-run because no valid GM/admin authenticated
+JWT was available.
+
+- Local configured admin / GM password-grant checks returned HTTP `400` with
+  safe error code `captcha_failed`.
+- Chrome public `mypage.html` was checked and was not already logged in.
+- No access token was obtained.
+- `send-session-recruitment-reminder` `dry_run:true` with GM/admin JWT was not
+  invoked.
+- No target session id was used.
+- `can_send` / `blocked_reason` and participant count fields remain
+  `not_tested`.
+- Direct anon REST count for `session_manual_recruitment_reminder_logs`
+  returned HTTP `401`, so log count was unavailable through direct table
+  access.
+
+Next candidate:
+
+1. Retry MR-05.5 with a valid GM/admin authenticated browser session or JWT and
+   one target session id provided outside docs/reporting.
+2. Only after that passes, proceed to MR-06 UI integration.
+
+No `dry_run:false`, manual real-send flag enablement, Discord send,
+claim/finalize runtime execution, DB write, SQL/DB change, UI implementation,
+secret change, cron change, `updates.json` change, Function URL, JWT, token,
+Webhook URL, Discord id, message id, concrete session id, full URL, email
+address, password, or full Discord message body recording was performed.
+
 ## Gate MR-01 manual recruitment reminder planning
 
 Status: design investigation completed.
