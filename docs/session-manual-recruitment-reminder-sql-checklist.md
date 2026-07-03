@@ -1,14 +1,52 @@
 # Session Manual Recruitment Reminder SQL Checklist
 
-Status: Gate MR-02 checklist draft. SQL has not been applied.
+Status: Gate MR-02.5 apply-candidate checklist. SQL has not been applied.
 
 This checklist accompanies:
 
 - `docs/sql-drafts/session-manual-recruitment-reminder-draft.sql`
+- `docs/sql-drafts/session-manual-recruitment-reminder-apply-candidate.sql`
 
 No SQL Editor execution, SQL apply, DB/RPC/RLS change, Edge implementation,
 Edge deploy, Discord send, secret change, UI change, or `updates.json` change
-was performed in MR-02.
+was performed in MR-02 or MR-02.5.
+
+## MR-02.5 Review Result
+
+The MR-02 draft was reviewed against the current session posting and automatic
+reminder SQL patterns.
+
+Confirmed alignment:
+
+- Session id is `public.sessions.id` as `text`.
+- GM ownership is based on `public.sessions.gm_user_id`.
+- Session start is computed from `public.sessions.date + start_time` in
+  `Asia/Tokyo`.
+- Application deadline uses `public.sessions.application_deadline`.
+- Minimum player field is `public.sessions.player_min`.
+- Allowed session status values include `draft`, `tentative`, `recruiting`,
+  `full`, `closed`, `finished`, and `canceled`.
+- Manual send eligibility allows only `recruiting` / `tentative`.
+- Application counts use `public.session_applications.status` values
+  `accepted`, `pending`, and `waitlisted`.
+- Existing authorization helpers are `public.is_admin()` and
+  `public.is_session_gm(text)`.
+- The manual log table remains separate from automatic
+  `public.session_reminder_logs`.
+
+Draft-to-candidate adjustments:
+
+- Added explicit `revoke all ... from public` for the manual log table.
+- Changed `actor_user_id` to allow `on delete set null` so historical log rows
+  can survive profile removal while still recording the authenticated actor at
+  claim time.
+- Hardened claim insert with `on conflict do nothing` and an explicit
+  `manual_recruitment_send_in_progress` error if the partial unique claimed
+  index wins a race.
+- Expanded SELECT-only checks to include `public` table/function privilege
+  visibility.
+
+No blocker was found in MR-02.5.
 
 ## Apply-Gate Boundary
 
@@ -147,7 +185,7 @@ Expected confirmations:
 
 - table exists
 - RLS enabled
-- no direct browser-role table privileges
+- no direct `public`, `anon`, or `authenticated` table privileges
 - expected constraints exist
 - claimed unique index exists
 - cooldown index exists
@@ -156,7 +194,7 @@ Expected confirmations:
 - `search_path` is fixed
 - `authenticated` can execute preview and claim
 - `authenticated` cannot execute finalize
-- `anon` cannot execute preview/claim/finalize
+- `public` / `anon` cannot execute preview/claim/finalize
 - `service_role` can execute finalize
 - log count is recorded as count only
 

@@ -361,6 +361,37 @@ Draft behavior:
 MR-02 did not execute SQL, apply DB changes, implement the Edge Function,
 deploy, send Discord, change secrets, change UI, or change `updates.json`.
 
+## Gate MR-02.5 Apply Candidate Result
+
+MR-02.5 reviewed the draft and added the apply-candidate SQL:
+
+- `docs/sql-drafts/session-manual-recruitment-reminder-apply-candidate.sql`
+
+Review result:
+
+- Existing session status values and columns are aligned with the draft:
+  `visibility`, `status`, `date`, `start_time`, `application_deadline`,
+  `player_min`, and `gm_user_id`.
+- Existing authorization helpers remain `is_admin()` and
+  `is_session_gm(text)`.
+- `session_applications.status` values used for counts remain `accepted`,
+  `pending`, and `waitlisted`.
+- Manual logs remain separate from automatic `session_reminder_logs`.
+
+Candidate adjustments from the MR-02 draft:
+
+- Explicitly revokes direct table access from `public` in addition to `anon`
+  and `authenticated`.
+- Keeps `actor_user_id` recorded at claim time but allows it to become `null`
+  if the profile is removed later.
+- Uses `on conflict do nothing` during claim insert so double-click/race
+  conflicts resolve to `manual_recruitment_send_in_progress` rather than an
+  unhandled unique violation.
+- Adds SELECT-only checks for `public` table/function privileges.
+
+MR-02.5 did not execute SQL, apply DB changes, implement Edge/UI code, deploy,
+send Discord, change secrets, change cron, or change `updates.json`.
+
 ## Edge Function Direction
 
 Recommended new Edge Function:
@@ -421,7 +452,7 @@ If manual recruitment reminder introduction fails:
 
 Recommended next gates:
 
-1. Optional MR-02.5: promote the draft SQL to an apply candidate after review.
+1. MR-02.6: SQL apply + SELECT-only confirmation under explicit approval.
 2. MR-03: UI implementation with send disabled or dry-run only.
 3. MR-04: `send-session-recruitment-reminder` Edge Function implementation,
    deployなし.

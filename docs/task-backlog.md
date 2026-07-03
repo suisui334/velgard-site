@@ -9137,6 +9137,47 @@ change, `updates.json` change, concrete session id, user id, Webhook URL,
 token, Discord ID, message id, full URL, or full Discord body recording was
 performed.
 
+## Gate MR-02.5 manual recruitment reminder SQL apply candidate
+
+Status: SQL draft reviewed and apply candidate prepared.
+
+- Added
+  `docs/sql-drafts/session-manual-recruitment-reminder-apply-candidate.sql`.
+- Updated `docs/session-manual-recruitment-reminder-sql-checklist.md`.
+- Updated `docs/session-manual-recruitment-reminder-plan.md`.
+- Reviewed MR-02 draft against current session posting and reminder SQL
+  patterns:
+  - `public.sessions.id` is `text`
+  - `public.sessions.gm_user_id` identifies the session GM
+  - `date + start_time` is used for `start_at`
+  - `application_deadline` and `player_min` are the relevant session fields
+  - status values include `draft`, `tentative`, `recruiting`, `full`,
+    `closed`, `finished`, and `canceled`
+  - count values use `accepted`, `pending`, and `waitlisted` application
+    statuses
+  - GM/admin checks use `is_admin()` and `is_session_gm(text)`
+- Apply candidate keeps manual logs separate from automatic
+  `session_reminder_logs`.
+- Apply candidate keeps RLS enabled and closes direct table access for
+  `public`, `anon`, and `authenticated`.
+- Apply candidate keeps preview/claim callable by `authenticated`, while
+  finalize is service-role-only.
+- Adjusted from draft:
+  - `actor_user_id` is set at claim time and can become null if the profile is
+    later removed
+  - claim insert uses `on conflict do nothing` and maps a race/double-click to
+    `manual_recruitment_send_in_progress`
+  - SELECT-only checks include `public` table/function privilege visibility
+- No blocker was found.
+- Next gate: MR-02.6 SQL apply + SELECT-only confirmation under explicit
+  approval.
+
+No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge implementation,
+Edge deploy, Discord send, secret/Webhook change, cron change, UI/HTML/CSS/JS
+change, `updates.json` change, concrete session id, user id, Webhook URL,
+token, Discord ID, message id, full URL, or full Discord body recording was
+performed.
+
 ## Gate CAL-01 calendar initial selection behavior
 
 Status: calendar initial selection behavior fixed.
