@@ -9077,12 +9077,24 @@ Status: calendar initial selection behavior fixed.
   selection actions and still update the URL query.
 - Result details are recorded in `docs/calendar-selection-behavior-result.md`.
 
-Limited / not tested:
+## Gate CAL-02 calendar selection browser QA
 
-- Browser-level manual checks for menu navigation, normal reload, and
-  session update/edit return flow were not run in this gate.
-- No SQL/DB, Edge Function, Discord, secret, or `updates.json` changes were
-  performed.
+Status: manual browser QA recorded.
+
+- User manually confirmed that the calendar initial selection fix is reflected
+  in the browser.
+- Codex-side additional browser automation was stopped because manual QA had
+  already been completed.
+- No code changes were needed for CAL-02.
+- Result details are recorded in `docs/calendar-selection-behavior-result.md`.
+
+Not performed:
+
+- SQL/DB change
+- Edge Function deploy
+- Discord operation
+- secret change
+- `updates.json` change
 
 ## Phase 3-B16 regulation general skill note data module
 

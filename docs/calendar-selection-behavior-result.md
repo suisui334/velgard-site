@@ -26,8 +26,11 @@ Gate: CAL-01 calendar initial selection behavior fix
 - `node --check assets/js/core/calendar/renderCalendar.js`: passed.
 - `node --check assets/js/main.js`: passed.
 - Static code review confirmed plain load does not read stale selected date from `localStorage`.
+- Gate CAL-02 manual browser QA: completed by the user.
+- Manual confirmation covered that the calendar selection fix is reflected in the browser.
+- Codex-side additional browser automation was stopped because the user had already completed the manual QA.
 
 ## Limited / Not Tested
 
-- Browser-level manual checks for menu navigation, normal reload, and session edit/update return flow were not run in this gate.
+- No additional Codex-run browser QA was performed after the user's manual confirmation.
 - DB, SQL, Edge Function, Discord, secret, and `updates.json` changes were not performed.
