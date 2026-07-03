@@ -392,6 +392,55 @@ Candidate adjustments from the MR-02 draft:
 MR-02.5 did not execute SQL, apply DB changes, implement Edge/UI code, deploy,
 send Discord, change secrets, change cron, or change `updates.json`.
 
+## Gate MR-03 SQL Apply Result
+
+MR-03 SQL apply was executed by the user and recorded in:
+
+- `docs/session-manual-recruitment-reminder-sql-apply-result.md`
+
+SELECT-only confirmation summary:
+
+- manual log table exists
+- RLS is enabled
+- direct table privileges are closed
+- constraints: `8`
+- claimed unique index: `1`
+- cooldown index: `1`
+- RPC count: `3`
+- `security definer` / fixed `search_path`: OK
+- `authenticated` can execute preview/claim but cannot execute finalize
+- `service_role` can execute finalize
+- log count: `0`
+
+Codex did not execute SQL or mutate the DB in MR-04.
+
+## Gate MR-04 Edge Function Result
+
+MR-04 added the Edge Function source:
+
+- `supabase/functions/send-session-recruitment-reminder/index.ts`
+
+The function is intentionally separate from automatic
+`dispatch-session-reminders`.
+
+Implemented behavior:
+
+- `dry_run:true` calls `preview_manual_recruitment_reminder` with the caller JWT.
+- dry-run does not claim, finalize, write DB rows, or send Discord.
+- `dry_run:false` is rejected before claim unless
+  `SESSION_REMINDER_REAL_SEND_ENABLED=true`.
+- production claim uses `claim_manual_recruitment_reminder` with the caller JWT.
+- production finalize uses `finalize_manual_recruitment_reminder` with
+  service-role context.
+- Discord payload uses `@everyone`, `allowed_mentions.parse=["everyone"]`, and
+  `flags: 4`.
+- session URLs are absolute `session-detail` URLs based on
+  `PUBLIC_SITE_BASE_URL`.
+
+MR-04 did not deploy the Edge Function, invoke runtime, send Discord, execute
+SQL, change DB/RPC/RLS, change secrets, implement UI, change cron, or change
+`updates.json`.
+
 ## Edge Function Direction
 
 Recommended new Edge Function:

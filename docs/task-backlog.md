@@ -9064,6 +9064,51 @@ operation, direct Supabase write, debug console logging addition,
 rewrite, CSS split, auth/permission logic change, RPC/DB key configuration,
 `management_key` display, or raw id/email/token/JWT display was performed.
 
+## Gate MR-04 manual recruitment reminder Edge Function
+
+Status: Edge Function source added, deploy not performed.
+
+- User-side MR-03 SQL apply result was recorded:
+  - manual log table exists
+  - RLS enabled
+  - direct privileges closed
+  - constraints `8`
+  - claimed unique index `1`
+  - cooldown index `1`
+  - RPC count `3`
+  - `security definer` / `search_path` OK
+  - `authenticated` can execute preview/claim but not finalize
+  - `service_role` can execute finalize
+  - log count `0`
+- Added `supabase/functions/send-session-recruitment-reminder/index.ts`.
+- Dry-run path uses caller JWT and calls
+  `preview_manual_recruitment_reminder` only.
+- Production path is implemented but not executed:
+  - rejects before claim unless `SESSION_REMINDER_REAL_SEND_ENABLED=true`
+  - claims with caller JWT
+  - sends Discord only after claim
+  - finalizes with service-role RPC
+- Discord payload policy:
+  - `@everyone`
+  - `allowed_mentions.parse=["everyone"]`
+  - `flags: 4`
+  - absolute `session-detail` URL from `PUBLIC_SITE_BASE_URL`
+- Added result docs:
+  - `docs/session-manual-recruitment-reminder-sql-apply-result.md`
+  - `docs/session-manual-recruitment-reminder-edge-result.md`
+
+Next candidates:
+
+1. MR-05 deploy + dry-run / production-disabled runtime confirmation.
+2. MR-06 `session-detail` UI integration with dry-run or disabled-send result
+   handling.
+3. MR-07 explicit `@everyone` limited production send test.
+
+No Edge deploy, runtime invocation, Discord send, SQL execution, DB/RPC/RLS
+mutation, secret change, cron change, UI change, `updates.json` change, or
+concrete Webhook URL/token/Discord id/message id/full message recording was
+performed in MR-04.
+
 ## Gate MR-01 manual recruitment reminder planning
 
 Status: design investigation completed.

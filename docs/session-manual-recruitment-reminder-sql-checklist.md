@@ -48,6 +48,40 @@ Draft-to-candidate adjustments:
 
 No blocker was found in MR-02.5.
 
+## MR-03 Apply Result
+
+The user applied the reviewed SQL and reported SELECT-only checks:
+
+- log table exists: `true`
+- RLS enabled: `true`
+- direct privileges: `false`
+- constraints: `8`
+- claimed unique index: `1`
+- cooldown index: `1`
+- RPC count: `3`
+- `security definer` / `search_path`: OK
+- `authenticated`: preview/claim executable, finalize not executable
+- `service_role`: finalize executable
+- log count: `0`
+
+Codex did not execute SQL in MR-04.
+
+## MR-04 Edge Contract Check
+
+The MR-04 Edge Function source follows the applied RPC contract:
+
+- dry-run calls `preview_manual_recruitment_reminder(text)` only
+- production claim calls `claim_manual_recruitment_reminder(text)` with the
+  caller JWT
+- production finalize calls
+  `finalize_manual_recruitment_reminder(uuid, uuid, text, text, text)` with a
+  service-role client
+- production send is rejected before claim unless
+  `SESSION_REMINDER_REAL_SEND_ENABLED=true`
+- Discord Webhook values and Discord message ids are not returned to the caller
+
+MR-04 did not run preview/claim/finalize at runtime.
+
 ## Apply-Gate Boundary
 
 Before any SQL apply, promote the draft to an apply candidate in a separate
