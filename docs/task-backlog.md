@@ -9100,6 +9100,43 @@ deploy, Discord send, secret/Webhook change, UI/HTML/CSS/JS change,
 `updates.json` change, concrete Webhook URL, token, Discord ID, message id,
 full URL, or full Discord body recording was performed.
 
+## Gate MR-02 manual recruitment reminder SQL draft
+
+Status: DB/RPC/log SQL draft completed.
+
+- Added
+  `docs/sql-drafts/session-manual-recruitment-reminder-draft.sql`.
+- Added `docs/session-manual-recruitment-reminder-sql-checklist.md`.
+- Updated `docs/session-manual-recruitment-reminder-plan.md` with the MR-02
+  draft result.
+- Drafted a dedicated table
+  `public.session_manual_recruitment_reminder_logs`, separate from automatic
+  `public.session_reminder_logs`.
+- The draft enables RLS and closes direct `anon` / `authenticated` table
+  access. Browser access is intended to go through reviewed RPCs only.
+- Drafted `preview_manual_recruitment_reminder(text)` for authenticated
+  GM/admin eligibility checks with no writes.
+- Drafted `claim_manual_recruitment_reminder(text)` for authenticated GM/admin
+  claims. It checks permission, public/tentative-or-recruiting state,
+  future start, application deadline, cooldown, and in-progress claimed rows
+  before writing one claimed log.
+- Drafted `finalize_manual_recruitment_reminder(uuid, uuid, text, text, text)`
+  as service-role-only finalization for `sent` / `failed` / `skipped`.
+- Successful sends start a 6-hour cooldown through `cooldown_until`.
+- A partial unique claimed index prevents double-click/concurrent manual sends
+  for the same session.
+- Minimum-player shortage is intentionally not required for this manual
+  recruitment reminder.
+- The SQL tail includes SELECT-only post-apply checks for table existence, RLS,
+  direct privileges, constraints/indexes, RPC existence, `security definer`,
+  execute privileges, and count-only log observation.
+
+No SQL Editor execution, SQL apply, DB/RPC/RLS mutation, Edge implementation,
+Edge deploy, Discord send, secret/Webhook change, cron change, UI/HTML/CSS/JS
+change, `updates.json` change, concrete session id, user id, Webhook URL,
+token, Discord ID, message id, full URL, or full Discord body recording was
+performed.
+
 ## Gate CAL-01 calendar initial selection behavior
 
 Status: calendar initial selection behavior fixed.

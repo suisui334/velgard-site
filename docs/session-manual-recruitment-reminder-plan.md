@@ -324,6 +324,43 @@ Alternative:
 
 The browser should not insert/update/delete log rows directly.
 
+## Gate MR-02 SQL Draft Result
+
+MR-02 added draft-only SQL and a checklist:
+
+- `docs/sql-drafts/session-manual-recruitment-reminder-draft.sql`
+- `docs/session-manual-recruitment-reminder-sql-checklist.md`
+
+Draft table:
+
+- `public.session_manual_recruitment_reminder_logs`
+
+The manual log table is separate from automatic `public.session_reminder_logs`.
+It enables RLS, closes direct table access for browser roles, stores the actor
+profile id, records claim/finalize state, and keeps optional Discord message id
+storage inside DB only.
+
+Draft RPCs:
+
+- `preview_manual_recruitment_reminder(p_session_id text)`
+- `claim_manual_recruitment_reminder(p_session_id text)`
+- `finalize_manual_recruitment_reminder(p_log_id uuid, p_lock_token uuid, p_status text, p_discord_message_id text, p_error_message text)`
+
+Draft behavior:
+
+- `preview` is authenticated GM/admin eligibility context, no write.
+- `claim` is authenticated GM/admin only and writes one `claimed` log row after
+  permission, session-state, deadline, in-progress, and cooldown checks.
+- `finalize` is service-role-only and updates a claimed log to `sent`,
+  `failed`, or `skipped`.
+- Successful send sets `cooldown_until = now() + interval '6 hours'`.
+- A partial unique claimed index prevents concurrent/manual double-click sends
+  for the same session.
+- Shortage is not required.
+
+MR-02 did not execute SQL, apply DB changes, implement the Edge Function,
+deploy, send Discord, change secrets, change UI, or change `updates.json`.
+
 ## Edge Function Direction
 
 Recommended new Edge Function:
@@ -384,7 +421,7 @@ If manual recruitment reminder introduction fails:
 
 Recommended next gates:
 
-1. MR-02: DB/RPC/log SQL draft for manual recruitment reminders.
+1. Optional MR-02.5: promote the draft SQL to an apply candidate after review.
 2. MR-03: UI implementation with send disabled or dry-run only.
 3. MR-04: `send-session-recruitment-reminder` Edge Function implementation,
    deployなし.
