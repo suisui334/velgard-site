@@ -187,3 +187,26 @@ the authenticated runtime blocker from MR-05.5 remained unresolved.
 No `dry_run:false`, real-send flag enablement, Discord send, claim/finalize, DB
 write, SQL/DB change, secret change, cron change, or `updates.json` change was
 performed.
+
+## MR-06.5 Browser Runtime Scope
+
+MR-06.5 attempted browser QA, but Chrome was not logged in as GM/admin.
+
+Observed:
+
+- public `mypage.html` showed logged-out state
+- a public `session-detail` candidate in logged-out state showed no management
+  panel
+- manual recruitment reminder UI was not visible in logged-out state
+
+Not run:
+
+- authenticated `dry_run:true`
+- `dry_run:false`
+- claim/finalize
+- Discord send
+- DB write
+- log count mutation
+
+No JWT, token, Webhook URL, Discord id, message id, concrete session id, full
+session URL, or Discord message body was recorded.

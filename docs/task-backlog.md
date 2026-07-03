@@ -9300,6 +9300,40 @@ Next candidate:
 2. MR-07 limited production send test only after authenticated UI/dry-run is
    confirmed.
 
+## Gate MR-06.5 manual recruitment authenticated browser UI QA attempt
+
+Status: limited; authenticated GM/admin UI dry-run QA was not completed because
+Chrome was not logged in.
+
+- Start baseline: `11880d2 Add manual recruitment reminder UI`.
+- Chrome public `mypage.html` showed logged-out state.
+- A public session-detail candidate was opened without recording the concrete
+  session id or URL.
+- Logged-out / gated session-detail did not render the management block.
+- Logged-out / gated session-detail did not render the manual recruitment
+  reminder panel.
+- The send button was not clicked.
+- `dry_run:true` with authenticated GM/admin context was not run.
+- `dry_run:false` was not run.
+
+Not confirmed:
+
+- GM/admin panel display
+- `can_send` / `blocked_reason`
+- participant count display
+- enabled / disabled behavior for eligible and blocked sessions
+- non-GM approved user behavior
+
+Next candidate:
+
+1. Retry MR-06.5 after a valid logged-in GM/admin browser session is available.
+2. Confirm UI / `dry_run:true` only; do not click production send.
+
+No Discord send, real-send flag enablement, claim/finalize, DB write, SQL/DB
+change, Edge deploy, secret change, cron change, `updates.json` change, JWT,
+token, Webhook URL, Discord id, message id, concrete session id, full URL, or
+full Discord message body recording was performed.
+
 ## Gate MR-01 manual recruitment reminder planning
 
 Status: design investigation completed.

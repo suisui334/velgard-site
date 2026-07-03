@@ -77,3 +77,35 @@ Next candidate:
 
 - MR-06.5 authenticated browser UI/dry-run QA with a valid GM/admin session and
   a safe target session.
+
+## Gate MR-06.5 Browser QA Attempt
+
+Status: limited; authenticated GM/admin UI dry-run QA was not completed because
+the browser was not logged in.
+
+Confirmed:
+
+- Chrome public `mypage.html` showed logged-out state.
+- A public session-detail candidate was opened without recording the concrete
+  session id or URL.
+- In logged-out / gated state, the GM/admin management block was not present.
+- In logged-out / gated state, the manual recruitment reminder panel was not
+  present and was not visible.
+- No send button was clicked.
+- No `dry_run:false` was invoked.
+- No Discord send or DB write occurred.
+
+Not confirmed:
+
+- GM/admin management block shows the manual recruitment reminder UI.
+- `dry_run:true` preview populates `can_send` / `blocked_reason`.
+- participant count display in an authenticated GM/admin session.
+- send button enabled / disabled behavior for eligible and blocked sessions.
+- non-GM approved user behavior.
+
+Next retry:
+
+- Open a logged-in GM/admin browser session on the public or local site.
+- Use one safe target session-detail page.
+- Confirm the panel, `dry_run:true` state, participant counts, and button
+  enablement without clicking the production send path.
