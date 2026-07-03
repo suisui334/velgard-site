@@ -9064,6 +9064,26 @@ operation, direct Supabase write, debug console logging addition,
 rewrite, CSS split, auth/permission logic change, RPC/DB key configuration,
 `management_key` display, or raw id/email/token/JWT display was performed.
 
+## Gate CAL-01 calendar initial selection behavior
+
+Status: calendar initial selection behavior fixed.
+
+- Plain `calendar.html` no longer auto-selects today or a stale
+  `localStorage` date during initial render.
+- Explicit `calendar.html?date=YYYY-MM-DD` selection remains supported.
+- A one-shot `sessionStorage` key, `velgard.calendar.returnDate`, can restore
+  a date once and is consumed immediately.
+- Date click, date input submission, and the today button remain explicit
+  selection actions and still update the URL query.
+- Result details are recorded in `docs/calendar-selection-behavior-result.md`.
+
+Limited / not tested:
+
+- Browser-level manual checks for menu navigation, normal reload, and
+  session update/edit return flow were not run in this gate.
+- No SQL/DB, Edge Function, Discord, secret, or `updates.json` changes were
+  performed.
+
 ## Phase 3-B16 regulation general skill note data module
 
 Status: completed.

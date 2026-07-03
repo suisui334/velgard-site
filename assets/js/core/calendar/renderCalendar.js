@@ -30,6 +30,7 @@ import {
 const CONFIG_URL = "data/calendarConfig.json?v=20260529-calendar-cap-start";
 const SESSIONS_URL = "data/sessions.json?v=20260601-session-post";
 const CALENDAR_SELECTED_DATE_KEY = "velgard.calendar.selectedDate";
+const CALENDAR_RETURN_DATE_KEY = "velgard.calendar.returnDate";
 const REAL_WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const CALENDAR_EXCLUDED_STATUSES = new Set(["draft", "canceled", "cancelled"]);
@@ -86,9 +87,10 @@ function isValidIsoDate(value) {
   }
 }
 
-function readStoredSelectedDate() {
+function readOneShotSelectedDate() {
   try {
-    const stored = window.localStorage.getItem(CALENDAR_SELECTED_DATE_KEY);
+    const stored = window.sessionStorage.getItem(CALENDAR_RETURN_DATE_KEY);
+    window.sessionStorage.removeItem(CALENDAR_RETURN_DATE_KEY);
     return isValidIsoDate(stored) ? stored : "";
   } catch {
     return "";
@@ -103,14 +105,33 @@ function writeStoredSelectedDate(isoDate) {
   }
 }
 
-function readInitialSelectedDate(fallbackIsoDate) {
+function clearStoredSelectedDate() {
+  try {
+    window.localStorage.removeItem(CALENDAR_SELECTED_DATE_KEY);
+  } catch {
+    // Storage failures should not block the calendar itself.
+  }
+}
+
+function readInitialSelectedDate() {
   const params = new URLSearchParams(window.location.search);
   const queryDate = params.get("date");
   if (isValidIsoDate(queryDate)) return queryDate;
-  return readStoredSelectedDate() || fallbackIsoDate;
+  return readOneShotSelectedDate();
 }
 
 function updateSelectedDateState(isoDate) {
+  if (!isValidIsoDate(isoDate)) {
+    clearStoredSelectedDate();
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("date");
+      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    } catch {
+      // URL state is helpful, but non-critical.
+    }
+    return;
+  }
   writeStoredSelectedDate(isoDate);
   try {
     const url = new URL(window.location.href);
@@ -537,6 +558,22 @@ function renderSelectedPanel(result, sessions, hasLoadError = false) {
   `;
 }
 
+function renderUnselectedPanel(hasLoadError = false) {
+  const loadErrorHtml = hasLoadError
+    ? `<p class="calendar-session-empty">${escapeHtml(getCalendarLabel("sessionsLoadError", "Session data could not be loaded."))}</p>`
+    : "";
+  return `
+    <article class="article-box calendar-result-card calendar-unselected-panel">
+      <div class="calendar-result-head">
+        <h2>${escapeHtml(getCalendarLabel("unselectedTitle", "Date not selected"))}</h2>
+        <span class="tag">${escapeHtml(getCalendarLabel("unselectedTag", "No selection"))}</span>
+      </div>
+      <p class="calendar-note">${escapeHtml(getCalendarLabel("unselectedLead", "Open a dated link or choose a calendar date to show details."))}</p>
+      ${loadErrorHtml}
+    </article>
+  `;
+}
+
 function renderMonthCalendar(year, month, selectedIso, todayIso, config, sessionsByDate = new Map()) {
   const todayShortLabel = getCalendarButtonLabel("todayShort", "今日");
   const todayShortAriaLabel = getCalendarButtonLabel("todayShortAria", "今日へ");
@@ -639,11 +676,12 @@ export async function renderCalendar(root, _site, options = {}) {
     : [];
   const sessionsByDate = groupSessionsByDate(visibleSessions);
   const todayIso = todayInJapan();
-  const initialDate = readInitialSelectedDate(todayIso);
-  const initialParsed = parseIsoDate(initialDate);
+  const initialDate = readInitialSelectedDate();
+  const initialDisplayDate = initialDate || todayIso;
+  const initialParsed = parseIsoDate(initialDisplayDate);
   const todayResult = calculateCalendarResult(todayIso, config);
-  const selectedResult = calculateCalendarResult(initialDate, config);
-  const selectedSessions = sessionsForDate(sessionsByDate, initialDate);
+  const selectedResult = initialDate ? calculateCalendarResult(initialDate, config) : null;
+  const selectedSessions = initialDate ? sessionsForDate(sessionsByDate, initialDate) : [];
   const confirmButtonLabel = getCalendarButtonLabel("confirm", "確認");
   const todayReturnLabel = getCalendarButtonLabel("todayReturn", "今日に戻す");
   let selectedIso = initialDate;
@@ -671,7 +709,7 @@ export async function renderCalendar(root, _site, options = {}) {
         <form class="calendar-form" id="calendar-form">
           <label class="calendar-date-label" for="calendar-date-input">
             <span>現実日付</span>
-            <input type="date" id="calendar-date-input" value="${escapeHtml(selectedIso)}">
+            <input type="date" id="calendar-date-input" value="${escapeHtml(selectedIso || "")}">
           </label>
           <div class="calendar-actions">
             <button class="button primary" type="submit">${escapeHtml(confirmButtonLabel)}</button>
@@ -680,11 +718,11 @@ export async function renderCalendar(root, _site, options = {}) {
         </form>
       </div>
       <div id="calendar-selected" aria-live="polite">
-        ${renderSelectedPanel(selectedResult, selectedSessions, sessionsLoadError)}
+        ${selectedResult ? renderSelectedPanel(selectedResult, selectedSessions, sessionsLoadError) : renderUnselectedPanel(sessionsLoadError)}
       </div>
     </section>
   `;
-  updateSelectedDateState(selectedIso);
+  if (!selectedIso) clearStoredSelectedDate();
 
   const form = root.querySelector("#calendar-form");
   const input = root.querySelector("#calendar-date-input");
@@ -693,6 +731,10 @@ export async function renderCalendar(root, _site, options = {}) {
   const monthView = root.querySelector("#calendar-month-view");
 
   const drawSelected = () => {
+    if (!selectedIso) {
+      selected.innerHTML = renderUnselectedPanel(sessionsLoadError);
+      return;
+    }
     try {
       const result = calculateCalendarResult(selectedIso, config);
       selected.innerHTML = renderSelectedPanel(result, sessionsForDate(sessionsByDate, selectedIso), sessionsLoadError);
