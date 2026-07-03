@@ -202,3 +202,23 @@ performed.
 No Function URL, JWT, token, Webhook URL, Discord id, message id, concrete
 session id, full session URL, email address, password, or full Discord message
 body was recorded.
+
+## Gate MR-06 UI Integration Note
+
+MR-06 wired `session-detail` GM/admin UI to the already deployed
+`send-session-recruitment-reminder` Function contract.
+
+UI integration uses:
+
+- `dry_run:true` for preview / eligibility only
+- `can_send` to enable the button
+- `blocked_reason` for user-facing disabled reasons
+- `dry_run:false` only after a confirmation dialog
+
+MR-06 did not run `dry_run:false`, enable
+`SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED`, send Discord, execute
+claim/finalize, change secrets, change SQL/DB/RLS, deploy Edge Functions, or
+change `updates.json`.
+
+Authenticated browser dry-run and button QA remain `not_tested` until a valid
+GM/admin session is available.

@@ -141,6 +141,12 @@ function renderSessionDetailManageRow(session, options = {}) {
         <p class="session-detail-manage-close-note" data-session-detail-close-note hidden></p>
         <p class="session-detail-manage-note" data-session-detail-manage-state>${escapeHtml(note)}</p>
         <div class="session-detail-discord-sync" data-session-detail-discord-sync hidden></div>
+        <div class="session-detail-manual-recruitment" data-session-detail-manual-recruitment hidden>
+          <p class="session-detail-manual-recruitment-description">Discordに @everyone で参加者募集の通知を送ります。短時間の連打防止のため、送信後は一定時間再送できません。</p>
+          <button class="session-detail-manage-button session-detail-manual-recruitment-button" type="button" data-session-detail-manual-recruitment-send disabled>参加者募集中リマインドを送る</button>
+          <p class="session-detail-manual-recruitment-counts" data-session-detail-manual-recruitment-counts hidden></p>
+          <p class="session-detail-manage-note" data-session-detail-manual-recruitment-state>送信準備中です</p>
+        </div>
       </dd>
     </div>
   `;

@@ -3186,6 +3186,42 @@ body[data-page="session-detail"] .session-detail-discord-sync {
   min-width: 0;
 }
 
+body[data-page="session-detail"] .session-detail-manual-recruitment[hidden] {
+  display: none;
+}
+
+body[data-page="session-detail"] .session-detail-manual-recruitment {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(151, 89, 50, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 250, 242, 0.72);
+}
+
+body[data-page="session-detail"] .session-detail-manual-recruitment-description,
+body[data-page="session-detail"] .session-detail-manual-recruitment-counts {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+body[data-page="session-detail"] .session-detail-manual-recruitment-counts {
+  color: var(--ink);
+}
+
+body[data-page="session-detail"] .session-detail-manual-recruitment-counts[hidden] {
+  display: none;
+}
+
+body[data-page="session-detail"] .session-detail-manual-recruitment-button {
+  border-color: rgba(151, 89, 50, 0.28);
+  color: var(--rust);
+}
+
 body[data-page="session-detail"] .session-detail-discord-sync-details {
   min-width: 0;
   border: 1px solid rgba(86, 96, 106, 0.18);

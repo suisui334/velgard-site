@@ -9245,6 +9245,61 @@ secret change, cron change, `updates.json` change, Function URL, JWT, token,
 Webhook URL, Discord id, message id, concrete session id, full URL, email
 address, password, or full Discord message body recording was performed.
 
+## Gate MR-06 manual recruitment reminder session-detail UI
+
+Status: implemented; authenticated UI QA not performed.
+
+- Added a hidden-by-default manual recruitment reminder panel to the
+  `session-detail` GM/admin management block.
+- The panel is shown only when the existing GM/admin edit access check allows
+  the current user.
+- The panel calls `send-session-recruitment-reminder` with `dry_run:true` to
+  preview eligibility.
+- The send button is enabled only when `can_send=true`.
+- `blocked_reason` values are mapped to Japanese disabled-state messages.
+- Safe participant count fields are displayed.
+- Clicking the send button asks for confirmation before calling `dry_run:false`.
+- `production_not_enabled` is handled as a disabled production-send state.
+- Cache-bust was updated to `20260704-manual-recruitment-ui`.
+
+Changed files:
+
+- `session-detail.html`
+- `assets/js/main.js`
+- `assets/js/renderSessionDetail.js`
+- `assets/js/sessionDisplay.js`
+- `assets/css/style.css`
+- `docs/session-manual-recruitment-reminder-ui-result.md`
+
+Checks:
+
+- `node --check assets/js/renderSessionDetail.js`: passed
+- `node --check assets/js/sessionDisplay.js`: passed
+- `node --check assets/js/main.js`: passed
+- Node ESM import check for `renderSessionDetail.js` and
+  `sessionDisplay.js`: passed
+- Full `main.js` execution import in Node is `not_applicable` because it is
+  browser-only and reads `document` at startup.
+
+Not performed:
+
+- `SESSION_MANUAL_RECRUITMENT_REAL_SEND_ENABLED=true`
+- `dry_run:false` QA
+- Discord send
+- claim/finalize runtime execution
+- SQL/DB change
+- Edge deploy
+- secret change
+- cron change
+- `updates.json` change
+- JWT/token/Webhook/Discord id/message id/session id/full URL recording
+
+Next candidate:
+
+1. MR-06.5 authenticated browser UI/dry-run QA with a valid GM/admin session.
+2. MR-07 limited production send test only after authenticated UI/dry-run is
+   confirmed.
+
 ## Gate MR-01 manual recruitment reminder planning
 
 Status: design investigation completed.

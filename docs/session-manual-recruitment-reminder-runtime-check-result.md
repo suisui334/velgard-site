@@ -176,3 +176,14 @@ Not performed:
 
 Next retry requires a valid GM/admin authenticated browser session or JWT and a
 target session id provided outside docs/reporting.
+
+## MR-06 Runtime Scope
+
+MR-06 implemented the browser UI integration only.
+
+No runtime `dry_run:true` with GM/admin JWT was performed in this gate, because
+the authenticated runtime blocker from MR-05.5 remained unresolved.
+
+No `dry_run:false`, real-send flag enablement, Discord send, claim/finalize, DB
+write, SQL/DB change, secret change, cron change, or `updates.json` change was
+performed.

@@ -510,6 +510,35 @@ Next runtime dry-run requires a valid GM/admin JWT and target session id made
 available outside docs/reporting. Do not enable the manual real-send flag until
 that dry-run passes.
 
+## Gate MR-06 UI Integration Result
+
+MR-06 added the manual recruitment reminder controls to the `session-detail`
+GM/admin management block.
+
+Implemented:
+
+- hidden-by-default manual recruitment panel
+- GM/admin-only display after the existing session edit access check passes
+- `send-session-recruitment-reminder` `dry_run:true` preview on panel init
+- send button enabled only when preview returns `can_send=true`
+- Japanese `blocked_reason` display
+- safe participant count display
+- confirmation dialog before `dry_run:false`
+- production-disabled error handling without raw response exposure
+
+MR-06 did not enable real send, click the send button, send Discord, execute
+claim/finalize, change SQL/DB/RLS, change secrets, change cron, or change
+`updates.json`.
+
+Static checks passed:
+
+- `node --check assets/js/renderSessionDetail.js`
+- `node --check assets/js/sessionDisplay.js`
+- `node --check assets/js/main.js`
+
+Authenticated browser UI QA remains `not_tested` because no valid GM/admin
+authenticated session was available in this context.
+
 ## Edge Function Direction
 
 Recommended new Edge Function:

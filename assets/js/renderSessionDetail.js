@@ -6,7 +6,7 @@ import {
   hasSessionClosingMark,
   renderSessionDiscordSyncPanel,
   renderSessionDetailContent
-} from "./sessionDisplay.js?v=20260615-session-summary-tags-extract";
+} from "./sessionDisplay.js?v=20260704-manual-recruitment-ui";
 import { initSessionDetailApplicationComments } from "./sessionDetailApplicationComments.js?v=20260610-avatar-preview";
 import { createSupabaseBrowserClient } from "./supabaseBrowserClient.js?v=20260601-session-post";
 import {
@@ -44,6 +44,27 @@ const CLOSE_REMOVE_CONFIRM_MESSAGE = "〆マークを外して募集終了表示
 const CLOSE_OVERDUE_NOTE = "募集締切時刻を過ぎています。〆ボタンを押し忘れていませんか？";
 const CLOSE_SUCCESS_MESSAGE = "〆マークを更新しました。";
 const CLOSE_ERROR_MESSAGE = "〆マークの更新に失敗しました。";
+
+const MANUAL_RECRUITMENT_CONFIRM_MESSAGE = "Discordに @everyone で参加者募集の通知を送ります。送信しますか？";
+const MANUAL_RECRUITMENT_CHECKING_MESSAGE = "送信状態を確認しています。";
+const MANUAL_RECRUITMENT_READY_MESSAGE = "送信できます。";
+const MANUAL_RECRUITMENT_SENDING_MESSAGE = "送信しています。";
+const MANUAL_RECRUITMENT_SENT_MESSAGE = "参加者募集リマインドを送信しました。";
+const MANUAL_RECRUITMENT_DISABLED_MESSAGE = "送信機能はまだ有効化されていません。";
+const MANUAL_RECRUITMENT_ERROR_MESSAGE = "参加者募集リマインドを送信できませんでした。";
+const MANUAL_RECRUITMENT_PREVIEW_ERROR_MESSAGE = "送信状態を確認できませんでした。";
+const MANUAL_RECRUITMENT_BLOCKED_MESSAGES = {
+  not_public: "非公開の依頼書です",
+  status_not_recruiting: "募集状態ではありません",
+  start_time_missing: "開始時刻が未設定です",
+  already_started: "開始済みです",
+  application_deadline_missing: "申請締切が未設定です",
+  application_deadline_passed: "申請締切を過ぎています",
+  cooldown_active: "クールダウン中です",
+  send_in_progress: "送信準備中です",
+  session_not_found: "対象の依頼書が見つかりません",
+  not_allowed: "送信できる権限がありません"
+};
 
 function getSessionDetailLabel(key, fallback) {
   return getOpsSessionLabel(key, fallback);
@@ -236,6 +257,74 @@ function getAccessDeniedManageMessage(access) {
   return message.includes("ログイン") ? "ログインが必要です。" : "この依頼書を操作する権限がありません。";
 }
 
+function getManualRecruitmentBlockedMessage(reason) {
+  const normalized = String(reason || "").trim();
+  return MANUAL_RECRUITMENT_BLOCKED_MESSAGES[normalized] || "現在この依頼書では送信できません";
+}
+
+function getManualRecruitmentFunctionErrorMessage(error) {
+  const text = [
+    error?.context?.error_code,
+    error?.context?.code,
+    error?.context?.message,
+    error?.error_code,
+    error?.code,
+    error?.message,
+    error?.name
+  ].map((value) => String(value || "")).join(" ");
+  if (text.includes("production_not_enabled")) return MANUAL_RECRUITMENT_DISABLED_MESSAGE;
+  if (text.includes("login_required")) return "ログインが必要です";
+  if (text.includes("db_claim_failed")) return "現在この依頼書では送信できません";
+  return MANUAL_RECRUITMENT_ERROR_MESSAGE;
+}
+
+function formatManualRecruitmentCounts(item) {
+  const accepted = Number.isFinite(Number(item?.accepted_count)) ? Math.max(0, Math.trunc(Number(item.accepted_count))) : 0;
+  const pending = Number.isFinite(Number(item?.pending_count)) ? Math.max(0, Math.trunc(Number(item.pending_count))) : 0;
+  const playerMin = Number.isFinite(Number(item?.player_min)) ? Math.max(0, Math.trunc(Number(item.player_min))) : 0;
+  return `現在の参加状況：承認済み${accepted}名 / 申請中${pending}名 / 最低人数${playerMin}名`;
+}
+
+function setManualRecruitmentState(elements, message, modifier = "") {
+  if (!elements.manualRecruitmentState) return;
+  elements.manualRecruitmentState.textContent = message;
+  elements.manualRecruitmentState.className = `session-detail-manage-note${modifier ? ` ${modifier}` : ""}`;
+}
+
+function setManualRecruitmentCounts(elements, item) {
+  if (!elements.manualRecruitmentCounts) return;
+  if (!item) {
+    elements.manualRecruitmentCounts.hidden = true;
+    elements.manualRecruitmentCounts.textContent = "";
+    return;
+  }
+  elements.manualRecruitmentCounts.textContent = formatManualRecruitmentCounts(item);
+  elements.manualRecruitmentCounts.hidden = false;
+}
+
+function hideManualRecruitmentPanel(elements) {
+  if (elements.manualRecruitment) {
+    elements.manualRecruitment.hidden = true;
+  }
+  if (elements.manualRecruitmentButton) {
+    elements.manualRecruitmentButton.disabled = true;
+  }
+  setManualRecruitmentCounts(elements, null);
+}
+
+async function readFunctionErrorContext(error) {
+  const context = error?.context;
+  if (!context || typeof context.clone !== "function") return null;
+  try {
+    const response = context.clone();
+    if (typeof response.json !== "function") return null;
+    const data = await response.json();
+    return data && typeof data === "object" ? data : null;
+  } catch {
+    return null;
+  }
+}
+
 function getSessionManageElements(root) {
   const panel = root.querySelector("[data-session-detail-manage-panel]");
   return {
@@ -245,7 +334,11 @@ function getSessionManageElements(root) {
     closeNote: panel?.querySelector("[data-session-detail-close-note]") || null,
     deleteButton: panel?.querySelector("[data-session-detail-delete]") || null,
     state: panel?.querySelector("[data-session-detail-manage-state]") || null,
-    discordSync: panel?.querySelector("[data-session-detail-discord-sync]") || null
+    discordSync: panel?.querySelector("[data-session-detail-discord-sync]") || null,
+    manualRecruitment: panel?.querySelector("[data-session-detail-manual-recruitment]") || null,
+    manualRecruitmentButton: panel?.querySelector("[data-session-detail-manual-recruitment-send]") || null,
+    manualRecruitmentState: panel?.querySelector("[data-session-detail-manual-recruitment-state]") || null,
+    manualRecruitmentCounts: panel?.querySelector("[data-session-detail-manual-recruitment-counts]") || null
   };
 }
 
@@ -304,6 +397,90 @@ function setManageButtonsDisabled(elements, disabled) {
   if (elements.editButton) elements.editButton.disabled = disabled;
   if (elements.deleteButton) elements.deleteButton.disabled = disabled;
   if (elements.closeButton && !elements.closeButton.hidden) elements.closeButton.disabled = disabled;
+  if (elements.manualRecruitmentButton && !elements.manualRecruitment?.hidden) elements.manualRecruitmentButton.disabled = disabled;
+}
+
+async function invokeManualRecruitmentReminder(client, sessionId, dryRun) {
+  if (!client?.functions?.invoke) {
+    return { ok: false, error: new Error("function_unavailable") };
+  }
+  try {
+    const { data, error } = await client.functions.invoke("send-session-recruitment-reminder", {
+      body: {
+        session_id: sessionId,
+        dry_run: dryRun
+      }
+    });
+    if (error) {
+      const context = await readFunctionErrorContext(error);
+      return { ok: false, error: { error, context } };
+    }
+    return { ok: true, data };
+  } catch (error) {
+    return { ok: false, error };
+  }
+}
+
+function readManualRecruitmentPreviewItem(data) {
+  const items = Array.isArray(data?.items) ? data.items : [];
+  return items[0] || null;
+}
+
+async function refreshManualRecruitmentState(client, elements, session) {
+  if (!elements.manualRecruitment) return;
+  elements.manualRecruitment.hidden = false;
+  if (elements.manualRecruitmentButton) elements.manualRecruitmentButton.disabled = true;
+  setManualRecruitmentCounts(elements, null);
+  setManualRecruitmentState(elements, MANUAL_RECRUITMENT_CHECKING_MESSAGE);
+
+  const sessionId = String(session?.id || "").trim();
+  const preview = await invokeManualRecruitmentReminder(client, sessionId, true);
+  if (!preview.ok || preview.data?.ok !== true || preview.data?.dry_run !== true) {
+    setManualRecruitmentState(elements, MANUAL_RECRUITMENT_PREVIEW_ERROR_MESSAGE, "is-error");
+    return;
+  }
+
+  const item = readManualRecruitmentPreviewItem(preview.data);
+  setManualRecruitmentCounts(elements, item);
+  if (item?.can_send === true) {
+    if (elements.manualRecruitmentButton) elements.manualRecruitmentButton.disabled = false;
+    setManualRecruitmentState(elements, MANUAL_RECRUITMENT_READY_MESSAGE, "is-ok");
+    return;
+  }
+
+  if (elements.manualRecruitmentButton) elements.manualRecruitmentButton.disabled = true;
+  setManualRecruitmentState(elements, getManualRecruitmentBlockedMessage(item?.blocked_reason), "is-warn");
+}
+
+async function applyManualRecruitmentReminder(client, elements, session) {
+  if (!elements.manualRecruitmentButton || elements.manualRecruitmentButton.disabled) return;
+  if (!window.confirm(MANUAL_RECRUITMENT_CONFIRM_MESSAGE)) return;
+
+  setManageButtonsDisabled(elements, true);
+  setManualRecruitmentState(elements, MANUAL_RECRUITMENT_SENDING_MESSAGE);
+
+  const result = await invokeManualRecruitmentReminder(client, String(session?.id || "").trim(), false);
+  if (result.ok && result.data?.ok === true && result.data?.dry_run === false && result.data?.sent_count === 1) {
+    setManageButtonsDisabled(elements, false);
+    if (elements.manualRecruitmentButton) elements.manualRecruitmentButton.disabled = true;
+    setManualRecruitmentState(elements, MANUAL_RECRUITMENT_SENT_MESSAGE, "is-ok");
+    return;
+  }
+
+  setManualRecruitmentState(elements, getManualRecruitmentFunctionErrorMessage(result.error || result.data), "is-error");
+  setManageButtonsDisabled(elements, false);
+}
+
+async function initManualRecruitmentReminderPanel(client, elements, session) {
+  if (!elements.manualRecruitment) return;
+  elements.manualRecruitment.hidden = false;
+  if (elements.manualRecruitmentButton) {
+    elements.manualRecruitmentButton.disabled = true;
+    elements.manualRecruitmentButton.addEventListener("click", () => {
+      applyManualRecruitmentReminder(client, elements, session);
+    });
+  }
+  await refreshManualRecruitmentState(client, elements, session);
 }
 
 function configureClosingMarkControl(elements, session, client, access) {
@@ -409,6 +586,7 @@ async function initSessionDetailManageActionsWithDelete(root, session) {
   if (!elements.panel) return;
   hideDiscordSyncPanel(elements);
   hideClosingMarkControl(elements);
+  hideManualRecruitmentPanel(elements);
 
   if (elements.deleteButton) {
     elements.deleteButton.disabled = true;
@@ -422,6 +600,7 @@ async function initSessionDetailManageActionsWithDelete(root, session) {
       elements.deleteButton.title = "この予定は静的データ由来のため、この画面では削除できません。";
     }
     hideClosingMarkControl(elements);
+    hideManualRecruitmentPanel(elements);
     setManageState(elements.state, "この予定は静的データ由来のため、この画面では編集できません。この予定は静的データ由来のため、この画面では削除できません。");
     return;
   }
@@ -432,6 +611,7 @@ async function initSessionDetailManageActionsWithDelete(root, session) {
       if (elements.editButton) elements.editButton.disabled = true;
       if (elements.deleteButton) elements.deleteButton.disabled = true;
       hideClosingMarkControl(elements);
+      hideManualRecruitmentPanel(elements);
       setManageState(elements.state, "接続設定が未構成のため、編集・削除できません。", "is-error");
       return;
     }
@@ -451,6 +631,7 @@ async function initSessionDetailManageActionsWithDelete(root, session) {
       }
       configureClosingMarkControl(elements, session, client, access);
       showDiscordSyncPanel(elements, session);
+      initManualRecruitmentReminderPanel(client, elements, session);
       setManageState(elements.state, access.message, "is-ok");
       return;
     }
@@ -462,6 +643,7 @@ async function initSessionDetailManageActionsWithDelete(root, session) {
     }
     hideClosingMarkControl(elements);
     hideDiscordSyncPanel(elements);
+    hideManualRecruitmentPanel(elements);
     setManageState(elements.state, getAccessDeniedManageMessage(access));
   } catch {
     if (elements.editButton) elements.editButton.disabled = true;
@@ -471,6 +653,7 @@ async function initSessionDetailManageActionsWithDelete(root, session) {
     }
     hideClosingMarkControl(elements);
     hideDiscordSyncPanel(elements);
+    hideManualRecruitmentPanel(elements);
     setManageState(elements.state, "編集権限を確認できませんでした。", "is-error");
   }
 }
