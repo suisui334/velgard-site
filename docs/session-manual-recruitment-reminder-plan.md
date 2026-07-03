@@ -441,6 +441,30 @@ MR-04 did not deploy the Edge Function, invoke runtime, send Discord, execute
 SQL, change DB/RPC/RLS, change secrets, implement UI, change cron, or change
 `updates.json`.
 
+## Gate MR-05 Deploy Attempt Result
+
+MR-05 attempted to deploy only:
+
+- `send-session-recruitment-reminder`
+
+Local static check passed before deploy:
+
+- `deno check --no-lock supabase/functions/send-session-recruitment-reminder/index.ts`
+
+Deploy did not complete because the Supabase CLI could not find a linked
+project ref. The safe error category was `LegacyProjectNotLinkedError`.
+
+No project ref value, Function URL, JWT, token, Webhook URL, Discord id, message
+id, full session URL, or full message body was recorded.
+
+Because deploy did not complete, MR-05 did not run runtime `dry_run:true`,
+runtime `dry_run:false`, claim/finalize, DB write, Discord send, secret change,
+SQL/DB change, UI change, cron change, or `updates.json` change.
+
+Retry MR-05 after a linked Supabase project or explicit project ref is available
+outside docs/reporting, and after an authenticated GM/admin invocation context
+is available for the runtime dry-run.
+
 ## Edge Function Direction
 
 Recommended new Edge Function:

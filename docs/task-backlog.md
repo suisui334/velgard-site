@@ -9109,6 +9109,43 @@ mutation, secret change, cron change, UI change, `updates.json` change, or
 concrete Webhook URL/token/Discord id/message id/full message recording was
 performed in MR-04.
 
+## Gate MR-05 manual recruitment reminder deploy attempt
+
+Status: deploy/runtime check blocked before deploy.
+
+- Local static check passed:
+  `deno check --no-lock supabase/functions/send-session-recruitment-reminder/index.ts`.
+- Deploy was attempted for `send-session-recruitment-reminder` only.
+- Deploy did not complete because the Supabase CLI could not find a linked
+  project ref.
+- Safe error category recorded: `LegacyProjectNotLinkedError`.
+- Added
+  `docs/session-manual-recruitment-reminder-runtime-check-result.md`.
+
+Not performed:
+
+- successful Edge deploy
+- runtime `dry_run:true`
+- runtime `dry_run:false`
+- Discord send
+- claim/finalize runtime execution
+- DB write
+- log count before/after runtime confirmation
+- secret change
+- SQL/DB change
+- UI change
+- cron change
+- `updates.json` change
+
+Next candidate:
+
+1. Retry MR-05 after the working tree is linked to the Supabase project or an
+   explicit project ref is supplied outside docs/reporting, and after
+   authenticated GM/admin invocation context is available.
+
+No project ref value, Function URL, JWT, token, Webhook URL, Discord id, message
+id, full session URL, or full message body was recorded.
+
 ## Gate MR-01 manual recruitment reminder planning
 
 Status: design investigation completed.

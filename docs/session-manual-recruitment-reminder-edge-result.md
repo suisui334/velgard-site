@@ -110,3 +110,24 @@ Recommended next gates:
 2. MR-06: UI integration from `session-detail` with dry-run/disabled send
    handling.
 3. MR-07: explicit `@everyone` limited production send test.
+
+## Gate MR-05 Deploy Attempt
+
+MR-05 local static check passed:
+
+- `deno check --no-lock supabase/functions/send-session-recruitment-reminder/index.ts`
+
+Deploy was attempted for `send-session-recruitment-reminder` only, but did not
+complete because the Supabase CLI could not find a linked project ref. The safe
+error category was recorded as `LegacyProjectNotLinkedError`.
+
+No project ref value, Function URL, JWT, token, Webhook URL, Discord id, message
+id, or concrete runtime URL was recorded.
+
+Because deploy did not complete, MR-05 did not run runtime `dry_run:true`,
+runtime `dry_run:false`, Discord send, claim/finalize, DB write, secret change,
+SQL/DB change, UI change, cron change, or `updates.json` change.
+
+Result details:
+
+- `docs/session-manual-recruitment-reminder-runtime-check-result.md`
