@@ -649,7 +649,7 @@ function buildShortageMessagePreview(row: PreviewReminderRow, sessionUrl: string
   const shortageCount = Math.max(0, row.shortage_count ?? 0);
   return [
     "@everyone",
-    `■依頼書【${title}】［${sessionUrl}］`,
+    `■依頼書【${title}】[ ${sessionUrl} ]`,
     `本日${startTime}より開催予定です。最低人数に後${shortageCount}人足りていません。ご都合よろしければ参加いかがでしょうか。`
   ].join("\n");
 }
@@ -665,7 +665,7 @@ function buildGmConfirmedMessage(
   const gmDiscordUserId = getGmDiscordUserId(row);
   const mentionLine = gmDiscordUserId ? (options.maskGmMention ? MASKED_GM_MENTION : `<@${gmDiscordUserId}>`) : null;
   const lines = [
-    `■依頼書【${title}】［${sessionUrl}］`,
+    `■依頼書【${title}】[ ${sessionUrl} ]`,
     `本日${startTime}より開催予定です。最低人数を満たしているため、開催予定のリマインドです。`,
     `GM【${gmName}】さんは、開始準備・会場案内・参加者状況の確認をお願いいたします。`
   ];

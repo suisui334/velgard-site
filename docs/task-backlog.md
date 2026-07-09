@@ -9064,6 +9064,31 @@ operation, direct Supabase write, debug console logging addition,
 rewrite, CSS split, auth/permission logic change, RPC/DB key configuration,
 `management_key` display, or raw id/email/token/JWT display was performed.
 
+## Gate MR-08 Discord notification URL bracket spacing
+
+Status: completed and deployed.
+
+- Baseline: `db632eb Enable manual recruitment reminder real send`.
+- Updated the manual recruitment reminder, automatic shortage reminder, and
+  automatic GM confirmed reminder message lines to use `[ ${sessionUrl} ]`.
+- Preserved the existing absolute `session-detail` URL builders.
+- Preserved Discord payload `flags: 4`.
+- Preserved manual recruitment and shortage
+  `allowed_mentions.parse=["everyone"]`.
+- Preserved GM confirmed `allowed_mentions.parse=[]` with only the validated GM
+  user in `users`.
+- `deno check --no-lock` passed for:
+  - `supabase/functions/send-session-recruitment-reminder/index.ts`
+  - `supabase/functions/dispatch-session-reminders/index.ts`
+- Deployed only:
+  - `send-session-recruitment-reminder`
+  - `dispatch-session-reminders`
+- Both deploys succeeded.
+- Did not invoke runtime, send Discord, change real-send flags, change secrets,
+  change cron, run SQL, mutate DB state, change UI, or change `updates.json`.
+- No concrete URL, JWT, token, Webhook URL, Discord ID, or message ID was
+  recorded.
+
 ## Gate MR-04 manual recruitment reminder Edge Function
 
 Status: Edge Function source added, deploy not performed.

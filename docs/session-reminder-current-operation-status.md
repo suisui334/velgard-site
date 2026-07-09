@@ -213,3 +213,16 @@ Reminder log observation:
 
 Gate 13B did not perform manual production `dry_run:false`, manual Discord
 send, real-send setting change, cron change, SQL change, or secret change.
+
+## Gate MR-08 URL Spacing Deploy
+
+The deployed automatic reminder dispatcher now renders both `shortage` and
+`gm_confirmed` session links as `[ URL ]`. The URL remains absolute, while
+spaces prevent the closing bracket from being treated as part of the link.
+
+Operational state:
+
+- `dispatch-session-reminders` deploy succeeded
+- automatic real-send and scheduler settings were not changed
+- `flags: 4` and reminder-specific mention controls remain active
+- no runtime call or Discord send was performed in this gate

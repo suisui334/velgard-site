@@ -222,3 +222,18 @@ change `updates.json`.
 
 Authenticated browser dry-run and button QA remain `not_tested` until a valid
 GM/admin session is available.
+
+## Gate MR-08 URL Delimiter Update
+
+The manual recruitment Discord content now uses `[ ${sessionUrl} ]` so the
+absolute session URL is separated from the closing bracket.
+
+Preserved:
+
+- `flags: 4`
+- `allowed_mentions.parse=["everyone"]`
+- authenticated preview/claim and service-role finalize boundaries
+- manual-specific real-send gate
+
+`send-session-recruitment-reminder` passed `deno check --no-lock` and was
+deployed successfully. No runtime invocation or Discord send was performed.

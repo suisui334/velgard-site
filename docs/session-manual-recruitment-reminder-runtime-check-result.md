@@ -284,6 +284,27 @@ Not run:
 - cron change
 - `updates.json` change
 
+## MR-08 Discord URL Spacing Fix
+
+The manual recruitment reminder message now renders its absolute session link
+as `[ URL ]`, with spaces separating the URL from both brackets. This prevents
+the closing bracket from being interpreted as part of the clickable URL.
+
+Result:
+
+- `send-session-recruitment-reminder` source check passed
+- only the updated manual recruitment reminder Function was deployed for this
+  part of the gate
+- deploy succeeded
+- `flags: 4` and `allowed_mentions.parse=["everyone"]` were preserved
+- the manual real-send flag was not changed
+- no button click, runtime invocation, Discord send, DB write, log mutation, or
+  cooldown mutation was performed
+
+Full result:
+
+- `docs/session-reminder-discord-url-spacing-fix-result.md`
+
 ## MR-06.6 User Browser QA Runtime Boundary
 
 MR-06.6 records the user-side authenticated browser QA result only.

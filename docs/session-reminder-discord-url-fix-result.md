@@ -99,3 +99,27 @@ Runtime dry-run confirmation:
 1. Continue real-send monitoring with status/count-only reporting.
 2. If a future reminder sends, confirm in Discord manually that the detail URL
    is clickable without copying the full URL into docs.
+
+## Gate MR-08 Bracket Spacing Follow-Up
+
+Gate MR-08 retained the absolute URL generation from Gates 13A/13B and changed
+the visible Discord message delimiter to `[ ${sessionUrl} ]`.
+
+The update covers:
+
+- `shortage`
+- `gm_confirmed`
+
+Result:
+
+- `dispatch-session-reminders` passed `deno check --no-lock`
+- only the updated dispatcher was deployed for this part of the gate
+- deploy succeeded
+- `flags: 4`, shortage `@everyone`, and restricted GM mention behavior remain
+  unchanged
+- real-send state and cron were not changed
+- no runtime invocation or Discord send was performed
+
+Full result:
+
+- `docs/session-reminder-discord-url-spacing-fix-result.md`

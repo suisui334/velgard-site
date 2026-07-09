@@ -410,7 +410,7 @@ function buildRecruitmentReminderMessage(
 
   return [
     "@everyone",
-    `■依頼書【${title}】［${sessionUrl}］`,
+    `■依頼書【${title}】[ ${sessionUrl} ]`,
     "現在、参加者を募集しています。",
     "ご都合よろしければ参加をご検討ください。",
     `現在の参加状況：承認済み${acceptedCount}名 / 申請中${pendingCount}名 / 最低人数${playerMin}名`
