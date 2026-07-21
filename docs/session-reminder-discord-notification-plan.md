@@ -439,7 +439,15 @@ The draft proposes these session setting columns on `public.sessions`:
 - `gm_reminder_enabled`
 - `gm_reminder_minutes_before`
 
-The draft proposes `public.session_reminder_logs` for duplicate prevention and production send result recording. The first version uses `unique(session_id, reminder_type)` so a sent or claimed reminder is not automatically resent after start time or timing edits. If resend becomes necessary, a later explicit reset or log invalidation gate is required.
+The applied first version uses `public.session_reminder_logs` for duplicate
+prevention and production send result recording, with
+`unique(session_id, reminder_type)`. Gate SR-01 now provides an unexecuted SQL
+apply candidate that would version shortage reminders only. Under that
+candidate, schedule-relevant edits increment
+`sessions.shortage_reminder_revision`, shortage logs become unique per
+session/type/revision, and GM reminder uniqueness remains unchanged. See
+`docs/session-shortage-reminder-reschedule-plan.md`. SQL apply and runtime QA
+remain separate later gates.
 
 The draft proposes these RPC boundaries:
 

@@ -9089,6 +9089,44 @@ Status: completed and deployed.
 - No concrete URL, JWT, token, Webhook URL, Discord ID, or message ID was
   recorded.
 
+## Gate SR-01 repeatable shortage reminder scheduling candidate
+
+Status: SQL design and apply candidate completed; not applied.
+
+- Baseline: `5b126b6 Fix Discord session URL spacing`.
+- Current one-time cause: `session_reminder_logs_unique_session_type` and the
+  preview exclusion both use `(session_id, reminder_type)`, so an old shortage
+  log blocks every later schedule for that session.
+- Added design doc:
+  `docs/session-shortage-reminder-reschedule-plan.md`.
+- Added apply candidate:
+  `docs/sql-drafts/session-shortage-reminder-revision-apply-candidate.sql`.
+- Proposed `sessions.shortage_reminder_revision integer not null default 1`.
+- Proposed a DB trigger that increments shortage revision only when `date`,
+  `start_time`, `shortage_reminder_enabled`, or
+  `shortage_reminder_hours_before` changes.
+- Unrelated session edits preserve the current revision.
+- Proposed shortage uniqueness per `(session_id, reminder_type, revision)` and
+  preserved GM uniqueness per `(session_id, reminder_type)` through separate
+  partial unique indexes.
+- Existing shortage logs are backfilled to initial revision `1` to avoid an
+  apply-only resend.
+- Preview/claim append `shortage_reminder_revision` as their final return
+  column so claim stores the exact revision selected by preview.
+- Existing Edge normalization ignores unknown response fields, so no same-gate
+  Edge change/deploy is required for delivery correctness. A later optional
+  TypeScript contract-alignment gate is documented.
+- Existing shortage eligibility still requires
+  `pending_count + accepted_count < player_min`; waitlisted remains excluded.
+- Included SELECT-only checks for columns, trigger, constraints, indexes,
+  duplicate groups, RPC presence/security/grants, and unchanged return column
+  counts.
+- Did not run SQL Editor, apply SQL, mutate DB/RPC/RLS, invoke runtime, deploy
+  Edge Functions, send Discord, change cron/secrets/UI, or change
+  `updates.json`.
+- Next gate: SR-02 apply-candidate review and live-operation preflight before
+  any separately approved SQL apply.
+
 ## Gate MR-04 manual recruitment reminder Edge Function
 
 Status: Edge Function source added, deploy not performed.
