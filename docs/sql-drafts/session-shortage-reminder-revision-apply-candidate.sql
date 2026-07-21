@@ -13,6 +13,8 @@
 -- - Append the revision column to the existing return shapes. The deployed
 --   Edge Function ignores unknown response fields, so SQL can be applied
 --   before an optional TypeScript contract-alignment gate.
+-- - Keep apply DDL/DML separate from the post-apply SELECT-only file:
+--   session-shortage-reminder-revision-post-apply-select-only.sql.
 --
 -- This file is not a migration and must remain under docs/sql-drafts.
 -- It does not configure cron, secrets, Discord, or Edge Functions.
@@ -70,13 +72,6 @@ revoke all on function public.bump_session_shortage_reminder_revision() from pub
 revoke all on function public.bump_session_shortage_reminder_revision() from anon;
 revoke all on function public.bump_session_shortage_reminder_revision() from authenticated;
 
-drop trigger if exists sessions_shortage_reminder_revision_trigger on public.sessions;
-
-create trigger sessions_shortage_reminder_revision_trigger
-before update on public.sessions
-for each row
-execute function public.bump_session_shortage_reminder_revision();
-
 -- ============================================================
 -- 2. Log-side revision and duplicate keys
 -- ============================================================
@@ -84,13 +79,13 @@ execute function public.bump_session_shortage_reminder_revision();
 alter table public.session_reminder_logs
   add column if not exists shortage_reminder_revision integer;
 
--- Existing shortage logs represent the current revision at rollout. This
--- avoids an immediate resend merely because the schema was applied.
+-- Existing shortage logs represent revision 1. A session whose current
+-- schedule still matches its log also stays on revision 1. A session whose
+-- start or shortage offset changed after that log moves to revision 2 below,
+-- preserving the already-rescheduled notification opportunity.
 update public.session_reminder_logs as l
-set shortage_reminder_revision = s.shortage_reminder_revision
-from public.sessions as s
-where l.session_id = s.id
-  and l.reminder_type = 'shortage'
+set shortage_reminder_revision = 1
+where l.reminder_type = 'shortage'
   and l.shortage_reminder_revision is null;
 
 -- GM reminder rows do not participate in shortage revisioning.
@@ -98,6 +93,35 @@ update public.session_reminder_logs
 set shortage_reminder_revision = null
 where reminder_type = 'gm_confirmed'
   and shortage_reminder_revision is not null;
+
+-- Detect schedule changes that happened before revision tracking existed.
+-- Keep the historical log on revision 1 and move only the current session to
+-- revision 2. This is intentionally bounded to the initial revision so the
+-- candidate remains idempotent if reviewed/applied again after success.
+update public.sessions as s
+set shortage_reminder_revision = 2
+where s.shortage_reminder_revision = 1
+  and exists (
+    select 1
+    from public.session_reminder_logs as l
+    where l.session_id = s.id
+      and l.reminder_type = 'shortage'
+      and (
+        l.scheduled_for is distinct from
+          ((s.date + s.start_time)::timestamp at time zone 'Asia/Tokyo')
+        or l.reminder_offset_minutes is distinct from
+          (s.shortage_reminder_hours_before * 60)
+      )
+  );
+
+-- Install the trigger after the rollout-only revision assignment above. Once
+-- installed, direct revision assignments and unrelated updates are ignored.
+drop trigger if exists sessions_shortage_reminder_revision_trigger on public.sessions;
+
+create trigger sessions_shortage_reminder_revision_trigger
+before update on public.sessions
+for each row
+execute function public.bump_session_shortage_reminder_revision();
 
 do $$
 begin
@@ -491,202 +515,3 @@ comment on function public.update_session_reminder_settings(text, boolean, integ
   'Owner/admin RPC for per-session reminder settings. The sessions trigger increments shortage revision only when shortage enabled state or offset changes.';
 
 commit;
-
--- ============================================================
--- 5. SELECT-only post-apply checks
--- ============================================================
--- Run these only after the apply transaction succeeds. Do not run preview or
--- claim in the apply gate. Record counts/booleans/definitions only, not rows.
-
-select
-  'shortage_revision_session_column' as check_name,
-  count(*) as column_count,
-  bool_and(data_type = 'integer') as all_integer,
-  bool_and(is_nullable = 'NO') as all_not_null,
-  bool_and(column_default is not null) as all_have_default
-from information_schema.columns
-where table_schema = 'public'
-  and table_name = 'sessions'
-  and column_name = 'shortage_reminder_revision';
-
-select
-  'shortage_revision_session_constraint' as check_name,
-  count(*) filter (where conname = 'sessions_shortage_reminder_revision_check') as constraint_count
-from pg_constraint
-where conrelid = 'public.sessions'::regclass;
-
-select
-  'shortage_revision_trigger' as check_name,
-  count(*) as trigger_count,
-  bool_and(tgenabled <> 'D') as all_enabled
-from pg_trigger
-where tgrelid = 'public.sessions'::regclass
-  and tgname = 'sessions_shortage_reminder_revision_trigger'
-  and not tgisinternal;
-
-select
-  'shortage_revision_trigger_function' as check_name,
-  to_regprocedure('public.bump_session_shortage_reminder_revision()') is not null as function_exists;
-
-with trigger_function as (
-  select pg_get_functiondef('public.bump_session_shortage_reminder_revision()'::regprocedure) as definition
-)
-select
-  'shortage_revision_trigger_markers' as check_name,
-  definition like '%old.date is distinct from new.date%' as checks_date,
-  definition like '%old.start_time is distinct from new.start_time%' as checks_start_time,
-  definition like '%old.shortage_reminder_enabled is distinct from new.shortage_reminder_enabled%' as checks_enabled,
-  definition like '%old.shortage_reminder_hours_before is distinct from new.shortage_reminder_hours_before%' as checks_offset
-from trigger_function;
-
-select
-  'shortage_revision_log_column' as check_name,
-  count(*) as column_count,
-  bool_and(data_type = 'integer') as all_integer,
-  bool_and(is_nullable = 'YES') as all_nullable
-from information_schema.columns
-where table_schema = 'public'
-  and table_name = 'session_reminder_logs'
-  and column_name = 'shortage_reminder_revision';
-
-select
-  'shortage_revision_log_constraint' as check_name,
-  count(*) filter (where conname = 'session_reminder_logs_shortage_revision_check') as constraint_count,
-  count(*) filter (where conname = 'session_reminder_logs_unique_session_type') as old_unique_constraint_count
-from pg_constraint
-where conrelid = 'public.session_reminder_logs'::regclass;
-
-select
-  'shortage_revision_unique_indexes' as check_name,
-  count(*) filter (where indexname = 'session_reminder_logs_shortage_revision_unique') as shortage_index_count,
-  count(*) filter (where indexname = 'session_reminder_logs_gm_confirmed_unique') as gm_index_count,
-  bool_and(indexdef like 'CREATE UNIQUE INDEX%') as all_unique
-from pg_indexes
-where schemaname = 'public'
-  and tablename = 'session_reminder_logs'
-  and indexname in (
-    'session_reminder_logs_shortage_revision_unique',
-    'session_reminder_logs_gm_confirmed_unique'
-  );
-
-select
-  'shortage_revision_unique_index_definitions' as check_name,
-  indexname,
-  indexdef
-from pg_indexes
-where schemaname = 'public'
-  and tablename = 'session_reminder_logs'
-  and indexname in (
-    'session_reminder_logs_shortage_revision_unique',
-    'session_reminder_logs_gm_confirmed_unique'
-  )
-order by indexname;
-
-select
-  'shortage_revision_log_access' as check_name,
-  c.relrowsecurity as rls_enabled,
-  has_table_privilege('anon', 'public.session_reminder_logs', 'select') as anon_select,
-  has_table_privilege('authenticated', 'public.session_reminder_logs', 'select') as authenticated_select,
-  has_table_privilege('authenticated', 'public.session_reminder_logs', 'insert') as authenticated_insert,
-  has_table_privilege('authenticated', 'public.session_reminder_logs', 'update') as authenticated_update,
-  has_table_privilege('authenticated', 'public.session_reminder_logs', 'delete') as authenticated_delete
-from pg_class as c
-where c.oid = 'public.session_reminder_logs'::regclass;
-
-select
-  'shortage_revision_log_shape' as check_name,
-  count(*) filter (
-    where reminder_type = 'shortage'
-      and (shortage_reminder_revision is null or shortage_reminder_revision < 1)
-  ) as invalid_shortage_rows,
-  count(*) filter (
-    where reminder_type = 'gm_confirmed'
-      and shortage_reminder_revision is not null
-  ) as invalid_gm_rows,
-  count(*) as total_log_count
-from public.session_reminder_logs;
-
-with shortage_duplicates as (
-  select session_id, reminder_type, shortage_reminder_revision
-  from public.session_reminder_logs
-  where reminder_type = 'shortage'
-  group by session_id, reminder_type, shortage_reminder_revision
-  having count(*) > 1
-),
-gm_duplicates as (
-  select session_id, reminder_type
-  from public.session_reminder_logs
-  where reminder_type = 'gm_confirmed'
-  group by session_id, reminder_type
-  having count(*) > 1
-)
-select
-  'shortage_revision_duplicate_groups' as check_name,
-  (select count(*) from shortage_duplicates) as shortage_duplicate_group_count,
-  (select count(*) from gm_duplicates) as gm_duplicate_group_count;
-
-select
-  'shortage_revision_rpc_presence' as check_name,
-  to_regprocedure('public.preview_due_session_reminders(timestamptz, integer)') is not null as preview_exists,
-  to_regprocedure('public.claim_due_session_reminders(timestamptz, integer)') is not null as claim_exists,
-  to_regprocedure('public.finalize_session_reminder(uuid, uuid, text, text, text)') is not null as finalize_exists,
-  to_regprocedure('public.update_session_reminder_settings(text, boolean, integer, boolean, integer)') is not null as settings_exists;
-
-select
-  'shortage_revision_rpc_security' as check_name,
-  bool_and(p.prosecdef) as all_security_definer
-from pg_proc as p
-join pg_namespace as n on n.oid = p.pronamespace
-where n.nspname = 'public'
-  and p.proname in (
-    'preview_due_session_reminders',
-    'claim_due_session_reminders',
-    'finalize_session_reminder',
-    'update_session_reminder_settings'
-  );
-
-select
-  'shortage_revision_rpc_privileges' as check_name,
-  has_function_privilege('service_role', 'public.preview_due_session_reminders(timestamptz, integer)', 'execute') as service_role_can_preview,
-  has_function_privilege('service_role', 'public.claim_due_session_reminders(timestamptz, integer)', 'execute') as service_role_can_claim,
-  has_function_privilege('service_role', 'public.finalize_session_reminder(uuid, uuid, text, text, text)', 'execute') as service_role_can_finalize,
-  has_function_privilege('authenticated', 'public.update_session_reminder_settings(text, boolean, integer, boolean, integer)', 'execute') as authenticated_can_update_settings,
-  has_function_privilege('anon', 'public.update_session_reminder_settings(text, boolean, integer, boolean, integer)', 'execute') as anon_can_update_settings,
-  has_function_privilege('anon', 'public.preview_due_session_reminders(timestamptz, integer)', 'execute') as anon_can_preview,
-  has_function_privilege('authenticated', 'public.preview_due_session_reminders(timestamptz, integer)', 'execute') as authenticated_can_preview,
-  has_function_privilege('anon', 'public.claim_due_session_reminders(timestamptz, integer)', 'execute') as anon_can_claim,
-  has_function_privilege('authenticated', 'public.claim_due_session_reminders(timestamptz, integer)', 'execute') as authenticated_can_claim,
-  has_function_privilege('authenticated', 'public.finalize_session_reminder(uuid, uuid, text, text, text)', 'execute') as authenticated_can_finalize;
-
-with output_counts as (
-  select
-    r.routine_name,
-    count(*) filter (where p.parameter_mode = 'OUT')::integer as output_column_count,
-    bool_or(
-      p.parameter_mode = 'OUT'
-      and p.parameter_name = 'shortage_reminder_revision'
-      and p.data_type = 'integer'
-    ) as has_shortage_revision_integer
-  from information_schema.routines as r
-  join information_schema.parameters as p
-    on p.specific_schema = r.specific_schema
-   and p.specific_name = r.specific_name
-  where r.specific_schema = 'public'
-    and r.routine_name in ('preview_due_session_reminders', 'claim_due_session_reminders')
-  group by r.routine_name
-)
-select
-  'shortage_revision_rpc_return_shapes' as check_name,
-  max(output_column_count) filter (where routine_name = 'preview_due_session_reminders') as preview_output_columns,
-  max(output_column_count) filter (where routine_name = 'claim_due_session_reminders') as claim_output_columns,
-  bool_or(has_shortage_revision_integer) filter (where routine_name = 'preview_due_session_reminders') as preview_has_shortage_revision,
-  bool_or(has_shortage_revision_integer) filter (where routine_name = 'claim_due_session_reminders') as claim_has_shortage_revision
-from output_counts;
-
--- Expected return counts are preview=17 and claim=19. The new final column is
--- shortage_reminder_revision. Current Edge normalization ignores extra RPC
--- fields, so production behavior does not depend on a same-gate Edge deploy.
---
--- Do not execute either RPC in this SELECT-only apply check:
--- select * from public.preview_due_session_reminders(...);
--- select * from public.claim_due_session_reminders(...);

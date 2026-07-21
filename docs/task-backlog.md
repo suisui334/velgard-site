@@ -9127,6 +9127,57 @@ Status: SQL design and apply candidate completed; not applied.
 - Next gate: SR-02 apply-candidate review and live-operation preflight before
   any separately approved SQL apply.
 
+## Gate SR-02 repeatable shortage reminder live preflight
+
+Status: apply candidate reviewed and live SELECT-only preflight completed; SQL
+not applied.
+
+- Baseline: `ba70dcc Prepare repeatable shortage reminder scheduling`.
+- Added live preflight result:
+  `docs/session-shortage-reminder-preflight-result.md`.
+- Split SQL boundaries into:
+  - apply only:
+    `docs/sql-drafts/session-shortage-reminder-revision-apply-candidate.sql`
+  - preflight SELECT-only:
+    `docs/sql-drafts/session-shortage-reminder-revision-preflight-select-only.sql`
+  - post-apply SELECT-only:
+    `docs/sql-drafts/session-shortage-reminder-revision-post-apply-select-only.sql`
+- Live schema matched the expected pre-apply state:
+  - required session reminder columns `6 / 6`
+  - no existing session/log revision column
+  - old named broad unique constraint count `1`
+  - preview output `16`, claim output `18`
+  - both RPCs retain the GM Discord ID output
+  - all four RPCs are security definer with the expected service/auth boundary
+- Existing log aggregate was `8`: shortage `2`, GM `6`, all terminal `sent`.
+- One historical shortage log has a current schedule mismatch and is not due at
+  preflight time. No row identifier or schedule value was recorded.
+- Corrected rollout migration:
+  - historical shortage logs receive revision `1`
+  - unchanged matching sessions stay revision `1`
+  - already changed start/offset sessions begin at revision `2`
+  - GM logs keep null shortage revision and GM uniqueness is unchanged
+- Trigger bump fields remain only `date`, `start_time`, shortage enabled state,
+  and shortage offset. Unrelated edits preserve revision.
+- Preview appends revision and claim persists the same preview snapshot;
+  targetless `ON CONFLICT DO NOTHING` works with the two partial unique indexes.
+- Edge behavior change is not required before apply because named-field
+  normalization ignores the appended RPC value. TypeScript contract alignment
+  remains a recommended later source-only gate.
+- Live operation read-only result:
+  - one active every-minute cron job
+  - expected Vault names `3 / 3`
+  - recent cron/runtime checks succeeded
+  - recent runtime responses reported production enabled
+  - no positive claim/send response in the observation window
+- Cron unscheduling is not required for transactional apply. Real send must be
+  disabled first and kept disabled through post-apply/dry-run QA.
+- No SQL apply, DB/RPC/RLS mutation, preview/claim/finalize call, Edge change or
+  deploy, Discord send, cron/secret change, or `updates.json` change was made.
+- Next gate: SR-03 independent real-send disable + apply-only SQL + separate
+  post-apply SELECT-only confirmation. Stop on any error and do not rerun
+  blindly.
+
 ## Gate MR-04 manual recruitment reminder Edge Function
 
 Status: Edge Function source added, deploy not performed.

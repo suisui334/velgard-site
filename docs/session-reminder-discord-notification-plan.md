@@ -449,6 +449,16 @@ session/type/revision, and GM reminder uniqueness remains unchanged. See
 `docs/session-shortage-reminder-reschedule-plan.md`. SQL apply and runtime QA
 remain separate later gates.
 
+Gate SR-02 completed a live SELECT-only preflight. The current 16-column
+preview, 18-column claim, service-role boundary, old broad unique constraint,
+and active every-minute scheduler matched the candidate assumptions. One
+historical shortage log has a current schedule mismatch, so the reviewed
+migration keeps that log on revision `1` and starts the changed session on
+revision `2`; unchanged historical schedules remain revision `1`. Apply and
+post-apply SELECTs are now separate files. No SQL was applied. Because recent
+runtime responses report production enabled, a future apply gate must disable
+real send first; cron itself does not need to be unscheduled.
+
 The draft proposes these RPC boundaries:
 
 - `preview_due_session_reminders(p_now, p_limit)` for write-free dry-run preview.

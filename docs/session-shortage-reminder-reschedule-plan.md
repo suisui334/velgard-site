@@ -1,6 +1,6 @@
 # Shortage Reminder Reschedule Plan
 
-Status: Gate SR-01 design and SQL apply candidate completed. SQL not applied.
+Status: Gate SR-02 live preflight and final candidate review completed. SQL not applied.
 
 ## Goal
 
@@ -99,10 +99,16 @@ guards concurrent cron calls and repeated minute ticks. A failed or skipped
 attempt also consumes that revision, matching the current no-automatic-retry
 policy.
 
-Existing shortage log rows are backfilled to revision `1`, which is also the
-initial revision for existing sessions. Applying the schema alone therefore
-does not turn historical shortage logs into immediate resend candidates.
-Revision tracking starts for relevant edits made after apply.
+Existing shortage log rows are backfilled to revision `1`. Sessions whose
+current start and shortage offset still match that historical log also remain
+at revision `1`. If the current start or offset differs from the log, the
+session starts at revision `2` while the old log remains on revision `1`.
+
+This migration rule was added after SR-02 found one existing shortage log with
+a current schedule mismatch. It avoids an apply-only resend for unchanged
+schedules without losing a schedule change that already happened before the
+revision column existed. Historical enabled/disabled transitions cannot be
+reconstructed when the current values and stored schedule are identical.
 
 ## RPC Changes
 
@@ -170,14 +176,20 @@ Apply candidate:
 
 - `docs/sql-drafts/session-shortage-reminder-revision-apply-candidate.sql`
 
-The file contains one apply transaction followed by separate SELECT-only
-checks. It must not be run automatically or mixed with the checks in one SQL
-Editor execution.
+Apply and checks are separate files and separate SQL Editor executions:
 
-Because the automatic scheduler and real-send gate may be active, the future
-apply gate should first confirm the live operation state and current shortage
-candidate count. Temporarily disabling production send should be handled as an
-explicit operational step if needed; it is not performed in SR-01.
+- apply transaction:
+  `docs/sql-drafts/session-shortage-reminder-revision-apply-candidate.sql`
+- live preflight:
+  `docs/sql-drafts/session-shortage-reminder-revision-preflight-select-only.sql`
+- post-apply checks:
+  `docs/sql-drafts/session-shortage-reminder-revision-post-apply-select-only.sql`
+
+SR-02 confirmed that the automatic scheduler is active every minute and the
+recent runtime responses report production enabled. The cron job does not need
+to be unscheduled because the apply is transactional. Production send must,
+however, be disabled in a separate approved operation before apply, then kept
+disabled through post-apply and revision-aware dry-run QA.
 
 Rollback requires a separately reviewed SQL candidate. The safe order is:
 
@@ -194,9 +206,9 @@ a shortcut.
 
 ## Open Points
 
-- Historical schedule changes made before this SQL is applied cannot be
-  reconstructed. Existing shortage logs intentionally bind to initial revision
-  `1` to prevent surprise resend.
+- Historical start/offset changes are reconstructed when the stored log
+  schedule differs from the current session. Past enabled/disabled transitions
+  cannot be reconstructed if the current schedule and offset match the log.
 - Failed/skipped shortage attempts remain non-retryable within the same
   revision. A retry/reset policy remains a separate gate.
 - If a main session save and settings save both change relevant fields, two
@@ -206,30 +218,31 @@ a shortcut.
 
 ## Blockers
 
-No design blocker was found in the repository contract. The apply candidate is
-based on the applied-equivalent SQL definitions recorded in docs, including the
-GM Discord ID return column and the corrected claim aliases/casts.
+No schema/RPC design blocker was found. SR-02 SELECT-only live preflight
+confirmed the expected columns, named old unique constraint, 16/18-column
+preview/claim shapes, security-definer and EXECUTE boundaries, log constraints,
+active every-minute cron, Vault name boundary, and recent runtime operation.
 
-Before apply, SR-02 must still use SELECT-only preflight to confirm that the
-live function signatures, named old unique constraint, table columns, grants,
-and active scheduler/real-send state still match this candidate. Any mismatch
-is a stop condition; do not edit or rerun SQL ad hoc in the apply gate.
+The remaining blocker is operational: real send is currently enabled and must
+be disabled before SR-03 apply. Do not unschedule cron or edit SQL ad hoc in the
+apply gate.
 
 ## Next Gates
 
-1. SR-02: independently review the apply candidate, current production state,
-   and rollback constraints.
-2. SR-03: explicit SQL apply followed by the included SELECT-only checks.
-3. SR-03.5: optional Edge TypeScript contract alignment for the appended RPC
+1. SR-03: explicitly disable production send, confirm cron rejection/log
+   stability, run the apply-only file, then run the separate post-apply SELECT
+   file.
+2. SR-03.5: optional Edge TypeScript contract alignment for the appended RPC
    column, without changing response exposure or delivery logic.
-4. SR-04: production-disabled preview QA for the six behavior cases using a
+3. SR-04: production-disabled preview QA for the six behavior cases using a
    controlled future session; no Discord send.
-5. SR-05: limited production observation only after explicit approval.
+4. SR-05: limited production observation only after explicit approval.
 
 ## Not Performed
 
 - SQL Editor execution or SQL apply
 - DB/RPC/RLS mutation
+- production real-send disable/enable
 - Edge Function change or deploy
 - runtime preview/claim/finalize invocation
 - Discord send
