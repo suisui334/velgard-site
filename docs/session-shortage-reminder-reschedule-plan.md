@@ -1,6 +1,6 @@
 # Shortage Reminder Reschedule Plan
 
-Status: Gate SR-02 live preflight and final candidate review completed. SQL not applied.
+Status: Gate SR-03 rollout completed; SQL applied by the user, post-apply checks passed, and automatic real send restored.
 
 ## Goal
 
@@ -223,29 +223,37 @@ confirmed the expected columns, named old unique constraint, 16/18-column
 preview/claim shapes, security-definer and EXECUTE boundaries, log constraints,
 active every-minute cron, Vault name boundary, and recent runtime operation.
 
-The remaining blocker is operational: real send is currently enabled and must
-be disabled before SR-03 apply. Do not unschedule cron or edit SQL ad hoc in the
-apply gate.
+The SR-02 operational blocker is resolved. Real send was disabled before the
+user-run SR-03 apply, the apply and all post-apply checks succeeded, and Gate
+SR-03D restored real send. No schema/RPC or operation blocker remains for the
+deployed revision behavior.
 
 ## Next Gates
 
-1. SR-03: explicitly disable production send, confirm cron rejection/log
-   stability, run the apply-only file, then run the separate post-apply SELECT
-   file.
-2. SR-03.5: optional Edge TypeScript contract alignment for the appended RPC
+1. SR-03.5: optional Edge TypeScript contract alignment for the appended RPC
    column, without changing response exposure or delivery logic.
-3. SR-04: production-disabled preview QA for the six behavior cases using a
-   controlled future session; no Discord send.
-4. SR-05: limited production observation only after explicit approval.
+2. SR-04: optional controlled preview QA for the six behavior cases if further
+   evidence is needed; no manual Discord send is required for rollout closure.
+3. Continue normal operation through the existing every-minute scheduler.
+
+## Rollout Completion
+
+The user completed the independent SR-03 SQL apply and reported all `16 / 16`
+post-apply checks successful. Return-shape ordinals `19` for preview and `21`
+for claim are correct because `information_schema.parameters` counts the two
+input arguments before OUT columns; OUT-column counts remain `17` and `19`.
+
+Gate SR-03D restored `SESSION_REMINDER_REAL_SEND_ENABLED` to enabled. The cron
+was not changed, no Edge Function was deployed, and no manual Discord send was
+performed. See `docs/session-shortage-reminder-rollout-result.md`.
 
 ## Not Performed
 
-- SQL Editor execution or SQL apply
-- DB/RPC/RLS mutation
-- production real-send disable/enable
+- SQL Editor execution or SQL apply by Codex in SR-03D
+- DB/RPC/RLS mutation by Codex in SR-03D
 - Edge Function change or deploy
 - runtime preview/claim/finalize invocation
-- Discord send
-- cron or secret change
+- manual Discord send
+- cron change or non-target secret change
 - UI change
 - `updates.json` change

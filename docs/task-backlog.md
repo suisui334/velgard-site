@@ -9178,6 +9178,35 @@ not applied.
   post-apply SELECT-only confirmation. Stop on any error and do not rerun
   blindly.
 
+## Gate SR-03 repeatable shortage reminder rollout
+
+Status: completed; user-applied SQL confirmed and automatic real send restored.
+
+- Baseline: `dc5f631 Review repeatable shortage reminder SQL`.
+- SR-03A temporarily set `SESSION_REMINDER_REAL_SEND_ENABLED` to disabled while
+  leaving the every-minute cron unchanged.
+- The user applied the reviewed shortage revision SQL in the independent SQL
+  gate.
+- All `16 / 16` post-apply checks were reported successful.
+- `rpc_return_shapes` reported preview ordinal `19` and claim ordinal `21`.
+  These are normal because `ordinal_position` includes the two input arguments;
+  actual OUT-column counts remain preview `17` and claim `19`.
+- Shortage reminder duplicate prevention is now
+  `(session_id, reminder_type, shortage_reminder_revision)`.
+- GM confirmed duplicate prevention remains `(session_id, reminder_type)`.
+- `date`, `start_time`, shortage enabled state, and shortage offset changes bump
+  revision; unrelated edits preserve it.
+- Gate SR-03D set `SESSION_REMINDER_REAL_SEND_ENABLED` back to enabled and
+  confirmed the secret name without recording its value.
+- Existing every-minute cron operation is unchanged and automatic dispatch is
+  restored.
+- Added rollout record:
+  `docs/session-shortage-reminder-rollout-result.md`.
+- No SQL was executed by Codex in SR-03D. No Edge deploy, cron change, manual
+  Discord send, other secret change, or `updates.json` change was performed.
+- Optional next work is Edge TypeScript contract alignment for the appended
+  revision field; it is not required for current operation.
+
 ## Gate MR-04 manual recruitment reminder Edge Function
 
 Status: Edge Function source added, deploy not performed.

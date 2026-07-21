@@ -459,6 +459,14 @@ post-apply SELECTs are now separate files. No SQL was applied. Because recent
 runtime responses report production enabled, a future apply gate must disable
 real send first; cron itself does not need to be unscheduled.
 
+Gate SR-03 was subsequently applied by the user and all `16 / 16` post-apply
+checks succeeded. The reported revision ordinals, preview `19` and claim `21`,
+are correct because the metadata positions include two input arguments; actual
+OUT-column counts are preview `17` and claim `19`. Gate SR-03D restored
+automatic real send without an Edge deploy or cron change. Shortage duplicate
+prevention now uses session/type/revision, while GM confirmed remains
+session/type. No manual Discord test was performed in the restoration gate.
+
 The draft proposes these RPC boundaries:
 
 - `preview_due_session_reminders(p_now, p_limit)` for write-free dry-run preview.
