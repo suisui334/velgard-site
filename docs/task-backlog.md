@@ -9064,6 +9064,26 @@ operation, direct Supabase write, debug console logging addition,
 rewrite, CSS split, auth/permission logic change, RPC/DB key configuration,
 `management_key` display, or raw id/email/token/JWT display was performed.
 
+## Gate MP-01 mypage upcoming-session start-time filter
+
+Status: completed.
+
+- Accepted sessions in the mypage `参加予定` section are now filtered by the
+  combined session date and start time in Japan Standard Time.
+- Sessions remain visible before the start instant and are hidden at or after
+  that instant, independently of recruiting/closed status.
+- Missing or invalid date/time values remain visible to avoid silently hiding
+  anomalous existing data.
+- Pending applications and other mypage sections are unchanged.
+- The upcoming badge and schedule summary use the filtered item count.
+- Updated the `mypageAuthClient.js` cache-bust and added
+  `docs/mypage-upcoming-session-filter-result.md`.
+- Authenticated browser verification with live application data remains
+  `not_tested`; syntax and deterministic date/time boundary checks completed.
+
+No SQL/DB change, Edge deploy, secret or cron change, Discord send,
+`updates.json` change, or data write was performed.
+
 ## Gate MR-08 Discord notification URL bracket spacing
 
 Status: completed and deployed.

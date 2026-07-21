@@ -547,6 +547,40 @@
     return isPublicSession(session) && !["draft", "canceled", "cancelled", "archived"].includes(status);
   }
 
+  function hasSessionStartedAtJst(session, nowTime = Date.now()) {
+    const dateText = String(session && session.date ? session.date : "").trim();
+    const timeText = String(session && session.startTime ? session.startTime : "").trim();
+    const dateMatch = dateText.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    const timeMatch = timeText.match(/^(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?$/);
+    if (!dateMatch || !timeMatch) return false;
+
+    const year = Number(dateMatch[1]);
+    const month = Number(dateMatch[2]);
+    const day = Number(dateMatch[3]);
+    const hour = Number(timeMatch[1]);
+    const minute = Number(timeMatch[2]);
+    const second = Number(timeMatch[3] || 0);
+    const maxDay = month >= 1 && month <= 12
+      ? new Date(Date.UTC(year, month, 0)).getUTCDate()
+      : 0;
+
+    if (
+      year < 1000
+      || day < 1
+      || day > maxDay
+      || hour > 23
+      || minute > 59
+      || second > 59
+    ) {
+      return false;
+    }
+
+    const sessionStartTime = Date.UTC(year, month - 1, day, hour, minute, second) - (9 * 60 * 60 * 1000);
+    const currentTime = Number(nowTime);
+    if (!Number.isFinite(sessionStartTime) || !Number.isFinite(currentTime)) return false;
+    return sessionStartTime <= currentTime;
+  }
+
   function getSessionTitle(session) {
     return String(session && session.title ? session.title : "無題のセッション").trim();
   }
@@ -832,6 +866,7 @@
       pending: [],
       accepted: []
     };
+    const nowTime = Date.now();
 
     applications.forEach((application) => {
       const group = getApplicationGroup(application);
@@ -839,7 +874,7 @@
 
       const sessionId = String(application && application.session_id ? application.session_id : "").trim();
       const session = sessionsById.get(sessionId) || null;
-      if (group === "accepted" && isEndedSession(session)) return;
+      if (group === "accepted" && (isEndedSession(session) || hasSessionStartedAtJst(session, nowTime))) return;
 
       grouped[group].push({ application, session });
     });
